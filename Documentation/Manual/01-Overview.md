@@ -8,7 +8,7 @@
 
 Pipeline Neo provides a comprehensive API for parsing, creating, and manipulating FCPXML files with advanced timecode operations, async/await patterns, and robust error handling. The framework is **protocol-oriented**: you inject parsers, timecode converters, document managers, and error handlers to build a pipeline that fits your app. All major operations are available both **synchronously** and **asynchronously**.
 
-**Target:** macOS 12+, Xcode 16+, Swift 6.0 with full concurrency support.
+**Target:** macOS 12+, iOS 15+, Xcode 16+, Swift 6.0 with full concurrency support. The library uses a platform-agnostic XML layer (`PNXMLDocument`, `PNXMLElement`, `PNXMLFactory`): Foundation backend on macOS, AEXML backend on iOS.
 
 ---
 
@@ -60,7 +60,7 @@ Inject a logger into `FCPXMLService` or `FCPXMLUtility` to observe parse, conver
 
 ## Extensions and high-level model
 
-- **XMLDocument** and **XMLElement** have FCPXML-specific `fcpx*` properties and methods. Use modular overloads (e.g. `addResource(_:using: documentManager)`) when injecting dependencies.
+- **PNXMLDocument** and **PNXMLElement** (protocol types) have FCPXML-specific `fcpx*` properties and methods. On macOS the concrete types wrap Foundation XML; on iOS they wrap AEXML. Use modular overloads (e.g. `addResource(_:using: documentManager)`) when injecting dependencies.
 - **FinalCutPro.FCPXML** wraps a document for high-level access: `root`, `version`, `allEvents()`, `allProjects()`.
 
 ---

@@ -25,6 +25,7 @@ Complete manual and usage guide for **Pipeline Neo**, a Swift 6 framework for Fi
 | [15 — Errors & Utilities](15-Errors-Utilities.md) | Error types, ErrorHandling, ProgressBar, FCPXMLUID |
 | [16 — CLI](16-CLI.md) | Experimental command-line interface (pipeline-neo) |
 | [17 — Examples](17-Examples.md) | End-to-end workflows and code examples |
+| [18 — Cross-Platform & iOS](18-Cross-Platform-iOS.md) | XML abstraction layer, PNXML protocols, Foundation vs AEXML backends, iOS support |
 
 ---
 

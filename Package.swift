@@ -28,7 +28,7 @@ let package = Package(
         // Timecode operations
         .package(url: "https://github.com/orchetect/swift-timecode", from: "3.0.0"),
         // Utility extensions
-        .package(url: "https://github.com/orchetect/swift-extensions", from: "2.1.0"),
+        .package(url: "https://github.com/orchetect/swift-extensions", from: "2.1.1"),
         // Explicit logging dependency (Xcode 26 dynamic linking compatibility)
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
         // Cross-platform XML parsing (AEXML backend for iOS and other non-macOS platforms)
