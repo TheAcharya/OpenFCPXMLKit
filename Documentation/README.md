@@ -24,13 +24,14 @@ The manual is split into **chapters** for easier navigation and maintenance:
 | [10 — Extraction & Media](Manual/10-Extraction-Media.md) | Extraction scope and presets, media extraction and copy |
 | [11 — Media Processing](Manual/11-Media-Processing.md) | MIME type, asset validation, silence detection, duration, parallel I/O |
 | [12 — Typed Models](Manual/12-Typed-Models.md) | Adjustments, filters, captions/titles, keyframe animation, Live Drawing, collections |
-| [13 — XML Extensions](Manual/13-XML-Extensions.md) | XMLDocument and XMLElement FCPXML extensions |
+| [13 — XML Extensions](Manual/13-XML-Extensions.md) | PNXMLDocument and PNXMLElement FCPXML extensions (cross-platform) |
 | [14 — High-Level Model](Manual/14-High-Level-Model.md) | FinalCutPro.FCPXML, Root, events, projects |
+| [18 — Cross-Platform & iOS](Manual/18-Cross-Platform-iOS.md) | XML abstraction layer, Foundation vs AEXML, iOS support |
 | [15 — Errors & Utilities](Manual/15-Errors-Utilities.md) | Error types, ErrorHandling, ProgressBar, FCPXMLUID |
 | [16 — CLI](Manual/16-CLI.md) | Experimental command-line interface (pipeline-neo) |
 | [17 — Examples](Manual/17-Examples.md) | End-to-end workflows and code examples |
 
-The manual covers the **entire public API** with examples: core operations, async/await, file I/O, validation, timeline creation and manipulation, metadata, media processing, typed models (including Live Drawing, HiddenClipMarker, SmartCollection match rules, Format/Asset 1.13+), version conversion, CLI, and utilities.
+The manual covers the **entire public API** with examples: core operations, async/await, file I/O, validation, timeline creation and manipulation, metadata, media processing, typed models (including Live Drawing, HiddenClipMarker, SmartCollection match rules, Format/Asset 1.13+), version conversion, CLI, and utilities. **Chapter 18** describes the cross-platform XML abstraction (PNXML protocols, Foundation vs AEXML backends) and **iOS 15+** support.
 
 ---
 

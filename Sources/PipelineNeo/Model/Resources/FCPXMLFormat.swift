@@ -27,17 +27,17 @@ extension FinalCutPro.FCPXML {
     /// >
     /// > See [`format`](https://developer.apple.com/documentation/professional_video_applications/fcpxml_reference/format).
     public struct Format: FCPXMLElement {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .format
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.format]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -127,7 +127,7 @@ extension FinalCutPro.FCPXML.Format {
     /// Field order. Only present if video is interlaced.
     public var fieldOrder: String? {
         get { element.stringValue(forAttributeNamed: Attributes.fieldOrder.rawValue) }
-        nonmutating set { element.addAttribute(withName: Attributes.fieldOrder.rawValue, value: newValue) }
+        nonmutating set { element.addAttribute(name: Attributes.fieldOrder.rawValue, value: newValue) }
     }
     
     public var width: Int? {
@@ -152,30 +152,30 @@ extension FinalCutPro.FCPXML.Format {
     
     public var colorSpace: String? {
         get { element.stringValue(forAttributeNamed: Attributes.colorSpace.rawValue) }
-        nonmutating set { element.addAttribute(withName: Attributes.colorSpace.rawValue, value: newValue) }
+        nonmutating set { element.addAttribute(name: Attributes.colorSpace.rawValue, value: newValue) }
     }
     
     public var projection: String? {
         get { element.stringValue(forAttributeNamed: Attributes.projection.rawValue) }
-        nonmutating set { element.addAttribute(withName: Attributes.projection.rawValue, value: newValue) }
+        nonmutating set { element.addAttribute(name: Attributes.projection.rawValue, value: newValue) }
     }
     
     public var stereoscopic: String? {
         get { element.stringValue(forAttributeNamed: Attributes.stereoscopic.rawValue) }
-        nonmutating set { element.addAttribute(withName: Attributes.stereoscopic.rawValue, value: newValue) }
+        nonmutating set { element.addAttribute(name: Attributes.stereoscopic.rawValue, value: newValue) }
     }
     
     /// Hero eye for stereoscopic. FCPXML 1.13+; backward compatible with 1.5 (omit when version < 1.13). Values: "left" | "right".
     public var heroEye: String? {
         get { element.stringValue(forAttributeNamed: Attributes.heroEye.rawValue) }
-        nonmutating set { element.addAttribute(withName: Attributes.heroEye.rawValue, value: newValue) }
+        nonmutating set { element.addAttribute(name: Attributes.heroEye.rawValue, value: newValue) }
     }
 }
 
 // MARK: - Typing
 
 // Format
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Format`` model object.
     /// Call this on a `format` element only.
     public var fcpAsFormat: FinalCutPro.FCPXML.Format? {

@@ -45,9 +45,9 @@ public struct ChapterMarker: Sendable, Equatable, Hashable {
     }
 
     /// Builds the FCPXML `<chapter-marker>` element.
-    public func xmlElement() -> XMLElement {
+    public func xmlElement(factory: any PNXMLFactory = PNXMLDefaultFactory()) -> any PNXMLElement {
         let utility = FCPXMLUtility.defaultForExtensions
-        let element = XMLElement(name: "chapter-marker")
+        let element = factory.makeElement(name: "chapter-marker")
         element.addSafeAttribute(name: "start", value: utility.fcpxmlTime(fromCMTime: start))
         element.addSafeAttribute(name: "value", value: value)
         if let posterOffset = posterOffset {

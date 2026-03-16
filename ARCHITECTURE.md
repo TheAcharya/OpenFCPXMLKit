@@ -10,8 +10,8 @@ A guide for contributors: project structure, architecture, naming, styling, and 
 
 Pipeline Neo is a **Swift 6** framework for Final Cut Pro FCPXML: parsing, creation, manipulation, and timecode operations (via SwiftTimecode). It is **protocol-oriented** and **dependency-injected**: core behaviour is behind protocols; default implementations are injectable; extension APIs that cannot take parameters use a single shared instance.
 
-- **Targets:** macOS 12+, Xcode 16+, Swift 6.0.
-- **Dependencies:** SwiftTimecode 3.0+, SwiftExtensions 2.0+, Foundation, CoreMedia.
+- **Targets:** macOS 12+, iOS 15+, Xcode 16+, Swift 6.0.
+- **Dependencies:** SwiftTimecode 3.0+, SwiftExtensions 2.0+, AEXML 4.0+ (iOS/cross-platform XML), Foundation, CoreMedia.
 - **FCPXML:** Versions 1.5–1.14 (DTDs included); Final Cut Pro frame rates (23.976, 24, 25, 29.97, 30, 50, 59.94, 60).
 
 ---
@@ -55,8 +55,13 @@ Extension APIs that **cannot take parameters** (e.g. `CMTime.fcpxmlString`, `XML
 ### 2.4 Concurrency
 
 - **Sendable** where appropriate; Swift 6 strict concurrency (`-strict-concurrency=complete`) in CI.
-- **Foundation XML** (XMLDocument, XMLElement) and **SwiftTimecode** types are not Sendable. The codebase provides **async/await** APIs but avoids Task-based concurrency over these types.
+- **Foundation XML** (XMLDocument, XMLElement), the **PNXML** protocol types (PNXMLDocument, PNXMLElement) that wrap them, and **SwiftTimecode** types are not Sendable. The codebase provides **async/await** APIs but avoids Task-based concurrency over these types.
 - Use `async/await` for asynchronous operations; use `Task`/`TaskGroup` only where types are Sendable.
+
+### 2.6 Cross-platform XML (iOS support)
+
+- **XML abstraction:** All document/element access goes through **protocols** (PNXMLNode, PNXMLElement, PNXMLDocument, PNXMLFactory). On **macOS** the default backend is Foundation (FoundationXMLElement, FoundationXMLDocument, FoundationXMLFactory). On **iOS** the backend is AEXML (AEXMLBackendElement, AEXMLBackendDocument, AEXMLBackendFactory). Use **PNXMLDefaultFactory()** so the correct backend is used for the current platform.
+- **DTD validation:** Full DTD validation is macOS-only. **FCPXMLDTDValidator** on iOS uses **FCPXMLStructuralValidator** (root, version, resources, element allowlist) and may add a `structuralValidationOnly` warning.
 
 ### 2.5 Error handling
 
@@ -76,7 +81,7 @@ Source layout under **`Sources/PipelineNeo/`**:
 | **Classes** | FinalCutPro, FCPXML, FCPXMLElementType, FCPXMLUtility, FCPXMLVersion, FCPXMLRoot, FCPXMLRootVersion, FCPXMLInit, FCPXMLProperties. |
 | **Delegates** | AttributeParserDelegate, FCPXMLParserDelegate (internal). |
 | **Errors** | FCPXMLError, FCPXMLParseError, TimelineError. |
-| **Extensions** | CMTime, XMLElement, XMLDocument (+Modular, +Codable, and non-modular). |
+| **Extensions** | CMTime, XMLElement, XMLDocument (+Modular, +Codable, and non-modular). FCPXML extensions operate on PNXMLElement/PNXMLDocument protocol types. |
 | **Implementations** | Default implementations of all protocols above. |
 | **Protocols** | All operation protocols. |
 | **Services** | FCPXMLService. |
@@ -85,13 +90,14 @@ Source layout under **`Sources/PipelineNeo/`**:
 | **Export** | FCPXMLExporter, FCPXMLBundleExporter, FCPXMLExportAsset. |
 | **Timeline** | Timeline, TimelineClip, TimelineFormat. |
 | **Timing** | FCPXMLTimecode. |
-| **Validation** | FCPXMLValidator, FCPXMLDTDValidator, ValidationResult, ValidationError/Warning, DocumentValidationReport. |
+| **Validation** | FCPXMLValidator, FCPXMLDTDValidator, FCPXMLStructuralValidator (cross-platform; used on iOS when DTD unavailable), ValidationResult, ValidationError/Warning, DocumentValidationReport. |
 | **FileIO** | FCPXMLFileLoader. |
 | **Logging** | PipelineLogger, PipelineLogLevel, NoOp/Print/FilePipelineLogger. |
 | **Format** | ColorSpace. |
 | **Model** | FCPXML element models: Adjustments, Animations, Attributes, Clips, CommonElements, ElementTypes, Filters, Occlusion, Protocols, Resources, Roles, Structure (CollectionFolder, KeywordCollection, etc.). |
 | **Parsing** | XML parsing extensions (Attributes, Clip, Elements, Metadata, Resources, Roles, Root, Time and Frame Rate). |
 | **Extraction** | ExtractionScope, Extract, presets, Context. |
+| **XML** | Platform-agnostic XML layer: Protocols (PNXMLNode, PNXMLElement, PNXMLDocument, PNXMLDTDProtocol, PNXMLFactory), Foundation/ (Foundation backends), AEXML/ (AEXML backends), PNXMLDefaultFactory. |
 | **FCPXML DTDs** | Version 1.5–1.14 DTDs. |
 
 **CLI:** `Sources/PipelineNeoCLI/` (commands, options, embedded DTDs).
@@ -160,6 +166,7 @@ Source layout under **`Sources/PipelineNeo/`**:
 - **Version conversion** sets root version and **strips elements** not in the target DTD (e.g. adjust-colorConform, adjust-stereo-3D). Per-version DTD validation via `FCPXMLService.validateDocumentAgainstDTD(_:version:)` and `validateDocumentAgainstDeclaredVersion(_:)`.
 - **Timeline** is a value type; manipulation methods (e.g. ripple insert, auto lane) return new instances or results; timestamps (`createdAt`, `modifiedAt`) are updated on mutating operations.
 - **SwiftTimecode:** Use `Timecode(.realTime(seconds:), at: frameRate)` and frame rate cases `.fps23_976`, `.fps24`, `.fps25`, etc. (not the old `._24`, `._25`).
+- **Cross-platform XML:** Use `PNXMLDefaultFactory()` when creating documents/elements so iOS gets the AEXML backend. All parsing and model code uses `any PNXMLDocument` / `any PNXMLElement`; the concrete type is chosen at runtime.
 
 ---
 

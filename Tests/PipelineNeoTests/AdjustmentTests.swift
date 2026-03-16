@@ -431,9 +431,9 @@ final class AdjustmentTests: XCTestCase {
     // MARK: - Clip adjustment round-trip (new adjustments)
 
     func testClipReorientAdjustmentRoundTrip() throws {
-        let clipEl = XMLElement(name: "clip")
-        clipEl.addAttribute(withName: "ref", value: "r1")
-        let videoEl = XMLElement(name: "video")
+        let clipEl = FoundationXMLFactory().makeElement(name: "clip")
+        clipEl.addAttribute(name: "ref", value: "r1")
+        let videoEl = FoundationXMLFactory().makeElement(name: "video")
         clipEl.addChild(videoEl)
         guard let clip = FinalCutPro.FCPXML.Clip(element: clipEl) else { XCTFail("Clip init"); return }
         let reorient = FinalCutPro.FCPXML.ReorientAdjustment(pan: "10", roll: "5")
@@ -446,9 +446,9 @@ final class AdjustmentTests: XCTestCase {
     }
 
     func testClipColorConformAdjustmentRoundTrip() throws {
-        let clipEl = XMLElement(name: "clip")
-        clipEl.addAttribute(withName: "ref", value: "r1")
-        let videoEl = XMLElement(name: "video")
+        let clipEl = FoundationXMLFactory().makeElement(name: "clip")
+        clipEl.addAttribute(name: "ref", value: "r1")
+        let videoEl = FoundationXMLFactory().makeElement(name: "video")
         clipEl.addChild(videoEl)
         guard let clip = FinalCutPro.FCPXML.Clip(element: clipEl) else { XCTFail("Clip init"); return }
         let colorConform = FinalCutPro.FCPXML.ColorConformAdjustment(
@@ -462,9 +462,9 @@ final class AdjustmentTests: XCTestCase {
     }
 
     func testClipStereo3DAdjustmentRoundTrip() throws {
-        let clipEl = XMLElement(name: "clip")
-        clipEl.addAttribute(withName: "ref", value: "r1")
-        let videoEl = XMLElement(name: "video")
+        let clipEl = FoundationXMLFactory().makeElement(name: "clip")
+        clipEl.addAttribute(name: "ref", value: "r1")
+        let videoEl = FoundationXMLFactory().makeElement(name: "video")
         clipEl.addChild(videoEl)
         guard let clip = FinalCutPro.FCPXML.Clip(element: clipEl) else { XCTFail("Clip init"); return }
         let stereo = FinalCutPro.FCPXML.Stereo3DAdjustment(convergence: "0.2", autoScale: false)
@@ -474,9 +474,9 @@ final class AdjustmentTests: XCTestCase {
     }
 
     func testClipRollingShutterAdjustmentRoundTrip() throws {
-        let clipEl = XMLElement(name: "clip")
-        clipEl.addAttribute(withName: "ref", value: "r1")
-        let videoEl = XMLElement(name: "video")
+        let clipEl = FoundationXMLFactory().makeElement(name: "clip")
+        clipEl.addAttribute(name: "ref", value: "r1")
+        let videoEl = FoundationXMLFactory().makeElement(name: "video")
         clipEl.addChild(videoEl)
         guard let clip = FinalCutPro.FCPXML.Clip(element: clipEl) else { XCTFail("Clip init"); return }
         let rs = FinalCutPro.FCPXML.RollingShutterAdjustment(isEnabled: true, amount: .high)
@@ -488,9 +488,9 @@ final class AdjustmentTests: XCTestCase {
     }
 
     func testClipConformAdjustmentRoundTrip() throws {
-        let clipEl = XMLElement(name: "clip")
-        clipEl.addAttribute(withName: "ref", value: "r1")
-        let videoEl = XMLElement(name: "video")
+        let clipEl = FoundationXMLFactory().makeElement(name: "clip")
+        clipEl.addAttribute(name: "ref", value: "r1")
+        let videoEl = FoundationXMLFactory().makeElement(name: "video")
         clipEl.addChild(videoEl)
         guard let clip = FinalCutPro.FCPXML.Clip(element: clipEl) else { XCTFail("Clip init"); return }
         let conform = FinalCutPro.FCPXML.ConformAdjustment(type: .fill)

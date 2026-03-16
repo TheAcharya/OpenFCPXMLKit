@@ -15,16 +15,16 @@ import SwiftExtensions
 /// Protocol for extracted elements that adds contextual properties.
 public protocol FCPXMLExtractedElement where Self: Sendable {
     /// The extracted XML element.
-    var element: XMLElement { get }
-    
+    var element: any PNXMLElement { get }
+
     /// XML breadcrumbs that were followed during the extraction process.
     ///
     /// This provides necessary element traversal history needed to infer context values
     /// that cannot be provided from the XML document layout.
-    var breadcrumbs: [XMLElement] { get }
-    
+    var breadcrumbs: [any PNXMLElement] { get }
+
     /// Resources. If `nil`, resources will be acquired from the XML document.
-    var resources: XMLElement? { get }
+    var resources: (any PNXMLElement)? { get }
     
     /// Return the a context value for the element.
     func value<Value>(

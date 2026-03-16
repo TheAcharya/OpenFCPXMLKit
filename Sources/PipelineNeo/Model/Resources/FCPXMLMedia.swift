@@ -25,17 +25,17 @@ extension FinalCutPro.FCPXML {
     /// > https://developer.apple.com/documentation/professional_video_applications/fcpxml_reference/media
     /// > ).
     public struct Media: FCPXMLElement {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .media
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.media]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -145,7 +145,7 @@ extension FinalCutPro.FCPXML.Media {
     
     public var projectRef: String? {
         get { element.stringValue(forAttributeNamed: Attributes.projectRef.rawValue) }
-        nonmutating set { element.addAttribute(withName: Attributes.projectRef.rawValue, value: newValue) }
+        nonmutating set { element.addAttribute(name: Attributes.projectRef.rawValue, value: newValue) }
     }
     
     // asset attributes
@@ -187,7 +187,7 @@ extension FinalCutPro.FCPXML.Media {
 // MARK: - Typing
 
 // Media
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Media`` model object.
     /// Call this on a `media` element only.
     public var fcpAsMedia: FinalCutPro.FCPXML.Media? {

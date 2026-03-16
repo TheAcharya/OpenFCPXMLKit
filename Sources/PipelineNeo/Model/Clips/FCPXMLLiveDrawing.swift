@@ -17,17 +17,17 @@ extension FinalCutPro.FCPXML {
     ///
     /// Story element for drawn/sketch content. DTD: `(param*, note?, %intrinsic-params-live-drawing;, (%anchor_item;)*, (%marker_item;)*, (%video_filter_item;)*)` with clip_attrs, role, dataLocator, animationType.
     public struct LiveDrawing: FCPXMLElement {
-        public let element: XMLElement
+        public let element: any PNXMLElement
 
         public let elementType: ElementType = .liveDrawing
 
         public static let supportedElementTypes: Set<ElementType> = [.liveDrawing]
 
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
 
-        public init?(element: XMLElement) {
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -92,27 +92,27 @@ extension FinalCutPro.FCPXML.LiveDrawing {
 extension FinalCutPro.FCPXML.LiveDrawing {
     /// Role (default 'video' per DTD).
     public var role: String? {
-        get { element.attribute(forName: "role")?.stringValue }
+        get { element.attribute(forName: "role") }
         nonmutating set {
-            if let v = newValue { element.addAttribute(withName: "role", value: v) }
+            if let v = newValue { element.addAttribute(name: "role", value: v) }
             else { element.removeAttribute(forName: "role") }
         }
     }
 
     /// IDREF to location of serialized PKDrawing data file; can be empty.
     public var dataLocator: String? {
-        get { element.attribute(forName: "dataLocator")?.stringValue }
+        get { element.attribute(forName: "dataLocator") }
         nonmutating set {
-            if let v = newValue { element.addAttribute(withName: "dataLocator", value: v) }
+            if let v = newValue { element.addAttribute(name: "dataLocator", value: v) }
             else { element.removeAttribute(forName: "dataLocator") }
         }
     }
 
     /// Animation type for the live drawing.
     public var animationType: String? {
-        get { element.attribute(forName: "animationType")?.stringValue }
+        get { element.attribute(forName: "animationType") }
         nonmutating set {
-            if let v = newValue { element.addAttribute(withName: "animationType", value: v) }
+            if let v = newValue { element.addAttribute(name: "animationType", value: v) }
             else { element.removeAttribute(forName: "animationType") }
         }
     }
@@ -132,7 +132,7 @@ extension FinalCutPro.FCPXML.LiveDrawing: FCPXMLElementMetaTimeline {
 
 // MARK: - Typing
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/LiveDrawing`` model object.
     /// Call this on a `live-drawing` element only (FCPXML 1.11+).
     public var fcpAsLiveDrawing: FinalCutPro.FCPXML.LiveDrawing? {

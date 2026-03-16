@@ -22,17 +22,17 @@ extension FinalCutPro.FCPXML {
     /// >
     /// > Use the `sync-source` element to describe the audio components of a synchronized clip.
     public struct SyncClip: FCPXMLElement {
-        public let element: XMLElement
+        public let element: any PNXMLElement
         
         public let elementType: ElementType = .syncClip
         
         public static let supportedElementTypes: Set<ElementType> = [.syncClip]
         
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
         
-        public init?(element: XMLElement) {
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -154,7 +154,7 @@ extension FinalCutPro.FCPXML.SyncClip: FCPXMLElementTimingParams { }
 
 extension FinalCutPro.FCPXML.SyncClip {
     /// Get or set child elements.
-    public var contents: LazyCompactMapSequence<[XMLNode], XMLElement> {
+    public var contents: [any PNXMLElement] {
         get { element.childElements }
         nonmutating set {
             element.removeAllChildren()
@@ -163,7 +163,7 @@ extension FinalCutPro.FCPXML.SyncClip {
     }
     
     /// Returns child story elements.
-    public var storyElements: LazyFilteredCompactMapSequence<[XMLNode], XMLElement> {
+    public var storyElements: [any PNXMLElement] {
         element.fcpStoryElements
     }
 }
@@ -189,7 +189,7 @@ extension FinalCutPro.FCPXML.SyncClip: FCPXMLElementMetaTimeline {
 // MARK: - Typing
 
 // SyncClip
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/SyncClip`` model object.
     /// Call this on a `sync-clip` element only.
     public var fcpAsSyncClip: FinalCutPro.FCPXML.SyncClip? {

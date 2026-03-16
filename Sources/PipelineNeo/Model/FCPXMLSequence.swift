@@ -17,17 +17,17 @@ extension FinalCutPro.FCPXML {
     /// A container that represents the top-level sequence for a Final Cut Pro project or compound
     /// clip.
     public struct Sequence: FCPXMLElement {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .sequence
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.sequence]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -112,7 +112,7 @@ extension FinalCutPro.FCPXML.Sequence {
             return FinalCutPro.FCPXML.AudioLayout(rawValue: value)
         }
         nonmutating set {
-            element.addAttribute(withName: Attributes.audioLayout.rawValue, value: newValue?.rawValue)
+            element.addAttribute(name: Attributes.audioLayout.rawValue, value: newValue?.rawValue)
         }
     }
     
@@ -132,7 +132,7 @@ extension FinalCutPro.FCPXML.Sequence {
             element.stringValue(forAttributeNamed: Attributes.keywords.rawValue)
         }
         nonmutating set {
-            element.addAttribute(withName: Attributes.keywords.rawValue, value: newValue)
+            element.addAttribute(name: Attributes.keywords.rawValue, value: newValue)
         }
     }
 }
@@ -168,12 +168,12 @@ extension FinalCutPro.FCPXML.Sequence: FCPXMLElementMetaTimeline {
 // MARK: - Properties
 
 // Sequence
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns `renderFormat` attribute value.
     /// Call this on a `sequence` or `multicam` element only.
     public var fcpRenderFormat: String? {
         get { stringValue(forAttributeNamed: "renderFormat") }
-        set { addAttribute(withName: "renderFormat", value: newValue) }
+        set { addAttribute(name: "renderFormat", value: newValue) }
     }
     
     /// FCPXML: Returns child `spine` elements.
@@ -202,7 +202,7 @@ extension XMLElement {
             return FinalCutPro.FCPXML.AudioRate(rawValueForSequence: value)
         }
         set {
-            addAttribute(withName: "audioRate", value: newValue?.rawValueForSequence)
+            addAttribute(name: "audioRate", value: newValue?.rawValueForSequence)
         }
     }
 }
@@ -210,7 +210,7 @@ extension XMLElement {
 // MARK: - Typing
 
 // Sequence
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Sequence`` model object.
     /// Call this on a `sequence` element only.
     public var fcpAsSequence: FinalCutPro.FCPXML.Sequence? {

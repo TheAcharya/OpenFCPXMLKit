@@ -12,13 +12,13 @@ import Foundation
 import SwiftTimecode
 import SwiftExtensions
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns keywords applied to the element if the element is a clip,
     /// otherwise returns keywords applied to the first ancestor clip.
     func _fcpApplicableKeywords(
         constrainToKeywordRanges: Bool = true,
-        breadcrumbs: [XMLElement]? = nil,
-        resources: XMLElement? = nil
+        breadcrumbs: [any PNXMLElement]? = nil,
+        resources: (any PNXMLElement)? = nil
     ) -> [FinalCutPro.FCPXML.Keyword] {
         // find nearest timeline and determine its absolute start timecode
         guard let (timeline, timelineAncestors) = fcpAncestorTimeline(
@@ -31,7 +31,7 @@ extension XMLElement {
         let keywords = timeline.children(whereFCPElement: .keyword)
         
         // if self is a timeline, just return all keywords
-        if timeline == self { return Array(keywords) }
+        if timeline === self { return Array(keywords) }
         
         // if we're not constraining to keyword ranges, just return all keywords
         if !constrainToKeywordRanges { return Array(keywords) }
@@ -85,8 +85,8 @@ extension XMLElement {
     
     /// FCPXML: Returns metadata applicable to the element.
     func _fcpApplicableMetadata(
-        breadcrumbs: [XMLElement]? = nil,
-        resources: XMLElement? = nil
+        breadcrumbs: [any PNXMLElement]? = nil,
+        resources: (any PNXMLElement)? = nil
     ) -> [FinalCutPro.FCPXML.Metadata.Metadatum] {
         // find nearest timeline and determine its absolute start timecode
         guard let (timeline, _ /* timelineAncestors */) = fcpAncestorTimeline(
@@ -95,7 +95,7 @@ extension XMLElement {
         )
         else { return [] }
         
-        func flatten(metadataIn e: XMLElement?) -> [FinalCutPro.FCPXML.Metadata.Metadatum] {
+        func flatten(metadataIn e: (any PNXMLElement)?) -> [FinalCutPro.FCPXML.Metadata.Metadatum] {
             e?.children(whereFCPElement: .metadata)
                 .flatMap(\.metadatumContents)
             ?? []

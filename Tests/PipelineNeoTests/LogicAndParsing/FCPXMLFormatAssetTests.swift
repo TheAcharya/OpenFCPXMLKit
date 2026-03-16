@@ -16,6 +16,8 @@ import XCTest
 @available(macOS 12.0, *)
 final class FCPXMLFormatAssetTests: XCTestCase {
 
+    private let factory = FoundationXMLFactory()
+
     // MARK: - Format heroEye (1.13+)
 
     func testFormatHeroEyeRoundTrip() {
@@ -44,9 +46,9 @@ final class FCPXMLFormatAssetTests: XCTestCase {
     }
 
     func testFormatFromElementWithHeroEye() {
-        let formatEl = XMLElement(name: "format")
-        formatEl.addAttribute(withName: "id", value: "f1")
-        formatEl.addAttribute(withName: "heroEye", value: "left")
+        let formatEl = factory.makeElement(name: "format")
+        formatEl.addAttribute(name: "id", value: "f1")
+        formatEl.addAttribute(name: "heroEye", value: "left")
         guard let format = FinalCutPro.FCPXML.Format(element: formatEl) else {
             XCTFail("Format init from element failed"); return
         }
@@ -81,11 +83,11 @@ final class FCPXMLFormatAssetTests: XCTestCase {
     }
 
     func testAssetFromElementWithHeroEyeOverride() {
-        let assetEl = XMLElement(name: "asset")
-        assetEl.addAttribute(withName: "id", value: "a1")
-        assetEl.addAttribute(withName: "heroEyeOverride", value: "right")
-        let mediaRepEl = XMLElement(name: "media-rep")
-        mediaRepEl.addAttribute(withName: "src", value: "file:///tmp/v.mov")
+        let assetEl = factory.makeElement(name: "asset")
+        assetEl.addAttribute(name: "id", value: "a1")
+        assetEl.addAttribute(name: "heroEyeOverride", value: "right")
+        let mediaRepEl = factory.makeElement(name: "media-rep")
+        mediaRepEl.addAttribute(name: "src", value: "file:///tmp/v.mov")
         assetEl.addChild(mediaRepEl)
         guard let asset = FinalCutPro.FCPXML.Asset(element: assetEl) else {
             XCTFail("Asset init from element failed"); return
@@ -128,14 +130,14 @@ final class FCPXMLFormatAssetTests: XCTestCase {
     }
 
     func testAssetFromElementWithMultipleMediaReps() {
-        let assetEl = XMLElement(name: "asset")
-        assetEl.addAttribute(withName: "id", value: "a3")
-        let rep1 = XMLElement(name: "media-rep")
-        rep1.addAttribute(withName: "kind", value: "original-media")
-        rep1.addAttribute(withName: "src", value: "file:///tmp/orig.mov")
-        let rep2 = XMLElement(name: "media-rep")
-        rep2.addAttribute(withName: "kind", value: "proxy-media")
-        rep2.addAttribute(withName: "src", value: "file:///tmp/proxy.mov")
+        let assetEl = factory.makeElement(name: "asset")
+        assetEl.addAttribute(name: "id", value: "a3")
+        let rep1 = factory.makeElement(name: "media-rep")
+        rep1.addAttribute(name: "kind", value: "original-media")
+        rep1.addAttribute(name: "src", value: "file:///tmp/orig.mov")
+        let rep2 = factory.makeElement(name: "media-rep")
+        rep2.addAttribute(name: "kind", value: "proxy-media")
+        rep2.addAttribute(name: "src", value: "file:///tmp/proxy.mov")
         assetEl.addChild(rep1)
         assetEl.addChild(rep2)
         guard let asset = FinalCutPro.FCPXML.Asset(element: assetEl) else {

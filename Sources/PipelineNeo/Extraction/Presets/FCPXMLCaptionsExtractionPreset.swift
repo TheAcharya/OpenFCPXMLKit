@@ -16,7 +16,7 @@ extension FinalCutPro.FCPXML {
         public init() { }
         
         public func perform(
-            on extractable: XMLElement,
+            on extractable: any PNXMLElement,
             scope: FinalCutPro.FCPXML.ExtractionScope
         ) async -> [FinalCutPro.FCPXML.ExtractedCaption] {
             let extracted = await extractable.fcpExtract(
@@ -40,14 +40,14 @@ extension FCPXMLExtractionPreset where Self == FinalCutPro.FCPXML.CaptionsExtrac
 }
 
 extension FinalCutPro.FCPXML {
-    // Note: XMLElement is not Sendable; cannot use Task-based concurrency here.
-    
+    // Note: PNXMLElement is not Sendable; cannot use Task-based concurrency here.
+
     /// An extracted caption element with pertinent data.
     public struct ExtractedCaption: FCPXMLExtractedModelElement, @unchecked Sendable {
         public typealias Model = Caption
-        public let element: XMLElement
-        public let breadcrumbs: [XMLElement]
-        public let resources: XMLElement?
+        public let element: any PNXMLElement
+        public let breadcrumbs: [any PNXMLElement]
+        public let resources: (any PNXMLElement)?
         
         init(_ extractedElement: ExtractedElement) {
             element = extractedElement.element

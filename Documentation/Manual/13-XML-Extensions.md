@@ -4,9 +4,21 @@
 
 ---
 
-## XMLDocument extension API
+## Platform-agnostic XML layer
 
-**XMLDocument** gains FCPXML-specific properties and methods. Prefer modular overloads (e.g. `addResource(_:using: documentManager)`) when injecting dependencies.
+FCPXML document and element APIs are defined on **protocol types** so the same code works on macOS and iOS:
+
+- **PNXMLDocument** — document protocol (parse, root, metadata, serialization). On macOS the default implementation wraps Foundation `XMLDocument`; on iOS it wraps AEXML.
+- **PNXMLElement** — element protocol (attributes, children, serialization). On macOS the default wraps Foundation `XMLElement`; on iOS it wraps AEXML.
+- **PNXMLFactory** — factory for creating documents and elements. Use **PNXMLDefaultFactory()** to get the correct backend for the current platform.
+
+All `fcpx*` extensions below apply to `PNXMLDocument` and `PNXMLElement`; the concrete type is chosen at runtime. See [18 — Cross-Platform & iOS](18-Cross-Platform-iOS.md) for details.
+
+---
+
+## PNXMLDocument extension API
+
+**PNXMLDocument** (and thus any conforming type) gains FCPXML-specific properties and methods. Prefer modular overloads (e.g. `addResource(_:using: documentManager)`) when injecting dependencies.
 
 | Property / method | Purpose |
 |-------------------|--------|
@@ -26,20 +38,22 @@
 | `init(contentsOfFCPXML:)` | Load from URL |
 
 ```swift
-let document = try XMLDocument(contentsOfFCPXML: url)
+// Load via loader or parser (returns any PNXMLDocument)
+let document = try await FCPXMLFileLoader().load(from: url)
 let version = document.fcpxmlVersion
 let eventNames = document.fcpxEventNames
 document.add(events: [newEvent])
 if let resource = document.resource(matchingID: "r1") { /* use */ }
 document.remove(resourceAtIndex: 0)
+// validateFCPXMLAgainst is available on macOS (Foundation backend)
 try document.validateFCPXMLAgainst(version: .v1_14)
 ```
 
 ---
 
-## XMLElement extension API
+## PNXMLElement extension API
 
-**XMLElement** gains `fcpx*` attribute accessors and structural helpers. Use `element.setAttribute(name:value:using: documentManager)` and `element.getAttribute(name:using: documentManager)` for modular attribute access.
+**PNXMLElement** gains `fcpx*` attribute accessors and structural helpers. Use `element.setAttribute(name:value:using: documentManager)` and `element.getAttribute(name:using: documentManager)` for modular attribute access.
 
 | Property / method | Purpose |
 |-------------------|--------|
@@ -70,3 +84,4 @@ let annotations = element.fcpxAnnotations
 ## Next
 
 - [14 — High-Level Model](14-High-Level-Model.md) — FinalCutPro.FCPXML wrapper.
+- [18 — Cross-Platform & iOS](18-Cross-Platform-iOS.md) — XML abstraction, Foundation vs AEXML, iOS support.

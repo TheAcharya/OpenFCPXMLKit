@@ -71,14 +71,16 @@ final class FCPXMLFileTest_EmptyFormatProjects: XCTestCase {
             return
         }
         XCTAssertEqual(root.name, "fcpxml", "\(sampleName)")
-        XCTAssertEqual(doc.fcpxmlVersion, "1.13", "\(sampleName): version should be 1.13")
+        XCTAssertEqual(root.attribute(forName: "version"), "1.13", "\(sampleName): version should be 1.13")
 
-        let formatResources = doc.fcpxFormatResources
+        // Find format resources in the resources element
+        let resources = root.firstChildElement(named: "resources")
+        let formatResources = resources?.childElements.filter { $0.name == "format" } ?? []
         XCTAssertEqual(formatResources.count, 1, "\(sampleName): expected one format resource")
         let format = try XCTUnwrap(formatResources.first)
-        XCTAssertEqual(format.attribute(forName: "id")?.stringValue, "r1", "\(sampleName)")
-        XCTAssertEqual(format.attribute(forName: "width")?.stringValue, expectedWidth, "\(sampleName)")
-        XCTAssertEqual(format.attribute(forName: "height")?.stringValue, expectedHeight, "\(sampleName)")
+        XCTAssertEqual(format.attribute(forName: "id"), "r1", "\(sampleName)")
+        XCTAssertEqual(format.attribute(forName: "width"), expectedWidth, "\(sampleName)")
+        XCTAssertEqual(format.attribute(forName: "height"), expectedHeight, "\(sampleName)")
 
         guard let library = root.firstChildElement(named: "library"),
               let event = library.firstChildElement(named: "event"),
@@ -88,10 +90,10 @@ final class FCPXMLFileTest_EmptyFormatProjects: XCTestCase {
             XCTFail("\(sampleName): library/event/project/sequence/spine structure missing")
             return
         }
-        XCTAssertNotNil(event.attribute(forName: "uid")?.stringValue, "\(sampleName): event should have uid")
-        XCTAssertNotNil(project.attribute(forName: "uid")?.stringValue, "\(sampleName): project should have uid")
-        XCTAssertNotNil(project.attribute(forName: "modDate")?.stringValue, "\(sampleName): project should have modDate")
-        let spineChildCount = spine.children?.filter { ($0 as? XMLElement)?.name != nil }.count ?? 0
+        XCTAssertNotNil(event.attribute(forName: "uid"), "\(sampleName): event should have uid")
+        XCTAssertNotNil(project.attribute(forName: "uid"), "\(sampleName): project should have uid")
+        XCTAssertNotNil(project.attribute(forName: "modDate"), "\(sampleName): project should have modDate")
+        let spineChildCount = spine.childElements.count
         XCTAssertEqual(spineChildCount, 0, "\(sampleName): spine should have no story elements")
     }
 }

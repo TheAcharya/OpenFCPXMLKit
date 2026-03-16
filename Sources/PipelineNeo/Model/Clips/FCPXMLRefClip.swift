@@ -31,17 +31,17 @@ extension FinalCutPro.FCPXML {
     /// > https://developer.apple.com/documentation/professional_video_applications/fcpxml_reference/story_elements/ref-clip
     /// > ) to specify its format and other attributes.
     public struct RefClip: FCPXMLElement {
-        public let element: XMLElement
+        public let element: any PNXMLElement
         
         public let elementType: ElementType = .refClip
         
         public static let supportedElementTypes: Set<ElementType> = [.refClip]
         
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
         
-        public init?(element: XMLElement) {
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -177,7 +177,7 @@ extension FinalCutPro.FCPXML.RefClip: FCPXMLElementOptionalModDate { }
 
 extension FinalCutPro.FCPXML.RefClip {
     /// Get or set child elements.
-    public var contents: LazyCompactMapSequence<[XMLNode], XMLElement> {
+    public var contents: [any PNXMLElement] {
         get { element.childElements }
         nonmutating set {
             element.removeAllChildren()
@@ -186,7 +186,7 @@ extension FinalCutPro.FCPXML.RefClip {
     }
     
     /// Returns child story elements.
-    public var storyElements: LazyFilteredCompactMapSequence<[XMLNode], XMLElement> {
+    public var storyElements: [any PNXMLElement] {
         element.fcpStoryElements
     }
 }
@@ -222,7 +222,7 @@ extension FinalCutPro.FCPXML.RefClip {
 // MARK: - Typing
 
 // RefClip
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/RefClip`` model object.
     /// Call this on a `ref-clip` element only.
     public var fcpAsRefClip: FinalCutPro.FCPXML.RefClip? {

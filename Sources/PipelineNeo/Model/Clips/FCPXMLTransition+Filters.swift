@@ -56,20 +56,20 @@ extension FinalCutPro.FCPXML.Transition {
             
             // Add new filter-video elements
             for filter in newValue {
-                let filterElement = XMLElement(name: "filter-video")
-                filterElement.addAttribute(withName: "ref", value: filter.effectID)
+                let filterElement = PNXMLDefaultFactory().makeElement(name: "filter-video")
+                filterElement.addAttribute(name: "ref", value: filter.effectID)
                 if let name = filter.name {
-                    filterElement.addAttribute(withName: "name", value: name)
+                    filterElement.addAttribute(name: "name", value: name)
                 }
                 if !filter.isEnabled {
-                    filterElement.addAttribute(withName: "enabled", value: "0")
+                    filterElement.addAttribute(name: "enabled", value: "0")
                 }
                 
                 // Add data elements
                 for dataItem in filter.data {
-                    let dataElement = XMLElement(name: "data")
+                    let dataElement = PNXMLDefaultFactory().makeElement(name: "data")
                     if let key = dataItem.key {
-                        dataElement.addAttribute(withName: "key", value: key)
+                        dataElement.addAttribute(name: "key", value: key)
                     }
                     dataElement.stringValue = dataItem.value
                     filterElement.addChild(dataElement)
@@ -77,19 +77,19 @@ extension FinalCutPro.FCPXML.Transition {
                 
                 // Add param elements
                 for param in filter.parameters {
-                    let paramElement = XMLElement(name: "param")
-                    paramElement.addAttribute(withName: "name", value: param.name)
+                    let paramElement = PNXMLDefaultFactory().makeElement(name: "param")
+                    paramElement.addAttribute(name: "name", value: param.name)
                     if let key = param.key {
-                        paramElement.addAttribute(withName: "key", value: key)
+                        paramElement.addAttribute(name: "key", value: key)
                     }
                     if let value = param.value {
-                        paramElement.addAttribute(withName: "value", value: value)
+                        paramElement.addAttribute(name: "value", value: value)
                     }
                     if let auxValue = param.auxValue {
-                        paramElement.addAttribute(withName: "auxValue", value: auxValue)
+                        paramElement.addAttribute(name: "auxValue", value: auxValue)
                     }
                     if !param.isEnabled {
-                        paramElement.addAttribute(withName: "enabled", value: "0")
+                        paramElement.addAttribute(name: "enabled", value: "0")
                     }
                     filterElement.addChild(paramElement)
                 }
@@ -146,23 +146,23 @@ extension FinalCutPro.FCPXML.Transition {
             
             // Add new filter-audio elements
             for filter in newValue {
-                let filterElement = XMLElement(name: "filter-audio")
-                filterElement.addAttribute(withName: "ref", value: filter.effectID)
+                let filterElement = PNXMLDefaultFactory().makeElement(name: "filter-audio")
+                filterElement.addAttribute(name: "ref", value: filter.effectID)
                 if let name = filter.name {
-                    filterElement.addAttribute(withName: "name", value: name)
+                    filterElement.addAttribute(name: "name", value: name)
                 }
                 if let presetID = filter.presetID {
-                    filterElement.addAttribute(withName: "presetID", value: presetID)
+                    filterElement.addAttribute(name: "presetID", value: presetID)
                 }
                 if !filter.isEnabled {
-                    filterElement.addAttribute(withName: "enabled", value: "0")
+                    filterElement.addAttribute(name: "enabled", value: "0")
                 }
                 
                 // Add data elements
                 for dataItem in filter.data {
-                    let dataElement = XMLElement(name: "data")
+                    let dataElement = PNXMLDefaultFactory().makeElement(name: "data")
                     if let key = dataItem.key {
-                        dataElement.addAttribute(withName: "key", value: key)
+                        dataElement.addAttribute(name: "key", value: key)
                     }
                     dataElement.stringValue = dataItem.value
                     filterElement.addChild(dataElement)
@@ -170,19 +170,19 @@ extension FinalCutPro.FCPXML.Transition {
                 
                 // Add param elements
                 for param in filter.parameters {
-                    let paramElement = XMLElement(name: "param")
-                    paramElement.addAttribute(withName: "name", value: param.name)
+                    let paramElement = PNXMLDefaultFactory().makeElement(name: "param")
+                    paramElement.addAttribute(name: "name", value: param.name)
                     if let key = param.key {
-                        paramElement.addAttribute(withName: "key", value: key)
+                        paramElement.addAttribute(name: "key", value: key)
                     }
                     if let value = param.value {
-                        paramElement.addAttribute(withName: "value", value: value)
+                        paramElement.addAttribute(name: "value", value: value)
                     }
                     if let auxValue = param.auxValue {
-                        paramElement.addAttribute(withName: "auxValue", value: auxValue)
+                        paramElement.addAttribute(name: "auxValue", value: auxValue)
                     }
                     if !param.isEnabled {
-                        paramElement.addAttribute(withName: "enabled", value: "0")
+                        paramElement.addAttribute(name: "enabled", value: "0")
                     }
                     filterElement.addChild(paramElement)
                 }

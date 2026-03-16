@@ -14,17 +14,17 @@ import SwiftExtensions
 extension FinalCutPro.FCPXML {
     /// Text element.
     public struct Text: FCPXMLElement, Equatable, Hashable {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .text
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.text]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -40,7 +40,7 @@ extension FinalCutPro.FCPXML.Text {
         position: String? = nil,
         placement: Placement? = nil,
         alignment: Alignment? = nil,
-        textStyles: [XMLElement] = []
+        textStyles: [any PNXMLElement] = []
     ) {
         self.init()
         
@@ -87,14 +87,14 @@ extension FinalCutPro.FCPXML.Text {
             return DisplayStyle(rawValue: value)
         }
         nonmutating set {
-            element.addAttribute(withName: Attributes.displayStyle.rawValue, value: newValue?.rawValue)
+            element.addAttribute(name: Attributes.displayStyle.rawValue, value: newValue?.rawValue)
         }
     }
     
     /// For a CEA-608 caption text block with roll-up animation.
     public var rollUpHeight: String? {
         get { element.stringValue(forAttributeNamed: Attributes.rollUpHeight.rawValue) }
-        nonmutating set { element.addAttribute(withName: Attributes.rollUpHeight.rawValue, value: newValue) }
+        nonmutating set { element.addAttribute(name: Attributes.rollUpHeight.rawValue, value: newValue) }
     }
     
     /// For a CEA-608 caption text block, as "x y".
@@ -112,7 +112,7 @@ extension FinalCutPro.FCPXML.Text {
             return Placement(rawValue: value)
         }
         nonmutating set {
-            element.addAttribute(withName: Attributes.placement.rawValue, value: newValue?.rawValue)
+            element.addAttribute(name: Attributes.placement.rawValue, value: newValue?.rawValue)
         }
     }
     
@@ -125,7 +125,7 @@ extension FinalCutPro.FCPXML.Text {
             return Alignment(rawValue: value)
         }
         nonmutating set {
-            element.addAttribute(withName: Attributes.alignment.rawValue, value: newValue?.rawValue)
+            element.addAttribute(name: Attributes.alignment.rawValue, value: newValue?.rawValue)
         }
     }
 }
@@ -134,7 +134,7 @@ extension FinalCutPro.FCPXML.Text {
 
 extension FinalCutPro.FCPXML.Text {
     /// Get or set child `text-style` elements.
-    public var textStyles: LazyFilteredCompactMapSequence<[XMLNode], XMLElement> {
+    public var textStyles: [any PNXMLElement] {
         get {
             element.fcpTextStyles
         }
@@ -147,28 +147,28 @@ extension FinalCutPro.FCPXML.Text {
 // MARK: - Properties
 
 // `text` or `adjust-transform`
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Get or set the value of the `position` attribute.
     /// Use on `text` element for a CEA-608 caption, or an `adjust-transform` element.
     public var fcpPosition: String? {
         get { stringValue(forAttributeNamed: "position") }
-        set { addAttribute(withName: "position", value: newValue) }
+        set { addAttribute(name: "position", value: newValue) }
     }
 }
 
 // `text` or `text-style-def`
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns child `text-style` elements.
     /// Use on `text` or `text-style-def` elements.
-    public var fcpTextStyles: LazyFilteredCompactMapSequence<[XMLNode], XMLElement> {
-        childElements.filter(whereFCPElementType: .textStyle)
+    public var fcpTextStyles: [any PNXMLElement] {
+        Array(childElements.filter(whereFCPElementType: .textStyle))
     }
 }
 
 // MARK: - Typing
 
 // Text
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Text`` model object.
     /// Call this on a `text` element only.
     public var fcpAsText: FinalCutPro.FCPXML.Text? {
@@ -209,7 +209,7 @@ extension FinalCutPro.FCPXML.Text {
 
 extension FinalCutPro.FCPXML.Text {
     public struct TextString: Equatable, Hashable {
-        public let element: XMLElement
+        public let element: any PNXMLElement
         
         public var ref: String? {
             get { element.fcpRef }
@@ -223,9 +223,19 @@ extension FinalCutPro.FCPXML.Text {
         
         // Note: additional attributes not yet parsed.
         
-        public init(element: XMLElement) {
+        public init(element: any PNXMLElement) {
             self.element = element
         }
+    }
+}
+
+extension FinalCutPro.FCPXML.Text.TextString {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.element === rhs.element
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(element))
     }
 }
 

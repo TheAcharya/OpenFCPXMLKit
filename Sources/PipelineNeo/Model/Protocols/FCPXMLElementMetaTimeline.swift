@@ -40,7 +40,7 @@ extension FCPXMLElementMetaTimeline {
 
 // MARK: - XML Helpers
 
-extension XMLElement {
+extension PNXMLElement {
     func _fcpTimelineStartAsTimecode() -> Timecode? {
         // Note: not fully tested for every timeline type; may need per-type handling.
         

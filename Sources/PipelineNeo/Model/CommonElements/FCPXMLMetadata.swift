@@ -15,17 +15,17 @@ import SwiftExtensions
 extension FinalCutPro.FCPXML {
     /// Metadata container.
     public struct Metadata: FCPXMLElement, Equatable, Hashable {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .metadata
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.metadata]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -58,8 +58,8 @@ extension FinalCutPro.FCPXML.Metadata {
 
 extension FinalCutPro.FCPXML.Metadata {
     /// Wraps children in a `metadata` container element.
-    public init(from children: [XMLElement]) {
-        let container = XMLElement(name: elementType.rawValue)
+    public init(from children: [any PNXMLElement]) {
+        let container = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         container.addChildren(children)
         element = container
     }
@@ -171,7 +171,7 @@ extension FinalCutPro.FCPXML.Metadata {
     // MARK: - General child accessors
     
     /// Get or set child elements.
-    public var contents: LazyCompactMapSequence<[XMLNode], XMLElement> {
+    public var contents: [any PNXMLElement] {
         get { element.childElements }
         nonmutating set {
             element.removeAllChildren()
@@ -192,7 +192,7 @@ extension FinalCutPro.FCPXML.Metadata {
 // MARK: - Typing
 
 // Metadata
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Metadata`` model object.
     /// Call this on a `metadata` element only.
     public var fcpAsMetadata: FinalCutPro.FCPXML.Metadata? {

@@ -34,7 +34,7 @@ extension FCPXMLElementOptionalTCStart {
 
 // MARK: - XML Utils
 
-extension XMLElement {
+extension PNXMLElement {
     func _fcpTCStartAsTimecode(
         frameRateSource: FinalCutPro.FCPXML.FrameRateSource = .localToElement
     ) -> Timecode? {

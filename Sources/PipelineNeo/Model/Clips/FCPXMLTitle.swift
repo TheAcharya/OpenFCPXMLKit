@@ -19,17 +19,17 @@ extension FinalCutPro.FCPXML {
     /// Its frame rate is inferred from the sequence.
     /// Therefore, "tcFormat" (NDF/DF) attribute is not stored in `title` XML itself.
     public struct Title: FCPXMLElement {
-        public let element: XMLElement
+        public let element: any PNXMLElement
         
         public let elementType: ElementType = .title
         
         public static let supportedElementTypes: Set<ElementType> = [.title]
         
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
         
-        public init?(element: XMLElement) {
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -124,7 +124,7 @@ extension FinalCutPro.FCPXML.Title: FCPXMLElementClipAttributes { }
 
 extension FinalCutPro.FCPXML.Title {
     /// Get or set child elements.
-    public var contents: LazyCompactMapSequence<[XMLNode], XMLElement> {
+    public var contents: [any PNXMLElement] {
         get { element.childElements }
         nonmutating set {
             element.removeAllChildren()
@@ -133,7 +133,7 @@ extension FinalCutPro.FCPXML.Title {
     }
     
     /// Returns child story elements.
-    public var storyElements: LazyFilteredCompactMapSequence<[XMLNode], XMLElement> {
+    public var storyElements: [any PNXMLElement] {
         element.fcpStoryElements
     }
 }
@@ -155,7 +155,7 @@ extension FinalCutPro.FCPXML.Title: FCPXMLElementMetaTimeline {
 // MARK: - Typing
 
 // Title
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Title`` model object.
     /// Call this on a `title` element only.
     public var fcpAsTitle: FinalCutPro.FCPXML.Title? {

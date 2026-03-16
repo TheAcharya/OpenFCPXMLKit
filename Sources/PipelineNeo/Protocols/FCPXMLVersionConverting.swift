@@ -26,8 +26,8 @@ public protocol FCPXMLVersionConverting: Sendable {
     ///   - targetVersion: Desired version (e.g. `.v1_10`).
     /// - Returns: A new document with root `version` set to `targetVersion.stringValue`.
     /// - Throws: If the document cannot be serialized or copied.
-    func convert(_ document: XMLDocument, to targetVersion: FCPXMLVersion) throws -> XMLDocument
+    func convert(_ document: any PNXMLDocument, to targetVersion: FCPXMLVersion) throws -> any PNXMLDocument
 
     /// Converts the document to the target FCPXML version (async).
-    func convert(_ document: XMLDocument, to targetVersion: FCPXMLVersion) async throws -> XMLDocument
+    func convert(_ document: any PNXMLDocument, to targetVersion: FCPXMLVersion) async throws -> any PNXMLDocument
 }

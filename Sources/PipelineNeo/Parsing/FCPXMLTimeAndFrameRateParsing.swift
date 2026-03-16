@@ -14,7 +14,7 @@ import SwiftExtensions
 
 // MARK: - Timecode Format
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Traverses the parents of the element, including the element itself, and returns the
     /// first `tcFormat` attribute found.
     func _fcpTCFormatForElementOrAncestors() -> FinalCutPro.FCPXML.TimecodeFormat? {
@@ -33,8 +33,8 @@ extension XMLElement {
     ///
     /// - Parameters:
     ///   - ancestors: Optional replacement for ancestors. Ordered nearest to furthest ancestor.
-    func _fcpNearestDuration<S: Sequence<XMLElement>>(
-        ancestors: S? = nil as [XMLElement]?,
+    func _fcpNearestDuration<S: Sequence<any PNXMLElement>>(
+        ancestors: S? = nil as [any PNXMLElement]?,
         includingSelf: Bool
     ) -> Fraction? {
         let elements = ancestorElements(overrideWith: ancestors, includingSelf: includingSelf)
@@ -50,8 +50,8 @@ extension XMLElement {
     ///
     /// - Parameters:
     ///   - ancestors: Optional replacement for ancestors. Ordered nearest to furthest ancestor.
-    func _fcpNearestStart<S: Sequence<XMLElement>>(
-        ancestors: S? = nil as [XMLElement]?,
+    func _fcpNearestStart<S: Sequence<any PNXMLElement>>(
+        ancestors: S? = nil as [any PNXMLElement]?,
         includingSelf: Bool
     ) -> Fraction? {
         let elements = ancestorElements(overrideWith: ancestors, includingSelf: includingSelf)
@@ -67,8 +67,8 @@ extension XMLElement {
     ///
     /// - Parameters:
     ///   - ancestors: Optional replacement for ancestors. Ordered nearest to furthest ancestor.
-    func _fcpNearestTCStart<S: Sequence<XMLElement>>(
-        ancestors: S? = nil as [XMLElement]?,
+    func _fcpNearestTCStart<S: Sequence<any PNXMLElement>>(
+        ancestors: S? = nil as [any PNXMLElement]?,
         includingSelf: Bool
     ) -> Fraction? {
         let elements = ancestorElements(overrideWith: ancestors, includingSelf: includingSelf)
@@ -82,7 +82,7 @@ extension XMLElement {
 
 // MARK: - Time Parsing & Calculations
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the absolute start time of the element in the outermost ancestor's timeline.
     ///
     /// - Parameters:
@@ -90,9 +90,9 @@ extension XMLElement {
     ///   - resources: Optional replacement for resources.
     ///
     /// - Returns: Elapsed seconds from zero timecode as a floating-point `TimeInterval` (`Double`).
-    func _fcpCalculateAbsoluteStart<S: Sequence<XMLElement>>(
-        ancestors: S? = nil as [XMLElement]?,
-        resources: XMLElement? = nil
+    func _fcpCalculateAbsoluteStart<S: Sequence<any PNXMLElement>>(
+        ancestors: S? = nil as [any PNXMLElement]?,
+        resources: (any PNXMLElement)? = nil
     ) -> TimeInterval? {
         var accum: TimeInterval?
         var lastStart: TimeInterval?
@@ -184,11 +184,11 @@ extension XMLElement {
     /// - Returns: Scaling factor which which to multiply child time values of the clip.
     ///
     /// See [`conform-rate` documentation.](https://developer.apple.com/documentation/professional_video_applications/fcpxml_reference/story_elements/conform-rate)
-    func _fcpConformRateScalingFactor<S: Sequence<XMLElement>>(
-        ancestors: S? = nil as [XMLElement]?,
+    func _fcpConformRateScalingFactor<S: Sequence<any PNXMLElement>>(
+        ancestors: S? = nil as [any PNXMLElement]?,
         timelineFrameRate: TimecodeFrameRate? = nil,
         includingSelf: Bool,
-        resources: XMLElement? = nil
+        resources: (any PNXMLElement)? = nil
     ) -> Double? {
         guard let (container, remainingAncestors) = fcpAncestorTimeline(
             ancestors: ancestors,
@@ -229,10 +229,10 @@ extension XMLElement {
     /// Returns the first ancestor with a lane of `0`.
     ///
     /// Ancestors are ordered nearest to furthest.
-    func _fcpFirstAncestorWithZeroLane<S: Sequence<XMLElement>>(
-        ancestors: S? = nil as [XMLElement]?,
+    func _fcpFirstAncestorWithZeroLane<S: Sequence<any PNXMLElement>>(
+        ancestors: S? = nil as [any PNXMLElement]?,
         includingSelf: Bool
-    ) -> (element: XMLElement, remainingAncestors: AnySequence<XMLElement>)? {
+    ) -> (element: any PNXMLElement, remainingAncestors: AnySequence<any PNXMLElement>)? {
         var ancestors = ancestorElements(overrideWith: ancestors, includingSelf: includingSelf)
         
         for ancestor in ancestors {
@@ -248,10 +248,10 @@ extension XMLElement {
     /// Returns the first container ancestor with a lane of `0`.
     ///
     /// Ancestors are ordered nearest to furthest.
-    func _fcpFirstContainerAncestorWithZeroLane<S: Sequence<XMLElement>>(
-        ancestors: S? = nil as [XMLElement]?,
+    func _fcpFirstContainerAncestorWithZeroLane<S: Sequence<any PNXMLElement>>(
+        ancestors: S? = nil as [any PNXMLElement]?,
         includingSelf: Bool
-    ) -> (element: XMLElement, remainingAncestors: AnySequence<XMLElement>)? {
+    ) -> (element: any PNXMLElement, remainingAncestors: AnySequence<any PNXMLElement>)? {
         var ancestors = ancestorElements(overrideWith: ancestors, includingSelf: includingSelf)
         let types: Set<FinalCutPro.FCPXML.ElementType> = // .allTimelineCases
         [

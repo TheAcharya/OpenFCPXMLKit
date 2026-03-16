@@ -1,5 +1,8 @@
 # macOS
 .DS_Store
+
+# Code coverage
+*.profraw
 .build
 .nova
 

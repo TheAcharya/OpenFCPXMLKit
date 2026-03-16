@@ -30,17 +30,17 @@ extension FinalCutPro.FCPXML {
     /// >
     /// > A transition element defines an effect that overlaps two adjacent story elements.
     public struct Transition: FCPXMLElement {
-        public let element: XMLElement
+        public let element: any PNXMLElement
         
         public let elementType: ElementType = .transition
         
         public static let supportedElementTypes: Set<ElementType> = [.transition]
         
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
         
-        public init?(element: XMLElement) {
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -105,7 +105,7 @@ extension FinalCutPro.FCPXML.Transition: FCPXMLElementRequiredDuration { }
 
 extension FinalCutPro.FCPXML.Transition {
     /// Get or set child elements.
-    public var contents: LazyCompactMapSequence<[XMLNode], XMLElement> {
+    public var contents: [any PNXMLElement] {
         get { element.childElements }
         nonmutating set {
             element.removeAllChildren()
@@ -114,7 +114,7 @@ extension FinalCutPro.FCPXML.Transition {
     }
     
     /// Returns child story elements.
-    public var storyElements: LazyFilteredCompactMapSequence<[XMLNode], XMLElement> {
+    public var storyElements: [any PNXMLElement] {
         element.fcpStoryElements
     }
 }
@@ -130,7 +130,7 @@ extension FinalCutPro.FCPXML.Transition: FCPXMLElementMetaTimeline {
 // MARK: - Typing
 
 // Transition
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Transition`` model object.
     /// Call this on a `transition` element only.
     public var fcpAsTransition: FinalCutPro.FCPXML.Transition? {

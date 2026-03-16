@@ -58,7 +58,7 @@ public final class FCPXMLUtility: Sendable {
 
 	// MARK: - Default for Extension APIs
 
-	/// Default instance used by extension APIs (e.g. `XMLElement.fcpxDuration`, `XMLDocument.fcpxAssetResources`) that cannot receive dependency injection. Concurrency-safe (immutable). For custom implementations use the modular API: inject dependencies into `FCPXMLService` / `FCPXMLUtility` and use the `+Modular` extensions (e.g. `element.setAttribute(name:value:using: documentManager)`) or service methods.
+	/// Default instance used by extension APIs (e.g. `PNXMLElement.fcpxDuration`, `PNXMLDocument.fcpxAssetResources`) that cannot receive dependency injection. Concurrency-safe (immutable). For custom implementations use the modular API: inject dependencies into `FCPXMLService` / `FCPXMLUtility` and use the `+Modular` extensions (e.g. `element.setAttribute(name:value:using: documentManager)`) or service methods.
 	public static let defaultForExtensions: FCPXMLUtility = FCPXMLUtility()
 	
 	// MARK: - Retrieval Methods
@@ -66,20 +66,20 @@ public final class FCPXMLUtility: Sendable {
 	/// Returns an array of elements that match specified FCPXML element types.
 	///
 	/// - Parameters:
-	///   - elements: An array of XMLElement objects
+	///   - elements: An array of PNXMLElement objects
 	///   - types: An array of FCPXMLElementType enumeration values
-	/// - Returns: A filtered array of XMLElement objects
-	public func filter(fcpxElements elements: [XMLElement], ofTypes types: [FCPXMLElementType]) -> [XMLElement] {
+	/// - Returns: A filtered array of PNXMLElement objects
+	public func filter(fcpxElements elements: [any PNXMLElement], ofTypes types: [FCPXMLElementType]) -> [any PNXMLElement] {
 		return parser.filter(elements: elements, ofTypes: types)
 	}
-	
+
 	/// Filters elements by FCPXML element types (alias for `filter(fcpxElements:ofTypes:)` for API consistency).
 	///
 	/// - Parameters:
-	///   - elements: An array of XMLElement objects
+	///   - elements: An array of PNXMLElement objects
 	///   - types: An array of FCPXMLElementType enumeration values
-	/// - Returns: A filtered array of XMLElement objects
-	public func filterElements(_ elements: [XMLElement], ofTypes types: [FCPXMLElementType]) -> [XMLElement] {
+	/// - Returns: A filtered array of PNXMLElement objects
+	public func filterElements(_ elements: [any PNXMLElement], ofTypes types: [FCPXMLElementType]) -> [any PNXMLElement] {
 		return filter(fcpxElements: elements, ofTypes: types)
 	}
 	
@@ -127,77 +127,77 @@ public final class FCPXMLUtility: Sendable {
 	/// Detects edit points (cuts) in the first project spine of the document.
 	/// - Parameter document: Parsed FCPXML document.
 	/// - Returns: Result with edit points and counts (same-clip vs different-clips, hard cut / transition / gap).
-	public func detectCuts(in document: XMLDocument) -> CutDetectionResult {
+	public func detectCuts(in document: any PNXMLDocument) -> CutDetectionResult {
 		cutDetector.detectCuts(in: document)
 	}
 
 	/// Detects edit points (cuts) in the given spine element.
-	/// - Parameter spine: An FCPXML `spine` XMLElement.
+	/// - Parameter spine: An FCPXML `spine` PNXMLElement.
 	/// - Returns: Result with edit points and counts.
-	public func detectCuts(inSpine spine: XMLElement) -> CutDetectionResult {
+	public func detectCuts(inSpine spine: any PNXMLElement) -> CutDetectionResult {
 		cutDetector.detectCuts(inSpine: spine)
 	}
 
 	/// Asynchronously detects edit points (cuts) in the first project spine of the document.
-	public func detectCuts(in document: XMLDocument) async -> CutDetectionResult {
+	public func detectCuts(in document: any PNXMLDocument) async -> CutDetectionResult {
 		await cutDetector.detectCuts(in: document)
 	}
 
 	/// Asynchronously detects edit points (cuts) in the given spine element.
-	public func detectCuts(inSpine spine: XMLElement) async -> CutDetectionResult {
+	public func detectCuts(inSpine spine: any PNXMLElement) async -> CutDetectionResult {
 		await cutDetector.detectCuts(inSpine: spine)
 	}
 
 	/// Converts the document to the target FCPXML version (e.g. 1.14 → 1.10).
-	public func convertToVersion(_ document: XMLDocument, targetVersion: FCPXMLVersion) throws -> XMLDocument {
+	public func convertToVersion(_ document: any PNXMLDocument, targetVersion: FCPXMLVersion) throws -> any PNXMLDocument {
 		try versionConverter.convert(document, to: targetVersion)
 	}
 
 	/// Saves the document as a single .fcpxml file.
-	public func saveAsFCPXML(_ document: XMLDocument, to url: URL) throws {
+	public func saveAsFCPXML(_ document: any PNXMLDocument, to url: URL) throws {
 		try documentManager.saveDocument(document, to: url)
 	}
 
 	/// Saves the document as a .fcpxmld bundle. Only supported when document version is 1.10 or higher.
 	/// - Throws: `FCPXMLBundleExportError.bundleRequiresVersion1_10OrHigher` if version < 1.10.
-	public func saveAsBundle(_ document: XMLDocument, to outputDirectory: URL, bundleName: String) throws -> URL {
+	public func saveAsBundle(_ document: any PNXMLDocument, to outputDirectory: URL, bundleName: String) throws -> URL {
 		let exporter = FCPXMLBundleExporter(version: .v1_10)
 		return try exporter.saveDocumentAsBundle(document, to: outputDirectory, bundleName: bundleName)
 	}
 
 	/// Asynchronously converts the document to the target FCPXML version.
-	public func convertToVersion(_ document: XMLDocument, targetVersion: FCPXMLVersion) async throws -> XMLDocument {
+	public func convertToVersion(_ document: any PNXMLDocument, targetVersion: FCPXMLVersion) async throws -> any PNXMLDocument {
 		try await versionConverter.convert(document, to: targetVersion)
 	}
 
 	/// Asynchronously saves the document as a .fcpxml file.
-	public func saveAsFCPXML(_ document: XMLDocument, to url: URL) async throws {
+	public func saveAsFCPXML(_ document: any PNXMLDocument, to url: URL) async throws {
 		try await documentManager.saveDocument(document, to: url)
 	}
 
 	/// Asynchronously saves the document as a .fcpxmld bundle (document version must be 1.10 or higher).
-	public func saveAsBundle(_ document: XMLDocument, to outputDirectory: URL, bundleName: String) async throws -> URL {
+	public func saveAsBundle(_ document: any PNXMLDocument, to outputDirectory: URL, bundleName: String) async throws -> URL {
 		let exporter = FCPXMLBundleExporter(version: .v1_10)
 		return try exporter.saveDocumentAsBundle(document, to: outputDirectory, bundleName: bundleName)
 	}
 
 	/// Extracts media references (asset media-rep src, locator url) from the document.
-	public func extractMediaReferences(from document: XMLDocument, baseURL: URL? = nil) -> MediaExtractionResult {
+	public func extractMediaReferences(from document: any PNXMLDocument, baseURL: URL? = nil) -> MediaExtractionResult {
 		mediaExtractor.extractMediaReferences(from: document, baseURL: baseURL)
 	}
 
 	/// Copies referenced media files (file URLs only) to the destination directory; deduplicates by source URL.
-	public func copyReferencedMedia(from document: XMLDocument, to destinationURL: URL, baseURL: URL? = nil, progress: (any ProgressReporter)? = nil) -> MediaCopyResult {
+	public func copyReferencedMedia(from document: any PNXMLDocument, to destinationURL: URL, baseURL: URL? = nil, progress: (any ProgressReporter)? = nil) -> MediaCopyResult {
 		mediaExtractor.copyReferencedMedia(from: document, to: destinationURL, baseURL: baseURL, progress: progress)
 	}
 
 	/// Asynchronously extracts media references from the document.
-	public func extractMediaReferences(from document: XMLDocument, baseURL: URL? = nil) async -> MediaExtractionResult {
+	public func extractMediaReferences(from document: any PNXMLDocument, baseURL: URL? = nil) async -> MediaExtractionResult {
 		await mediaExtractor.extractMediaReferences(from: document, baseURL: baseURL)
 	}
 
 	/// Asynchronously copies referenced media files to the destination directory.
-	public func copyReferencedMedia(from document: XMLDocument, to destinationURL: URL, baseURL: URL? = nil, progress: (any ProgressReporter)? = nil) async -> MediaCopyResult {
+	public func copyReferencedMedia(from document: any PNXMLDocument, to destinationURL: URL, baseURL: URL? = nil, progress: (any ProgressReporter)? = nil) async -> MediaCopyResult {
 		await mediaExtractor.copyReferencedMedia(from: document, to: destinationURL, baseURL: baseURL, progress: progress)
 	}
 	
@@ -209,10 +209,10 @@ public final class FCPXMLUtility: Sendable {
 	/// `validateDocumentAgainstDTD(_:version:)` or `validateDocumentAgainstDeclaredVersion(_:)`.
 	/// - Parameter document: Document to validate
 	/// - Returns: True if valid, false otherwise
-	public func validateDocument(_ document: XMLDocument) -> Bool {
+	public func validateDocument(_ document: any PNXMLDocument) -> Bool {
 		return parser.validate(document)
 	}
-	
+
 	/// Validates the document against the DTD for the given FCPXML version (1.5–1.14).
 	///
 	/// Use this to ensure a document conforms to a specific version's schema before
@@ -221,7 +221,7 @@ public final class FCPXMLUtility: Sendable {
 	///   - document: The FCPXML document to validate.
 	///   - version: The FCPXML version whose DTD to use (e.g. `.v1_10`, `.v1_14`).
 	/// - Returns: `.success` if the document conforms to that version's DTD; otherwise a result with `dtd_validation` error(s).
-	public func validateDocumentAgainstDTD(_ document: XMLDocument, version: FCPXMLVersion) -> ValidationResult {
+	public func validateDocumentAgainstDTD(_ document: any PNXMLDocument, version: FCPXMLVersion) -> ValidationResult {
 		logger.log(level: .debug, message: "Validating document against DTD", metadata: ["version": version.rawValue])
 		let result = dtdValidator.validate(document, version: version)
 		if result.isValid {
@@ -239,20 +239,20 @@ public final class FCPXMLUtility: Sendable {
 	/// it claims. If the version is missing or not supported, returns an error result.
 	/// - Parameter document: The FCPXML document to validate.
 	/// - Returns: `.success` if the document conforms to its declared version's DTD; otherwise a result with errors (e.g. unknown version or DTD validation failure).
-	public func validateDocumentAgainstDeclaredVersion(_ document: XMLDocument) -> ValidationResult {
+	public func validateDocumentAgainstDeclaredVersion(_ document: any PNXMLDocument) -> ValidationResult {
 		_validateDocumentAgainstDeclaredVersion(document)
 	}
-	
+
 	/// Performs robust validation: semantic (root, resources, ref resolution) and DTD (against the document's declared version).
 	///
 	/// Use this for a full check before processing or to report validation status to the user.
 	/// - Parameter document: The FCPXML document to validate.
 	/// - Returns: A report combining semantic and DTD results; ``DocumentValidationReport/isValid`` is `true` only when both pass.
-	public func performValidation(_ document: XMLDocument) -> DocumentValidationReport {
+	public func performValidation(_ document: any PNXMLDocument) -> DocumentValidationReport {
 		_performValidation(document)
 	}
-	
-	private func _performValidation(_ document: XMLDocument) -> DocumentValidationReport {
+
+	private func _performValidation(_ document: any PNXMLDocument) -> DocumentValidationReport {
 		logger.log(level: .debug, message: "Performing full validation (semantic + DTD)", metadata: nil)
 		let semanticResult = semanticValidator.validate(document)
 		let dtdResult = _validateDocumentAgainstDeclaredVersion(document)
@@ -265,8 +265,12 @@ public final class FCPXMLUtility: Sendable {
 		return report
 	}
 	
-	private func _validateDocumentAgainstDeclaredVersion(_ document: XMLDocument) -> ValidationResult {
-		guard let versionString = document.fcpxmlVersion, !versionString.isEmpty else {
+	private func _validateDocumentAgainstDeclaredVersion(_ document: any PNXMLDocument) -> ValidationResult {
+		let versionString: String? = {
+			guard let root = document.rootElement(), root.name == "fcpxml" else { return nil }
+			return root.attribute(forName: "version")
+		}()
+		guard let versionString, !versionString.isEmpty else {
 			return .error(ValidationError(
 				type: .invalidAttributeValue,
 				message: "Document has no FCPXML version attribute on root",
@@ -284,14 +288,14 @@ public final class FCPXMLUtility: Sendable {
 	}
 	
 	/// Asynchronously validates FCPXML document (root element and basic structure only).
-	public func validateDocument(_ document: XMLDocument) async -> Bool {
+	public func validateDocument(_ document: any PNXMLDocument) async -> Bool {
 		return await parser.validate(document)
 	}
-	
+
 	/// Asynchronously validates the document against the DTD for the given FCPXML version (1.5–1.14).
 	///
 	/// **Note:** This method calls the synchronous validator directly. Since validation is CPU-bound
-	/// and works with non-Sendable `XMLDocument` types, wrapping in `Task` would not provide
+	/// and works with non-Sendable `PNXMLDocument` types, wrapping in `Task` would not provide
 	/// concurrency benefits and could introduce thread-safety issues. The async signature allows
 	/// this method to be used in async contexts while maintaining type safety.
 	///
@@ -299,33 +303,33 @@ public final class FCPXMLUtility: Sendable {
 	///   - document: The FCPXML document to validate.
 	///   - version: The FCPXML version whose DTD to use (e.g. `.v1_10`, `.v1_14`).
 	/// - Returns: `.success` if the document conforms to that version's DTD; otherwise a result with `dtd_validation` error(s).
-	public func validateDocumentAgainstDTD(_ document: XMLDocument, version: FCPXMLVersion) async -> ValidationResult {
+	public func validateDocumentAgainstDTD(_ document: any PNXMLDocument, version: FCPXMLVersion) async -> ValidationResult {
 		dtdValidator.validate(document, version: version)
 	}
-	
+
 	/// Asynchronously validates the document against the DTD for its declared root version.
 	///
 	/// **Note:** This method calls the synchronous validator directly. Since validation is CPU-bound
-	/// and works with non-Sendable `XMLDocument` types, wrapping in `Task` would not provide
+	/// and works with non-Sendable `PNXMLDocument` types, wrapping in `Task` would not provide
 	/// concurrency benefits and could introduce thread-safety issues. The async signature allows
 	/// this method to be used in async contexts while maintaining type safety.
 	///
 	/// - Parameter document: The FCPXML document to validate.
 	/// - Returns: `.success` if the document conforms to its declared version's DTD; otherwise a result with errors (e.g. unknown version or DTD validation failure).
-	public func validateDocumentAgainstDeclaredVersion(_ document: XMLDocument) async -> ValidationResult {
+	public func validateDocumentAgainstDeclaredVersion(_ document: any PNXMLDocument) async -> ValidationResult {
 		_validateDocumentAgainstDeclaredVersion(document)
 	}
-	
+
 	/// Asynchronously performs robust validation: semantic and DTD (against the document's declared version).
 	///
 	/// **Note:** This method calls synchronous validators directly. Since validation is CPU-bound
-	/// and works with non-Sendable `XMLDocument` types, wrapping in `Task` would not provide
+	/// and works with non-Sendable `PNXMLDocument` types, wrapping in `Task` would not provide
 	/// concurrency benefits and could introduce thread-safety issues. The async signature allows
 	/// this method to be used in async contexts while maintaining type safety.
 	///
 	/// - Parameter document: The FCPXML document to validate.
 	/// - Returns: A report combining semantic and DTD results; ``DocumentValidationReport/isValid`` is `true` only when both pass.
-	public func performValidation(_ document: XMLDocument) async -> DocumentValidationReport {
+	public func performValidation(_ document: any PNXMLDocument) async -> DocumentValidationReport {
 		_performValidation(document)
 	}
 	
@@ -336,7 +340,7 @@ public final class FCPXMLUtility: Sendable {
 	///   - project: The project to convert against, as an NSXMLElement.
 	/// - Returns: An optional CMTime value of the timecode value.
 	@available(*, deprecated, message: "Use sequenceTimecode(fromCounterValue:inSequence:) instead.")
-	public func projectTimecode(fromCounterValue counterValue: CMTime, inProject project: XMLElement) -> CMTime? {
+	public func projectTimecode(fromCounterValue counterValue: CMTime, inProject project: any PNXMLElement) -> CMTime? {
 		guard let projectSequence = project.fcpxProjectSequence else {
 			return nil
 		}
@@ -350,7 +354,7 @@ public final class FCPXMLUtility: Sendable {
 	///   - project: The project to convert against, as an NSXMLElement.
 	/// - Returns: An optional CMTime value of the counter time.
 	@available(*, deprecated, message: "Use sequenceCounterTime(fromTimecodeValue:inSequence:) instead.")
-	public func projectCounterTime(fromTimecodeValue timecodeValue: CMTime, inProject project: XMLElement) -> CMTime? {
+	public func projectCounterTime(fromTimecodeValue timecodeValue: CMTime, inProject project: any PNXMLElement) -> CMTime? {
 		guard let projectSequence = project.fcpxProjectSequence else {
 			return nil
 		}
@@ -363,7 +367,7 @@ public final class FCPXMLUtility: Sendable {
     ///   - counterValue: The counter value to convert.
     ///   - sequence: The sequence to convert against, as an NSXMLElement.
     /// - Returns: An optional CMTime value of the timecode value.
-    public func sequenceTimecode(fromCounterValue counterValue: CMTime, inSequence sequence: XMLElement) -> CMTime? {
+    public func sequenceTimecode(fromCounterValue counterValue: CMTime, inSequence sequence: any PNXMLElement) -> CMTime? {
         
         guard sequence.fcpxType == .sequence else {
             return nil
@@ -384,7 +388,7 @@ public final class FCPXMLUtility: Sendable {
     ///   - timecodeValue: The timecode value to convert.
     ///   - sequence: The sequence to convert against, as an NSXMLElement.
     /// - Returns: An optional CMTime value of the counter time.
-    public func sequenceCounterTime(fromTimecodeValue timecodeValue: CMTime, inSequence sequence: XMLElement) -> CMTime? {
+    public func sequenceCounterTime(fromTimecodeValue timecodeValue: CMTime, inSequence sequence: any PNXMLElement) -> CMTime? {
         
         // Convert the timecode values to sequence counter time values
         guard sequence.fcpxType == .sequence else {
@@ -408,7 +412,7 @@ public final class FCPXMLUtility: Sendable {
 	///   - fromLocalTime: The local time value to convert.
 	///   - forClip: The clip to convert against.
 	/// - Returns: A CMTime value of the resulting parent time value.
-	public func parentTime(fromLocalTime localTimeValue: CMTime, forClip clip: XMLElement) -> CMTime? {
+	public func parentTime(fromLocalTime localTimeValue: CMTime, forClip clip: any PNXMLElement) -> CMTime? {
 		
 		guard let parentInPoint = clip.fcpxParentInPoint else {
 			return nil
@@ -429,7 +433,7 @@ public final class FCPXMLUtility: Sendable {
 	///   - fromParentTime: The parent time value to convert.
 	///   - forClip: The clip to convert against.
 	/// - Returns: A CMTime value of the resulting parent time value.
-	public func localTime(fromParentTime parentTimeValue: CMTime, forClip clip: XMLElement) -> CMTime? {
+	public func localTime(fromParentTime parentTimeValue: CMTime, forClip clip: any PNXMLElement) -> CMTime? {
 		
 		guard let parentInPoint = clip.fcpxParentInPoint else {
 			return nil
@@ -448,7 +452,7 @@ public final class FCPXMLUtility: Sendable {
 	///   - forClip: The clip on the timeline to return the start time value for. The clip can be a clip on the primary storyline, a secondary storyline or it can be a connected clip.
 	///   - inProject: The project that the clip resides in.
 	/// - Returns: A CMTime value of the resulting project time value.
-	public func projectTime(forClip clip: XMLElement, inProject project: XMLElement) -> CMTime? {
+	public func projectTime(forClip clip: any PNXMLElement, inProject project: any PNXMLElement) -> CMTime? {
 		
 		guard let clipElementOffset = clip.fcpxOffset else {
 			debugLog("clipElementOffset is nil")
@@ -456,8 +460,8 @@ public final class FCPXMLUtility: Sendable {
 		}
 		
 		var startTime: CMTime
-		guard let clipParentElement = clip.parent as? XMLElement else {
-			debugLog("clipParentElement is nil or not XMLElement")
+		guard let clipParentElement = clip.parent else {
+			debugLog("clipParentElement is nil or not PNXMLElement")
 			return nil
 		}
 		if clipParentElement.name == "spine" && clipParentElement.fcpxOffset != nil { // If the clip is in a secondary storyline
@@ -467,8 +471,8 @@ public final class FCPXMLUtility: Sendable {
 				return nil
 			}
 			
-			guard let spineParent = clipParentElement.parent as? XMLElement else {
-				debugLog("spineParent is nil or not XMLElement")
+			guard let spineParent = clipParentElement.parent else {
+				debugLog("spineParent is nil or not PNXMLElement")
 				return nil
 			}
 			
@@ -504,14 +508,14 @@ public final class FCPXMLUtility: Sendable {
 		return startTime
 	}
 	
-	/// Returns the clip's parent's equivalent offset timings for the specified in and out times. This is useful for walking up an XMLElement hierarchy in order to get the time values of the clip on the project timeline.
+	/// Returns the clip's parent's equivalent offset timings for the specified in and out times. This is useful for walking up a PNXMLElement hierarchy in order to get the time values of the clip on the project timeline.
 	///
 	/// - Parameters:
 	///   - inTime: The in time to convert, given as a CMTime value.
 	///   - outTime: The out time to convert, given as a CMTime value.
 	///   - clip: The clip that the time values are from. The parent time values will be drawn from this clip's parent.
-	/// - Returns: A tuple of the converted in time, the converted out time, and the parent XMLElement of the specified clip.
-	public func parentClipTime(forInTime inTime: CMTime, outTime: CMTime, forClip clip: XMLElement) -> (in: CMTime, out: CMTime, parent: XMLElement)? {
+	/// - Returns: A tuple of the converted in time, the converted out time, and the parent PNXMLElement of the specified clip.
+	public func parentClipTime(forInTime inTime: CMTime, outTime: CMTime, forClip clip: any PNXMLElement) -> (in: CMTime, out: CMTime, parent: any PNXMLElement)? {
 		
 		guard let parentClip = clip.parentElement else {
 			return nil
@@ -557,8 +561,8 @@ public final class FCPXMLUtility: Sendable {
 	/// When text values contain line breaks, such as in markers, Final Cut Pro X exports FCPXML files with the line break as is, not encoded into a valid XML line break character. This function will replace line breaks in _attribute nodes_ in FCPXML files with the &#xA; character entity.
 	///
 	/// - Parameter url: A URL object pointing to the XML file to convert.
-	/// - Returns: An XMLDocument or nil if there was a file read or conversion error.
-	public func convertLineBreaksInAttributes(inXMLDocumentURL url: URL) async -> XMLDocument? {
+	/// - Returns: A PNXMLDocument or nil if there was a file read or conversion error.
+	public func convertLineBreaksInAttributes(inXMLDocumentURL url: URL) async -> (any PNXMLDocument)? {
 		
 		do {
 			let document = try String(contentsOf: url, encoding: .utf8)
@@ -611,7 +615,7 @@ public final class FCPXMLUtility: Sendable {
 			
 			let newDocument = newSplitDocument.joined(separator: "=\"")
 			
-			let newXMLDocument = try XMLDocument(xmlString: newDocument, options: [.nodePreserveWhitespace, .nodePrettyPrint, .nodeCompactEmptyElement])
+			let newXMLDocument = try PNXMLDefaultFactory().makeDocument(xmlString: newDocument, options: [.preserveWhitespace, .prettyPrint, .compactEmptyElements])
 			
 			return newXMLDocument
 			

@@ -25,17 +25,19 @@ extension FinalCutPro.FCPXML {
             {
                 return existingElement
             }
-            
+
             // create new element and attach
             let newElement = FinalCutPro.FCPXML.Root()
-            xml.addChild(newElement.element)
+            xml.setRootElement(newElement.element)
             return newElement
         }
         set {
             let current = root
-            guard current.element != newValue.element else { return }
-            current.element.detach()
-            xml.addChild(newValue.element)
+            guard current.element.name == newValue.element.name,
+                  current.element.xmlString == newValue.element.xmlString else {
+                xml.setRootElement(newValue.element)
+                return
+            }
         }
     }
     
@@ -48,7 +50,7 @@ extension FinalCutPro.FCPXML {
     /// - the `fcpxml/library` element if it exists
     public func allEvents() -> [Event] {
         // there is no appreciable gain by using lazy sequences here
-        // so just return [XMLElement] array
+        // so just return [PNXMLElement] array
         
         var events: [Event] = []
         
@@ -75,7 +77,7 @@ extension FinalCutPro.FCPXML {
     /// - an `fcpxml/library/event` element
     public func allProjects() -> [Project] {
         // there is no appreciable gain by using lazy sequences here
-        // so just return [XMLElement] array
+        // so just return [PNXMLElement] array
         
         var projects: [Project] = []
         

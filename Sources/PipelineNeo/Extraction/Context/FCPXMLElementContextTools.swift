@@ -15,14 +15,14 @@ import SwiftExtensions
 extension FinalCutPro.FCPXML.ElementContext {
     /// Class instance that provides useful context for a FCPXML element.
     public struct Tools {
-        var element: XMLElement
-        var breadcrumbs: [XMLElement]
-        var resources: XMLElement? // `resources` container element
-        
+        var element: any PNXMLElement
+        var breadcrumbs: [any PNXMLElement]
+        var resources: (any PNXMLElement)? // `resources` container element
+
         init(
-            element: XMLElement,
-            breadcrumbs: [XMLElement],
-            resources: XMLElement? // `resources` container element
+            element: any PNXMLElement,
+            breadcrumbs: [any PNXMLElement],
+            resources: (any PNXMLElement)? // `resources` container element
         ) {
             self.element = element
             self.breadcrumbs = breadcrumbs
@@ -293,13 +293,13 @@ extension FinalCutPro.FCPXML.ElementContext {
         }
         
         /// Returns the value of the given attribute key name for the given element.
-        public func attributeValue(key: String, of element: XMLElement) -> String? {
+        public func attributeValue(key: String, of element: any PNXMLElement) -> String? {
             element.stringValue(forAttributeNamed: key)
         }
         
         /// The absolute start timecode of the element in seconds.
         /// This is calculated based on ancestor elements.
-        public func absoluteStart(of element: XMLElement) -> TimeInterval? {
+        public func absoluteStart(of element: any PNXMLElement) -> TimeInterval? {
             element._fcpCalculateAbsoluteStart(
                 ancestors: breadcrumbs
             )
@@ -321,12 +321,12 @@ extension FinalCutPro.FCPXML.ElementContext {
         
         /// If the resource is a `format`, it is returned.
         /// Otherwise, references are followed until a `format` is found.
-        public func format(for resource: XMLElement) -> FinalCutPro.FCPXML.Format? {
+        public func format(for resource: any PNXMLElement) -> FinalCutPro.FCPXML.Format? {
             resource._fcpFormatResource(in: resources)
         }
         
         /// Returns the resource element for the element.
-        public var resource: XMLElement? {
+        public var resource: (any PNXMLElement)? {
             element._fcpFirstResourceForElementOrAncestors(in: resources)
         }
         
@@ -334,7 +334,7 @@ extension FinalCutPro.FCPXML.ElementContext {
         /// Will usually be the same as the last element of `breadcrumbs` except when
         /// the current element is media sourced from the root `resources` XML element,
         /// in which case the last breadcrumb should be used instead.
-        public var parent: XMLElement? {
+        public var parent: (any PNXMLElement)? {
             guard let parent = element.parentElement else { return nil }
             // assert(parent == breadcrumbs.last)
             return parent
@@ -344,20 +344,20 @@ extension FinalCutPro.FCPXML.ElementContext {
         public func firstAncestor(
             ofType: FinalCutPro.FCPXML.ElementType,
             includingSelf: Bool
-        ) -> XMLElement? {
+        ) -> (any PNXMLElement)? {
             element
                 .ancestorElements(includingSelf: includingSelf)
                 .first(whereFCPElementType: ofType)
         }
         
         /// Returns the first ancestor element with the given name.
-        public func firstAncestor(named name: String, includingSelf: Bool) -> XMLElement? {
+        public func firstAncestor(named name: String, includingSelf: Bool) -> (any PNXMLElement)? {
             ((includingSelf ? [element] : []) + breadcrumbs)
                 .first(whereElementNamed: name)
         }
         
         /// Returns the first ancestor element with the given name.
-        public func firstAncestor(named names: [String], includingSelf: Bool) -> XMLElement? {
+        public func firstAncestor(named names: [String], includingSelf: Bool) -> (any PNXMLElement)? {
             ((includingSelf ? [element] : []) + breadcrumbs)
                 .first {
                     guard let name = $0.name else { return false }
@@ -366,7 +366,7 @@ extension FinalCutPro.FCPXML.ElementContext {
         }
         
         /// Returns the first ancestor element containing an attribute with the given name.
-        public func firstAncestor(withAttribute attrName: String, includingSelf: Bool) -> XMLElement? {
+        public func firstAncestor(withAttribute attrName: String, includingSelf: Bool) -> (any PNXMLElement)? {
             ((includingSelf ? [element] : []) + breadcrumbs)
                 .first(withAttribute: attrName)?.element
         }
@@ -397,7 +397,7 @@ extension FinalCutPro.FCPXML.ElementContext {
         }
         
         /// Returns the first ancestor clip, if the element is contained within a clip.
-        public func ancestorClip(includingSelf: Bool) -> XMLElement? {
+        public func ancestorClip(includingSelf: Bool) -> (any PNXMLElement)? {
             element.fcpAncestorClip(ancestors: breadcrumbs, includingSelf: includingSelf)
         }
         

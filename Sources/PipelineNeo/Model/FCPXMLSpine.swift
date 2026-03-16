@@ -15,17 +15,17 @@ import SwiftExtensions
 extension FinalCutPro.FCPXML {
     /// Contains elements ordered sequentially in time.
     public struct Spine: FCPXMLElement {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .spine
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.spine]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -90,12 +90,12 @@ extension FinalCutPro.FCPXML.Spine: FCPXMLElementAnchorableAttributes { }
 
 extension FinalCutPro.FCPXML.Spine {
     /// Returns child story elements.
-    public var storyElements: LazyFilteredCompactMapSequence<[XMLNode], XMLElement> {
+    public var storyElements: [any PNXMLElement] {
         element.fcpStoryElements
     }
-    
+
     /// Get or set child elements.
-    public var contents: LazyCompactMapSequence<[XMLNode], XMLElement> {
+    public var contents: [any PNXMLElement] {
         get { element.childElements }
         nonmutating set {
             element.removeAllChildren()
@@ -113,7 +113,7 @@ extension FinalCutPro.FCPXML.Spine: FCPXMLElementMetaTimeline {
 // MARK: - Typing
 
 // Spine
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Spine`` model object.
     /// Call this on a `spine` element only.
     public var fcpAsSpine: FinalCutPro.FCPXML.Spine? {

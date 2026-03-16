@@ -14,17 +14,17 @@ import SwiftExtensions
 extension FinalCutPro.FCPXML {
     /// Represents a library location on disk.
     public struct Library: FCPXMLElement {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .library
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.library]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -84,7 +84,7 @@ extension FinalCutPro.FCPXML.Library {
             element.stringValue(forAttributeNamed: Attributes.colorProcessing.rawValue)
         }
         nonmutating set {
-            element.addAttribute(withName: Attributes.colorProcessing.rawValue, value: newValue)
+            element.addAttribute(name: Attributes.colorProcessing.rawValue, value: newValue)
         }
     }
 }
@@ -113,7 +113,7 @@ extension FinalCutPro.FCPXML.Library {
 }
 
 // Library
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the library name, derived from the `location` URL.
     /// Call on a `library` element.
     public var fcpLibraryName: String? {
@@ -141,7 +141,7 @@ extension XMLElement {
 // MARK: - Typing
 
 // Library
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Library`` model object.
     /// Call this on a `library` element only.
     public var fcpAsLibrary: FinalCutPro.FCPXML.Library? {

@@ -19,17 +19,17 @@ extension FinalCutPro.FCPXML {
     /// >
     /// > References video data from an `asset` or `effect` element.
     public struct Video: FCPXMLElement {
-        public let element: XMLElement
+        public let element: any PNXMLElement
         
         public let elementType: ElementType = .video
         
         public static let supportedElementTypes: Set<ElementType> = [.video]
         
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
         
-        public init?(element: XMLElement) {
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -124,7 +124,7 @@ extension FinalCutPro.FCPXML.Video {
     /// Source/track identifier in asset (if not '1').
     public var srcID: String? {
         get { element.stringValue(forAttributeNamed: Attributes.srcID.rawValue) }
-        nonmutating set { element.addAttribute(withName: Attributes.srcID.rawValue, value: newValue) }
+        nonmutating set { element.addAttribute(name: Attributes.srcID.rawValue, value: newValue) }
     }
 }
 
@@ -134,7 +134,7 @@ extension FinalCutPro.FCPXML.Video: FCPXMLElementClipAttributes { }
 
 extension FinalCutPro.FCPXML.Video {
     /// Get or set child elements.
-    public var contents: LazyCompactMapSequence<[XMLNode], XMLElement> {
+    public var contents: [any PNXMLElement] {
         get { element.childElements }
         nonmutating set {
             element.removeAllChildren()
@@ -143,7 +143,7 @@ extension FinalCutPro.FCPXML.Video {
     }
     
     /// Returns child story elements.
-    public var storyElements: LazyFilteredCompactMapSequence<[XMLNode], XMLElement> {
+    public var storyElements: [any PNXMLElement] {
         element.fcpStoryElements
     }
 }
@@ -161,7 +161,7 @@ extension FinalCutPro.FCPXML.Video: FCPXMLElementMetaTimeline {
 // MARK: - Typing
 
 // Video
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Video`` model object.
     /// Call this on a `video` element only.
     public var fcpAsVideo: FinalCutPro.FCPXML.Video? {

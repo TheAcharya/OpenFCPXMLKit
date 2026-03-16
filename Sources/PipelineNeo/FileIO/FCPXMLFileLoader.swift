@@ -31,7 +31,13 @@ public enum FCPXMLLoadError: Error, LocalizedError, Sendable {
 @available(macOS 12.0, *)
 public struct FCPXMLFileLoader: Sendable {
 
-    public init() {}
+    private nonisolated(unsafe) let factory: any PNXMLFactory
+
+    /// Creates a new file loader.
+    /// - Parameter factory: XML factory for creating documents (default: `PNXMLDefaultFactory()`).
+    public init(factory: any PNXMLFactory = PNXMLDefaultFactory()) {
+        self.factory = factory
+    }
 
     /// Resolves the URL to the actual FCPXML XML file.
     /// - If `url` is a directory (e.g. `Project.fcpxmld`), returns `url.appendingPathComponent("Info.fcpxml")`.
@@ -65,23 +71,20 @@ public struct FCPXMLFileLoader: Sendable {
 
     /// Loads an FCPXML document from the given URL.
     /// For a `.fcpxmld` bundle, reads `Info.fcpxml` inside the bundle.
-    public func loadDocument(from url: URL) throws -> XMLDocument {
+    public func loadDocument(from url: URL) throws -> any PNXMLDocument {
         let data = try loadData(from: url)
         do {
-            return try XMLDocument(data: data)
+            return try factory.makeDocument(data: data)
         } catch {
             throw FCPXMLError.parsingFailed(error)
         }
     }
 
     /// Loads an FCPXML document using Pipeline Neo's FCPXML parsing options (preserve whitespace, pretty print).
-    public func loadFCPXMLDocument(from url: URL) throws -> XMLDocument {
+    public func loadFCPXMLDocument(from url: URL) throws -> any PNXMLDocument {
         let data = try loadData(from: url)
         do {
-            return try XMLDocument(
-                data: data,
-                options: [.nodePreserveWhitespace, .nodePrettyPrint, .nodeCompactEmptyElement]
-            )
+            return try factory.makeDocument(data: data, options: .fcpxmlDefaults)
         } catch {
             throw FCPXMLError.parsingFailed(error)
         }
@@ -90,12 +93,11 @@ public struct FCPXMLFileLoader: Sendable {
     /// Loads an FCPXML document from the given URL with an async calling convention.
     ///
     /// Provides an `async` entry point so callers can avoid blocking the calling actor.
-    /// Foundation's `XMLDocument` does not natively support async I/O, so the underlying
-    /// file read is synchronous. For `.fcpxmld` bundles, reads `Info.fcpxml` inside the bundle.
+    /// The underlying file read is synchronous. For `.fcpxmld` bundles, reads `Info.fcpxml` inside the bundle.
     ///
     /// - Parameter url: URL of a `.fcpxml` file or `.fcpxmld` bundle.
     /// - Returns: Parsed XML document.
-    public func load(from url: URL) async throws -> XMLDocument {
+    public func load(from url: URL) async throws -> any PNXMLDocument {
         try loadFCPXMLDocument(from: url)
     }
 }

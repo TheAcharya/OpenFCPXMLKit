@@ -15,7 +15,7 @@ public protocol FCPXMLExtractionPreset<Result> where Self: Sendable {
     associatedtype Result
     
     func perform(
-        on extractable: XMLElement,
+        on extractable: any PNXMLElement,
         scope: FinalCutPro.FCPXML.ExtractionScope
     ) async -> Result
 }

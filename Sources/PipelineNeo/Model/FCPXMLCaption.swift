@@ -15,17 +15,17 @@ import SwiftExtensions
 extension FinalCutPro.FCPXML {
     /// Represents a closed caption.
     public struct Caption: FCPXMLElement { 
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .caption
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.caption]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -116,7 +116,7 @@ extension FinalCutPro.FCPXML.Caption: FCPXMLElementTextStyleDefinitionChildren {
 // MARK: - Typing
 
 // Caption
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Caption`` model object.
     /// Call this on a `caption` element only.
     public var fcpAsCaption: FinalCutPro.FCPXML.Caption? {

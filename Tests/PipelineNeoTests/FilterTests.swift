@@ -81,12 +81,12 @@ final class FilterTests: XCTestCase {
     }
     
     func testFilterParameterFromParamElementWithAuxValue() {
-        let paramElement = XMLElement(name: "param")
-        paramElement.addAttribute(withName: "name", value: "Gain")
-        paramElement.addAttribute(withName: "key", value: "gain")
-        paramElement.addAttribute(withName: "value", value: "0.8")
-        paramElement.addAttribute(withName: "auxValue", value: "linear")
-        paramElement.addAttribute(withName: "enabled", value: "1")
+        let paramElement = FoundationXMLFactory().makeElement(name: "param")
+        paramElement.addAttribute(name: "name", value: "Gain")
+        paramElement.addAttribute(name: "key", value: "gain")
+        paramElement.addAttribute(name: "value", value: "0.8")
+        paramElement.addAttribute(name: "auxValue", value: "linear")
+        paramElement.addAttribute(name: "enabled", value: "1")
         let param = FinalCutPro.FCPXML.FilterParameter(paramElement: paramElement)
         XCTAssertNotNil(param)
         XCTAssertEqual(param?.name, "Gain")
@@ -280,7 +280,7 @@ final class FilterTests: XCTestCase {
         </clip>
         """
         
-        let xmlDoc = try XMLDocument(xmlString: xmlString)
+        let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
         guard let clipElement = xmlDoc.rootElement() else {
             XCTFail("Failed to parse XML")
             return
@@ -326,7 +326,7 @@ final class FilterTests: XCTestCase {
         </clip>
         """
         
-        let xmlDoc = try XMLDocument(xmlString: xmlString)
+        let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
         guard let clipElement = xmlDoc.rootElement() else {
             XCTFail("Failed to parse XML")
             return
@@ -353,7 +353,7 @@ final class FilterTests: XCTestCase {
         </clip>
         """
         
-        let xmlDoc = try XMLDocument(xmlString: xmlString)
+        let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
         guard let clipElement = xmlDoc.rootElement() else {
             XCTFail("Failed to parse XML")
             return
@@ -380,7 +380,7 @@ final class FilterTests: XCTestCase {
         </transition>
         """
         
-        let xmlDoc = try XMLDocument(xmlString: xmlString)
+        let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
         guard let rootElement = xmlDoc.rootElement() else {
             XCTFail("Failed to parse XML")
             return
@@ -404,7 +404,7 @@ final class FilterTests: XCTestCase {
         </transition>
         """
         
-        let xmlDoc = try XMLDocument(xmlString: xmlString)
+        let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
         guard let rootElement = xmlDoc.rootElement() else {
             XCTFail("Failed to parse XML")
             return

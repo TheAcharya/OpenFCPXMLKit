@@ -17,17 +17,17 @@ import SwiftExtensions
 extension FinalCutPro.FCPXML.Metadata {
     /// A single key/value element of metadata.
     public struct Metadatum: FCPXMLElement, Equatable, Hashable {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: FinalCutPro.FCPXML.ElementType = .metadatum
-        
+
         public static let supportedElementTypes: Set<FinalCutPro.FCPXML.ElementType> = [.metadatum]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -78,7 +78,7 @@ extension FinalCutPro.FCPXML.Metadata.Metadatum {
     /// This is stored as a reverse-DNS formatted string. ie: `"com.apple.proapps.studio.reel"`
     public var keyString: String {
         get { element.stringValue(forAttributeNamed: Attributes.key.rawValue) ?? "" }
-        nonmutating set { element.addAttribute(withName: Attributes.key.rawValue, value: newValue) }
+        nonmutating set { element.addAttribute(name: Attributes.key.rawValue, value: newValue) }
     }
     
     /// Metadata raw `value` attribute string.
@@ -112,20 +112,20 @@ extension FinalCutPro.FCPXML.Metadata.Metadatum {
             return FinalCutPro.FCPXML.Metadata.MetadatumType(rawValue: value)
         }
         nonmutating set {
-            element.addAttribute(withName: Attributes.type.rawValue, value: newValue?.rawValue)
+            element.addAttribute(name: Attributes.type.rawValue, value: newValue?.rawValue)
         }
     }
     
     /// Display name for user interface.
     public var displayName: String? {
         get { element.stringValue(forAttributeNamed: Attributes.displayName.rawValue) }
-        nonmutating set { element.addAttribute(withName: Attributes.displayName.rawValue, value: newValue) }
+        nonmutating set { element.addAttribute(name: Attributes.displayName.rawValue, value: newValue) }
     }
     
     /// Description for user interface.
     public var displayDescription: String? {
         get { element.stringValue(forAttributeNamed: Attributes.description.rawValue) }
-        nonmutating set { element.addAttribute(withName: Attributes.description.rawValue, value: newValue) }
+        nonmutating set { element.addAttribute(name: Attributes.description.rawValue, value: newValue) }
     }
 }
 
@@ -142,7 +142,7 @@ extension FinalCutPro.FCPXML.Metadata.Metadatum {
 // MARK: - Typing
 
 // Metadatum
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML:
     /// Returns the element wrapped in a ``FinalCutPro/FCPXML/Metadata/Metadatum`` model object.
     /// Call this on an `md` element only.

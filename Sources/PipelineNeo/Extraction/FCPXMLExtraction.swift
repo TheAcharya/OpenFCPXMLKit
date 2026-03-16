@@ -5,7 +5,7 @@
 //
 
 //
-//	Public extraction API extension on XMLElement.
+//	Public extraction API extension on PNXMLElement.
 //
 
 import Foundation
@@ -61,9 +61,9 @@ extension FCPXMLElement {
     }
 }
 
-// MARK: - XMLElement Public Methods
+// MARK: - PNXMLElement Public Methods
 
-extension XMLElement {
+extension PNXMLElement {
     /// Extract elements from the element and recursively from all sub-elements.
     ///
     /// - Parameters:
@@ -95,7 +95,7 @@ extension XMLElement {
             scope: scope
         )
     }
-    
+
     /// Extract data using a closure that provides access to the element.
     ///
     /// If no implicit data transform is required, use ``fcpExtract(types:scope:)`` to simply return
@@ -120,7 +120,7 @@ extension XMLElement {
 
 // MARK: - Extraction Logic
 
-extension XMLElement {
+extension PNXMLElement {
     /// Internal extraction entry point:
     /// Recursively extract elements based on a set of matching criteria and filtering rules.
     ///
@@ -132,11 +132,11 @@ extension XMLElement {
     ///     If `nil`, the `resources` found in the document will be used if present.
     ///   - overrideDirectChildren: Uses the direct children rule supplied instead of the default
     ///     rule for the element type.
-    func _fcpExtract<Ancestors: Sequence<XMLElement>>(
+    func _fcpExtract<Ancestors: Sequence<any PNXMLElement>>(
         types elementTypes: Set<FinalCutPro.FCPXML.ElementType>,
         scope: FinalCutPro.FCPXML.ExtractionScope,
         ancestors: Ancestors,
-        resources: XMLElement?,
+        resources: (any PNXMLElement)?,
         overrideDirectChildren: FinalCutPro.FCPXML.ExtractableChildren? = nil
     ) async -> [FinalCutPro.FCPXML.ExtractedElement] {
         var scope = scope
@@ -167,10 +167,10 @@ extension XMLElement {
     ///     If `nil`, the `resources` found in the document will be used if present.
     ///   - overrideDirectChildren: Uses the direct children rule supplied instead of the default
     ///     rule for the element type.
-    private func _fcpExtract<Ancestors: Sequence<XMLElement>>(
+    private func _fcpExtract<Ancestors: Sequence<any PNXMLElement>>(
         scope: FinalCutPro.FCPXML.ExtractionScope,
         ancestors: Ancestors,
-        resources: XMLElement?,
+        resources: (any PNXMLElement)?,
         overrideDirectChildren: FinalCutPro.FCPXML.ExtractableChildren? = nil
     ) async -> [FinalCutPro.FCPXML.ExtractedElement] {
         // self
@@ -254,10 +254,10 @@ extension XMLElement {
         return extractedElements
     }
     
-    private func _fcpExtractPeers<Ancestors: Sequence<XMLElement>>(
+    private func _fcpExtractPeers<Ancestors: Sequence<any PNXMLElement>>(
         scope: FinalCutPro.FCPXML.ExtractionScope,
         ancestors: Ancestors,
-        resources: XMLElement?
+        resources: (any PNXMLElement)?
     ) async -> [FinalCutPro.FCPXML.ExtractedElement] {
         // gather immediate children with `lane != 0` which should be considered peers
         // with the current element
@@ -278,13 +278,13 @@ extension XMLElement {
     /// Helper to extract direct children of the element.
     ///
     /// Ancestors are ordered nearest to furthest ancestor.
-    private func _fcpExtractDirectChildren<Ancestors: Sequence<XMLElement>>(
+    private func _fcpExtractDirectChildren<Ancestors: Sequence<any PNXMLElement>>(
         childrenRule: FinalCutPro.FCPXML.ExtractableChildren.DirectChildren,
         scope: FinalCutPro.FCPXML.ExtractionScope,
         ancestors: Ancestors,
-        resources: XMLElement?
+        resources: (any PNXMLElement)?
     ) async -> [FinalCutPro.FCPXML.ExtractedElement] {
-        let childrenSource: any Sequence<XMLElement>
+        let childrenSource: any Sequence<any PNXMLElement>
         switch childrenRule {
         case .all:
             childrenSource = childElements
@@ -312,13 +312,13 @@ extension XMLElement {
     /// Ancestors are ordered nearest to furthest ancestor.
     ///
     /// Descendants are ordered nearest to furthest descendant.
-    private func _fcpExtractDescendants<Ancestors: Sequence<XMLElement>>(
+    private func _fcpExtractDescendants<Ancestors: Sequence<any PNXMLElement>>(
         descendants: [FinalCutPro.FCPXML.ExtractableChildren.Descendant],
         scope: FinalCutPro.FCPXML.ExtractionScope,
         ancestors: Ancestors,
-        resources: XMLElement?
+        resources: (any PNXMLElement)?
     ) async -> [FinalCutPro.FCPXML.ExtractedElement] {
-        var descendantAccum: [XMLElement] = []
+        var descendantAccum: [any PNXMLElement] = []
         var output: [FinalCutPro.FCPXML.ExtractedElement] = []
         for next in descendants {
             let extracted = await next.element._fcpExtract(
@@ -336,7 +336,7 @@ extension XMLElement {
     /// Returns `true` if the element should be filtered (kept) in returned elements.
     ///
     /// Ancestors are ordered nearest to furthest ancestor.
-    static func _fcpShouldKeepForExtraction<Ancestors: Sequence<XMLElement>>(
+    static func _fcpShouldKeepForExtraction<Ancestors: Sequence<any PNXMLElement>>(
         extractedElement: FinalCutPro.FCPXML.ExtractedElement,
         scope: FinalCutPro.FCPXML.ExtractionScope,
         ancestors: Ancestors
@@ -384,7 +384,7 @@ extension XMLElement {
     /// Returns `true` if the element should be filtered (kept) and further traversed.
     ///
     /// Ancestors are ordered nearest to furthest ancestor.
-    static func _fcpShouldKeepForTraversal<Ancestors: Sequence<XMLElement>>(
+    static func _fcpShouldKeepForTraversal<Ancestors: Sequence<any PNXMLElement>>(
         extractedElement: FinalCutPro.FCPXML.ExtractedElement,
         scope: FinalCutPro.FCPXML.ExtractionScope,
         ancestors: Ancestors
@@ -432,7 +432,7 @@ extension XMLElement {
     /// Returns number of container elements found in an ancestor chain.
     ///
     /// Ancestors are ordered nearest to furthest ancestor.
-    static func _fcpContainerDepth<Ancestors: Sequence<XMLElement>>(
+    static func _fcpContainerDepth<Ancestors: Sequence<any PNXMLElement>>(
         in ancestors: Ancestors
     ) -> Int {
         var count = 0
@@ -461,11 +461,11 @@ extension XMLElement {
 
 // MARK: - Helpers
 
-extension XMLElement {
+extension PNXMLElement {
     /// Return effective lane for the element.
     ///
     /// Ancestors are ordered nearest to furthest ancestor.
-    func _fcpEffectiveLane<Ancestors: Sequence<XMLElement>>(
+    func _fcpEffectiveLane<Ancestors: Sequence<any PNXMLElement>>(
         ancestors: Ancestors
     ) -> Int? {
         _fcpAncestorElementTypesAndLanes(ancestors: ancestors, includingSelf: true)

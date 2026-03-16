@@ -38,7 +38,7 @@ let document = try await loader.load(from: bundleURL)
 
 ## Parsing
 
-Use **FCPXMLService** (or **FCPXMLParser** directly) to parse data or URL into an `XMLDocument`:
+Use **FCPXMLService** (or **FCPXMLParser** directly) to parse data or URL into an `any PNXMLDocument` (platform-agnostic; Foundation-backed on macOS, AEXML-backed on iOS):
 
 ```swift
 let service = ModularUtilities.createPipeline()
@@ -71,7 +71,7 @@ if version.supportsBundleFormat { /* can save as .fcpxmld */ }
 // Filter elements by type
 let types: [FCPXMLElementType] = [.assetResource, .sequence, .event]
 let filtered = service.filterElements(elements, ofTypes: types)
-let elementType = someElement.fcpxType  // XMLElement extension
+let elementType = someElement.fcpxType  // PNXMLElement extension
 ```
 
 ---

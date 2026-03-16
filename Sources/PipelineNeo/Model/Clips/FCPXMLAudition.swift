@@ -21,17 +21,17 @@ extension FinalCutPro.FCPXML {
     /// > When exported, the XML lists the currently active item as the first child in the audition
     /// > container.
     public struct Audition: FCPXMLElement {
-        public let element: XMLElement
+        public let element: any PNXMLElement
         
         public let elementType: ElementType = .audition
         
         public static let supportedElementTypes: Set<ElementType> = [.audition]
         
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
         
-        public init?(element: XMLElement) {
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -113,7 +113,7 @@ extension FinalCutPro.FCPXML.Audition {
     /// Returns the audition clips.
     /// The first clip is the active audition and subsequent clips are inactive.
     /// The convenience property ``activeClip`` is also available to return the first clip.
-    public var clips: LazyCompactMapSequence<[XMLNode], XMLElement> {
+    public var clips: [any PNXMLElement] {
         get { element.childElements }
         nonmutating set {
             element.removeAllChildren()
@@ -122,7 +122,7 @@ extension FinalCutPro.FCPXML.Audition {
     }
     
     /// Convenience to return the active audition clip.
-    public var activeClip: XMLElement? {
+    public var activeClip: (any PNXMLElement)? {
         get { clips.first }
         nonmutating set {
             guard let newValue = newValue else { return }
@@ -130,12 +130,13 @@ extension FinalCutPro.FCPXML.Audition {
                 element.addChild(newValue)
                 return
             }
-            element.replaceChild(at: 0, with: newValue)
+            element.removeChild(at: 0)
+            element.insertChild(newValue, at: 0)
         }
     }
     
     /// Convenience to return the inactive audition clips, if any.
-    public var inactiveClips: LazyCompactMapSequence<[XMLNode], XMLElement>.SubSequence {
+    public var inactiveClips: ArraySlice<any PNXMLElement> {
         clips.dropFirst()
     }
 }
@@ -143,7 +144,7 @@ extension FinalCutPro.FCPXML.Audition {
 // MARK: - Typing
 
 // Audition
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Audition`` model object.
     /// Call this on a `audition` element only.
     public var fcpAsAudition: FinalCutPro.FCPXML.Audition? {

@@ -1236,7 +1236,7 @@ final class TimelineManipulationTests: XCTestCase {
 
         // Ensure each clip-like element has a duration attribute, which is required for timeline manipulation
         for element in clipLikeElements {
-            XCTAssertNotNil(element.attribute(forName: "duration")?.stringValue, "Clip \(element.name ?? "?") should have a duration attribute")
+            XCTAssertNotNil(element.attribute(forName: "duration"), "Clip \(element.name ?? "?") should have a duration attribute")
         }
     }
 
@@ -1286,7 +1286,7 @@ final class TimelineManipulationTests: XCTestCase {
         
         // Check for audio keyframes (adjust-volume with keyframeAnimation) in clips
         var foundAudioKeyframes = false
-        func checkForAudioKeyframes(in element: XMLElement) {
+        func checkForAudioKeyframes(in element: any PNXMLElement) {
             // Check if this element has adjust-volume with keyframeAnimation
             if let adjustVolume = element.firstChildElement(named: "adjust-volume") {
                 let param = adjustVolume.firstChildElement(named: "param")

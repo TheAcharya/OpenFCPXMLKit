@@ -15,17 +15,17 @@ import SwiftTimecode
 extension FinalCutPro.FCPXML {
     /// Project element.
     public struct Project: FCPXMLElement {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .project
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.project]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -120,7 +120,7 @@ extension FinalCutPro.FCPXML.Project {
 // MARK: - Typing
 
 // Project
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Project`` model object.
     /// Call this on a `project` element only.
     public var fcpAsProject: FinalCutPro.FCPXML.Project? {

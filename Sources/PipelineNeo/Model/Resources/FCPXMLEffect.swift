@@ -25,17 +25,17 @@ extension FinalCutPro.FCPXML {
     /// > https://developer.apple.com/documentation/professional_video_applications/fcpxml_reference/effect
     /// > ).
     public struct Effect: FCPXMLElement, Equatable, Hashable, Codable {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .effect
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.effect]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -164,7 +164,7 @@ extension FinalCutPro.FCPXML.Effect {
 // MARK: - Typing
 
 // Effect
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in an ``FinalCutPro/FCPXML/Effect`` model object.
     /// Call this on an `effect` element only.
     public var fcpAsEffect: FinalCutPro.FCPXML.Effect? {

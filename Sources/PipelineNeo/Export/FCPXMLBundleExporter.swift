@@ -115,11 +115,11 @@ public struct FCPXMLBundleExporter: Sendable {
     /// - Returns: URL of the created bundle directory.
     /// - Throws: `FCPXMLBundleExportError.bundleRequiresVersion1_10OrHigher` if document version is below 1.10; or write errors.
     public func saveDocumentAsBundle(
-        _ document: XMLDocument,
+        _ document: any PNXMLDocument,
         to outputDirectory: URL,
         bundleName: String
     ) throws -> URL {
-        let versionString = document.fcpxmlVersion ?? "1.0"
+        let versionString = document.rootElement()?.attribute(forName: "version") ?? "1.0"
         guard let docVersion = FCPXMLVersion(string: versionString),
               docVersion.isAtLeast(Self.minimumVersionForBundle) else {
             throw FCPXMLBundleExportError.bundleRequiresVersion1_10OrHigher(currentVersion: versionString)

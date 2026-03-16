@@ -32,19 +32,19 @@ extension FinalCutPro.FCPXML {
         ///   - resources: The document's `resources` container element.
         ///     If `nil`, the `resources` found in the document will be used if present.
         public func value(
-            from element: XMLElement,
-            breadcrumbs: [XMLElement],
-            resources: XMLElement? // `resources` container element
+            from element: any PNXMLElement,
+            breadcrumbs: [any PNXMLElement],
+            resources: (any PNXMLElement)? // `resources` container element
         ) -> Value {
             let tools = Tools(
                 element: element,
                 breadcrumbs: breadcrumbs,
                 resources: resources
             )
-            
+
             let resources = resources
                 ?? element.fcpRootResources
-                ?? XMLElement(name: ElementType.resources.rawValue)
+                ?? PNXMLDefaultFactory().makeElement(name: ElementType.resources.rawValue)
             
             return valueBuilder(
                 element,
@@ -66,9 +66,9 @@ extension FinalCutPro.FCPXML.ElementContext {
     ///   - resources: The document's `resources` container element provided for convenience.
     ///   - tools: Convenience methods for building context.
     public typealias ValueBuilder = (
-        _ element: XMLElement,
-        _ breadcrumbs: [XMLElement],
-        _ resources: XMLElement, // `resources` container element
+        _ element: any PNXMLElement,
+        _ breadcrumbs: [any PNXMLElement],
+        _ resources: any PNXMLElement, // `resources` container element
         _ tools: Tools
     ) -> Value
 }

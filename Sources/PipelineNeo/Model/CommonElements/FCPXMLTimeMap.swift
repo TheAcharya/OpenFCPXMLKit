@@ -21,17 +21,17 @@ extension FinalCutPro.FCPXML {
     /// > When present, a `timeMap` defines a new adjusted time range for the clip using the first and last `timept`
     /// > elements. All other time values are interpolated from the specified `timept` elements."
     public struct TimeMap: FCPXMLElement, Equatable, Hashable {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .timeMap
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.timeMap]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -103,7 +103,7 @@ extension FinalCutPro.FCPXML.TimeMap {
 // MARK: - Typing
 
 // TimeMap
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/TimeMap`` model object.
     /// Call this on a `timeMap` element only.
     public var fcpAsTimeMap: FinalCutPro.FCPXML.TimeMap? {

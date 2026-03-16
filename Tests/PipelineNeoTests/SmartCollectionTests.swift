@@ -282,7 +282,7 @@ final class SmartCollectionTests: XCTestCase {
         </smart-collection>
         """
         
-        let xmlDoc = try XMLDocument(xmlString: xmlString)
+        let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
         guard let smartCollectionElement = xmlDoc.rootElement() else {
             XCTFail("Failed to parse XML")
             return
@@ -342,7 +342,7 @@ final class SmartCollectionTests: XCTestCase {
         </smart-collection>
         """
         
-        let xmlDoc = try XMLDocument(xmlString: xmlString)
+        let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
         guard let smartCollectionElement = xmlDoc.rootElement() else {
             XCTFail("Failed to parse XML")
             return
@@ -465,7 +465,7 @@ final class SmartCollectionTests: XCTestCase {
             <match-markers enabled="1" type="allTodo"/>
         </smart-collection>
         """
-        let xmlDoc = try XMLDocument(xmlString: xmlString)
+        let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
         guard let el = xmlDoc.rootElement() else { XCTFail("No root"); return }
         guard let sc = FinalCutPro.FCPXML.SmartCollection(element: el) else { XCTFail("No SmartCollection"); return }
         XCTAssertEqual(sc.matchUsages.count, 1)
@@ -488,7 +488,7 @@ final class SmartCollectionTests: XCTestCase {
         </library>
         """
         
-        let xmlDoc = try XMLDocument(xmlString: xmlString)
+        let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
         guard let rootElement = xmlDoc.rootElement() else {
             XCTFail("Failed to parse XML")
             return
@@ -516,7 +516,7 @@ final class SmartCollectionTests: XCTestCase {
         </event>
         """
         
-        let xmlDoc = try XMLDocument(xmlString: xmlString)
+        let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
         guard let rootElement = xmlDoc.rootElement() else {
             XCTFail("Failed to parse XML")
             return

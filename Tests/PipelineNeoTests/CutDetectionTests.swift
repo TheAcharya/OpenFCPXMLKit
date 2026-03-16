@@ -16,6 +16,7 @@ final class CutDetectionTests: XCTestCase, @unchecked Sendable {
 
     private var service: FCPXMLService!
     private var cutDetector: CutDetector!
+    private let factory = FoundationXMLFactory()
 
     override func setUpWithError() throws {
         try super.setUpWithError()
@@ -109,47 +110,39 @@ final class CutDetectionTests: XCTestCase, @unchecked Sendable {
             XCTFail("Failed to get root element")
             return
         }
-        
+
         // Create a project with sequence
-        let project = XMLElement(name: "project")
-        project.setAttributesAs(["name": "Test Project"])
-        let sequence = XMLElement(name: "sequence")
-        let spine = XMLElement(name: "spine")
-        
+        let project = factory.makeElement(name: "project")
+        project.addAttribute(name: "name", value: "Test Project")
+        let sequence = factory.makeElement(name: "sequence")
+        let spine = factory.makeElement(name: "spine")
+
         // Create Clip A
-        let clipA = XMLElement(name: "asset-clip")
-        clipA.setAttributesAs([
-            "name": "Clip A",
-            "ref": "r1",
-            "offset": "0s",
-            "duration": "3600/2400s"
-        ])
-        
+        let clipA = factory.makeElement(name: "asset-clip")
+        clipA.addAttribute(name: "name", value: "Clip A")
+        clipA.addAttribute(name: "ref", value: "r1")
+        clipA.addAttribute(name: "offset", value: "0s")
+        clipA.addAttribute(name: "duration", value: "3600/2400s")
+
         // Create Gap
-        let gap = XMLElement(name: "gap")
-        gap.setAttributesAs([
-            "name": "Gap",
-            "offset": "3600/2400s",
-            "duration": "1200/2400s"
-        ])
-        
+        let gap = factory.makeElement(name: "gap")
+        gap.addAttribute(name: "name", value: "Gap")
+        gap.addAttribute(name: "offset", value: "3600/2400s")
+        gap.addAttribute(name: "duration", value: "1200/2400s")
+
         // Create Transition
-        let transition = XMLElement(name: "transition")
-        transition.setAttributesAs([
-            "name": "Cross Dissolve",
-            "offset": "4800/2400s",
-            "duration": "600/2400s"
-        ])
-        
+        let transition = factory.makeElement(name: "transition")
+        transition.addAttribute(name: "name", value: "Cross Dissolve")
+        transition.addAttribute(name: "offset", value: "4800/2400s")
+        transition.addAttribute(name: "duration", value: "600/2400s")
+
         // Create Clip B
-        let clipB = XMLElement(name: "asset-clip")
-        clipB.setAttributesAs([
-            "name": "Clip B",
-            "ref": "r2",
-            "offset": "5400/2400s",
-            "duration": "3600/2400s"
-        ])
-        
+        let clipB = factory.makeElement(name: "asset-clip")
+        clipB.addAttribute(name: "name", value: "Clip B")
+        clipB.addAttribute(name: "ref", value: "r2")
+        clipB.addAttribute(name: "offset", value: "5400/2400s")
+        clipB.addAttribute(name: "duration", value: "3600/2400s")
+
         // Build structure: spine -> [clipA, gap, transition, clipB]
         spine.addChild(clipA)
         spine.addChild(gap)
@@ -158,24 +151,24 @@ final class CutDetectionTests: XCTestCase, @unchecked Sendable {
         sequence.addChild(spine)
         project.addChild(sequence)
         root.addChild(project)
-        
+
         // Detect cuts
         let result = service.detectCuts(inSpine: spine)
-        
+
         // Should detect one edit point between Clip A and Clip B
         XCTAssertEqual(result.totalEditPoints, 1, "Should detect one edit point")
-        
+
         guard let editPoint = result.editPoints.first else {
             XCTFail("No edit point detected")
             return
         }
-        
+
         // Should prioritize transition over gap
         XCTAssertEqual(editPoint.editType, .transition, "Should detect transition, not gap")
         XCTAssertEqual(editPoint.transitionName, "Cross Dissolve", "Should capture transition name")
         XCTAssertEqual(editPoint.sourceRelationship, .differentClips, "Should be different clips")
     }
-    
+
     func testDetectCuts_AdjacentClips_HardCut() throws {
         // Create a spine with: [Clip A] [Clip B] (no elements between)
         let document = service.createFCPXMLDocument(version: "1.10")
@@ -183,43 +176,39 @@ final class CutDetectionTests: XCTestCase, @unchecked Sendable {
             XCTFail("Failed to get root element")
             return
         }
-        
-        let project = XMLElement(name: "project")
-        project.setAttributesAs(["name": "Test Project"])
-        let sequence = XMLElement(name: "sequence")
-        let spine = XMLElement(name: "spine")
-        
-        let clipA = XMLElement(name: "asset-clip")
-        clipA.setAttributesAs([
-            "name": "Clip A",
-            "ref": "r1",
-            "offset": "0s",
-            "duration": "3600/2400s"
-        ])
-        
-        let clipB = XMLElement(name: "asset-clip")
-        clipB.setAttributesAs([
-            "name": "Clip B",
-            "ref": "r2",
-            "offset": "3600/2400s",
-            "duration": "3600/2400s"
-        ])
-        
+
+        let project = factory.makeElement(name: "project")
+        project.addAttribute(name: "name", value: "Test Project")
+        let sequence = factory.makeElement(name: "sequence")
+        let spine = factory.makeElement(name: "spine")
+
+        let clipA = factory.makeElement(name: "asset-clip")
+        clipA.addAttribute(name: "name", value: "Clip A")
+        clipA.addAttribute(name: "ref", value: "r1")
+        clipA.addAttribute(name: "offset", value: "0s")
+        clipA.addAttribute(name: "duration", value: "3600/2400s")
+
+        let clipB = factory.makeElement(name: "asset-clip")
+        clipB.addAttribute(name: "name", value: "Clip B")
+        clipB.addAttribute(name: "ref", value: "r2")
+        clipB.addAttribute(name: "offset", value: "3600/2400s")
+        clipB.addAttribute(name: "duration", value: "3600/2400s")
+
         spine.addChild(clipA)
         spine.addChild(clipB)
         sequence.addChild(spine)
         project.addChild(sequence)
         root.addChild(project)
-        
+
         let result = service.detectCuts(inSpine: spine)
-        
+
         XCTAssertEqual(result.totalEditPoints, 1, "Should detect one edit point")
-        
+
         guard let editPoint = result.editPoints.first else {
             XCTFail("No edit point detected")
             return
         }
-        
+
         // Adjacent clips should be hard cut
         XCTAssertEqual(editPoint.editType, .hardCut, "Adjacent clips should be hard cut")
         XCTAssertNil(editPoint.transitionName, "Hard cut should have no transition name")
@@ -239,24 +228,24 @@ final class CutDetectionTests: XCTestCase, @unchecked Sendable {
     }
 
     // MARK: - File Tests
-    
+
     func testCutSample() throws {
         let fcpxml = try loadFCPXMLSample(named: "CutSample")
         XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
         XCTAssertEqual(fcpxml.version, .ver1_13)
         let projects = fcpxml.allProjects()
         XCTAssertFalse(projects.isEmpty, "Expected at least one project")
-        
+
         guard let project = projects.first else {
             XCTFail("No project found")
             return
         }
-        
+
         let sequence = try XCTUnwrap(project.sequence)
         let spine = sequence.spine
         let storyElements = Array(spine.storyElements)
         XCTAssertGreaterThan(storyElements.count, 1, "CutSample should have multiple clips for cut detection")
-        
+
         // Test cut detection on this sample
         let data = try Data(contentsOf: urlForFCPXMLSample(named: "CutSample"))
         let document = try service.parseFCPXML(from: data)
@@ -266,12 +255,16 @@ final class CutDetectionTests: XCTestCase, @unchecked Sendable {
 
     // MARK: - Helpers
 
-    private func firstProjectSpine(in element: XMLElement) -> XMLElement? {
-        if element.fcpxType == .project, let spine = element.fcpxProjectSpine { return spine }
-        guard let children = element.children else { return nil }
-        for node in children {
-            guard node.kind == .element, let el = node as? XMLElement else { continue }
-            if let found = firstProjectSpine(in: el) { return found }
+    private func firstProjectSpine(in element: any PNXMLElement) -> (any PNXMLElement)? {
+        if element.name == "project" {
+            // Look for sequence > spine
+            if let sequence = element.firstChildElement(named: "sequence"),
+               let spine = sequence.firstChildElement(named: "spine") {
+                return spine
+            }
+        }
+        for child in element.childElements {
+            if let found = firstProjectSpine(in: child) { return found }
         }
         return nil
     }

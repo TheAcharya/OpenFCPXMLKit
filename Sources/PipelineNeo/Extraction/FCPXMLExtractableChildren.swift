@@ -34,7 +34,7 @@ extension FinalCutPro.FCPXML.ExtractableChildren: Sendable { }
 extension FinalCutPro.FCPXML.ExtractableChildren {
     static let directChildren = Self(children: .all, descendants: nil)
     
-    static func specificChildren(_ specificChildren: any Swift.Sequence<XMLElement>) -> Self {
+    static func specificChildren(_ specificChildren: any Swift.Sequence<any PNXMLElement>) -> Self {
         Self(children: .specific(specificChildren), descendants: nil)
     }
 }
@@ -47,29 +47,29 @@ extension FinalCutPro.FCPXML.ExtractableChildren {
         case all
         
         /// Specific direct child elements of the element.
-        case specific(_ specificChildren: any Swift.Sequence<XMLElement>)
+        case specific(_ specificChildren: any Swift.Sequence<any PNXMLElement>)
     }
 }
 
-// Note: XMLElement is not Sendable; cannot use Task-based concurrency here.
+// Note: PNXMLElement is not Sendable; cannot use Task-based concurrency here.
 extension FinalCutPro.FCPXML.ExtractableChildren.DirectChildren: @unchecked Sendable { }
 
 extension FinalCutPro.FCPXML.ExtractableChildren {
     struct Descendant {
-        let element: XMLElement
+        let element: any PNXMLElement
         let children: FinalCutPro.FCPXML.ExtractableChildren?
     }
 }
 
-// Note: XMLElement is not Sendable; cannot use Task-based concurrency here.
+// Note: PNXMLElement is not Sendable; cannot use Task-based concurrency here.
 extension FinalCutPro.FCPXML.ExtractableChildren.Descendant: @unchecked Sendable { }
 
 // MARK: - Init
 
 extension FinalCutPro.FCPXML.ExtractableChildren {
     init?(
-        of element: XMLElement,
-        resources: XMLElement?,
+        of element: any PNXMLElement,
+        resources: (any PNXMLElement)?,
         auditions: FinalCutPro.FCPXML.Audition.AuditionMask, // = .active
         mcClipAngleMask: FinalCutPro.FCPXML.MCClip.AngleMask // = .active
     ) {
@@ -149,10 +149,13 @@ extension FinalCutPro.FCPXML.ExtractableChildren {
                 let (audio, video) = multicam
                     .audioVideoMCAngles(forMulticamSources: multicamSources)
                 
-                // remove nils and reduce any duplicate elements
-                let reducedMCAngles = [video, audio] // video first, audio second
+                // remove nils and reduce any duplicate elements (identity-based)
+                let allMCAngles = [video, audio] // video first, audio second
                     .compactMap { $0?.element }
-                    .removingDuplicates()
+                var seen = Set<ObjectIdentifier>()
+                let reducedMCAngles = allMCAngles.filter { element in
+                    seen.insert(ObjectIdentifier(element)).inserted
+                }
                 
                 // provide explicit descendants
                 descendants.append(
@@ -264,10 +267,10 @@ extension FinalCutPro.FCPXML.ExtractableChildren {
 }
 
 // parent/container
-extension XMLElement {
+extension PNXMLElement {
     /// Extractable children contained within the element.
     func _fcpExtractableChildren(
-        resources: XMLElement?,
+        resources: (any PNXMLElement)?,
         auditions: FinalCutPro.FCPXML.Audition.AuditionMask, // = .active
         mcClipAngleMask: FinalCutPro.FCPXML.MCClip.AngleMask // = .active
     ) -> FinalCutPro.FCPXML.ExtractableChildren? {

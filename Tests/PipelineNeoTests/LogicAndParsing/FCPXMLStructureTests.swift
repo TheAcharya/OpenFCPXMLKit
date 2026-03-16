@@ -26,7 +26,7 @@ final class FCPXMLStructureTests: XCTestCase {
     func testParse_Structure_RootHasResourcesOrLibrary() throws {
         let fcpxml = try loadFCPXMLSample(named: "Structure")
         let root = fcpxml.root.element
-        let childNames = root.children?.compactMap { ($0 as? Foundation.XMLElement)?.name } ?? []
+        let childNames = root.childElements.map { $0.name }
         XCTAssertTrue(
             childNames.contains("resources") || childNames.contains("library"),
             "Expected resources or library, got \(childNames)"

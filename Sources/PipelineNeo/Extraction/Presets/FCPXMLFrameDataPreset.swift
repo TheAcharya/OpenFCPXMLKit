@@ -17,7 +17,7 @@ extension FinalCutPro.FCPXML {
         public init() { }
         
         public func perform(
-            on extractable: XMLElement,
+            on extractable: any PNXMLElement,
             scope: FinalCutPro.FCPXML.ExtractionScope
         ) async -> FinalCutPro.FCPXML.ExtractedFrameData {
             let extracted = await extractable.fcpExtract(
@@ -61,7 +61,7 @@ extension FCPXMLExtractionPreset where Self == FinalCutPro.FCPXML.FrameDataPrese
 }
 
 extension FinalCutPro.FCPXML {
-    // Note: XMLElement is not Sendable; cannot use Task-based concurrency here.
+    // Note: PNXMLElement is not Sendable; cannot use Task-based concurrency here.
     
     /// An extracted frame with associated data.
     public struct ExtractedFrameData: @unchecked Sendable {

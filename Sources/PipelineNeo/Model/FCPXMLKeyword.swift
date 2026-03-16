@@ -15,17 +15,17 @@ import SwiftExtensions
 extension FinalCutPro.FCPXML {
     /// Represents a keyword.
     public struct Keyword: FCPXMLElement {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .keyword
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.keyword]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -99,7 +99,7 @@ extension FinalCutPro.FCPXML.Keyword: FCPXMLElementOptionalDuration { }
 // MARK: - Typing
 
 // Keyword
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Keyword`` model object.
     /// Call this on a `keyword` element only.
     public var fcpAsKeyword: FinalCutPro.FCPXML.Keyword? {
@@ -111,8 +111,8 @@ extension XMLElement {
 
 extension FinalCutPro.FCPXML.Keyword {
     func absoluteRangeAsTimecode(
-        breadcrumbs: [XMLElement]? = nil,
-        resources: XMLElement? = nil
+        breadcrumbs: [any PNXMLElement]? = nil,
+        resources: (any PNXMLElement)? = nil
     ) -> ClosedRange<Timecode>? {
         // find nearest timeline and determine its absolute start timecode
         guard let (timeline, timelineAncestors) = element.fcpAncestorTimeline(
@@ -129,9 +129,9 @@ extension FinalCutPro.FCPXML.Keyword {
     }
     
     func absoluteRangeAsTimecode(
-        timeline: XMLElement,
-        timelineAncestors: AnySequence<XMLElement>,
-        resources: XMLElement? = nil
+        timeline: any PNXMLElement,
+        timelineAncestors: AnySequence<any PNXMLElement>,
+        resources: (any PNXMLElement)? = nil
     ) -> ClosedRange<Timecode>? {
         guard let kwAbsStart = element._fcpCalculateAbsoluteStart(
             ancestors: [timeline] + timelineAncestors,

@@ -9,7 +9,6 @@
 //
 
 import Foundation
-import SwiftExtensions
 
 extension FinalCutPro.FCPXML {
     // Note: this list does not cover all DTD element names.
@@ -98,13 +97,13 @@ extension FinalCutPro.FCPXML {
 
 extension FinalCutPro.FCPXML.ElementType {
     /// Initialize from an XML element.
-    public init?(from xmlLeaf: XMLElement) {
+    public init?(from xmlLeaf: any PNXMLElement) {
         guard let name = xmlLeaf.name else { return nil }
         self.init(rawValue: name)
     }
 }
 
-extension XMLElement {
+extension PNXMLElement {
     /// Returns the ``FinalCutPro/FCPXML/ElementType`` case for the XML element.
     public var fcpElementType: FinalCutPro.FCPXML.ElementType? {
         guard let name = name else { return nil }
@@ -135,9 +134,9 @@ extension Set<FinalCutPro.FCPXML.ElementType> {
     ]
     
     public static let allStoryElementCases: Self =
-        [.sequence, .spine]
-            + allClipCases
-            + allAnnotationCases
+        Set<FinalCutPro.FCPXML.ElementType>([.sequence, .spine])
+            .union(allClipCases)
+            .union(allAnnotationCases)
     
     public static let allTimelineCases: Self = [
         .assetClip,

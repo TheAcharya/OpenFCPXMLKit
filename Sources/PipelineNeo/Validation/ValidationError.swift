@@ -40,6 +40,7 @@ public struct ValidationError: Sendable, Equatable, Hashable {
         case emptyTimeline = "empty_timeline"
         case invalidFormat = "invalid_format"
         case dtdValidation = "dtd_validation"
+        case unknownElementName = "unknown_element_name"
     }
 }
 
@@ -69,5 +70,6 @@ public struct ValidationWarning: Sendable, Equatable, Hashable {
         case largeTimeline = "large_timeline"
         case missingMetadata = "missing_metadata"
         case negativeTimeAttribute = "negative_time_attribute"
+        case structuralValidationOnly = "structural_validation_only"
     }
 }

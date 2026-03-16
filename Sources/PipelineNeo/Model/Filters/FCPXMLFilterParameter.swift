@@ -91,7 +91,7 @@ extension FinalCutPro.FCPXML {
 extension FinalCutPro.FCPXML.FilterParameter {
     /// Creates a filter parameter from a `param` XML element (e.g. name, key, value, auxValue, enabled).
     /// auxValue is FCPXML 1.11+; ignored when reading 1.5 documents, omitted when writing to 1.5.
-    public init?(paramElement: XMLElement) {
+    public init?(paramElement: any PNXMLElement) {
         guard paramElement.name == "param",
               let name = paramElement.stringValue(forAttributeNamed: "name") else {
             return nil

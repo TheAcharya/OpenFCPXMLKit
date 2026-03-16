@@ -106,9 +106,9 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     
     func testFilterElements() {
         // Create test elements
-        let element1 = XMLElement(name: "asset")
-        let element2 = XMLElement(name: "sequence")
-        let element3 = XMLElement(name: "clip")
+        let element1 = FoundationXMLFactory().makeElement(name: "asset")
+        let element2 = FoundationXMLFactory().makeElement(name: "sequence")
+        let element3 = FoundationXMLFactory().makeElement(name: "clip")
         
         let elements = [element1, element2, element3]
         let types: [FCPXMLElementType] = [.assetResource, .sequence]
@@ -234,7 +234,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
         let rootElement = document.rootElement()
         let resourcesElement = rootElement?.elements(forName: "resources").first
         XCTAssertNotNil(resourcesElement)
-        XCTAssertEqual(resourcesElement?.childCount, 1)
+        XCTAssertEqual(resourcesElement?.childElements.count, 1)
     }
     
     func testErrorHandlerComponent() {
@@ -315,7 +315,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
         let rootElement = document.rootElement()
         let resourcesElement = rootElement?.elements(forName: "resources").first
         XCTAssertNotNil(resourcesElement)
-        XCTAssertEqual(resourcesElement?.childCount, 1)
+        XCTAssertEqual(resourcesElement?.childElements.count, 1)
     }
     
     func testAsyncFCPXMLService() async throws {
@@ -346,7 +346,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     func testAsyncModularUtilities() async {
         let document = await documentManager.createFCPXMLDocument(version: "1.10")
         // Add a resources element so semantic validation passes (FCPXMLValidator checks for it)
-        let resources = XMLElement(name: "resources")
+        let resources = FoundationXMLFactory().makeElement(name: "resources")
         document.rootElement()?.addChild(resources)
         
         let validation = await ModularUtilities.validateDocument(document)
@@ -355,9 +355,9 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     }
     
     func testAsyncElementFiltering() async {
-        let element1 = XMLElement(name: "asset")
-        let element2 = XMLElement(name: "sequence")
-        let element3 = XMLElement(name: "clip")
+        let element1 = FoundationXMLFactory().makeElement(name: "asset")
+        let element2 = FoundationXMLFactory().makeElement(name: "sequence")
+        let element3 = FoundationXMLFactory().makeElement(name: "clip")
         
         let elements = [element1, element2, element3]
         let types: [FCPXMLElementType] = [.assetResource, .sequence]
@@ -433,7 +433,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     /// measure { } for filter(elements:ofTypes:) and timecode conversion.
 
     func testPerformanceFilterElements() {
-        let elements = (0..<1000).map { _ in XMLElement(name: "asset") }
+        let elements = (0..<1000).map { _ in FoundationXMLFactory().makeElement(name: "asset") }
         let types: [FCPXMLElementType] = [.assetResource]
         
         measure {
@@ -682,7 +682,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
             XCTAssertNotNil(rootElement, "Root element should exist for version: \(version)")
             XCTAssertEqual(rootElement?.name, "fcpxml", "Root element should be 'fcpxml' for version: \(version)")
             
-            let versionAttribute = rootElement?.attribute(forName: "version")?.stringValue
+            let versionAttribute = rootElement?.attribute(forName: "version")
             XCTAssertEqual(versionAttribute, version, "Version attribute should match for version: \(version)")
         }
     }
@@ -710,7 +710,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
         
         XCTAssertNotNil(resourcesElement, "Resources element should exist")
         XCTAssertNotNil(sequenceElements, "Sequence elements should exist")
-        XCTAssertEqual(resourcesElement?.childCount, 3, "Should have 3 resources")
+        XCTAssertEqual(resourcesElement?.childElements.count, 3, "Should have 3 resources")
         XCTAssertEqual(sequenceElements?.count, 1, "Should have 1 sequence")
     }
     
@@ -723,7 +723,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
         ]
         
         let elements = elementTypes.map { type in
-            XMLElement(name: type.rawValue)
+            FoundationXMLFactory().makeElement(name: type.rawValue)
         }
         
         // Test filtering for each type individually
@@ -749,7 +749,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
             .locator, .metadata, .param, .liveDrawing, .filterVideo, .marker, .bookmark,
             .importOptions, .option, .adjustTransform, .syncSource, .mcSource
         ]
-        let elements = extendedTypes.map { XMLElement(name: $0.tagName) }
+        let elements = extendedTypes.map { FoundationXMLFactory().makeElement(name: $0.tagName) }
         for type in extendedTypes {
             let filtered = utility.filter(fcpxElements: elements, ofTypes: [type])
             XCTAssertEqual(filtered.count, 1, "Should filter to exactly 1 element of type: \(type)")
@@ -760,20 +760,20 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     /// Verifies that filtering works for every FCPXMLElementType (full DTD element coverage).
     /// For each type, builds a minimal element set containing one element of that type and asserts filter returns it.
     func testElementFilteringWithAllFCPXMLElementTypes() {
-        func singleElement(for type: FCPXMLElementType) -> XMLElement? {
+        func singleElement(for type: FCPXMLElementType) -> (any PNXMLElement)? {
             switch type {
             case .none:
                 return nil
             case .multicamResource:
-                let media = XMLElement(name: "media")
-                media.addChild(XMLElement(name: "multicam"))
+                let media = FoundationXMLFactory().makeElement(name: "media")
+                media.addChild(FoundationXMLFactory().makeElement(name: "multicam"))
                 return media
             case .compoundResource:
-                let media = XMLElement(name: "media")
-                media.addChild(XMLElement(name: "sequence"))
+                let media = FoundationXMLFactory().makeElement(name: "media")
+                media.addChild(FoundationXMLFactory().makeElement(name: "sequence"))
                 return media
             default:
-                return XMLElement(name: type.tagName)
+                return FoundationXMLFactory().makeElement(name: type.tagName)
             }
         }
         for type in FCPXMLElementType.allCases where type != .none {
@@ -804,7 +804,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     }
     
     func testXMLElementModularExtensionsWithComplexAttributes() {
-        let element = XMLElement(name: "test")
+        let element = FoundationXMLFactory().makeElement(name: "test")
         
         // Test multiple attributes
         let attributes = [
@@ -828,7 +828,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
             XCTAssertNotNil(child, "Child creation failed for: \(childName)")
         }
         
-        XCTAssertEqual(element.childCount, childNames.count, "Should have correct number of children")
+        XCTAssertEqual(element.childElements.count, childNames.count, "Should have correct number of children")
     }
     
     func testXMLDocumentModularExtensionsWithComplexStructure() {
@@ -857,7 +857,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
         
         XCTAssertNotNil(resourcesElement, "Resources element should exist")
         XCTAssertNotNil(sequenceElements, "Sequence elements should exist")
-        XCTAssertEqual(resourcesElement?.childCount, 3, "Should have 3 resources")
+        XCTAssertEqual(resourcesElement?.childElements.count, 3, "Should have 3 resources")
         XCTAssertEqual(sequenceElements?.count, 1, "Should have 1 sequence")
     }
     
@@ -885,7 +885,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     
     func testPerformanceElementFilteringLargeDataset() {
         let elements = (0..<10000).map { index in
-            let element = XMLElement(name: "asset")
+            let element = FoundationXMLFactory().makeElement(name: "asset")
             element.setAttribute(name: "id", value: "asset\(index)", using: documentManager)
             return element
         }
@@ -990,8 +990,8 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     }
 
     func testModularUtilitiesValidateDocumentReturnsErrorsForInvalidDocument() {
-        let doc = XMLDocument()
-        doc.setRootElement(XMLElement(name: "wrongroot"))
+        let doc = FoundationXMLFactory().makeDocument()
+        doc.setRootElement(FoundationXMLFactory().makeElement(name: "wrongroot"))
         let result = ModularUtilities.validateDocument(doc)
         XCTAssertFalse(result.isValid)
         XCTAssertFalse(result.errors.isEmpty)
@@ -1043,9 +1043,9 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     }
 
     func testModularUtilitiesConvertTimecodes() async {
-        let c1 = XMLElement(name: "clip")
+        let c1 = FoundationXMLFactory().makeElement(name: "clip")
         c1.setAttribute(name: "id", value: "c1", using: documentManager)
-        let c2 = XMLElement(name: "clip")
+        let c2 = FoundationXMLFactory().makeElement(name: "clip")
         c2.setAttribute(name: "id", value: "c2", using: documentManager)
         let elements = [c1, c2]
         let timecodes = await ModularUtilities.convertTimecodes(for: elements, using: timecodeConverter, frameRate: .fps24)
@@ -1059,17 +1059,17 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     /// fcpxEventNames, add(events:); resource(matchingID:), remove(resourceAtIndex:); fcpxmlString, fcpxmlVersion; init(contentsOfFCPXML:).
 
     func testXMLDocumentExtensionFcpxEventNamesAndAddEvents() {
-        let document = documentManager.createFCPXMLDocument(version: "1.10")
+        let document = documentManager.createFCPXMLDocument(version: "1.10") as! FoundationXMLDocument
         guard let root = document.rootElement() else { XCTFail("No root"); return }
-        let resources = XMLElement(name: "resources")
+        let resources = FoundationXMLFactory().makeElement(name: "resources")
         root.addChild(resources)
-        let library = XMLElement(name: "library")
+        let library = FoundationXMLFactory().makeElement(name: "library")
         root.addChild(library)
 
         XCTAssertTrue(document.fcpxEventNames.isEmpty)
 
-        let event1 = XMLElement().fcpxEvent(name: "Event One")
-        let event2 = XMLElement().fcpxEvent(name: "Event Two")
+        let event1 = FoundationXMLFactory().makeElement(name: "").fcpxEvent(name: "Event One")
+        let event2 = FoundationXMLFactory().makeElement(name: "").fcpxEvent(name: "Event Two")
         document.add(events: [event1, event2])
 
         let names = document.fcpxEventNames
@@ -1079,7 +1079,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     }
 
     func testXMLDocumentExtensionResourceMatchingIDAndRemove() {
-        let document = documentManager.createFCPXMLDocument(version: "1.10")
+        let document = documentManager.createFCPXMLDocument(version: "1.10") as! FoundationXMLDocument
         let r1 = documentManager.createElement(name: "asset", attributes: ["id": "r1", "name": "Asset 1"])
         let r2 = documentManager.createElement(name: "asset", attributes: ["id": "r2", "name": "Asset 2"])
         document.addResource(r1, using: documentManager)
@@ -1089,8 +1089,11 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
         XCTAssertNotNil(found)
         XCTAssertEqual(found?.fcpxID, "r1")
 
-        guard let resourcesElement = document.rootElement()?.elements(forName: "resources").first,
-              let children = resourcesElement.children, children.count >= 2 else {
+        guard let resourcesElement = document.rootElement()?.elements(forName: "resources").first else {
+            XCTFail("Expected resources element")
+            return
+        }
+        guard resourcesElement.childElements.count >= 2 else {
             XCTFail("Expected resources with at least 2 children")
             return
         }
@@ -1100,7 +1103,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     }
 
     func testXMLDocumentExtensionFcpxmlStringAndVersion() {
-        let document = documentManager.createFCPXMLDocument(version: "1.14")
+        let document = documentManager.createFCPXMLDocument(version: "1.14") as! FoundationXMLDocument
         document.fcpxmlVersion = "1.14"
         let str = document.fcpxmlString
         XCTAssertFalse(str.isEmpty)
@@ -1119,7 +1122,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
         try validFCPXML.data(using: .utf8)!.write(to: tempURL)
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
-        let document = try XMLDocument(contentsOfFCPXML: tempURL)
+        let document = try FoundationXMLDocument(contentsOfFCPXML: tempURL)
         XCTAssertNotNil(document.rootElement())
         XCTAssertEqual(document.rootElement()?.name, "fcpxml")
     }
@@ -1128,39 +1131,39 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     /// fcpxType (asset, sequence, clip, locator, media+multicam/sequence); isFCPXResource, isFCPXStoryElement; fcpxEvent, eventClips(forResourceID:), addToEvent, removeFromEvent; fcpxDuration get/set; eventClips throws when not event.
 
     func testXMLElementExtensionFcpxTypeAndIsFCPX() {
-        let asset = XMLElement(name: "asset")
+        let asset = FoundationXMLFactory().makeElement(name: "asset")
         XCTAssertEqual(asset.fcpxType, .assetResource)
         XCTAssertTrue(asset.isFCPXResource)
 
-        let sequence = XMLElement(name: "sequence")
+        let sequence = FoundationXMLFactory().makeElement(name: "sequence")
         XCTAssertEqual(sequence.fcpxType, .sequence)
         XCTAssertFalse(sequence.isFCPXResource)
 
-        let clip = XMLElement(name: "clip")
+        let clip = FoundationXMLFactory().makeElement(name: "clip")
         XCTAssertEqual(clip.fcpxType, .clip)
         XCTAssertTrue(clip.isFCPXStoryElement)
 
-        let locator = XMLElement(name: "locator")
+        let locator = FoundationXMLFactory().makeElement(name: "locator")
         XCTAssertEqual(locator.fcpxType, .locator)
         XCTAssertTrue(locator.isFCPXResource)
     }
 
     func testXMLElementExtensionFcpxTypeMediaWithFirstChildMulticamOrSequence() {
-        let mediaMulticam = XMLElement(name: "media")
-        mediaMulticam.addChild(XMLElement(name: "multicam"))
+        let mediaMulticam = FoundationXMLFactory().makeElement(name: "media")
+        mediaMulticam.addChild(FoundationXMLFactory().makeElement(name: "multicam"))
         XCTAssertEqual(mediaMulticam.fcpxType, .multicamResource)
 
-        let mediaCompound = XMLElement(name: "media")
-        mediaCompound.addChild(XMLElement(name: "sequence"))
+        let mediaCompound = FoundationXMLFactory().makeElement(name: "media")
+        mediaCompound.addChild(FoundationXMLFactory().makeElement(name: "sequence"))
         XCTAssertEqual(mediaCompound.fcpxType, .compoundResource)
 
-        let mediaPlain = XMLElement(name: "media")
-        mediaPlain.addChild(XMLElement(name: "asset"))
+        let mediaPlain = FoundationXMLFactory().makeElement(name: "media")
+        mediaPlain.addChild(FoundationXMLFactory().makeElement(name: "asset"))
         XCTAssertEqual(mediaPlain.fcpxType, .mediaResource)
     }
 
     func testXMLElementExtensionFcpxEventAndEventClips() throws {
-        let event = XMLElement().fcpxEvent(name: "Test Event")
+        let event = FoundationXMLFactory().makeElement(name: "").fcpxEvent(name: "Test Event")
         XCTAssertEqual(event.fcpxType, .event)
         XCTAssertEqual(event.fcpxName, "Test Event")
 
@@ -1182,7 +1185,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     
     func testEventClips_SynchronizedClipWithSpine_MatchesNestedClips() throws {
         // Test the FIXME case: sync-clip containing a spine with nested clips
-        let event = XMLElement().fcpxEvent(name: "Test Event")
+        let event = FoundationXMLFactory().makeElement(name: "").fcpxEvent(name: "Test Event")
         
         // Create a resource to match
         let resource = documentManager.createElement(name: "asset", attributes: ["id": "r1", "name": "Test Asset"])
@@ -1214,7 +1217,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     
     func testEventClips_SynchronizedClipWithSpine_MultipleNestedClips() throws {
         // Test sync-clip with spine containing multiple clips, some with nested clips
-        let event = XMLElement().fcpxEvent(name: "Test Event")
+        let event = FoundationXMLFactory().makeElement(name: "").fcpxEvent(name: "Test Event")
         let resource = documentManager.createElement(name: "asset", attributes: ["id": "r1", "name": "Test Asset"])
         
         let syncClip = documentManager.createElement(name: "sync-clip", attributes: ["name": "Multi-Clip Sync"])
@@ -1247,7 +1250,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     
     func testEventClips_SynchronizedClipWithSpine_NoMatch() throws {
         // Test sync-clip with spine that doesn't contain the resource
-        let event = XMLElement().fcpxEvent(name: "Test Event")
+        let event = FoundationXMLFactory().makeElement(name: "").fcpxEvent(name: "Test Event")
         let resource = documentManager.createElement(name: "asset", attributes: ["id": "r1", "name": "Test Asset"])
         
         let syncClip = documentManager.createElement(name: "sync-clip", attributes: ["name": "No Match Sync"])
@@ -1267,7 +1270,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     
     func testEventClips_SynchronizedClipWithSpine_DeeplyNested() throws {
         // Test sync-clip with spine -> clip -> nested clip -> deeply nested clip
-        let event = XMLElement().fcpxEvent(name: "Test Event")
+        let event = FoundationXMLFactory().makeElement(name: "").fcpxEvent(name: "Test Event")
         let resource = documentManager.createElement(name: "asset", attributes: ["id": "r1", "name": "Test Asset"])
         
         let syncClip = documentManager.createElement(name: "sync-clip", attributes: ["name": "Deeply Nested Sync"])
@@ -1295,7 +1298,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     
     func testEventClips_CompoundClipWithSecondaryStoryline_MatchesClips() throws {
         // Test compound clip matching with secondary storylines
-        let event = XMLElement().fcpxEvent(name: "Test Event")
+        let event = FoundationXMLFactory().makeElement(name: "").fcpxEvent(name: "Test Event")
         let resource = documentManager.createElement(name: "asset", attributes: ["id": "r1", "name": "Test Asset"])
         
         // Create a compound clip resource
@@ -1338,7 +1341,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     
     func testEventClips_CompoundClipWithMultipleSecondaryStorylines_MatchesClips() throws {
         // Test compound clip with multiple secondary storylines
-        let event = XMLElement().fcpxEvent(name: "Test Event")
+        let event = FoundationXMLFactory().makeElement(name: "").fcpxEvent(name: "Test Event")
         let resource = documentManager.createElement(name: "asset", attributes: ["id": "r1", "name": "Test Asset"])
         
         // Create compound clip structure manually for testing
@@ -1574,12 +1577,12 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     }
 
     func testXMLElementExtensionEventClipsThrowsWhenNotEvent() {
-        let notEvent = XMLElement(name: "sequence")
+        let notEvent = FoundationXMLFactory().makeElement(name: "sequence")
         do {
             _ = try notEvent.eventClips(forResourceID: "r1")
             XCTFail("Should throw when called on non-event")
         } catch {
-            XCTAssertTrue(error is XMLElement.FCPXMLElementError || String(describing: error).contains("notAnEvent"))
+            XCTAssertTrue(error is FCPXMLElementError || String(describing: error).contains("notAnEvent"))
         }
     }
 
@@ -1587,12 +1590,12 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     /// Filter media by first child (multicam → multicamResource, sequence → compoundResource). FCPXMLUtility.defaultForExtensions.
 
     func testParserFilterMulticamAndCompoundResources() {
-        let mediaMulticam = XMLElement(name: "media")
-        mediaMulticam.addChild(XMLElement(name: "multicam"))
-        let mediaCompound = XMLElement(name: "media")
-        mediaCompound.addChild(XMLElement(name: "sequence"))
-        let mediaPlain = XMLElement(name: "media")
-        mediaPlain.addChild(XMLElement(name: "format"))
+        let mediaMulticam = FoundationXMLFactory().makeElement(name: "media")
+        mediaMulticam.addChild(FoundationXMLFactory().makeElement(name: "multicam"))
+        let mediaCompound = FoundationXMLFactory().makeElement(name: "media")
+        mediaCompound.addChild(FoundationXMLFactory().makeElement(name: "sequence"))
+        let mediaPlain = FoundationXMLFactory().makeElement(name: "media")
+        mediaPlain.addChild(FoundationXMLFactory().makeElement(name: "format"))
 
         let elements = [mediaMulticam, mediaCompound, mediaPlain]
         let multicamOnly = utility.filter(fcpxElements: elements, ofTypes: [.multicamResource])
@@ -1610,7 +1613,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     func testFCPXMLUtilityDefaultForExtensions() {
         let defaultUtility = FCPXMLUtility.defaultForExtensions
         XCTAssertNotNil(defaultUtility)
-        let elements = [XMLElement(name: "asset"), XMLElement(name: "clip")]
+        let elements = [FoundationXMLFactory().makeElement(name: "asset"), FoundationXMLFactory().makeElement(name: "clip")]
         let filtered = defaultUtility.filter(fcpxElements: elements, ofTypes: [.assetResource])
         XCTAssertEqual(filtered.count, 1)
         XCTAssertEqual(filtered.first?.name, "asset")
@@ -1648,13 +1651,13 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
         let marker = Marker(start: start, duration: duration, value: "Review", note: "Note", completed: false)
         let el = marker.xmlElement()
         XCTAssertEqual(el.name, "marker")
-        XCTAssertNotNil(el.attribute(forName: "start")?.stringValue)
-        XCTAssertNotNil(el.attribute(forName: "value")?.stringValue)
+        XCTAssertNotNil(el.attribute(forName: "start"))
+        XCTAssertNotNil(el.attribute(forName: "value"))
 
         let ch = ChapterMarker(start: start, value: "Intro", posterOffset: nil, note: nil)
         let chEl = ch.xmlElement()
         XCTAssertEqual(chEl.name, "chapter-marker")
-        XCTAssertEqual(chEl.attribute(forName: "value")?.stringValue, "Intro")
+        XCTAssertEqual(chEl.attribute(forName: "value"), "Intro")
     }
 
     func testKeywordAndRatingXmlElement() {
@@ -1663,12 +1666,12 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
         let kw = Keyword(start: start, duration: duration, value: "Interview", note: nil)
         let kwEl = kw.xmlElement()
         XCTAssertEqual(kwEl.name, "keyword")
-        XCTAssertEqual(kwEl.attribute(forName: "value")?.stringValue, "Interview")
+        XCTAssertEqual(kwEl.attribute(forName: "value"), "Interview")
 
         let rating = Rating(start: start, duration: duration, value: .favorite, note: nil)
         let ratingEl = rating.xmlElement()
         XCTAssertEqual(ratingEl.name, "rating")
-        XCTAssertEqual(ratingEl.attribute(forName: "value")?.stringValue, "favorite")
+        XCTAssertEqual(ratingEl.attribute(forName: "value"), "favorite")
     }
 
     func testMetadataXmlElement() {
@@ -1688,12 +1691,12 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     }
 
     func testXMLDocumentInitWithFCPXMLVersion() {
-        let resources: [XMLElement] = []
-        let events: [XMLElement] = []
-        let doc = XMLDocument(resources: resources, events: events, fcpxmlVersion: .v1_14)
+        let resources: [any PNXMLElement] = []
+        let events: [any PNXMLElement] = []
+        let doc = FoundationXMLDocument(resources: resources, events: events, fcpxmlVersion: .v1_14)
         XCTAssertNotNil(doc.rootElement())
         XCTAssertEqual(doc.fcpxmlVersion, "1.14")
-        let docDefault = XMLDocument(resources: resources, events: events, fcpxmlVersion: .default)
+        let docDefault = FoundationXMLDocument(resources: resources, events: events, fcpxmlVersion: .default)
         XCTAssertEqual(docDefault.fcpxmlVersion, FCPXMLVersion.default.stringValue)
     }
     
@@ -1784,7 +1787,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
         let start = CMTime(value: 3600, timescale: 60000)
         let marker = Marker(start: start, value: "Review", completed: true)
         let el = marker.xmlElement()
-        XCTAssertEqual(el.attribute(forName: "completed")?.stringValue, "1")
+        XCTAssertEqual(el.attribute(forName: "completed"), "1")
         
         let notCompleted = Marker(start: start, value: "Standard")
         let el2 = notCompleted.xmlElement()
@@ -1797,12 +1800,12 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
         let rating = Rating(start: start, duration: duration, value: .favorite, note: "Great shot")
         let el = rating.xmlElement()
         XCTAssertEqual(el.name, "rating")
-        XCTAssertEqual(el.attribute(forName: "value")?.stringValue, "favorite")
-        XCTAssertEqual(el.attribute(forName: "note")?.stringValue, "Great shot")
+        XCTAssertEqual(el.attribute(forName: "value"), "favorite")
+        XCTAssertEqual(el.attribute(forName: "note"), "Great shot")
         
         let rejected = Rating(start: start, duration: duration, value: .rejected)
         let el2 = rejected.xmlElement()
-        XCTAssertEqual(el2.attribute(forName: "value")?.stringValue, "rejected")
+        XCTAssertEqual(el2.attribute(forName: "value"), "rejected")
         XCTAssertNil(el2.attribute(forName: "note"))
     }
     
@@ -1813,7 +1816,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
         let el = ch.xmlElement()
         XCTAssertNotNil(el.attribute(forName: "posterOffset"))
         XCTAssertNotNil(el.attribute(forName: "note"))
-        XCTAssertEqual(el.attribute(forName: "value")?.stringValue, "Chapter 1")
+        XCTAssertEqual(el.attribute(forName: "value"), "Chapter 1")
     }
     
     func testAnnotationMetadataCommonKeys() {
@@ -1839,7 +1842,7 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
         let doc = service.createFCPXMLDocument(version: "1.10")
         XCTAssertTrue(service.validateDocument(doc))
         
-        let emptyDoc = XMLDocument()
+        let emptyDoc = FoundationXMLFactory().makeDocument()
         XCTAssertFalse(service.validateDocument(emptyDoc))
     }
     
@@ -1861,11 +1864,11 @@ final class PipelineNeoTests: XCTestCase, @unchecked Sendable {
     }
     
     func testAddSafeAttributeHelper() {
-        let el = XMLElement(name: "test")
+        let el = FoundationXMLFactory().makeElement(name: "test")
         el.addSafeAttribute(name: "id", value: "abc")
         el.addSafeAttribute(name: "ref", value: "r1")
-        XCTAssertEqual(el.attribute(forName: "id")?.stringValue, "abc")
-        XCTAssertEqual(el.attribute(forName: "ref")?.stringValue, "r1")
+        XCTAssertEqual(el.attribute(forName: "id"), "abc")
+        XCTAssertEqual(el.attribute(forName: "ref"), "r1")
     }
     
     func testFCPXMLUtilityDelegatesTimecodeConversion() {

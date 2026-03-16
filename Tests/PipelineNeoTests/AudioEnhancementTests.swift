@@ -131,7 +131,7 @@ final class AudioEnhancementTests: XCTestCase {
         </clip>
         """
         
-        let xmlDoc = try XMLDocument(xmlString: xmlString)
+        let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
         guard let clipElement = xmlDoc.rootElement() else {
             XCTFail("Failed to parse XML")
             return
@@ -154,7 +154,7 @@ final class AudioEnhancementTests: XCTestCase {
         </clip>
         """
         
-        let xmlDoc = try XMLDocument(xmlString: xmlString)
+        let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
         guard let clipElement = xmlDoc.rootElement() else {
             XCTFail("Failed to parse XML")
             return
@@ -179,7 +179,7 @@ final class AudioEnhancementTests: XCTestCase {
         </clip>
         """
         
-        let xmlDoc = try XMLDocument(xmlString: xmlString)
+        let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
         guard let clipElement = xmlDoc.rootElement() else {
             XCTFail("Failed to parse XML")
             return
@@ -205,7 +205,7 @@ final class AudioEnhancementTests: XCTestCase {
         </clip>
         """
         
-        let xmlDoc = try XMLDocument(xmlString: xmlString)
+        let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
         guard let clipElement = xmlDoc.rootElement() else {
             XCTFail("Failed to parse XML")
             return

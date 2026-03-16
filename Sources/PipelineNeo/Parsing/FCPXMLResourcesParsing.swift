@@ -12,10 +12,10 @@ import Foundation
 import SwiftExtensions
 import SwiftTimecode
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the root-level `fcpxml/resources` element.
     /// This may be called on any element within a FCPXML.
-    public var fcpRootResources: XMLElement? {
+    public var fcpRootResources: (any PNXMLElement)? {
         fcpRoot?
             .firstChildElement(whereFCPElementType: .resources)
     }
@@ -33,8 +33,8 @@ extension XMLElement {
     /// - Returns: Resource element corresponding to the given resource ID.
     public func fcpResource(
         forID resourceID: String,
-        in resources: XMLElement? = nil
-    ) -> XMLElement? {
+        in resources: (any PNXMLElement)? = nil
+    ) -> (any PNXMLElement)? {
         (resources ?? fcpRootResources)?
             .childElements
             .first(whereAttribute: "id", hasValue: resourceID)
@@ -42,8 +42,8 @@ extension XMLElement {
     
     /// FCPXML: Returns the resource element referenced by the current element.
     public func fcpResource(
-        in resources: XMLElement? = nil
-    ) -> XMLElement? {
+        in resources: (any PNXMLElement)? = nil
+    ) -> (any PNXMLElement)? {
         _fcpFirstResourceForElementOrAncestors(in: resources)
     }
     
@@ -51,13 +51,13 @@ extension XMLElement {
 
 // MARK: - Video Frame Rate (from Format Resource)
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the video frame rate for the given resource ID.
     /// The resource ID should be for a `format` resource.
     /// This may be called on any element.
     func _fcpVideoFrameRate(
         forResourceID id: String,
-        in resources: XMLElement? = nil
+        in resources: (any PNXMLElement)? = nil
     ) -> VideoFrameRate? {
         guard let resource = fcpResource(forID: id, in: resources) else { return nil }
         
@@ -87,12 +87,12 @@ extension XMLElement {
 
 // MARK: - Timecode Frame Rate
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the timecode frame rate for the given timeline.
-    func _fcpTimecodeFrameRate<S: Sequence<XMLElement>>(
+    func _fcpTimecodeFrameRate<S: Sequence<any PNXMLElement>>(
         source frameRateSource: FinalCutPro.FCPXML.FrameRateSource,
-        breadcrumbs: S? = nil as [XMLElement]?,
-        resources: XMLElement?
+        breadcrumbs: S? = nil as [any PNXMLElement]?,
+        resources: (any PNXMLElement)?
     ) -> TimecodeFrameRate? {
         switch frameRateSource {
         case .localToElement:
@@ -123,7 +123,7 @@ extension XMLElement {
     /// Traverses parents to determine `tcFormat`.
     func _fcpTimecodeFrameRate(
         resourceID id: String,
-        in resources: XMLElement? = nil
+        in resources: (any PNXMLElement)? = nil
     ) -> TimecodeFrameRate? {
         guard let tcFormat = _fcpTCFormatForElementOrAncestors()
         else { return nil }
@@ -135,7 +135,7 @@ extension XMLElement {
     func _fcpTimecodeFrameRate(
         forResourceID id: String,
         tcFormat: FinalCutPro.FCPXML.TimecodeFormat,
-        in resources: XMLElement? = nil
+        in resources: (any PNXMLElement)? = nil
     ) -> TimecodeFrameRate? {
         guard let videoRate = _fcpVideoFrameRate(forResourceID: id, in: resources),
               let frameRate = videoRate.timecodeFrameRate(drop: tcFormat.isDrop)
@@ -157,7 +157,7 @@ extension XMLElement {
     /// FCPXML: Returns the timecode frame rate for the given resource ID.
     /// Traverses parents to determine `format` (resource ID) and `tcFormat`.
     func _fcpTimecodeFrameRate(
-        in resources: XMLElement? = nil
+        in resources: (any PNXMLElement)? = nil
     ) -> TimecodeFrameRate? {
         guard let format = _fcpFirstDefinedFormatResourceForElementOrAncestors(in: resources),
               let tcFormat = _fcpTCFormatForElementOrAncestors()
@@ -169,14 +169,14 @@ extension XMLElement {
 
 // MARK: - Resource Utils
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Traverses the parents of the element and returns the resource corresponding to the
     /// nearest `format` attribute if found.
     ///
     /// - Returns: A resource element.
     func _fcpFirstResourceForElementOrAncestors(
-        in resources: XMLElement? = nil
-    ) -> XMLElement? {
+        in resources: (any PNXMLElement)? = nil
+    ) -> (any PNXMLElement)? {
         if let (_, resourceID) = ancestorElements(includingSelf: true).first(withAttribute: "ref") {
             return fcpResource(forID: resourceID, in: resources)
         }
@@ -192,7 +192,7 @@ extension XMLElement {
 
 // MARK: - Format Resource Utils
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: If the resource with the given ID is a `format`, it is returned.
     /// Otherwise, references are followed until a `format` is found.
     /// This may be called on any element within a FCPXML.
@@ -200,7 +200,7 @@ extension XMLElement {
     /// - Returns: `format` resource element.
     func _fcpFormatResource(
         forResourceID resourceID: String,
-        in resources: XMLElement? = nil
+        in resources: (any PNXMLElement)? = nil
     ) -> FinalCutPro.FCPXML.Format? {
         guard let resource = fcpResource(forID: resourceID, in: resources)
         else { return nil }
@@ -213,7 +213,7 @@ extension XMLElement {
     ///
     /// - Returns: `format` resource element.
     func _fcpFormatResource(
-        in resources: XMLElement? = nil
+        in resources: (any PNXMLElement)? = nil
     ) -> FinalCutPro.FCPXML.Format? {
         guard let elementType = fcpElementType,
               elementType.isResource
@@ -253,7 +253,7 @@ extension XMLElement {
     ///
     /// - Returns: `format` resource element.
     func _fcpFirstFormatResourceForElementOrAncestors(
-        in resources: XMLElement? = nil
+        in resources: (any PNXMLElement)? = nil
     ) -> FinalCutPro.FCPXML.Format? {
         if let (_, resourceID) = ancestorElements(includingSelf: true)
             .first(withAttribute: "format")
@@ -282,7 +282,7 @@ extension XMLElement {
     ///
     /// - Returns: `format` resource element.
     func _fcpFirstDefinedFormatResourceForElementOrAncestors(
-        in resources: XMLElement? = nil
+        in resources: (any PNXMLElement)? = nil
     ) -> FinalCutPro.FCPXML.Format? {
         // note that an audio clip may point to a resource with name `FFVideoFormatRateUndefined`.
         // this should not be an error case; instead, continue traversing.
@@ -313,7 +313,7 @@ extension XMLElement {
 
 // MARK: - Media Resource Utils
 
-extension XMLElement {
+extension PNXMLElement {
     /// Utility:
     /// If the resource with the given ID is a format, it is returned.
     /// Otherwise, references are followed until a format is found.
@@ -321,7 +321,7 @@ extension XMLElement {
     /// - Returns: `media` resource element.
     func _fcpMediaResource(
         forResourceID resourceID: String,
-        in resources: XMLElement? = nil
+        in resources: (any PNXMLElement)? = nil
     ) -> FinalCutPro.FCPXML.Media? {
         guard let resource = fcpResource(forID: resourceID, in: resources),
               resource.fcpElementType == .media
@@ -334,7 +334,7 @@ extension XMLElement {
     ///
     /// - Returns: `media-rep` element.
     func _fcpMediaRep(
-        in resources: XMLElement? = nil
+        in resources: (any PNXMLElement)? = nil
     ) -> FinalCutPro.FCPXML.MediaRep? {
         guard let resource = _fcpFirstResourceForElementOrAncestors(in: resources),
               let elementType = resource.fcpElementType,
@@ -354,7 +354,7 @@ extension XMLElement {
     
     /// FCPXML: Looks up the resource for the element and returns its media url, if any.
     func fcpMediaURL(
-        in resources: XMLElement? = nil
+        in resources: (any PNXMLElement)? = nil
     ) -> URL? {
         guard let resource = _fcpFirstResourceForElementOrAncestors(in: resources),
               let elementType = resource.fcpElementType,

@@ -3,11 +3,11 @@
   <h1 align="center">Pipeline Neo (CLI & Library)</h1>
 </p>
 
-<p align="center"><a href="https://github.com/TheAcharya/pipeline-neo/blob/main/LICENSE"><img src="http://img.shields.io/badge/license-MIT-lightgrey.svg?style=flat" alt="license"/></a>&nbsp;<a href="https://github.com/TheAcharya/pipeline-neo"><img src="https://img.shields.io/badge/platform-macOS-lightgrey.svg?style=flat" alt="platform"/></a>&nbsp;<a href="https://github.com/TheAcharya/pipeline-neo/actions/workflows/build.yml"><img src="https://github.com/TheAcharya/pipeline-neo/actions/workflows/build.yml/badge.svg" alt="build"/></a>&nbsp;<a href="https://github.com/TheAcharya/pipeline-neo/actions/workflows/codeql.yml"><img src="https://github.com/TheAcharya/pipeline-neo/actions/workflows/codeql.yml/badge.svg" alt="CodeQL Advanced"/></a>&nbsp;<img src="https://img.shields.io/badge/Swift-6.0-orange.svg?style=flat" alt="Swift"/>&nbsp;<img src="https://img.shields.io/badge/Xcode-16+-blue.svg?style=flat" alt="Xcode"/></p>
+<p align="center"><a href="https://github.com/TheAcharya/pipeline-neo/blob/main/LICENSE"><img src="http://img.shields.io/badge/license-MIT-lightgrey.svg?style=flat" alt="license"/></a>&nbsp;<a href="https://github.com/TheAcharya/pipeline-neo"><img src="https://img.shields.io/badge/platform-macOS%20%7C%20iOS-lightgrey.svg?style=flat" alt="platform"/></a>&nbsp;<a href="https://github.com/TheAcharya/pipeline-neo/actions/workflows/build.yml"><img src="https://github.com/TheAcharya/pipeline-neo/actions/workflows/build.yml/badge.svg" alt="build"/></a>&nbsp;<a href="https://github.com/TheAcharya/pipeline-neo/actions/workflows/codeql.yml"><img src="https://github.com/TheAcharya/pipeline-neo/actions/workflows/codeql.yml/badge.svg" alt="CodeQL Advanced"/></a>&nbsp;<img src="https://img.shields.io/badge/Swift-6.0-orange.svg?style=flat" alt="Swift"/>&nbsp;<img src="https://img.shields.io/badge/Xcode-16+-blue.svg?style=flat" alt="Xcode"/></p>
 
 A modern Swift 6 framework for working with Final Cut Pro's FCPXML with full concurrency support and SwiftTimecode integration. Pipeline Neo is a spiritual successor to the original [Pipeline](https://github.com/reuelk/pipeline), modernised for Swift 6.0 and contemporary development practices. 
 
-Pipeline Neo provides a comprehensive API for parsing, creating, and manipulating FCPXML files with advanced timecode operations, async/await patterns, and robust error handling. Built with Swift 6.0 and targeting macOS 12+, it offers type-safe operations, comprehensive test coverage, and seamless integration with SwiftTimecode for professional video editing workflows.
+Pipeline Neo provides a comprehensive API for parsing, creating, and manipulating FCPXML files with advanced timecode operations, async/await patterns, and robust error handling. Built with Swift 6.0 and targeting **macOS 12+** and **iOS 15+**, it offers type-safe operations, comprehensive test coverage (686 tests), and seamless integration with SwiftTimecode for professional video editing workflows. A cross-platform XML abstraction layer (Foundation on macOS, AEXML on iOS) keeps the library usable on both platforms.
 
 Pipeline Neo is currently in an experimental stage. It covers most core FCPXML attributes and parameters and provides a solid foundation for parsing, creation, and manipulation—with room for future expansion and additional feature coverage.
 
@@ -39,7 +39,7 @@ This codebase is developed using AI agents.
 ## Core Features
 
 - **FCPXML I/O**: Read, create, modify documents (.fcpxml/.fcpxmld bundles); load via `FCPXMLFileLoader` (sync/async); create FCPXML from scratch with events, projects, resources, and clips.
-- **Parsing & Validation**: Parse and validate against bundled DTDs (1.5–1.14); structural/reference and DTD schema validation; comprehensive test coverage with 648 tests across 15+ FCPXML sample files (including empty timeline creation and project-creation export at multiple sizes and frame rates).
+- **Parsing & Validation**: Parse and validate against bundled DTDs (1.5–1.14); structural/reference and DTD schema validation (full DTD on macOS; cross-platform structural validation on iOS via `FCPXMLStructuralValidator`); 686 tests across 15+ FCPXML sample files (including empty timeline creation, project-creation export, AEXML parity, and validation suites).
 - **Timecode Operations**: SwiftTimecode integration (`CMTime`, `Timecode`, FCPXML time strings); `FCPXMLTimecode` custom type (arithmetic, frame alignment, conversion); all FCP frame rates (23.976, 24, 25, 29.97, 30, 50, 59.94, 60 fps).
 - **Typed Models**: Resources, events, clips, projects, adjustments (Crop, Transform, Blend, Stabilization, Volume, Loudness, NoiseReduction, HumReduction, Equalization, MatchEqualization, Transform360, ColorConform, Stereo3D, VoiceIsolation), filters (VideoFilter, AudioFilter, VideoFilterMask with FilterParameter), transitions, multicam (Media.Multicam, Angle, MulticamSource, MCClip), captions/titles (Caption, Title with TextStyle/TextStyleDefinition), smart collections (SmartCollection with match-clip, match-media, match-ratings, match-text, match-usage, match-representation, match-markers, match-analysis-type), collections (CollectionFolder, KeywordCollection).
 - **Timeline Operations**: Build `Timeline`; create valid projects with custom or preset dimensions and frame rate (via `TimelineFormat`); export to FCPXML/.fcpxmld (including zero-clip/empty timelines); optional event/project UIDs and library location (`FCPXMLUID`); ripple insert, auto lane assignment, clip queries (lane/time range/asset ID), lane range computation; metadata (markers, chapter markers, keywords, ratings, custom metadata, timestamps); secondary storylines; `TimelineFormat` presets and computed properties.
@@ -52,7 +52,7 @@ This codebase is developed using AI agents.
 
 ## Requirements
 
-- macOS 12.0+
+- **macOS 12.0+** or **iOS 15.0+** (CLI is macOS-only; library supports both)
 - Xcode 16.0+
 - Swift 6.0+ (strict concurrency compliant; protocols and public types are `Sendable` where appropriate; `@unchecked Sendable` only where required for Foundation/ObjC interop)
 
@@ -77,10 +77,11 @@ import PackageDescription
 let package = Package(
     name: "MyPackage",
     platforms: [
-        .macOS(.v12)
+        .macOS(.v12),
+        .iOS(.v15)
     ],
     dependencies: [
-        .package(url: "https://github.com/TheAcharya/pipeline-neo", from: "2.4.3")
+        .package(url: "https://github.com/TheAcharya/pipeline-neo", from: "2.5.0")
     ],
     targets: [
         .target(
@@ -143,7 +144,7 @@ sudo rm /usr/local/bin/pipeline-neo
 ### Compiled From Source
 
 ```shell
-VERSION=2.4.3 # replace this with the git tag of the version you need
+VERSION=2.5.0 # replace this with the git tag of the version you need
 git clone https://github.com/TheAcharya/pipeline-neo.git
 cd pipeline-neo
 git checkout "tags/$VERSION"
@@ -211,7 +212,7 @@ Complete manual, usage guide, and examples are in the [Documentation](Documentat
 ## FCPXML Version Support
 
 Pipeline Neo supports FCPXML versions 1.5 through 1.14. All DTDs for these versions are included. You can validate a document against any version's schema (e.g. `document.validateFCPXMLAgainst(version: "1.14")`).
-- Parsing: Any well-formed FCPXML document parses successfully; the full XML tree is available via Foundation's `XMLDocument`/`XMLElement` APIs.
+- Parsing: Any well-formed FCPXML document parses successfully; the full XML tree is available via the protocol-based XML layer (`PNXMLDocument`/`PNXMLElement` — Foundation-backed on macOS, AEXML-backed on iOS).
 - Typed element types: Every element from the FCPXML DTDs (1.5–1.14) is represented in `FCPXMLElementType`, so you can identify and filter by any element (e.g. `locator`, `import-options`, `live-drawing`, `filter-video`, all `adjust-*`, smart-collection match rules, etc.). Structural types like multicam vs compound `media` are inferred from the first child.
 - Typed attributes and helpers: The framework also provides typed properties and helpers for a subset of elements (e.g. `fcpxDuration`, `fcpxOffset`, event/project/clip APIs). Other elements are fully accessible via `element.name`, `element.attribute(forName:)`, and the shared `getElementAttribute` / `setElementAttribute` helpers.
 
@@ -224,8 +225,8 @@ Pipeline Neo supports FCPXML versions 1.5 through 1.14. All DTDs for these versi
 ## Architecture Overview
 
 - Protocols define parsing, timecode conversion, document operations, error handling, MIME type detection, asset validation, silence detection, asset duration measurement, and parallel file I/O; each has a default implementation you can swap. FCPXMLService (and FCPXMLUtility) composes these and exposes sync and async APIs. ModularUtilities provides createPipeline, processFCPXML, validateDocument, convertTimecodes, and similar helpers.
-- FCPXMLFileLoader handles .fcpxml and .fcpxmld (including bundle Info.fcpxml). FCPXMLValidator and FCPXMLDTDValidator handle structural and schema validation; DTDs for 1.5–1.14 are bundled.
-- Extensions on CMTime, XMLElement, and XMLDocument offer convenience APIs; use modular overloads with an explicit dependency to inject your own. Error types are explicit (FCPXMLError, FCPXMLLoadError, export and validation errors); you can inject a custom error handler.
+- FCPXMLFileLoader handles .fcpxml and .fcpxmld (including bundle Info.fcpxml). FCPXMLValidator and FCPXMLDTDValidator handle structural and schema validation (full DTD on macOS; FCPXMLStructuralValidator on iOS when DTD is unavailable); DTDs for 1.5–1.14 are bundled.
+- A cross-platform XML layer (`Sources/PipelineNeo/XML/`) provides protocol types (PNXMLNode, PNXMLElement, PNXMLDocument, PNXMLFactory) with Foundation and AEXML backends. Extensions on CMTime and the XML protocol types offer convenience APIs; use modular overloads with an explicit dependency to inject your own. Error types are explicit (FCPXMLError, FCPXMLLoadError, export and validation errors); you can inject a custom error handler.
 
 See AGENT.md for a detailed breakdown for AI agents and contributors.
 

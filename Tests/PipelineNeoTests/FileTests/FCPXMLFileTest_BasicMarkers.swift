@@ -19,7 +19,7 @@ final class FCPXMLFileTest_BasicMarkers: XCTestCase {
         XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
         XCTAssertEqual(fcpxml.version, .ver1_9)
         let root = fcpxml.root.element
-        XCTAssertEqual(root, fcpxml.root.element)
+        XCTAssertEqual(root.xmlString, fcpxml.root.element.xmlString)
         let resources = fcpxml.root.resources
         XCTAssertGreaterThanOrEqual(resources.childElements.count, 1)
         let library = fcpxml.root.library

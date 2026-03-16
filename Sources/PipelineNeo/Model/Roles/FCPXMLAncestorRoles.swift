@@ -107,13 +107,13 @@ extension FinalCutPro.FCPXML.AncestorRoles {
 
 // MARK: - FCPXML Parsing
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Analyzes an element and its ancestors and returns typed information about their roles.
     ///
     /// Ancestors are ordered nearest to furthest.
     func _fcpInheritedRoles(
-        ancestors: [XMLElement],
-        resources: XMLElement? = nil,
+        ancestors: [any PNXMLElement],
+        resources: (any PNXMLElement)? = nil,
         auditions: FinalCutPro.FCPXML.Audition.AuditionMask, // = .activeAudition
         mcClipAngles: FinalCutPro.FCPXML.MCClip.AngleMask // = .active
     ) -> FinalCutPro.FCPXML.AncestorRoles {

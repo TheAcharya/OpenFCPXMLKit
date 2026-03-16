@@ -168,7 +168,7 @@ final class ImportOptionsTests: XCTestCase {
         """
         
         let data = xmlString.data(using: .utf8)!
-        let document = try XMLDocument(data: data)
+        let document = try FoundationXMLFactory().makeDocument(data: data)
         guard let rootElement = document.rootElement(),
               let root = FinalCutPro.FCPXML.Root(element: rootElement) else {
             XCTFail("Failed to create root")
@@ -191,10 +191,10 @@ final class ImportOptionsTests: XCTestCase {
     
     func testRootImportOptionsToXML() {
         let root = FinalCutPro.FCPXML.Root()
-        root.element.addAttribute(withName: "version", value: "1.9")
+        root.element.addAttribute(name: "version", value: "1.9")
         
         // Add resources element (required)
-        let resources = XMLElement(name: "resources")
+        let resources = FoundationXMLFactory().makeElement(name: "resources")
         root.resources = resources
         
         // Set import options
@@ -205,7 +205,7 @@ final class ImportOptionsTests: XCTestCase {
         root.importOptions = FinalCutPro.FCPXML.ImportOptions(options: options)
         
         // Verify XML structure
-        let xmlString = root.element.xmlString(options: [.nodePrettyPrint])
+        let xmlString = root.element.xmlString
         XCTAssertTrue(xmlString.contains("<import-options>"))
         XCTAssertTrue(xmlString.contains("key=\"copy assets\""))
         XCTAssertTrue(xmlString.contains("value=\"1\""))
@@ -224,8 +224,8 @@ final class ImportOptionsTests: XCTestCase {
     
     func testSetShouldCopyAssetsOnImport() {
         var root = FinalCutPro.FCPXML.Root()
-        root.element.addAttribute(withName: "version", value: "1.9")
-        root.resources = XMLElement(name: "resources")
+        root.element.addAttribute(name: "version", value: "1.9")
+        root.resources = FoundationXMLFactory().makeElement(name: "resources")
         
         // Set copy assets to true
         root.setShouldCopyAssetsOnImport(true)
@@ -247,8 +247,8 @@ final class ImportOptionsTests: XCTestCase {
     
     func testSetShouldSuppressWarningsOnImport() {
         var root = FinalCutPro.FCPXML.Root()
-        root.element.addAttribute(withName: "version", value: "1.9")
-        root.resources = XMLElement(name: "resources")
+        root.element.addAttribute(name: "version", value: "1.9")
+        root.resources = FoundationXMLFactory().makeElement(name: "resources")
         
         // Set suppress warnings to true
         root.setShouldSuppressWarningsOnImport(true)
@@ -270,8 +270,8 @@ final class ImportOptionsTests: XCTestCase {
     
     func testSetLibraryLocationForImportString() {
         var root = FinalCutPro.FCPXML.Root()
-        root.element.addAttribute(withName: "version", value: "1.9")
-        root.resources = XMLElement(name: "resources")
+        root.element.addAttribute(name: "version", value: "1.9")
+        root.resources = FoundationXMLFactory().makeElement(name: "resources")
         
         let location = "/path/to/library.fcpxlibrary"
         root.setLibraryLocationForImport(location)
@@ -284,8 +284,8 @@ final class ImportOptionsTests: XCTestCase {
     
     func testSetLibraryLocationForImportURL() {
         var root = FinalCutPro.FCPXML.Root()
-        root.element.addAttribute(withName: "version", value: "1.9")
-        root.resources = XMLElement(name: "resources")
+        root.element.addAttribute(name: "version", value: "1.9")
+        root.resources = FoundationXMLFactory().makeElement(name: "resources")
         
         let url = URL(fileURLWithPath: "/path/to/library.fcpxlibrary")
         root.setLibraryLocationForImport(url)
@@ -298,8 +298,8 @@ final class ImportOptionsTests: XCTestCase {
     
     func testMultipleImportOptions() {
         var root = FinalCutPro.FCPXML.Root()
-        root.element.addAttribute(withName: "version", value: "1.9")
-        root.resources = XMLElement(name: "resources")
+        root.element.addAttribute(name: "version", value: "1.9")
+        root.resources = FoundationXMLFactory().makeElement(name: "resources")
         
         // Add multiple options
         root.setShouldCopyAssetsOnImport(true)
@@ -323,8 +323,8 @@ final class ImportOptionsTests: XCTestCase {
     
     func testUpdateExistingImportOption() {
         var root = FinalCutPro.FCPXML.Root()
-        root.element.addAttribute(withName: "version", value: "1.9")
-        root.resources = XMLElement(name: "resources")
+        root.element.addAttribute(name: "version", value: "1.9")
+        root.resources = FoundationXMLFactory().makeElement(name: "resources")
         
         // Set copy assets to true
         root.setShouldCopyAssetsOnImport(true)
@@ -344,20 +344,20 @@ final class ImportOptionsTests: XCTestCase {
     func testImportOptionsRoundTrip() throws {
         // Create root with import options
         var root = FinalCutPro.FCPXML.Root()
-        root.element.addAttribute(withName: "version", value: "1.9")
-        root.resources = XMLElement(name: "resources")
+        root.element.addAttribute(name: "version", value: "1.9")
+        root.resources = FoundationXMLFactory().makeElement(name: "resources")
         
         root.setShouldCopyAssetsOnImport(true)
         root.setShouldSuppressWarningsOnImport(false)
         root.setLibraryLocationForImport("/path/to/library.fcpxlibrary")
         
         // Convert to XML
-        let document = XMLDocument()
+        let document = FoundationXMLFactory().makeDocument()
         document.setRootElement(root.element)
-        let xmlData = document.xmlData
+        let xmlData = root.element.xmlString.data(using: .utf8)!
         
         // Parse back
-        let parsedDocument = try XMLDocument(data: xmlData)
+        let parsedDocument = try FoundationXMLFactory().makeDocument(data: xmlData)
         guard let parsedRootElement = parsedDocument.rootElement(),
               let parsedRoot = FinalCutPro.FCPXML.Root(element: parsedRootElement) else {
             XCTFail("Failed to parse root")
@@ -379,13 +379,13 @@ final class ImportOptionsTests: XCTestCase {
     
     func testImportOptionsWithInvalidXML() {
         let root = FinalCutPro.FCPXML.Root()
-        root.element.addAttribute(withName: "version", value: "1.9")
-        root.resources = XMLElement(name: "resources")
+        root.element.addAttribute(name: "version", value: "1.9")
+        root.resources = FoundationXMLFactory().makeElement(name: "resources")
         
         // Create import-options element with invalid option (missing value)
-        let importOptionsElement = XMLElement(name: "import-options")
-        let invalidOption = XMLElement(name: "option")
-        invalidOption.addAttribute(withName: "key", value: "test-key")
+        let importOptionsElement = FoundationXMLFactory().makeElement(name: "import-options")
+        let invalidOption = FoundationXMLFactory().makeElement(name: "option")
+        invalidOption.addAttribute(name: "key", value: "test-key")
         // Missing value attribute
         importOptionsElement.addChild(invalidOption)
         

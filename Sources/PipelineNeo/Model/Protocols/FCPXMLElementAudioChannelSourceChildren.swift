@@ -24,7 +24,7 @@ extension FCPXMLElementAudioChannelSourceChildren {
     }
 }
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns child `audio-channel-source` elements.
     /// Use on `clip` or `asset-clip` elements.
     public var fcpAudioChannelSources: LazyFCPXMLChildrenSequence<FinalCutPro.FCPXML.AudioChannelSource> {

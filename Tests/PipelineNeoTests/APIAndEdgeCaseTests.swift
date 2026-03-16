@@ -134,7 +134,7 @@ final class APIAndEdgeCaseTests: XCTestCase {
         let service = FCPXMLService()
         for v in ["1.5", "1.10", "1.14"] {
             let doc = service.createFCPXMLDocument(version: v)
-            XCTAssertEqual(doc.fcpxmlVersion, v)
+            XCTAssertEqual(doc.rootElement()?.attribute(forName: "version"), v)
             XCTAssertNotNil(doc.rootElement())
         }
     }
@@ -157,12 +157,15 @@ final class APIAndEdgeCaseTests: XCTestCase {
     // MARK: - HiddenClipMarker (1.13+, marker_item)
 
     func testHiddenClipMarkerModelAndAnnotationElements() {
-        let clip = XMLElement(name: "clip")
-        clip.setAttributesWith(["ref": "r1", "offset": "0s", "start": "0s", "duration": "1s"])
-        let video = XMLElement(name: "video")
-        video.setAttributesWith(["ref": "r1"])
+        let clip = FoundationXMLFactory().makeElement(name: "clip")
+        clip.addAttribute(name: "ref", value: "r1")
+        clip.addAttribute(name: "offset", value: "0s")
+        clip.addAttribute(name: "start", value: "0s")
+        clip.addAttribute(name: "duration", value: "1s")
+        let video = FoundationXMLFactory().makeElement(name: "video")
+        video.addAttribute(name: "ref", value: "r1")
         clip.addChild(video)
-        let hiddenEl = XMLElement(name: "hidden-clip-marker")
+        let hiddenEl = FoundationXMLFactory().makeElement(name: "hidden-clip-marker")
         clip.addChild(hiddenEl)
         let marker = FinalCutPro.FCPXML.HiddenClipMarker(element: hiddenEl)
         XCTAssertNotNil(marker)
@@ -197,10 +200,10 @@ final class APIAndEdgeCaseTests: XCTestCase {
     }
 
     func testLiveDrawingFromElementAndAnyTimelineRoundTrip() {
-        let el = XMLElement(name: "live-drawing")
-        el.addAttribute(withName: "name", value: "Draw")
-        el.addAttribute(withName: "duration", value: "3s")
-        el.addAttribute(withName: "role", value: "video")
+        let el = FoundationXMLFactory().makeElement(name: "live-drawing")
+        el.addAttribute(name: "name", value: "Draw")
+        el.addAttribute(name: "duration", value: "3s")
+        el.addAttribute(name: "role", value: "video")
         guard let ld = FinalCutPro.FCPXML.LiveDrawing(element: el) else {
             XCTFail("LiveDrawing(element:) should succeed for live-drawing element")
             return
@@ -213,7 +216,7 @@ final class APIAndEdgeCaseTests: XCTestCase {
         }
         if case .liveDrawing(let model) = anyTimeline {
             XCTAssertEqual(model.name, "Draw")
-            XCTAssertEqual(model.element, ld.element)
+            XCTAssert(model.element === ld.element)
         } else {
             XCTFail("Expected AnyTimeline.liveDrawing, got \(anyTimeline)")
         }

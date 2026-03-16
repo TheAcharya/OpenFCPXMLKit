@@ -45,9 +45,9 @@ public struct Keyword: Sendable, Equatable, Hashable {
     }
 
     /// Builds the FCPXML `<keyword>` element.
-    public func xmlElement() -> XMLElement {
+    public func xmlElement(factory: any PNXMLFactory = PNXMLDefaultFactory()) -> any PNXMLElement {
         let utility = FCPXMLUtility.defaultForExtensions
-        let element = XMLElement(name: "keyword")
+        let element = factory.makeElement(name: "keyword")
         element.addSafeAttribute(name: "start", value: utility.fcpxmlTime(fromCMTime: start))
         element.addSafeAttribute(name: "duration", value: utility.fcpxmlTime(fromCMTime: duration))
         element.addSafeAttribute(name: "value", value: value)

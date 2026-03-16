@@ -19,6 +19,6 @@ public protocol FCPXMLElementOptionalModDate: FCPXMLElement {
 extension FCPXMLElementOptionalModDate {
     public var modDate: String? {
         get { element.stringValue(forAttributeNamed: "modDate") }
-        nonmutating set { element.addAttribute(withName: "modDate", value: newValue) }
+        nonmutating set { element.addAttribute(name: "modDate", value: newValue) }
     }
 }

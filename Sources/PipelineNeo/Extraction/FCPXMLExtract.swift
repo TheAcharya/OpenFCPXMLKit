@@ -12,7 +12,7 @@ import Foundation
 import SwiftExtensions
 import SwiftTimecode
 
-extension XMLElement {
+extension PNXMLElement {
     /// Extract the element with timeline context.
     /// This provides additional computed information such as absolute start timecode, occlusion,
     /// and more.

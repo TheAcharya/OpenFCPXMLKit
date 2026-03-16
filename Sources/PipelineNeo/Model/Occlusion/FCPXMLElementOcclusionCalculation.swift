@@ -50,14 +50,14 @@ extension FinalCutPro.FCPXML {
     }
 }
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns effective occlusion information for the element through all of its ancestor
     /// containers.
     ///
     /// - Parameters:
     ///   - ancestors: Optional replacement for ancestors. Ordered nearest to furthest ancestor.
-    func _fcpEffectiveOcclusion<S: Sequence<XMLElement>>(
-        ancestors: S? = nil as [XMLElement]?
+    func _fcpEffectiveOcclusion<S: Sequence<any PNXMLElement>>(
+        ancestors: S? = nil as [any PNXMLElement]?
     ) -> FinalCutPro.FCPXML.ElementOcclusion {
         let ancestors = ancestorElements(overrideWith: ancestors, includingSelf: false)
         

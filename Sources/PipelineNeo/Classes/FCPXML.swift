@@ -5,7 +5,7 @@
 //
 
 //
-//	Core FCPXML struct definition wrapping an XMLDocument for high-level access.
+//	Core FCPXML struct definition wrapping a PNXMLDocument for high-level access.
 //
 
 import Foundation
@@ -66,10 +66,10 @@ extension FinalCutPro {
     /// )
     ///
     /// > Note: This struct conforms to `Codable` for JSON/PLIST conversion, but cannot be `Sendable`
-    /// > because it wraps `XMLDocument` which is not `Sendable`. Use with caution in concurrent contexts.
+    /// > because it wraps `PNXMLDocument` which is not `Sendable`. Use with caution in concurrent contexts.
     public struct FCPXML: Codable {
         /// The FCPXML document.
-        public var xml: XMLDocument
+        public var xml: any PNXMLDocument
         
         // MARK: - Codable
         
@@ -83,8 +83,8 @@ extension FinalCutPro {
         public func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
             
-            // Convert XMLDocument to XML string
-            let xmlData = xml.xmlData(options: [.nodePreserveWhitespace, .nodePrettyPrint, .nodeCompactEmptyElement])
+            // Convert PNXMLDocument to XML string
+            let xmlData = xml.xmlData(options: [.preserveWhitespace, .prettyPrint, .compactEmptyElements])
             guard let xmlString = String(data: xmlData, encoding: .utf8) else {
                 throw FCPXMLCodableError.xmlStringConversionFailed
             }
@@ -101,13 +101,13 @@ extension FinalCutPro {
             // Decode XML string
             let xmlString = try container.decode(String.self, forKey: .xmlString)
             
-            // Convert XML string to XMLDocument
+            // Convert XML string to PNXMLDocument
             guard let xmlData = xmlString.data(using: .utf8) else {
                 throw FCPXMLCodableError.xmlStringConversionFailed
             }
-            
+
             do {
-                let xmlDocument = try XMLDocument(data: xmlData)
+                let xmlDocument = try PNXMLDefaultFactory().makeDocument(data: xmlData, options: [])
                 self.xml = xmlDocument
             } catch {
                 throw FCPXMLCodableError.xmlStringConversionFailed

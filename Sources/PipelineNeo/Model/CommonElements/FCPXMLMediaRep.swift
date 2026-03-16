@@ -15,7 +15,7 @@ import SwiftExtensions
 extension FinalCutPro.FCPXML {
     /// Media representation.
     ///
-    /// Conforms to `Sendable` via `@unchecked Sendable` because it wraps ``XMLElement``, which is
+    /// Conforms to `Sendable` via `@unchecked Sendable` because it wraps ``PNXMLElement``, which is
     /// not `Sendable`. Safe to use across concurrency boundaries when the owning document is not
     /// shared across isolation domains (same pattern as other FCPXML element wrappers in this module).
     ///
@@ -27,17 +27,17 @@ extension FinalCutPro.FCPXML {
     /// > in addition to the original media representation. Use the media-rep element to describe a
     /// > media representation, as a child element of the asset element.
     public struct MediaRep: FCPXMLElement, Equatable, Hashable, @unchecked Sendable {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .mediaRep
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.mediaRep]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -137,14 +137,14 @@ extension FinalCutPro.FCPXML.MediaRep {
             return Kind(rawValue: value) ?? defaultValue
         }
         nonmutating set {
-            element.addAttribute(withName: Attributes.kind.rawValue, value: newValue.rawValue)
+            element.addAttribute(name: Attributes.kind.rawValue, value: newValue.rawValue)
         }
     }
     
     /// The unique identifier of a media representation, assigned by Final Cut Pro.
     public var sig: String? {
         get { element.stringValue(forAttributeNamed: Attributes.sig.rawValue) }
-        nonmutating set { element.addAttribute(withName: Attributes.sig.rawValue, value: newValue) }
+        nonmutating set { element.addAttribute(name: Attributes.sig.rawValue, value: newValue) }
     }
     
     /// Required.
@@ -165,7 +165,7 @@ extension FinalCutPro.FCPXML.MediaRep {
     /// ) for details.
     public var suggestedFilename: String? {
         get { element.stringValue(forAttributeNamed: Attributes.suggestedFilename.rawValue) }
-        nonmutating set { element.addAttribute(withName: Attributes.suggestedFilename.rawValue, value: newValue) }
+        nonmutating set { element.addAttribute(name: Attributes.suggestedFilename.rawValue, value: newValue) }
     }
 }
 
@@ -185,7 +185,7 @@ extension FinalCutPro.FCPXML.MediaRep {
 // MARK: - Typing
 
 // MediaRep
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in an ``FinalCutPro/FCPXML/MediaRep`` model object.
     /// Call this on an `media-rep` element only.
     public var fcpAsMediaRep: FinalCutPro.FCPXML.MediaRep? {

@@ -17,8 +17,8 @@ extension FinalCutPro.FCPXML {
     /// Represents a marker event and its contents.
     /// Can represent any marker type (standard, to-do, and chapter).
     public struct Marker: FCPXMLElement {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public static let supportedElementTypes: Set<ElementType> = [
             .marker, .chapterMarker
         ]
@@ -38,7 +38,7 @@ extension FinalCutPro.FCPXML {
             self.init(markerElementNamed: "")
         }
         
-        public init?(element: XMLElement) {
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -72,13 +72,13 @@ extension FinalCutPro.FCPXML.Marker {
     /// Initialize a new `marker` element with the given marker name.
     /// This element type may be a standard marker or a to-do marker.
     init(markerElementNamed markerName: String) {
-        element = XMLElement(name: FinalCutPro.FCPXML.ElementType.marker.rawValue)
+        element = PNXMLDefaultFactory().makeElement(name: FinalCutPro.FCPXML.ElementType.marker.rawValue)
         name = markerName
     }
     
     /// Initialize a new `chapter-marker` element with the given marker name.
     init(chapterMarkerElementNamed markerName: String) {
-        element = XMLElement(name: FinalCutPro.FCPXML.ElementType.chapterMarker.rawValue)
+        element = PNXMLDefaultFactory().makeElement(name: FinalCutPro.FCPXML.ElementType.chapterMarker.rawValue)
         name = markerName
     }
 }
@@ -144,7 +144,7 @@ extension FinalCutPro.FCPXML.Marker: FCPXMLElementOptionalDuration { }
 // MARK: - Properties
 
 // Chapter Marker
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the value of the `isCompleted` attribute.
     /// If `completed` attribute is present, the marker becomes a to-do item.
     /// If `nil` is returned, the marker is a standard marker.
@@ -181,7 +181,7 @@ extension XMLElement {
 }
 
 // Marker or Chapter Marker
-extension XMLElement {
+extension PNXMLElement {
     // Note: unit testing coverage pending.
     /// FCPXML: Get or set the marker type and configuration. Setting `nil` has no effect.
     /// Call on a `marker` or `chapter-marker` element.
@@ -263,7 +263,7 @@ extension XMLElement {
 // MARK: - Typing
 
 // Marker or Chapter Marker
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Marker`` model object.
     /// Call this on a `marker` or `chapter-marker` element only.
     public var fcpAsMarker: FinalCutPro.FCPXML.Marker? {
@@ -303,7 +303,7 @@ extension FinalCutPro.FCPXML.Marker {
             }
         }
         
-        init?(element: XMLElement) {
+        init?(element: any PNXMLElement) {
             switch element.fcpElementType {
             case .marker: self = .marker
             case .chapterMarker: self = .chapterMarker
@@ -316,7 +316,7 @@ extension FinalCutPro.FCPXML.Marker {
 // MARK: - Typing
 
 // Marker or Chapter Marker
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Marker/MarkerElementType``
     /// model object.
     /// Call this on a `marker` or `chapter-marker` element only.
@@ -374,7 +374,7 @@ extension FinalCutPro.FCPXML.Marker {
     }
 }
 
-extension XMLElement { // Any Marker
+extension PNXMLElement { // Any Marker
     /// FCPXML: Returns the marker kind.
     /// Call on `marker` or `chapter-marker` elements.
     public var fcpMarkerKind: FinalCutPro.FCPXML.Marker.MarkerKind? {

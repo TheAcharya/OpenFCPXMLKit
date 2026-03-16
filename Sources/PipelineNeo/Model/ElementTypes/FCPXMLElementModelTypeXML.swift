@@ -14,19 +14,19 @@ import SwiftExtensions
 // MARK: - Typealiases
 
 public typealias LazyFCPXMLChildrenSequence<Model: FCPXMLElement> = LazyCompactMapSequence<
-    LazyCompactMapSequence<[XMLNode], XMLElement>, Model
+    [any PNXMLElement], Model
 >
 
 // MARK: - Sequence First (Strongly-Typed)
 
-extension Sequence where Element == XMLElement {
+extension Sequence where Element == any PNXMLElement {
     /// FCPXML: Returns the first element with the given concrete element type.
     public func first<Model: FCPXMLElement>(
         whereFCPElement concreteModelType: Model.Type
     ) -> Model? {
         self.lazy.first(whereFCPElement: concreteModelType)
     }
-    
+
     /// FCPXML: Returns the first element with the given element type.
     public func first<Model>(
         whereFCPElement elementType: FinalCutPro.FCPXML.ElementModelType<Model>
@@ -37,14 +37,14 @@ extension Sequence where Element == XMLElement {
 
 // MARK: - LazySequence First (Strongly-Typed)
 
-extension LazySequence where Element == XMLElement {
+extension LazySequence where Element == any PNXMLElement {
     /// FCPXML: Returns the first element with the given concrete element type.
     public func first<Model: FCPXMLElement>(
         whereFCPElement concreteModelType: Model.Type
     ) -> Model? {
         compactMap { Model(element: $0) }.first
     }
-    
+
     /// FCPXML: Returns the first element with the given element type.
     public func first<Model>(
         whereFCPElement elementType: FinalCutPro.FCPXML.ElementModelType<Model>
@@ -55,14 +55,14 @@ extension LazySequence where Element == XMLElement {
 
 // MARK: - Sequence Filter (Strongly-Typed)
 
-extension Sequence where Element == XMLElement {
+extension Sequence where Element == any PNXMLElement {
     /// FCPXML: Filter the element sequence by a specific concrete FCPXML model type.
     public func filter<Model: FCPXMLElement>(
         whereFCPElement concreteModelType: Model.Type
     ) -> LazyCompactMapSequence<LazySequence<Self>.Elements, Model> {
         self.lazy.compactMap { Model(element: $0) }
     }
-    
+
     /// FCPXML: Filter the element sequence by a specific concrete FCPXML model type.
     public func filter<Model>(
         whereFCPElement elementType: FinalCutPro.FCPXML.ElementModelType<Model>
@@ -73,14 +73,14 @@ extension Sequence where Element == XMLElement {
 
 // MARK: - LazySequence Filter (Strongly-Typed)
 
-extension LazySequence where Element == XMLElement {
+extension LazySequence where Element == any PNXMLElement {
     /// FCPXML: Filter the element sequence by a specific concrete FCPXML model type.
     public func filter<Model: FCPXMLElement>(
         whereFCPElement concreteModelType: Model.Type
     ) -> LazyCompactMapSequence<Base, Model?> {
         compactMap { Model(element: $0) }
     }
-    
+
     /// FCPXML: Filter the element sequence by a specific concrete FCPXML model type.
     public func filter<Model>(
         whereFCPElement modelType: FinalCutPro.FCPXML.ElementModelType<Model>
@@ -91,7 +91,7 @@ extension LazySequence where Element == XMLElement {
 
 // MARK: - Children (Strongly-Typed)
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns child elements of the given type wrapped in a concrete model object.
     public func children<Model: FCPXMLElement>(
         whereFCPElement concreteModelType: Model.Type
@@ -99,7 +99,7 @@ extension XMLElement {
         childElements
             .filter(whereFCPElement: concreteModelType)
     }
-    
+
     /// FCPXML: Returns child elements of the given type wrapped in a model object.
     public func children<Model>(
         whereFCPElement modelType: FinalCutPro.FCPXML.ElementModelType<Model>
@@ -107,7 +107,7 @@ extension XMLElement {
         childElements
             .filter(whereFCPElement: modelType)
     }
-    
+
     /// FCPXML: Returns the first child element of the given element type wrapped in a model object.
     public func firstChild<Model>(
         whereFCPElement modelType: FinalCutPro.FCPXML.ElementModelType<Model>
@@ -115,7 +115,7 @@ extension XMLElement {
         childElements
             .first(whereFCPElement: modelType)
     }
-    
+
     /// FCPXML: Returns the first child element of the given element type wrapped in a model object.
     /// If no matching child is found, the default is added as a child and returned.
     ///

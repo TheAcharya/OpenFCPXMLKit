@@ -21,17 +21,23 @@ import Foundation
 @available(macOS 12.0, *)
 public final class FCPXMLVersionConverter: FCPXMLVersionConverting, Sendable {
 
-    public init() {}
+    private nonisolated(unsafe) let factory: any PNXMLFactory
+
+    /// Creates a new version converter.
+    /// - Parameter factory: XML factory for creating documents (default: `PNXMLDefaultFactory()`).
+    public init(factory: any PNXMLFactory = PNXMLDefaultFactory()) {
+        self.factory = factory
+    }
 
     // MARK: - FCPXMLVersionConverting (Sync)
 
-    public func convert(_ document: XMLDocument, to targetVersion: FCPXMLVersion) throws -> XMLDocument {
+    public func convert(_ document: any PNXMLDocument, to targetVersion: FCPXMLVersion) throws -> any PNXMLDocument {
         try _convert(document, to: targetVersion)
     }
 
     // MARK: - FCPXMLVersionConverting (Async)
 
-    public func convert(_ document: XMLDocument, to targetVersion: FCPXMLVersion) async throws -> XMLDocument {
+    public func convert(_ document: any PNXMLDocument, to targetVersion: FCPXMLVersion) async throws -> any PNXMLDocument {
         try _convert(document, to: targetVersion)
     }
 
@@ -83,13 +89,10 @@ public final class FCPXMLVersionConverter: FCPXMLVersionConverting, Sendable {
         return names
     }
 
-    private func _convert(_ document: XMLDocument, to targetVersion: FCPXMLVersion) throws -> XMLDocument {
+    private func _convert(_ document: any PNXMLDocument, to targetVersion: FCPXMLVersion) throws -> any PNXMLDocument {
         let data = document.xmlData
-        let copy = try XMLDocument(
-            data: data,
-            options: [.nodePreserveWhitespace, .nodePrettyPrint, .nodeCompactEmptyElement]
-        )
-        copy.fcpxmlVersion = targetVersion.stringValue
+        let copy = try factory.makeDocument(data: data, options: .fcpxmlDefaults)
+        copy.rootElement()?.addAttribute(name: "version", value: targetVersion.stringValue)
 
         guard let root = copy.rootElement() else {
             #if DEBUG
@@ -121,27 +124,25 @@ public final class FCPXMLVersionConverter: FCPXMLVersionConverting, Sendable {
     }
 
     /// When converting to 1.5–1.8, the DTD has asset with src on the element; in 1.9+ src is on media-rep. Promotes the first media-rep's src onto each asset that lacks src so that after we strip media-rep the asset still has required src.
-    private func promoteMediaRepSrcToAsset(in element: XMLElement) {
+    private func promoteMediaRepSrcToAsset(in element: any PNXMLElement) {
         if element.name == "asset", element.attribute(forName: "src") == nil {
-            let mediaReps = element.children?.lazy.compactMap { $0 as? XMLElement }.filter { $0.name == "media-rep" } ?? []
+            let mediaReps = element.childElements.filter { $0.name == "media-rep" }
             if let firstMediaRep = mediaReps.first,
-               let src = firstMediaRep.attribute(forName: "src")?.stringValue, !src.isEmpty {
-                element.addAttribute(withName: "src", value: src)
+               let src = firstMediaRep.attribute(forName: "src"), !src.isEmpty {
+                element.addAttribute(name: "src", value: src)
             }
         }
-        for node in element.children ?? [] {
-            if let child = node as? XMLElement {
-                promoteMediaRepSrcToAsset(in: child)
-            }
+        for child in element.childElements {
+            promoteMediaRepSrcToAsset(in: child)
         }
     }
 
     /// Recursively removes direct children whose name is not in `allowedNames` (DTD-derived allowlist).
-    private func stripElementsNotInAllowlist(in element: XMLElement, allowedNames: Set<String>) {
+    private func stripElementsNotInAllowlist(in element: any PNXMLElement, allowedNames: Set<String>) {
         let children = element.children ?? []
         var indicesToRemove: [Int] = []
         for (index, node) in children.enumerated() {
-            guard let child = node as? XMLElement, let name = child.name else { continue }
+            guard node.asElement != nil, let name = node.name else { continue }
             if !allowedNames.contains(name) {
                 indicesToRemove.append(index)
             }
@@ -149,60 +150,52 @@ public final class FCPXMLVersionConverter: FCPXMLVersionConverting, Sendable {
         for index in indicesToRemove.reversed() {
             element.removeChild(at: index)
         }
-        for node in element.children ?? [] {
-            if let child = node as? XMLElement {
-                stripElementsNotInAllowlist(in: child, allowedNames: allowedNames)
-            }
+        for child in element.childElements {
+            stripElementsNotInAllowlist(in: child, allowedNames: allowedNames)
         }
     }
 
     /// Recursively removes attributes not in the DTD-derived allowlist for each element.
     /// Elements with no ATTLIST in the DTD have an empty allowlist, so all attributes are removed.
-    private func stripAttributesNotInAllowlist(in element: XMLElement, allowedAttributesByElement: [String: Set<String>]) {
+    private func stripAttributesNotInAllowlist(in element: any PNXMLElement, allowedAttributesByElement: [String: Set<String>]) {
         if let name = element.name {
             let allowedAttrs = allowedAttributesByElement[name] ?? []
-            let attrNames = element.attributes?.compactMap { $0.name } ?? []
+            let attrNames = element.attributes.map { $0.name }
             for attrName in attrNames where !allowedAttrs.contains(attrName) {
                 element.removeAttribute(forName: attrName)
             }
         }
-        for node in element.children ?? [] {
-            if let child = node as? XMLElement {
-                stripAttributesNotInAllowlist(in: child, allowedAttributesByElement: allowedAttributesByElement)
-            }
+        for child in element.childElements {
+            stripAttributesNotInAllowlist(in: child, allowedAttributesByElement: allowedAttributesByElement)
         }
     }
 
     /// Recursively removes direct children whose name is in `names` (fallback when DTD not available).
-    private func stripElements(in element: XMLElement, names: Set<String>) {
+    private func stripElements(in element: any PNXMLElement, names: Set<String>) {
         let children = element.children ?? []
         var indicesToRemove: [Int] = []
         for (index, node) in children.enumerated() {
-            guard let child = node as? XMLElement, let name = child.name, names.contains(name) else { continue }
+            guard node.asElement != nil, let name = node.name, names.contains(name) else { continue }
             indicesToRemove.append(index)
         }
         for index in indicesToRemove.reversed() {
             element.removeChild(at: index)
         }
-        for node in element.children ?? [] {
-            if let child = node as? XMLElement {
-                stripElements(in: child, names: names)
-            }
+        for child in element.childElements {
+            stripElements(in: child, names: names)
         }
     }
 
     /// Recursively removes attributes not supported by the target version (fallback when DTD not available).
-    private func stripUnsupportedAttributes(in element: XMLElement, targetVersion: FCPXMLVersion) {
+    private func stripUnsupportedAttributes(in element: any PNXMLElement, targetVersion: FCPXMLVersion) {
         if let name = element.name {
             let toStrip = Self.attributeNamesToStrip(forElement: name, whenConvertingTo: targetVersion)
             for attrName in toStrip {
                 element.removeAttribute(forName: attrName)
             }
         }
-        for node in element.children ?? [] {
-            if let child = node as? XMLElement {
-                stripUnsupportedAttributes(in: child, targetVersion: targetVersion)
-            }
+        for child in element.childElements {
+            stripUnsupportedAttributes(in: child, targetVersion: targetVersion)
         }
     }
 }

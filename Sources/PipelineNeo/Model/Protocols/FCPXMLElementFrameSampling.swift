@@ -31,7 +31,7 @@ extension FCPXMLElementFrameSampling {
                 // can remove attribute if value is default
                 element.removeAttribute(forName: "frameSampling")
             } else {
-                element.addAttribute(withName: "frameSampling", value: newValue.rawValue)
+                element.addAttribute(name: "frameSampling", value: newValue.rawValue)
             }
         }
     }

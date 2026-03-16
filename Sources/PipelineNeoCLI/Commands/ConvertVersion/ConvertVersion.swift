@@ -35,15 +35,20 @@ enum ConvertVersion {
         let displayName = "\(baseName) (Converted-\(targetVersion.rawValue))"
 
         // Set project name(s) inside the document to match the converted filename.
-        // (elements(forName:) only returns direct children; project is under library/event, so use XPath.)
         if let root = converted.rootElement() {
-            let projects = (try? root.nodes(forXPath: "//project"))?.compactMap { $0 as? XMLElement } ?? []
-            for project in projects {
-                if let attr = project.attribute(forName: "name") {
-                    attr.stringValue = displayName
-                } else {
-                    project.addAttribute(withName: "name", value: displayName)
+            func findProjects(in element: any PNXMLElement) -> [any PNXMLElement] {
+                var result: [any PNXMLElement] = []
+                for child in element.childElements {
+                    if child.name == "project" {
+                        result.append(child)
+                    }
+                    result.append(contentsOf: findProjects(in: child))
                 }
+                return result
+            }
+            let projects = findProjects(in: root)
+            for project in projects {
+                project.addAttribute(name: "name", value: displayName)
             }
         }
 

@@ -36,7 +36,7 @@ final class AudioKeyframeTests: XCTestCase {
         var keyframeCount = 0
         var fadeOutFound = false
         
-        func checkForAudioKeyframes(in element: XMLElement) {
+        func checkForAudioKeyframes(in element: any PNXMLElement) {
             if let adjustVolume = element.firstChildElement(named: "adjust-volume") {
                 if let param = adjustVolume.firstChildElement(named: "param"),
                    param.stringValue(forAttributeNamed: "name") == "amount" {
@@ -102,7 +102,7 @@ final class AudioKeyframeTests: XCTestCase {
         // Collect all audio keyframes
         var allKeyframes: [(time: String, value: String)] = []
         
-        func collectAudioKeyframes(in element: XMLElement) {
+        func collectAudioKeyframes(in element: any PNXMLElement) {
             if let adjustVolume = element.firstChildElement(named: "adjust-volume") {
                 if let param = adjustVolume.firstChildElement(named: "param"),
                    param.stringValue(forAttributeNamed: "name") == "amount",
@@ -134,19 +134,19 @@ final class AudioKeyframeTests: XCTestCase {
     
     func testParseAudioKeyframeFromXML() throws {
         // Create a test XML structure
-        let adjustVolume = XMLElement(name: "adjust-volume")
-        let param = XMLElement(name: "param")
-        param.addAttribute(withName: "name", value: "amount")
+        let adjustVolume = FoundationXMLFactory().makeElement(name: "adjust-volume")
+        let param = FoundationXMLFactory().makeElement(name: "param")
+        param.addAttribute(name: "name", value: "amount")
         
-        let keyframeAnimation = XMLElement(name: "keyframeAnimation")
+        let keyframeAnimation = FoundationXMLFactory().makeElement(name: "keyframeAnimation")
         
-        let keyframe1 = XMLElement(name: "keyframe")
-        keyframe1.addAttribute(withName: "time", value: "6408403/720000s")
-        keyframe1.addAttribute(withName: "value", value: "-3dB")
+        let keyframe1 = FoundationXMLFactory().makeElement(name: "keyframe")
+        keyframe1.addAttribute(name: "time", value: "6408403/720000s")
+        keyframe1.addAttribute(name: "value", value: "-3dB")
         
-        let keyframe2 = XMLElement(name: "keyframe")
-        keyframe2.addAttribute(withName: "time", value: "7497726/720000s")
-        keyframe2.addAttribute(withName: "value", value: "-37dB")
+        let keyframe2 = FoundationXMLFactory().makeElement(name: "keyframe")
+        keyframe2.addAttribute(name: "time", value: "7497726/720000s")
+        keyframe2.addAttribute(name: "value", value: "-37dB")
         
         keyframeAnimation.addChild(keyframe1)
         keyframeAnimation.addChild(keyframe2)
@@ -176,18 +176,18 @@ final class AudioKeyframeTests: XCTestCase {
     
     func testParseAudioKeyframeWithFadeOut() throws {
         // Create a test XML structure with fadeOut
-        let adjustVolume = XMLElement(name: "adjust-volume")
-        let param = XMLElement(name: "param")
-        param.addAttribute(withName: "name", value: "amount")
+        let adjustVolume = FoundationXMLFactory().makeElement(name: "adjust-volume")
+        let param = FoundationXMLFactory().makeElement(name: "param")
+        param.addAttribute(name: "name", value: "amount")
         
-        let fadeOut = XMLElement(name: "fadeOut")
-        fadeOut.addAttribute(withName: "type", value: "easeIn")
-        fadeOut.addAttribute(withName: "duration", value: "6112587/720000s")
-        
-        let keyframeAnimation = XMLElement(name: "keyframeAnimation")
-        let keyframe = XMLElement(name: "keyframe")
-        keyframe.addAttribute(withName: "time", value: "6408403/720000s")
-        keyframe.addAttribute(withName: "value", value: "-3dB")
+        let fadeOut = FoundationXMLFactory().makeElement(name: "fadeOut")
+        fadeOut.addAttribute(name: "type", value: "easeIn")
+        fadeOut.addAttribute(name: "duration", value: "6112587/720000s")
+
+        let keyframeAnimation = FoundationXMLFactory().makeElement(name: "keyframeAnimation")
+        let keyframe = FoundationXMLFactory().makeElement(name: "keyframe")
+        keyframe.addAttribute(name: "time", value: "6408403/720000s")
+        keyframe.addAttribute(name: "value", value: "-3dB")
         keyframeAnimation.addChild(keyframe)
         
         param.addChild(fadeOut)
@@ -213,18 +213,18 @@ final class AudioKeyframeTests: XCTestCase {
     
     func testParseAudioKeyframeWithFadeIn() throws {
         // Create a test XML structure with fadeIn
-        let adjustVolume = XMLElement(name: "adjust-volume")
-        let param = XMLElement(name: "param")
-        param.addAttribute(withName: "name", value: "amount")
+        let adjustVolume = FoundationXMLFactory().makeElement(name: "adjust-volume")
+        let param = FoundationXMLFactory().makeElement(name: "param")
+        param.addAttribute(name: "name", value: "amount")
         
-        let fadeIn = XMLElement(name: "fadeIn")
-        fadeIn.addAttribute(withName: "type", value: "easeOut")
-        fadeIn.addAttribute(withName: "duration", value: "1000000/24000s")
-        
-        let keyframeAnimation = XMLElement(name: "keyframeAnimation")
-        let keyframe = XMLElement(name: "keyframe")
-        keyframe.addAttribute(withName: "time", value: "500000/24000s")
-        keyframe.addAttribute(withName: "value", value: "0dB")
+        let fadeIn = FoundationXMLFactory().makeElement(name: "fadeIn")
+        fadeIn.addAttribute(name: "type", value: "easeOut")
+        fadeIn.addAttribute(name: "duration", value: "1000000/24000s")
+
+        let keyframeAnimation = FoundationXMLFactory().makeElement(name: "keyframeAnimation")
+        let keyframe = FoundationXMLFactory().makeElement(name: "keyframe")
+        keyframe.addAttribute(name: "time", value: "500000/24000s")
+        keyframe.addAttribute(name: "value", value: "0dB")
         keyframeAnimation.addChild(keyframe)
         
         param.addChild(fadeIn)
@@ -260,7 +260,7 @@ final class AudioKeyframeTests: XCTestCase {
         
         var foundDecibelValues: [String] = []
         
-        func collectDecibelValues(in element: XMLElement) {
+        func collectDecibelValues(in element: any PNXMLElement) {
             if let adjustVolume = element.firstChildElement(named: "adjust-volume"),
                let param = adjustVolume.firstChildElement(named: "param"),
                param.stringValue(forAttributeNamed: "name") == "amount",
@@ -308,7 +308,7 @@ final class AudioKeyframeTests: XCTestCase {
         
         var timeValues: [String] = []
         
-        func collectTimeValues(in element: XMLElement) {
+        func collectTimeValues(in element: any PNXMLElement) {
             if let adjustVolume = element.firstChildElement(named: "adjust-volume"),
                let param = adjustVolume.firstChildElement(named: "param"),
                param.stringValue(forAttributeNamed: "name") == "amount",
@@ -355,7 +355,7 @@ final class AudioKeyframeTests: XCTestCase {
         
         var maxKeyframeCount = 0
         
-        func findMaxKeyframeCount(in element: XMLElement) {
+        func findMaxKeyframeCount(in element: any PNXMLElement) {
             if let adjustVolume = element.firstChildElement(named: "adjust-volume"),
                let param = adjustVolume.firstChildElement(named: "param"),
                param.stringValue(forAttributeNamed: "name") == "amount",
@@ -392,7 +392,7 @@ final class AudioKeyframeTests: XCTestCase {
         
         var foundInSecondaryStoryline = false
         
-        func checkSecondaryStoryline(in element: XMLElement) {
+        func checkSecondaryStoryline(in element: any PNXMLElement) {
             // Check if this element is a clip that contains a spine (secondary storyline)
             if (element.name == "asset-clip" || element.name == "clip") {
                 // Look for nested spine (secondary storyline)
@@ -456,7 +456,7 @@ final class AudioKeyframeTests: XCTestCase {
         var depth = 0
         var maxDepth = 0
         
-        func findMaxDepth(in element: XMLElement) {
+        func findMaxDepth(in element: any PNXMLElement) {
             if element.name == "asset-clip" || element.name == "clip" {
                 depth += 1
                 maxDepth = max(maxDepth, depth)

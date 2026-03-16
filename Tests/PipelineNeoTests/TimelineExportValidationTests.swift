@@ -594,14 +594,14 @@ final class TimelineExportValidationTests: XCTestCase {
     // MARK: - FCPXMLValidator (semantic)
 
     func testFCPXMLValidatorSuccessWithValidStructure() {
-        let root = XMLElement(name: "fcpxml")
-        root.addAttribute(XMLNode.attribute(withName: "version", stringValue: "1.14") as! XMLNode)
-        let resources = XMLElement(name: "resources")
-        let format = XMLElement(name: "format")
-        format.addAttribute(XMLNode.attribute(withName: "id", stringValue: "r1") as! XMLNode)
+        let root = FoundationXMLFactory().makeElement(name: "fcpxml")
+        root.addAttribute(name: "version", value: "1.14")
+        let resources = FoundationXMLFactory().makeElement(name: "resources")
+        let format = FoundationXMLFactory().makeElement(name: "format")
+        format.addAttribute(name: "id", value: "r1")
         resources.addChild(format)
         root.addChild(resources)
-        let doc = XMLDocument()
+        let doc = FoundationXMLFactory().makeDocument()
         doc.setRootElement(root)
         let validator = FCPXMLValidator()
         let result = validator.validate(doc)
@@ -609,8 +609,8 @@ final class TimelineExportValidationTests: XCTestCase {
     }
 
     func testFCPXMLValidatorMissingRoot() {
-        let doc = XMLDocument()
-        doc.setRootElement(XMLElement(name: "notfcpxml"))
+        let doc = FoundationXMLFactory().makeDocument()
+        doc.setRootElement(FoundationXMLFactory().makeElement(name: "notfcpxml"))
         let validator = FCPXMLValidator()
         let result = validator.validate(doc)
         XCTAssertFalse(result.isValid)
@@ -618,23 +618,23 @@ final class TimelineExportValidationTests: XCTestCase {
     }
 
     func testFCPXMLValidatorUnresolvedRef() {
-        let root = XMLElement(name: "fcpxml")
-        root.addAttribute(XMLNode.attribute(withName: "version", stringValue: "1.14") as! XMLNode)
-        let resources = XMLElement(name: "resources")
+        let root = FoundationXMLFactory().makeElement(name: "fcpxml")
+        root.addAttribute(name: "version", value: "1.14")
+        let resources = FoundationXMLFactory().makeElement(name: "resources")
         root.addChild(resources)
-        let event = XMLElement(name: "event")
-        event.addAttribute(XMLNode.attribute(withName: "name", stringValue: "E1") as! XMLNode)
-        let project = XMLElement(name: "project")
-        let sequence = XMLElement(name: "sequence")
-        let spine = XMLElement(name: "spine")
-        let clip = XMLElement(name: "asset-clip")
-        clip.addAttribute(XMLNode.attribute(withName: "ref", stringValue: "r99") as! XMLNode)
+        let event = FoundationXMLFactory().makeElement(name: "event")
+        event.addAttribute(name: "name", value: "E1")
+        let project = FoundationXMLFactory().makeElement(name: "project")
+        let sequence = FoundationXMLFactory().makeElement(name: "sequence")
+        let spine = FoundationXMLFactory().makeElement(name: "spine")
+        let clip = FoundationXMLFactory().makeElement(name: "asset-clip")
+        clip.addAttribute(name: "ref", value: "r99")
         spine.addChild(clip)
         sequence.addChild(spine)
         project.addChild(sequence)
         event.addChild(project)
         root.addChild(event)
-        let doc = XMLDocument()
+        let doc = FoundationXMLFactory().makeDocument()
         doc.setRootElement(root)
         let validator = FCPXMLValidator()
         let result = validator.validate(doc)
@@ -645,7 +645,7 @@ final class TimelineExportValidationTests: XCTestCase {
     // MARK: - FCPXMLDTDValidator
 
     func testFCPXMLDTDValidatorReturnsResult() {
-        let doc = XMLDocument(resources: [], events: [], fcpxmlVersion: .default)
+        let doc = FoundationXMLDocument(resources: [], events: [], fcpxmlVersion: .default)
         let validator = FCPXMLDTDValidator()
         let result = validator.validate(doc, version: .default)
         // A well-formed document with resources + events should validate against the DTD.
@@ -659,7 +659,7 @@ final class TimelineExportValidationTests: XCTestCase {
         // 1.5 DTD requires (import-options?, resources?, library); the convenience init produces (resources?, events); use 1.6–1.14.
         let versionsToTest = FCPXMLVersion.allCases.filter { $0 != .v1_5 }
         for version in versionsToTest {
-            let doc = XMLDocument(resources: [], events: [], fcpxmlVersion: version)
+            let doc = FoundationXMLDocument(resources: [], events: [], fcpxmlVersion: version)
             let result = service.validateDocumentAgainstDTD(doc, version: version)
             XCTAssertTrue(
                 result.isValid,
@@ -667,26 +667,26 @@ final class TimelineExportValidationTests: XCTestCase {
             )
         }
         // Version 1.5 DTD requires (import-options?, resources?, library). Build minimal valid doc.
-        let doc1_5 = XMLDocument()
-        doc1_5.setRootElement(XMLElement(name: "fcpxml"))
+        let doc1_5 = FoundationXMLFactory().makeDocument() as! FoundationXMLDocument
+        doc1_5.setRootElement(FoundationXMLFactory().makeElement(name: "fcpxml"))
         doc1_5.fcpxmlVersion = "1.5"
-        doc1_5.rootElement()?.addChild(XMLElement(name: "resources"))
-        doc1_5.rootElement()?.addChild(XMLElement(name: "library"))
+        doc1_5.rootElement()?.addChild(FoundationXMLFactory().makeElement(name: "resources"))
+        doc1_5.rootElement()?.addChild(FoundationXMLFactory().makeElement(name: "library"))
         let result1_5 = service.validateDocumentAgainstDTD(doc1_5, version: .v1_5)
         XCTAssertTrue(result1_5.isValid, "Version 1.5 with library should validate. Errors: \(result1_5.detailedDescription)")
     }
 
     func testValidateDocumentAgainstDeclaredVersion_ValidDocument() {
         let service = FCPXMLService()
-        let doc = XMLDocument(resources: [], events: [], fcpxmlVersion: .v1_10)
+        let doc = FoundationXMLDocument(resources: [], events: [], fcpxmlVersion: .v1_10)
         let result = service.validateDocumentAgainstDeclaredVersion(doc)
         XCTAssertTrue(result.isValid, "Declared version 1.10 should validate. Errors: \(result.detailedDescription)")
     }
 
     func testValidateDocumentAgainstDeclaredVersion_MissingVersion() {
         let service = FCPXMLService()
-        let doc = XMLDocument()
-        doc.setRootElement(XMLElement(name: "fcpxml"))
+        let doc = FoundationXMLFactory().makeDocument()
+        doc.setRootElement(FoundationXMLFactory().makeElement(name: "fcpxml"))
         // No version attribute
         let result = service.validateDocumentAgainstDeclaredVersion(doc)
         XCTAssertFalse(result.isValid)
@@ -695,7 +695,7 @@ final class TimelineExportValidationTests: XCTestCase {
 
     func testValidateDocumentAgainstDeclaredVersion_UnsupportedVersion() {
         let service = FCPXMLService()
-        let doc = XMLDocument(resources: [], events: [], fcpxmlVersion: .v1_14)
+        let doc = FoundationXMLDocument(resources: [], events: [], fcpxmlVersion: .v1_14)
         doc.fcpxmlVersion = "99.99"
         let result = service.validateDocumentAgainstDeclaredVersion(doc)
         XCTAssertFalse(result.isValid)
@@ -706,10 +706,10 @@ final class TimelineExportValidationTests: XCTestCase {
 
     func testPerformValidation_ValidDocument() {
         let service = FCPXMLService()
-        let doc = XMLDocument(resources: [], events: [], fcpxmlVersion: .v1_10)
+        let doc = FoundationXMLDocument(resources: [], events: [], fcpxmlVersion: .v1_10)
         // Ensure resources element exists (semantic validator requires it)
         if doc.fcpxmlElement?.firstChildElement(named: "resources") == nil {
-            let resourcesEl = XMLElement(name: "resources")
+            let resourcesEl = FoundationXMLFactory().makeElement(name: "resources")
             doc.fcpxmlElement?.addChild(resourcesEl)
         }
         let report = service.performValidation(doc)
@@ -720,13 +720,13 @@ final class TimelineExportValidationTests: XCTestCase {
 
     func testPerformValidation_InvalidSemantic() {
         let service = FCPXMLService()
-        let doc = XMLDocument(resources: [], events: [], fcpxmlVersion: .v1_10)
+        let doc = FoundationXMLDocument(resources: [], events: [], fcpxmlVersion: .v1_10)
         if doc.fcpxmlElement?.firstChildElement(named: "resources") == nil {
-            doc.fcpxmlElement?.addChild(XMLElement(name: "resources"))
+            doc.fcpxmlElement?.addChild(FoundationXMLFactory().makeElement(name: "resources"))
         }
         let root = doc.fcpxmlElement!
-        let clip = XMLElement(name: "ref-clip")
-        clip.addAttribute(withName: "ref", value: "missing-resource")
+        let clip = FoundationXMLFactory().makeElement(name: "ref-clip")
+        clip.addAttribute(name: "ref", value: "missing-resource")
         root.addChild(clip)
         let report = service.performValidation(doc)
         XCTAssertFalse(report.isValid)
@@ -736,8 +736,8 @@ final class TimelineExportValidationTests: XCTestCase {
 
     func testPerformValidation_InvalidDTD() {
         let service = FCPXMLService()
-        let doc = XMLDocument()
-        doc.setRootElement(XMLElement(name: "fcpxml"))
+        let doc = FoundationXMLFactory().makeDocument()
+        doc.setRootElement(FoundationXMLFactory().makeElement(name: "fcpxml"))
         // No version attribute -> DTD validation fails
         let report = service.performValidation(doc)
         XCTAssertFalse(report.isValid)
@@ -760,7 +760,7 @@ final class TimelineExportValidationTests: XCTestCase {
         let loader = FCPXMLFileLoader()
         let doc = try loader.loadDocument(from: temp)
         XCTAssertNotNil(doc.rootElement())
-        XCTAssertTrue(doc.fcpxmlElement?.name == "fcpxml")
+        XCTAssertTrue(doc.rootElement()?.name == "fcpxml")
     }
 
     func testFCPXMLFileLoaderLoadsBundle() throws {

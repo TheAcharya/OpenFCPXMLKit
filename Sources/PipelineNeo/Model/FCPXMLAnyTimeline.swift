@@ -30,7 +30,7 @@ extension FinalCutPro.FCPXML {
         case transition(Transition)
         case video(Video)
         
-        public var element: XMLElement {
+        public var element: any PNXMLElement {
             switch self {
             case let .assetClip(model): return model.element
             case let .clip(model): return model.element
@@ -58,7 +58,7 @@ extension FinalCutPro.FCPXML {
             self = .gap(Gap())
         }
         
-        public init?(element: XMLElement) {
+        public init?(element: any PNXMLElement) {
             /**/ if let model = element.fcpAsAssetClip { self = .assetClip(model) }
             else if let model = element.fcpAsClip { self = .clip(model) }
             else if let model = element.fcpAsGap { self = .gap(model) }
@@ -112,7 +112,7 @@ extension FinalCutPro.FCPXML.AnyTimeline {
 // MARK: - Typing
 
 // Spine
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/AnyTimeline`` model object
     /// if the element is a timeline object.
     public var fcpAsAnyTimeline: FinalCutPro.FCPXML.AnyTimeline? {

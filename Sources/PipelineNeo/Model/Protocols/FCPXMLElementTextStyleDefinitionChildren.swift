@@ -14,21 +14,21 @@ import SwiftExtensions
 
 public protocol FCPXMLElementTextStyleDefinitionChildren: FCPXMLElement {
     /// Child `text-style-def` elements.
-    var fcpTextStyleDefinitions: LazyFilteredCompactMapSequence<[XMLNode], XMLElement> { get nonmutating set }
+    var fcpTextStyleDefinitions: LazyFilterSequence<[any PNXMLElement]> { get nonmutating set }
 }
 
 extension FCPXMLElementTextStyleDefinitionChildren {
-    public var fcpTextStyleDefinitions: LazyFilteredCompactMapSequence<[XMLNode], XMLElement> {
+    public var fcpTextStyleDefinitions: LazyFilterSequence<[any PNXMLElement]> {
         get { element.fcpTextStyleDefinitions }
         nonmutating set { element.fcpTextStyleDefinitions = newValue }
     }
 }
 
-extension XMLElement {
+extension PNXMLElement {
     // Note: returns bare XML; model objects not yet implemented for this element.
     
     /// FCPXML: Returns child `text-style-def` elements.
-    public var fcpTextStyleDefinitions: LazyFilteredCompactMapSequence<[XMLNode], XMLElement> {
+    public var fcpTextStyleDefinitions: LazyFilterSequence<[any PNXMLElement]> {
         get {
             childElements
                 .filter(whereFCPElementType: .textStyleDef)

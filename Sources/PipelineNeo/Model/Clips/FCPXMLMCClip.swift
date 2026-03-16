@@ -25,17 +25,17 @@ extension FinalCutPro.FCPXML {
     /// > https://developer.apple.com/documentation/professional_video_applications/fcpxml_reference/story_elements/mc-clip
     /// > ).
     public struct MCClip: FCPXMLElement {
-        public let element: XMLElement
+        public let element: any PNXMLElement
         
         public let elementType: ElementType = .mcClip
         
         public static let supportedElementTypes: Set<ElementType> = [.mcClip]
         
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
         
-        public init?(element: XMLElement) {
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -155,7 +155,7 @@ extension FinalCutPro.FCPXML.MCClip: FCPXMLElementOptionalModDate { }
 
 extension FinalCutPro.FCPXML.MCClip {
     /// Get or set child elements.
-    public var contents: LazyCompactMapSequence<[XMLNode], XMLElement> {
+    public var contents: [any PNXMLElement] {
         get { element.childElements }
         nonmutating set {
             element.removeAllChildren()
@@ -164,7 +164,7 @@ extension FinalCutPro.FCPXML.MCClip {
     }
     
     /// Returns child story elements.
-    public var storyElements: LazyFilteredCompactMapSequence<[XMLNode], XMLElement> {
+    public var storyElements: [any PNXMLElement] {
         element.fcpStoryElements
     }
 }
@@ -216,7 +216,7 @@ extension FinalCutPro.FCPXML.MCClip {
 // MARK: - Typing
 
 // MCClip
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/MCClip`` model object.
     /// Call this on a `mc-clip` element only.
     public var fcpAsMCClip: FinalCutPro.FCPXML.MCClip? {

@@ -58,7 +58,7 @@ extension FCPXMLElementOptionalOffset {
 
 // MARK: - XML Utils
 
-extension XMLElement {
+extension PNXMLElement {
     func _fcpOffsetAsTimecode(
         frameRateSource: FinalCutPro.FCPXML.FrameRateSource = .localToElement,
         default defaultOffset: Fraction? = .zero

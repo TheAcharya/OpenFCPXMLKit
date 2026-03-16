@@ -54,20 +54,20 @@ extension FinalCutPro.FCPXML.Clip {
             
             // Add new filter-video elements
             for filter in newValue {
-                let filterElement = XMLElement(name: "filter-video")
-                filterElement.addAttribute(withName: "ref", value: filter.effectID)
+                let filterElement = PNXMLDefaultFactory().makeElement(name: "filter-video")
+                filterElement.addAttribute(name: "ref", value: filter.effectID)
                 if let name = filter.name {
-                    filterElement.addAttribute(withName: "name", value: name)
+                    filterElement.addAttribute(name: "name", value: name)
                 }
                 if !filter.isEnabled {
-                    filterElement.addAttribute(withName: "enabled", value: "0")
+                    filterElement.addAttribute(name: "enabled", value: "0")
                 }
                 
                 // Add data elements
                 for dataItem in filter.data {
-                    let dataElement = XMLElement(name: "data")
+                    let dataElement = PNXMLDefaultFactory().makeElement(name: "data")
                     if let key = dataItem.key {
-                        dataElement.addAttribute(withName: "key", value: key)
+                        dataElement.addAttribute(name: "key", value: key)
                     }
                     dataElement.stringValue = dataItem.value
                     filterElement.addChild(dataElement)
@@ -75,19 +75,19 @@ extension FinalCutPro.FCPXML.Clip {
                 
                 // Add param elements
                 for param in filter.parameters {
-                    let paramElement = XMLElement(name: "param")
-                    paramElement.addAttribute(withName: "name", value: param.name)
+                    let paramElement = PNXMLDefaultFactory().makeElement(name: "param")
+                    paramElement.addAttribute(name: "name", value: param.name)
                     if let key = param.key {
-                        paramElement.addAttribute(withName: "key", value: key)
+                        paramElement.addAttribute(name: "key", value: key)
                     }
                     if let value = param.value {
-                        paramElement.addAttribute(withName: "value", value: value)
+                        paramElement.addAttribute(name: "value", value: value)
                     }
                     if let auxValue = param.auxValue {
-                        paramElement.addAttribute(withName: "auxValue", value: auxValue)
+                        paramElement.addAttribute(name: "auxValue", value: auxValue)
                     }
                     if !param.isEnabled {
-                        paramElement.addAttribute(withName: "enabled", value: "0")
+                        paramElement.addAttribute(name: "enabled", value: "0")
                     }
                     filterElement.addChild(paramElement)
                 }
@@ -255,39 +255,39 @@ extension FinalCutPro.FCPXML.Clip {
             
             // Add new filter-video-mask elements
             for mask in newValue {
-                let maskElement = XMLElement(name: "filter-video-mask")
+                let maskElement = PNXMLDefaultFactory().makeElement(name: "filter-video-mask")
                 if !mask.isEnabled {
-                    maskElement.addAttribute(withName: "enabled", value: "0")
+                    maskElement.addAttribute(name: "enabled", value: "0")
                 }
                 if mask.isInverted {
-                    maskElement.addAttribute(withName: "inverted", value: "1")
+                    maskElement.addAttribute(name: "inverted", value: "1")
                 }
                 
                 // Add mask-shape elements
                 for shape in mask.maskShapes {
-                    let shapeElement = XMLElement(name: "mask-shape")
+                    let shapeElement = PNXMLDefaultFactory().makeElement(name: "mask-shape")
                     if let name = shape.name {
-                        shapeElement.addAttribute(withName: "name", value: name)
+                        shapeElement.addAttribute(name: "name", value: name)
                     }
                     if !shape.isEnabled {
-                        shapeElement.addAttribute(withName: "enabled", value: "0")
+                        shapeElement.addAttribute(name: "enabled", value: "0")
                     }
-                    shapeElement.addAttribute(withName: "blendMode", value: shape.blendMode.rawValue)
+                    shapeElement.addAttribute(name: "blendMode", value: shape.blendMode.rawValue)
                     
                     for param in shape.parameters {
-                        let paramElement = XMLElement(name: "param")
-                        paramElement.addAttribute(withName: "name", value: param.name)
+                        let paramElement = PNXMLDefaultFactory().makeElement(name: "param")
+                        paramElement.addAttribute(name: "name", value: param.name)
                         if let key = param.key {
-                            paramElement.addAttribute(withName: "key", value: key)
+                            paramElement.addAttribute(name: "key", value: key)
                         }
                         if let value = param.value {
-                            paramElement.addAttribute(withName: "value", value: value)
+                            paramElement.addAttribute(name: "value", value: value)
                         }
                         if let auxValue = param.auxValue {
-                            paramElement.addAttribute(withName: "auxValue", value: auxValue)
+                            paramElement.addAttribute(name: "auxValue", value: auxValue)
                         }
                         if !param.isEnabled {
-                            paramElement.addAttribute(withName: "enabled", value: "0")
+                            paramElement.addAttribute(name: "enabled", value: "0")
                         }
                         shapeElement.addChild(paramElement)
                     }
@@ -297,38 +297,38 @@ extension FinalCutPro.FCPXML.Clip {
                 
                 // Add mask-isolation elements
                 for isolation in mask.maskIsolations {
-                    let isolationElement = XMLElement(name: "mask-isolation")
+                    let isolationElement = PNXMLDefaultFactory().makeElement(name: "mask-isolation")
                     if let name = isolation.name {
-                        isolationElement.addAttribute(withName: "name", value: name)
+                        isolationElement.addAttribute(name: "name", value: name)
                     }
                     if !isolation.isEnabled {
-                        isolationElement.addAttribute(withName: "enabled", value: "0")
+                        isolationElement.addAttribute(name: "enabled", value: "0")
                     }
-                    isolationElement.addAttribute(withName: "blendMode", value: isolation.blendMode.rawValue)
+                    isolationElement.addAttribute(name: "blendMode", value: isolation.blendMode.rawValue)
                     
                     for dataItem in isolation.data {
-                        let dataElement = XMLElement(name: "data")
+                        let dataElement = PNXMLDefaultFactory().makeElement(name: "data")
                         if let key = dataItem.key {
-                            dataElement.addAttribute(withName: "key", value: key)
+                            dataElement.addAttribute(name: "key", value: key)
                         }
                         dataElement.stringValue = dataItem.value
                         isolationElement.addChild(dataElement)
                     }
                     
                     for param in isolation.parameters {
-                        let paramElement = XMLElement(name: "param")
-                        paramElement.addAttribute(withName: "name", value: param.name)
+                        let paramElement = PNXMLDefaultFactory().makeElement(name: "param")
+                        paramElement.addAttribute(name: "name", value: param.name)
                         if let key = param.key {
-                            paramElement.addAttribute(withName: "key", value: key)
+                            paramElement.addAttribute(name: "key", value: key)
                         }
                         if let value = param.value {
-                            paramElement.addAttribute(withName: "value", value: value)
+                            paramElement.addAttribute(name: "value", value: value)
                         }
                         if let auxValue = param.auxValue {
-                            paramElement.addAttribute(withName: "auxValue", value: auxValue)
+                            paramElement.addAttribute(name: "auxValue", value: auxValue)
                         }
                         if !param.isEnabled {
-                            paramElement.addAttribute(withName: "enabled", value: "0")
+                            paramElement.addAttribute(name: "enabled", value: "0")
                         }
                         isolationElement.addChild(paramElement)
                     }
@@ -338,38 +338,38 @@ extension FinalCutPro.FCPXML.Clip {
                 
                 // Add filter-video elements
                 for filter in mask.videoFilters {
-                    let filterElement = XMLElement(name: "filter-video")
-                    filterElement.addAttribute(withName: "ref", value: filter.effectID)
+                    let filterElement = PNXMLDefaultFactory().makeElement(name: "filter-video")
+                    filterElement.addAttribute(name: "ref", value: filter.effectID)
                     if let name = filter.name {
-                        filterElement.addAttribute(withName: "name", value: name)
+                        filterElement.addAttribute(name: "name", value: name)
                     }
                     if !filter.isEnabled {
-                        filterElement.addAttribute(withName: "enabled", value: "0")
+                        filterElement.addAttribute(name: "enabled", value: "0")
                     }
                     
                     for dataItem in filter.data {
-                        let dataElement = XMLElement(name: "data")
+                        let dataElement = PNXMLDefaultFactory().makeElement(name: "data")
                         if let key = dataItem.key {
-                            dataElement.addAttribute(withName: "key", value: key)
+                            dataElement.addAttribute(name: "key", value: key)
                         }
                         dataElement.stringValue = dataItem.value
                         filterElement.addChild(dataElement)
                     }
                     
                     for param in filter.parameters {
-                        let paramElement = XMLElement(name: "param")
-                        paramElement.addAttribute(withName: "name", value: param.name)
+                        let paramElement = PNXMLDefaultFactory().makeElement(name: "param")
+                        paramElement.addAttribute(name: "name", value: param.name)
                         if let key = param.key {
-                            paramElement.addAttribute(withName: "key", value: key)
+                            paramElement.addAttribute(name: "key", value: key)
                         }
                         if let value = param.value {
-                            paramElement.addAttribute(withName: "value", value: value)
+                            paramElement.addAttribute(name: "value", value: value)
                         }
                         if let auxValue = param.auxValue {
-                            paramElement.addAttribute(withName: "auxValue", value: auxValue)
+                            paramElement.addAttribute(name: "auxValue", value: auxValue)
                         }
                         if !param.isEnabled {
-                            paramElement.addAttribute(withName: "enabled", value: "0")
+                            paramElement.addAttribute(name: "enabled", value: "0")
                         }
                         filterElement.addChild(paramElement)
                     }
@@ -427,23 +427,23 @@ extension FinalCutPro.FCPXML.Clip {
             
             // Add new filter-audio elements
             for filter in newValue {
-                let filterElement = XMLElement(name: "filter-audio")
-                filterElement.addAttribute(withName: "ref", value: filter.effectID)
+                let filterElement = PNXMLDefaultFactory().makeElement(name: "filter-audio")
+                filterElement.addAttribute(name: "ref", value: filter.effectID)
                 if let name = filter.name {
-                    filterElement.addAttribute(withName: "name", value: name)
+                    filterElement.addAttribute(name: "name", value: name)
                 }
                 if let presetID = filter.presetID {
-                    filterElement.addAttribute(withName: "presetID", value: presetID)
+                    filterElement.addAttribute(name: "presetID", value: presetID)
                 }
                 if !filter.isEnabled {
-                    filterElement.addAttribute(withName: "enabled", value: "0")
+                    filterElement.addAttribute(name: "enabled", value: "0")
                 }
                 
                 // Add data elements
                 for dataItem in filter.data {
-                    let dataElement = XMLElement(name: "data")
+                    let dataElement = PNXMLDefaultFactory().makeElement(name: "data")
                     if let key = dataItem.key {
-                        dataElement.addAttribute(withName: "key", value: key)
+                        dataElement.addAttribute(name: "key", value: key)
                     }
                     dataElement.stringValue = dataItem.value
                     filterElement.addChild(dataElement)
@@ -451,19 +451,19 @@ extension FinalCutPro.FCPXML.Clip {
                 
                 // Add param elements
                 for param in filter.parameters {
-                    let paramElement = XMLElement(name: "param")
-                    paramElement.addAttribute(withName: "name", value: param.name)
+                    let paramElement = PNXMLDefaultFactory().makeElement(name: "param")
+                    paramElement.addAttribute(name: "name", value: param.name)
                     if let key = param.key {
-                        paramElement.addAttribute(withName: "key", value: key)
+                        paramElement.addAttribute(name: "key", value: key)
                     }
                     if let value = param.value {
-                        paramElement.addAttribute(withName: "value", value: value)
+                        paramElement.addAttribute(name: "value", value: value)
                     }
                     if let auxValue = param.auxValue {
-                        paramElement.addAttribute(withName: "auxValue", value: auxValue)
+                        paramElement.addAttribute(name: "auxValue", value: auxValue)
                     }
                     if !param.isEnabled {
-                        paramElement.addAttribute(withName: "enabled", value: "0")
+                        paramElement.addAttribute(name: "enabled", value: "0")
                     }
                     filterElement.addChild(paramElement)
                 }

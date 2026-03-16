@@ -27,7 +27,7 @@ if result.isValid {
 
 ### DTD validation (FCPXMLDTDValidator)
 
-**FCPXMLDTDValidator** validates the document against a specific FCPXML version's DTD:
+**FCPXMLDTDValidator** validates the document against a specific FCPXML version's DTD. On **macOS** (and Linux with Foundation XML) it performs full DTD validation. On **iOS** (where DTD is not available) it uses **FCPXMLStructuralValidator** instead and the result may include a `structuralValidationOnly` warning.
 
 ```swift
 let dtdValidator = FCPXMLDTDValidator()
@@ -38,6 +38,12 @@ else {
     for err in dtdResult.errors { print(err.message) }
 }
 ```
+
+---
+
+### Structural validation (FCPXMLStructuralValidator, cross-platform)
+
+**FCPXMLStructuralValidator** works on all platforms (including iOS). It checks: root element name `fcpxml`, required `version` attribute, required `resources` child, at least one content element (library/event/project), and an element-name allowlist for FCPXML 1.5–1.14. Use it when full DTD validation is not available (e.g. on iOS).
 
 ---
 

@@ -58,13 +58,13 @@ extension FCPXMLElementOptionalDuration {
 
 // MARK: - XML Utils
 
-extension XMLElement {
+extension PNXMLElement {
     func _fcpDurationAsTimecode(
         frameRateSource: FinalCutPro.FCPXML.FrameRateSource = .localToElement,
         default defaultDuration: Fraction? = .zero
     ) -> Timecode? {
         guard let dur = fcpDuration ?? defaultDuration else { return nil }
-        
+
         return try? _fcpTimecode(
             fromRational: dur,
             frameRateSource: frameRateSource

@@ -19,17 +19,17 @@ extension FinalCutPro.FCPXML {
     /// >
     /// > Defines a placeholder element that has no intrinsic audio or video data.
     public struct Gap: FCPXMLElement {
-        public let element: XMLElement
+        public let element: any PNXMLElement
         
         public let elementType: ElementType = .gap
         
         public static let supportedElementTypes: Set<ElementType> = [.gap]
         
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
         
-        public init?(element: XMLElement) {
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -109,7 +109,7 @@ extension FinalCutPro.FCPXML.Gap: FCPXMLElementClipAttributes {
 
 extension FinalCutPro.FCPXML.Gap {
     /// Get or set child elements.
-    public var contents: LazyCompactMapSequence<[XMLNode], XMLElement> {
+    public var contents: [any PNXMLElement] {
         get { element.childElements }
         nonmutating set {
             element.removeAllChildren()
@@ -118,7 +118,7 @@ extension FinalCutPro.FCPXML.Gap {
     }
     
     /// Returns child story elements.
-    public var storyElements: LazyFilteredCompactMapSequence<[XMLNode], XMLElement> {
+    public var storyElements: [any PNXMLElement] {
         element.fcpStoryElements
     }
 }
@@ -137,7 +137,7 @@ extension FinalCutPro.FCPXML.Gap: FCPXMLElementMetaTimeline {
 // MARK: - Typing
 
 // Gap
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/Gap`` model object.
     /// Call this on a `gap` element only.
     public var fcpAsGap: FinalCutPro.FCPXML.Gap? {

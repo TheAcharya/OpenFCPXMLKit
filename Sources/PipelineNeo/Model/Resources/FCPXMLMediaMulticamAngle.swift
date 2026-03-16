@@ -16,17 +16,17 @@ extension FinalCutPro.FCPXML.Media.Multicam {
     /// A container of story elements organized sequentially in time.
     /// Similar to a `sequence`.
     public struct Angle: FCPXMLElement {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: FinalCutPro.FCPXML.ElementType = .mcAngle
-        
+
         public static let supportedElementTypes: Set<FinalCutPro.FCPXML.ElementType> = [.mcAngle]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -76,7 +76,7 @@ extension FinalCutPro.FCPXML.Media.Multicam.Angle {
     /// Angle ID. (Required)
     public var angleID: String {
         get { element.stringValue(forAttributeNamed: Attributes.angleID.rawValue) ?? "" }
-        nonmutating set { element.addAttribute(withName: Attributes.angleID.rawValue, value: newValue) }
+        nonmutating set { element.addAttribute(name: Attributes.angleID.rawValue, value: newValue) }
     }
 }
 
@@ -84,7 +84,7 @@ extension FinalCutPro.FCPXML.Media.Multicam.Angle {
 
 extension FinalCutPro.FCPXML.Media.Multicam.Angle {
     /// Get or set story elements contained within the angle.
-    public var contents: LazyCompactMapSequence<[XMLNode], XMLElement> {
+    public var contents: [any PNXMLElement] {
         get { element.childElements }
         nonmutating set {
             element.removeAllChildren()
@@ -102,7 +102,7 @@ extension FinalCutPro.FCPXML.Media.Multicam.Angle: FCPXMLElementMetaTimeline {
 // MARK: - Typing
 
 // Angle
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in an ``FinalCutPro/FCPXML/Media/Multicam/Angle`` model object.
     /// Call this on a `mc-angle` element only.
     public var fcpAsMCAngle: FinalCutPro.FCPXML.Media.Multicam.Angle? {

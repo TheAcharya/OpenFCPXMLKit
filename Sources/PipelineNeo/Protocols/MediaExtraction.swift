@@ -19,10 +19,10 @@ public protocol MediaExtraction: Sendable {
     ///   - document: Parsed FCPXML document.
     ///   - baseURL: Optional base URL to resolve relative src (e.g. URL of the .fcpxml file or .fcpxmld bundle).
     /// - Returns: Result with references; urls may be nil for relative src when baseURL is nil.
-    func extractMediaReferences(from document: XMLDocument, baseURL: URL?) -> MediaExtractionResult
+    func extractMediaReferences(from document: any PNXMLDocument, baseURL: URL?) -> MediaExtractionResult
 
     /// Extracts media references (async).
-    func extractMediaReferences(from document: XMLDocument, baseURL: URL?) async -> MediaExtractionResult
+    func extractMediaReferences(from document: any PNXMLDocument, baseURL: URL?) async -> MediaExtractionResult
 
     /// Copies all referenced media files (file URLs only) to the destination directory.
     /// Deduplicates by source URL; uses suggestedFilename or lastPathComponent; uniquifies on conflict.
@@ -32,8 +32,8 @@ public protocol MediaExtraction: Sendable {
     ///   - baseURL: Optional base URL to resolve relative src.
     ///   - progress: Optional reporter called once per processed file (e.g. CLI progress bar).
     /// - Returns: Result with copied, skipped, and failed entries.
-    func copyReferencedMedia(from document: XMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any ProgressReporter)?) -> MediaCopyResult
+    func copyReferencedMedia(from document: any PNXMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any ProgressReporter)?) -> MediaCopyResult
 
     /// Copies referenced media (async).
-    func copyReferencedMedia(from document: XMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any ProgressReporter)?) async -> MediaCopyResult
+    func copyReferencedMedia(from document: any PNXMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any ProgressReporter)?) async -> MediaCopyResult
 }

@@ -15,17 +15,17 @@ extension FinalCutPro.FCPXML {
     /// Multicam source used in a `mc-clip`.
     /// A single source may be used for both video and audio, or separate sources may be used for each.
     public struct MulticamSource: FCPXMLElement {
-        public let element: XMLElement
+        public let element: any PNXMLElement
         
         public let elementType: ElementType = .mcSource
         
         public static let supportedElementTypes: Set<ElementType> = [.mcSource]
         
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
         
-        public init?(element: XMLElement) {
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -97,7 +97,7 @@ extension FinalCutPro.FCPXML.MulticamSource: FCPXMLElementAudioRoleSourceChildre
 
 // MARK: - Children
 
-extension XMLElement { // MCClip
+extension PNXMLElement { // MCClip
     /// FCPXML: Returns child `mc-source` elements.
     /// Use on `multicam` elements.
     public var fcpMulticamSources: LazyFCPXMLChildrenSequence<FinalCutPro.FCPXML.MulticamSource> {
@@ -133,27 +133,27 @@ extension FinalCutPro.FCPXML.MulticamSource {
 }
 
 // Multicam Source
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns value for attribute `angleID`.
     /// Call on a `mc-angle` or `mc-source` element.
     public var fcpAngleID: String? {
         get { stringValue(forAttributeNamed: "angleID") }
-        set { addAttribute(withName: "angleID", value: newValue) }
+        set { addAttribute(name: "angleID", value: newValue) }
     }
-    
+
     /// FCPXML: Returns value for attribute `srcEnable`. (Default: `.all`)
     /// Call on a `mc-source` element only.
     public var fcpMulticamSourceSourceEnable: FinalCutPro.FCPXML.MulticamSource.SourceEnable {
         get {
             let defaultValue: FinalCutPro.FCPXML.MulticamSource.SourceEnable = .all
-            
+
             guard let value = stringValue(forAttributeNamed: "srcEnable")
             else { return defaultValue }
-            
+
             return FinalCutPro.FCPXML.MulticamSource.SourceEnable(rawValue: value) ?? defaultValue
         }
         set {
-            addAttribute(withName: "srcEnable", value: newValue.rawValue)
+            addAttribute(name: "srcEnable", value: newValue.rawValue)
         }
     }
 }
@@ -161,7 +161,7 @@ extension XMLElement {
 // MARK: - Sequence Methods
 
 // [Multicam Source]
-extension Sequence where Element == XMLElement {
+extension Sequence where Element == any PNXMLElement {
     /// FCPXML: Returns the corresponding angle IDs for the given multicam source(s).
     /// Call on a `mc-source` element.
     public func fcpAudioVideoAngleIDs() -> (audioID: String?, videoID: String?) {
@@ -190,7 +190,7 @@ extension Sequence where Element == XMLElement {
 // MARK: - Typing
 
 // Multicam Source
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/MulticamSource`` model object.
     /// Call this on a `mc-source` element only.
     public var fcpAsMulticamSource: FinalCutPro.FCPXML.MulticamSource? {

@@ -24,7 +24,7 @@ extension FCPXMLElementAudioRoleSourceChildren {
     }
 }
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns child `audio-role-source` elements.
     /// Use on `ref-clip`, `sync-source`, or `mc-source` elements.
     public var fcpAudioRoleSources: LazyFCPXMLChildrenSequence<FinalCutPro.FCPXML.AudioRoleSource> {

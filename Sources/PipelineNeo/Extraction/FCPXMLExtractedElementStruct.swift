@@ -13,18 +13,18 @@ import SwiftTimecode
 import SwiftExtensions
 
 extension FinalCutPro.FCPXML {
-    // Note: XMLElement is not Sendable; cannot use Task-based concurrency here.
-    
+    // Note: PNXMLElement is not Sendable; cannot use Task-based concurrency here.
+
     /// Extracted element and its context.
     public struct ExtractedElement: @unchecked Sendable {
-        public let element: XMLElement
-        public let breadcrumbs: [XMLElement]
-        public let resources: XMLElement?
-        
+        public let element: any PNXMLElement
+        public let breadcrumbs: [any PNXMLElement]
+        public let resources: (any PNXMLElement)?
+
         init(
-            element: XMLElement,
-            breadcrumbs: [XMLElement],
-            resources: XMLElement?
+            element: any PNXMLElement,
+            breadcrumbs: [any PNXMLElement],
+            resources: (any PNXMLElement)?
         ) {
             self.element = element
             self.breadcrumbs = breadcrumbs

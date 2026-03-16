@@ -23,11 +23,27 @@ public struct FCPXMLValidator: Sendable {
     ///
     /// - Parameter document: The FCPXML document to validate.
     /// - Returns: ValidationResult with errors and optional warnings.
-    public func validate(_ document: XMLDocument) -> ValidationResult {
+    public func validate(_ document: any PNXMLDocument) -> ValidationResult {
         var errors: [ValidationError] = []
         var warnings: [ValidationWarning] = []
 
-        guard let root = document.fcpxmlElement else {
+        // Find the fcpxml root element
+        let root: (any PNXMLElement)? = {
+            // Try rootElement() first -- for well-formed documents the root is <fcpxml>
+            if let r = document.rootElement(), r.name == "fcpxml" {
+                return r
+            }
+            // Fallback: scan children for <fcpxml>
+            guard let children = document.children else { return nil }
+            for child in children {
+                if child.name == "fcpxml", let el = child as? (any PNXMLElement) {
+                    return el
+                }
+            }
+            return nil
+        }()
+
+        guard let root else {
             errors.append(ValidationError(
                 type: .missingRequiredElement,
                 message: "Root element 'fcpxml' not found",
@@ -36,7 +52,9 @@ public struct FCPXMLValidator: Sendable {
             return ValidationResult(errors: errors, warnings: warnings)
         }
 
-        if document.fcpxResourceElement == nil {
+        // Check for resources element
+        let resourcesElement = root.firstChildElement(named: "resources")
+        if resourcesElement == nil {
             errors.append(ValidationError(
                 type: .missingRequiredElement,
                 message: "Missing 'resources' element",
@@ -68,8 +86,8 @@ public struct FCPXMLValidator: Sendable {
         return ValidationResult(errors: errors, warnings: warnings)
     }
 
-    private func collectRefs(from element: XMLElement, into refs: inout [String]) {
-        if let ref = element.attribute(forName: "ref")?.stringValue, !ref.isEmpty {
+    private func collectRefs(from element: any PNXMLElement, into refs: inout [String]) {
+        if let ref = element.attribute(forName: "ref"), !ref.isEmpty {
             refs.append(ref)
         }
         for child in element.childElements {
@@ -78,8 +96,8 @@ public struct FCPXMLValidator: Sendable {
     }
 
     /// Recursively collects all element `id` attribute values (resources, text-style-def, etc.).
-    private func collectIDs(from element: XMLElement, into ids: inout Set<String>) {
-        if let id = element.attribute(forName: "id")?.stringValue, !id.isEmpty {
+    private func collectIDs(from element: any PNXMLElement, into ids: inout Set<String>) {
+        if let id = element.attribute(forName: "id"), !id.isEmpty {
             ids.insert(id)
         }
         for child in element.childElements {
@@ -88,10 +106,10 @@ public struct FCPXMLValidator: Sendable {
     }
 
     /// Recursively collects warnings for time attributes whose rational value is negative.
-    private func collectNegativeTimeWarnings(from element: XMLElement, into warnings: inout [ValidationWarning]) {
+    private func collectNegativeTimeWarnings(from element: any PNXMLElement, into warnings: inout [ValidationWarning]) {
         let timeAttributes = ["duration", "offset", "start"]
         for attr in timeAttributes {
-            if let value = element.attribute(forName: attr)?.stringValue,
+            if let value = element.attribute(forName: attr),
                isNegativeTimeString(value) {
                 warnings.append(ValidationWarning(
                     type: .negativeTimeAttribute,

@@ -5,26 +5,61 @@
 
 
 //
-//	XMLElement extension for walking ancestor elements.
+//	PNXMLElement extension for walking ancestor elements.
 //
 
 import Foundation
-import SwiftExtensions
 
-extension XMLElement {
+// MARK: - Walk Result Types
+
+enum WalkAncestorsIntermediateResult<T> {
+    case `continue`
+    case `return`(withValue: T)
+    case failure
+}
+
+enum WalkAncestorsResult<T> {
+    case exhaustedAncestors
+    case value(_ value: T)
+    case failure
+}
+
+// MARK: - Walk Helper (free function)
+
+private func _walkAncestorElements<T>(
+    startingWith element: (any PNXMLElement)?,
+    returning: T.Type,
+    block: (_ element: any PNXMLElement) -> WalkAncestorsIntermediateResult<T>
+) -> WalkAncestorsResult<T> {
+    guard let element = element else { return .exhaustedAncestors }
+    let blockResult = block(element)
+    switch blockResult {
+    case .continue:
+        guard let parent = element.parentElement else { return .exhaustedAncestors }
+        return _walkAncestorElements(startingWith: parent, returning: returning, block: block)
+    case .return(let value):
+        return .value(value)
+    case .failure:
+        return .failure
+    }
+}
+
+// MARK: - PNXMLElement Ancestor Walking
+
+extension PNXMLElement {
     /// Walk ancestors of the element.
     func walkAncestorElements(
         includingSelf: Bool,
-        _ block: (_ element: XMLElement) -> Bool
+        _ block: (_ element: any PNXMLElement) -> Bool
     ) {
-        let blockWithResult: (_ element: XMLElement) -> WalkAncestorsIntermediateResult<Void> = { element in
+        let blockWithResult: (_ element: any PNXMLElement) -> WalkAncestorsIntermediateResult<Void> = { element in
             if block(element) {
                 return .continue
             } else {
                 return .return(withValue: ())
             }
         }
-        _ = Self.walkAncestorElements(
+        _ = _walkAncestorElements(
             startingWith: includingSelf ? self : parentElement,
             returning: Void.self,
             block: blockWithResult
@@ -35,65 +70,29 @@ extension XMLElement {
     func walkAncestorElements<T>(
         includingSelf: Bool,
         returning: T.Type,
-        _ block: (_ element: XMLElement) -> WalkAncestorsIntermediateResult<T>
+        _ block: (_ element: any PNXMLElement) -> WalkAncestorsIntermediateResult<T>
     ) -> WalkAncestorsResult<T> {
-        Self.walkAncestorElements(
+        _walkAncestorElements(
             startingWith: includingSelf ? self : parentElement,
             returning: returning,
             block: block
         )
     }
-
-    private static func walkAncestorElements<T>(
-        startingWith element: XMLElement?,
-        returning: T.Type,
-        block: (_ element: XMLElement) -> WalkAncestorsIntermediateResult<T>
-    ) -> WalkAncestorsResult<T> {
-        guard let element = element else { return .exhaustedAncestors }
-        let blockResult = block(element)
-        switch blockResult {
-        case .continue:
-            guard let parent = element.parentElement else { return .exhaustedAncestors }
-            return walkAncestorElements(startingWith: parent, returning: returning, block: block)
-        case .return(let value):
-            return .value(value)
-        case .failure:
-            return .failure
-        }
-    }
-
-    enum WalkAncestorsIntermediateResult<T> {
-        case `continue`
-        case `return`(withValue: T)
-        case failure
-    }
-
-    enum WalkAncestorsResult<T> {
-        case exhaustedAncestors
-        case value(_ value: T)
-        case failure
-    }
 }
 
-extension XMLElement {
-    /// Returns a sequence of ancestor elements (nearest first). Does not include self.
-    func ancestorElements(includingSelf: Bool) -> AnySequence<XMLElement> {
-        let current: XMLElement? = includingSelf ? self : parentElement
-        return AnySequence(sequence(first: current) { el in
-            el?.parentElement
-        }.compactMap { $0 })
-    }
+// MARK: - Ancestor Override
 
+extension PNXMLElement {
     /// Returns ancestor elements; if `replacement` is non-nil, uses it instead of actual ancestors.
-    func ancestorElements<S: Sequence<XMLElement>>(
+    func ancestorElements<S: Sequence<any PNXMLElement>>(
         overrideWith replacement: S?,
         includingSelf: Bool
-    ) -> AnySequence<XMLElement> {
+    ) -> AnySequence<any PNXMLElement> {
         if let replacement = replacement {
             if includingSelf {
-                return ([self] + replacement).asAnySequence
+                return ([self] + Array(replacement)).asAnySequence
             } else {
-                return replacement.asAnySequence
+                return AnySequence(replacement)
             }
         } else {
             return ancestorElements(includingSelf: includingSelf).asAnySequence

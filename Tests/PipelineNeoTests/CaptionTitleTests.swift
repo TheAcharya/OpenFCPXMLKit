@@ -102,7 +102,7 @@ final class CaptionTitleTests: XCTestCase {
         </caption>
         """
         
-        let xmlDoc = try XMLDocument(xmlString: xmlString)
+        let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
         guard let captionElement = xmlDoc.rootElement() else {
             XCTFail("Failed to parse XML")
             return
@@ -159,7 +159,7 @@ final class CaptionTitleTests: XCTestCase {
         </title>
         """
         
-        let xmlDoc = try XMLDocument(xmlString: xmlString)
+        let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
         guard let titleElement = xmlDoc.rootElement() else {
             XCTFail("Failed to parse XML")
             return

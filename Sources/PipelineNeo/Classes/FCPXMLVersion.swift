@@ -30,7 +30,7 @@ import Foundation
 /// ## Usage
 ///
 /// ```swift
-/// let doc = XMLDocument(resources: [], events: [], fcpxmlVersion: .default)
+/// let doc = PNXMLDocument(resources: [], events: [], fcpxmlVersion: .default)
 /// try doc.validateFCPXMLAgainst(version: .v1_14)
 /// ```
 @available(macOS 12.0, *)

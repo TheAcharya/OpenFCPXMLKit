@@ -5,7 +5,7 @@
 //
 
 //
-//	XMLElement extensions for FCPXML attribute accessors.
+//	PNXMLElement extensions for FCPXML attribute accessors.
 //
 
 import Foundation
@@ -14,59 +14,59 @@ import SwiftExtensions
 
 // MARK: - Basic Attributes
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Get or set the value of the `format` attribute.
     public var fcpFormat: String? {
         get { stringValue(forAttributeNamed: "format") }
-        set { addAttribute(withName: "format", value: newValue) }
+        set { addAttribute(name: "format", value: newValue) }
     }
-    
+
     /// FCPXML: Get or set the value of the `id` attribute.
     public var fcpID: String? {
         get { stringValue(forAttributeNamed: "id") }
-        set { addAttribute(withName: "id", value: newValue) }
+        set { addAttribute(name: "id", value: newValue) }
     }
-    
+
     /// FCPXML: Get or set the value of the `uid` attribute.
     public var fcpUID: String? {
         get { stringValue(forAttributeNamed: "uid") }
-        set { addAttribute(withName: "uid", value: newValue) }
+        set { addAttribute(name: "uid", value: newValue) }
     }
-    
+
     /// FCPXML: Get or set the value of the `name` attribute.
     public var fcpName: String? {
         get { stringValue(forAttributeNamed: "name") }
-        set { addAttribute(withName: "name", value: newValue) }
+        set { addAttribute(name: "name", value: newValue) }
     }
-    
+
     /// FCPXML: Get or set the value of the `note` attribute.
     public var fcpNote: String? {
         get { stringValue(forAttributeNamed: "note") }
-        set { addAttribute(withName: "note", value: newValue) }
+        set { addAttribute(name: "note", value: newValue) }
     }
-    
+
     /// FCPXML: Get or set the value of the `ref` attribute.
     public var fcpRef: String? {
         get { stringValue(forAttributeNamed: "ref") }
-        set { addAttribute(withName: "ref", value: newValue) }
+        set { addAttribute(name: "ref", value: newValue) }
     }
-    
+
     /// FCPXML: Get or set the value of the `src` attribute.
     public var fcpSRC: String? {
         get { stringValue(forAttributeNamed: "src") }
-        set { addAttribute(withName: "src", value: newValue) }
+        set { addAttribute(name: "src", value: newValue) }
     }
-    
+
     /// FCPXML: Get or set the value of the `value` attribute.
     public var fcpValue: String? {
         get { stringValue(forAttributeNamed: "value") }
-        set { addAttribute(withName: "value", value: newValue) }
+        set { addAttribute(name: "value", value: newValue) }
     }
 }
 
 // MARK: - Time Attributes
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Get or set the value of the `audioStart` attribute.
     /// Scales value if containing clip has a `conform-rate` child element.
     /// Use on `asset-clip`, `clip`, `mc-clip`, `ref-clip` or `sync-clip`.
@@ -127,14 +127,14 @@ extension XMLElement {
             return FinalCutPro.FCPXML.TimecodeFormat(rawValue: value)
         }
         set {
-            addAttribute(withName: "tcFormat", value: newValue?.rawValue)
+            addAttribute(name: "tcFormat", value: newValue?.rawValue)
         }
     }
 }
 
 // MARK: - Timeline Attributes
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Get the value of the `active` attribute.
     public func fcpGetActive(default defaultValue: Bool) -> Bool {
         getBool(forAttribute: "active") ?? defaultValue
@@ -152,7 +152,7 @@ extension XMLElement {
     }
 }
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Get the value of the `enabled` attribute.
     public func fcpGetEnabled(default defaultValue: Bool) -> Bool {
         getBool(forAttribute: "enabled") ?? defaultValue
@@ -170,7 +170,7 @@ extension XMLElement {
     }
 }
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Get or set the value of the `role` attribute.
     public var fcpLane: Int? {
         get { getInt(forAttribute: "lane") }
@@ -180,7 +180,7 @@ extension XMLElement {
 
 // MARK: - Role Attributes
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Get the value of the `role` attribute as a specific role type.
     public func fcpRole<R: FCPXMLRole>(as roleType: R.Type) -> R? {
         guard let value = stringValue(forAttributeNamed: "role")
@@ -191,7 +191,7 @@ extension XMLElement {
     
     /// FCPXML: Set the value of the `role` attribute.
     public func fcpSet<R: FCPXMLRole>(role: R?) {
-        addAttribute(withName: "role", value: role?.rawValue)
+        addAttribute(name: "role", value: role?.rawValue)
     }
     
     /// FCPXML: Get or set the value of the `audioRole` attribute.
@@ -203,7 +203,7 @@ extension XMLElement {
             return FinalCutPro.FCPXML.AudioRole(rawValue: value)
         }
         set { 
-            addAttribute(withName: "audioRole", value: newValue?.rawValue)
+            addAttribute(name: "audioRole", value: newValue?.rawValue)
         }
     }
     
@@ -216,14 +216,14 @@ extension XMLElement {
             return FinalCutPro.FCPXML.VideoRole(rawValue: value)
         }
         set {
-            addAttribute(withName: "videoRole", value: newValue?.rawValue)
+            addAttribute(name: "videoRole", value: newValue?.rawValue)
         }
     }
 }
 
 // MARK: - Internal Helpers
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Get an attribute time value as a `Fraction` instance.
     func _fcpGetFraction(
         forAttribute attributeName: String,
@@ -264,13 +264,13 @@ extension XMLElement {
         }
         
         addAttribute(
-            withName: attributeName,
+            name: attributeName,
             value: newValue?.fcpxmlStringValue
         )
     }
 }
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Set a `Bool` attribute value.
     func _fcpSet(
         bool newValue: Bool?,

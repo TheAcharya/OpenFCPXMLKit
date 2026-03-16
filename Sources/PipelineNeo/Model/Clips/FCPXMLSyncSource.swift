@@ -19,17 +19,17 @@ extension FinalCutPro.FCPXML.SyncClip {
     /// > A `sync-source` element defines the role-based audio components to be used
     /// > for a source of a synchronized clip.
     public struct SyncSource: FCPXMLElement {
-        public let element: XMLElement
+        public let element: any PNXMLElement
         
         public let elementType: FinalCutPro.FCPXML.ElementType = .syncSource
         
         public static let supportedElementTypes: Set<FinalCutPro.FCPXML.ElementType> = [.syncSource]
         
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
         
-        public init?(element: XMLElement) {
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -76,7 +76,7 @@ extension FinalCutPro.FCPXML.SyncClip.SyncSource {
             // required attribute, don't allow setting nil
             guard let newValue = newValue else { return }
             
-            element.addAttribute(withName: Attributes.sourceID.rawValue, value: newValue.rawValue)
+            element.addAttribute(name: Attributes.sourceID.rawValue, value: newValue.rawValue)
         }
     }
 }
@@ -94,7 +94,7 @@ extension FinalCutPro.FCPXML.SyncClip.SyncSource {
 // MARK: - Typing
 
 // SyncClip.SyncSource
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/SyncClip/SyncSource`` model object.
     /// Call this on a `sync-source` element only.
     public var fcpAsSyncSource: FinalCutPro.FCPXML.SyncClip.SyncSource? {
@@ -103,7 +103,7 @@ extension XMLElement {
 }
 
 // SyncClip
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns child `sync-source` elements.
     /// Use on `sync-clip` elements only.
     public var fcpSyncSources: LazyFCPXMLChildrenSequence<FinalCutPro.FCPXML.SyncClip.SyncSource> {

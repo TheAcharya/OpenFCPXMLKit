@@ -133,7 +133,7 @@ final class FCPXMLFileTest_360Video: XCTestCase {
 
     func testRoundTrip() throws {
         let fcpxml = try loadFCPXMLSample(named: "360Video")
-        let xmlString = fcpxml.root.element.xmlString(options: [.nodePreserveWhitespace, .nodePrettyPrint])
+        let xmlString = fcpxml.root.element.xmlString
         XCTAssertFalse(xmlString.isEmpty)
         
         // Parse it back

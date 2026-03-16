@@ -19,17 +19,17 @@ extension FinalCutPro.FCPXML {
     /// >
     /// > "A `conform-rate` defines how the clip's frame rate should be conformed to the sequence frame rate".
     public struct ConformRate: FCPXMLElement, Equatable, Hashable {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .conformRate
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.conformRate]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -91,8 +91,8 @@ extension FinalCutPro.FCPXML.ConformRate {
             
             return SourceFrameRate(rawValue: value)
         }
-        nonmutating set { 
-            element.addAttribute(withName: Attributes.srcFrameRate.rawValue, value: newValue?.rawValue)
+        nonmutating set {
+            element.addAttribute(name: Attributes.srcFrameRate.rawValue, value: newValue?.rawValue)
         }
     }
 }
@@ -102,7 +102,7 @@ extension FinalCutPro.FCPXML.ConformRate: FCPXMLElementFrameSampling { }
 // MARK: - Typing
 
 // ConformRate
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/ConformRate`` model object.
     /// Call this on a `conform-rate` element only.
     public var fcpAsConformRate: FinalCutPro.FCPXML.ConformRate? {

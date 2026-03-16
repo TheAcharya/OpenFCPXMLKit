@@ -13,11 +13,11 @@ import SwiftExtensions
 
 // MARK: - Metadata Contents
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML:
     /// When called on a `metadata` element, returns the first child `md` element with the given
     /// metadata `key`.
-    func _fcpMetadataChild(forKey key: FinalCutPro.FCPXML.Metadata.Key) -> XMLElement? {
+    func _fcpMetadataChild(forKey key: FinalCutPro.FCPXML.Metadata.Key) -> (any PNXMLElement)? {
         _fcpMetadataChild(forKey: key.rawValue)
     }
     
@@ -25,13 +25,13 @@ extension XMLElement {
     /// When called on a `metadata` element, returns the first child `md` element with the given
     /// metadata `key`.
     @_disfavoredOverload
-    func _fcpMetadataChild(forKey key: String) -> XMLElement? {
+    func _fcpMetadataChild(forKey key: String) -> (any PNXMLElement)? {
         childElements
             .first(whereAttribute: "key", hasValue: key)
     }
 }
 
-extension XMLElement {
+extension PNXMLElement {
     /// When called on a `metadata` element, returns the `value` attribute for the first child `md`
     /// element with the given metadata `key`.
     /// Note: Only call this for metadata keys that are known to have a string value.
@@ -50,7 +50,7 @@ extension XMLElement {
     }
 }
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML:
     /// When called on a `metadata` element, returns the interior string array for the first child
     /// `md` element with the given metadata `key`.
@@ -81,7 +81,7 @@ extension XMLElement {
     }
 }
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML:
     /// When called on a `metadata` element, updates the string value for the first child `md`
     /// element with the given metadata `key`.
@@ -117,13 +117,11 @@ extension XMLElement {
             {
                 existingMDElement.fcpValue = newValue
             } else {
-                let newMDElement = XMLElement(
-                    name: "md",
-                    attributes: [
-                        (name: "key", value: key),
-                        (name: "value", value: newValue),
-                    ]
-                )
+                let newMDElement = PNXMLDefaultFactory().makeElement(name: "md")
+                newMDElement.addAttributes([
+                    (name: "key", value: key),
+                    (name: "value", value: newValue),
+                ])
                 addChild(newMDElement)
             }
         } else {
@@ -139,7 +137,7 @@ extension XMLElement {
     }
 }
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML:
     /// When called on a `metadata` element, updates the child string array for the first child `md`
     /// element with the given metadata `key`.
@@ -170,21 +168,17 @@ extension XMLElement {
             // contains one or more values
             
             // this will be non-nil if the `md` child already exists
-            var mdElement: XMLElement? = childElements
+            var mdElement: (any PNXMLElement)? = childElements
                 .filter(whereElementNamed: "md")
                 .first(whereAttribute: "key", hasValue: key)
-            
+
             // otherwise, create `md` child if needed
             if mdElement == nil {
                 // `md` child
-                let newMDElement = XMLElement(
-                    name: "md",
-                    attributes: [
-                        (name: "key", value: key)
-                    ]
-                )
+                let newMDElement = PNXMLDefaultFactory().makeElement(name: "md")
+                newMDElement.addAttribute(name: "key", value: key)
                 addChild(newMDElement)
-                
+
                 // update local reference
                 mdElement = newMDElement
             }
@@ -209,7 +203,7 @@ extension XMLElement {
 
 // MARK: - XML Utilities
 
-extension XMLElement {
+extension PNXMLElement {
     /// Returns the first `array` child element with each element mapped to its XML string value.
     /// Returns `nil` if the array does not exist.
     func _getFirstChildStringArray() -> [String]? {
@@ -238,14 +232,14 @@ extension XMLElement {
         
         // point to existing array or create new array if needed
         let arrayElement = existingArrayElement ?? {
-            let newArrayElement = XMLElement(name: "array")
+            let newArrayElement = PNXMLDefaultFactory().makeElement(name: "array")
             addChild(newArrayElement)
             return newArrayElement
         }()
-        
+
         // add array elements
         for newArrayString in newArray {
-            let newArrayElement = XMLElement()
+            let newArrayElement = PNXMLDefaultFactory().makeElement(name: "")
             newArrayElement.stringValue = newArrayString
             arrayElement.addChild(newArrayElement)
         }

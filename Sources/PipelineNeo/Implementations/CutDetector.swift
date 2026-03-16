@@ -9,7 +9,6 @@
 //	
 
 import Foundation
-import SwiftExtensions
 
 /// Default implementation of `CutDetection`.
 @available(macOS 12.0, *)
@@ -19,47 +18,45 @@ public final class CutDetector: CutDetection, Sendable {
 
     // MARK: - CutDetection (Sync)
 
-    public func detectCuts(in document: XMLDocument) -> CutDetectionResult {
+    public func detectCuts(in document: any PNXMLDocument) -> CutDetectionResult {
         guard let spine = _firstProjectSpine(in: document) else {
             return .empty
         }
         return detectCuts(inSpine: spine)
     }
 
-    public func detectCuts(inSpine spine: XMLElement) -> CutDetectionResult {
+    public func detectCuts(inSpine spine: any PNXMLElement) -> CutDetectionResult {
         _detectCuts(inSpine: spine)
     }
 
     // MARK: - CutDetection (Async)
 
-    public func detectCuts(in document: XMLDocument) async -> CutDetectionResult {
+    public func detectCuts(in document: any PNXMLDocument) async -> CutDetectionResult {
         guard let spine = _firstProjectSpine(in: document) else { return .empty }
         return _detectCuts(inSpine: spine)
     }
 
-    public func detectCuts(inSpine spine: XMLElement) async -> CutDetectionResult {
+    public func detectCuts(inSpine spine: any PNXMLElement) async -> CutDetectionResult {
         _detectCuts(inSpine: spine)
     }
 
     // MARK: - Private
 
-    private func _firstProjectSpine(in document: XMLDocument) -> XMLElement? {
+    private func _firstProjectSpine(in document: any PNXMLDocument) -> (any PNXMLElement)? {
         guard let root = document.rootElement(), root.name == "fcpxml" else { return nil }
         guard let project = _firstProjectUnder(root) else { return nil }
         return project.fcpxProjectSpine
     }
 
-    private func _firstProjectUnder(_ element: XMLElement) -> XMLElement? {
+    private func _firstProjectUnder(_ element: any PNXMLElement) -> (any PNXMLElement)? {
         if element.fcpxType == .project { return element }
-        guard let children = element.children else { return nil }
-        for node in children {
-            guard node.kind == .element, let el = node as? XMLElement else { continue }
-            if let found = _firstProjectUnder(el) { return found }
+        for child in element.childElements {
+            if let found = _firstProjectUnder(child) { return found }
         }
         return nil
     }
 
-    private func _detectCuts(inSpine spine: XMLElement) -> CutDetectionResult {
+    private func _detectCuts(inSpine spine: any PNXMLElement) -> CutDetectionResult {
         let storyElements = Array(spine.fcpStoryElements)
         guard storyElements.count >= 2 else { return .empty }
 

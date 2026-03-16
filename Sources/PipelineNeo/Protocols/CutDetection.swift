@@ -20,16 +20,16 @@ public protocol CutDetection: Sendable {
     /// Detects all edit points in the first project spine found in the document.
     /// - Parameter document: Parsed FCPXML document.
     /// - Returns: Result with edit points and counts.
-    func detectCuts(in document: XMLDocument) -> CutDetectionResult
+    func detectCuts(in document: any PNXMLDocument) -> CutDetectionResult
 
     /// Detects all edit points in the first project spine found in the document (async).
-    func detectCuts(in document: XMLDocument) async -> CutDetectionResult
+    func detectCuts(in document: any PNXMLDocument) async -> CutDetectionResult
 
     /// Detects all edit points in the given spine element.
-    /// - Parameter spine: An FCPXML `spine` XMLElement.
+    /// - Parameter spine: An FCPXML `spine` PNXMLElement.
     /// - Returns: Result with edit points and counts.
-    func detectCuts(inSpine spine: XMLElement) -> CutDetectionResult
+    func detectCuts(inSpine spine: any PNXMLElement) -> CutDetectionResult
 
     /// Detects all edit points in the given spine element (async).
-    func detectCuts(inSpine spine: XMLElement) async -> CutDetectionResult
+    func detectCuts(inSpine spine: any PNXMLElement) async -> CutDetectionResult
 }

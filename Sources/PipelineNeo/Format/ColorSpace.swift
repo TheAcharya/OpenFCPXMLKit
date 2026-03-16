@@ -13,7 +13,7 @@ import Foundation
 /// Video color space for FCPXML format definitions.
 ///
 /// Use with format resources and sequence/project color settings. For existing
-/// `XMLElement.RenderColorSpace` (e.g. rec601NTSC, rec709) see `XMLElementExtension`.
+/// `PNXMLElement.RenderColorSpace` (e.g. rec601NTSC, rec709) see `XMLElementExtension`.
 @available(macOS 12.0, *)
 public enum ColorSpace: String, Sendable, Equatable, Hashable, Codable, CaseIterable {
 

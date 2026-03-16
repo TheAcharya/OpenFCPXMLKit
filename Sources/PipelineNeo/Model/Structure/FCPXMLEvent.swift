@@ -20,17 +20,17 @@ extension FinalCutPro.FCPXML {
     /// > and smart collections. The keyword-collection and smart-collection elements organize clips
     /// > by keywords and other matching criteria listed under the Smart Collection Match Elements.
     public struct Event: FCPXMLElement {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .event
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.event]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -90,12 +90,12 @@ extension FinalCutPro.FCPXML.Event {
     }
     
     /// Returns child story elements.
-    public var storyElements: LazyFilteredCompactMapSequence<[XMLNode], XMLElement> {
+    public var storyElements: [any PNXMLElement] {
         element.fcpStoryElements
     }
-    
+
     /// Get or set child elements.
-    public var contents: LazyCompactMapSequence<[XMLNode], XMLElement> {
+    public var contents: [any PNXMLElement] {
         get { element.childElements }
         nonmutating set {
             element.removeAllChildren()
@@ -112,7 +112,7 @@ extension FinalCutPro.FCPXML.Event {
 // MARK: - Typing
 
 // Event
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in an ``FinalCutPro/FCPXML/Event`` model object.
     /// Call this on an `event` element only.
     public var fcpAsEvent: FinalCutPro.FCPXML.Event? {

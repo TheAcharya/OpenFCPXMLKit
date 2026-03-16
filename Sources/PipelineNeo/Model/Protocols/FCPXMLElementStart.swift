@@ -58,7 +58,7 @@ extension FCPXMLElementOptionalStart {
 
 // MARK: - XML Utils
 
-extension XMLElement {
+extension PNXMLElement {
     func _fcpStartAsTimecode(
         frameRateSource: FinalCutPro.FCPXML.FrameRateSource = .localToElement,
         default defaultStart: Fraction? = .zero

@@ -13,13 +13,13 @@ import SwiftExtensions
 
 // MARK: - FCPXML Parsing
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns local roles for an element.
     /// These roles are either attached to the element itself or in some cases are acquired from the
     /// element's contents (in the case of `mc-clip`s, for example). These are never inherited from
     /// ancestors. No default roles are added and no interpolation is performed.
     func _fcpLocalRoles(
-        resources: XMLElement? = nil,
+        resources: (any PNXMLElement)? = nil,
         auditions: FinalCutPro.FCPXML.Audition.AuditionMask, // = .active
         mcClipAngles: FinalCutPro.FCPXML.MCClip.AngleMask // = .active
     ) -> [FinalCutPro.FCPXML.AnyInterpolatedRole] {
@@ -267,7 +267,7 @@ extension XMLElement {
     
     /// FCPXML: Attempts to extract assigned roles for the first child clip found.
     func _fcpRolesForNearestDescendant<I: Sequence<FinalCutPro.FCPXML.AnyRole>>(
-        resources: XMLElement? = nil,
+        resources: (any PNXMLElement)? = nil,
         auditions: FinalCutPro.FCPXML.Audition.AuditionMask, // = .active
         mcClipAngles: FinalCutPro.FCPXML.MCClip.AngleMask, // = .active
         firstGenerationOnly: Bool,
@@ -281,7 +281,7 @@ extension XMLElement {
             newRoles.forEach { collectedRoles.insert($0) }
         }
         
-        func elements(for element: XMLElement) -> some Sequence<XMLElement> {
+        func elements(for element: any PNXMLElement) -> some Sequence<any PNXMLElement> {
             // Note: could be simplified with _fcpFirstChildTimelineElement(excluding: [.gap]).
             
             var elements: AnySequence = firstElementEachGenerationOnly
@@ -298,7 +298,7 @@ extension XMLElement {
             return elements
         }
         
-        func localRoles(for element: XMLElement) -> some Sequence<FinalCutPro.FCPXML.AnyRole> {
+        func localRoles(for element: any PNXMLElement) -> some Sequence<FinalCutPro.FCPXML.AnyRole> {
             // all roles returned are considered inherited,
             // so we'll strip its `AnyInterpolatedRole` case to return `[AnyRole]`
             element
@@ -440,7 +440,7 @@ extension FinalCutPro.FCPXML {
     }
 }
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Attempt to extract default roles for the first child clip found.
     func _fcpDefaultRolesForNearestDescendant() -> [FinalCutPro.FCPXML.AnyRole] {
         let contents = fcpStoryElements

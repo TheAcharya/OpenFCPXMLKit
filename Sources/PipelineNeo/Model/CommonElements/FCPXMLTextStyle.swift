@@ -11,6 +11,16 @@
 import Foundation
 
 extension FinalCutPro.FCPXML {
+    /// Text alignment options for FCPXML text styles.
+    public enum TextAlignment: String, Sendable, Codable {
+        case left = "left"
+        case center = "center"
+        case right = "right"
+        case justified = "justified"
+    }
+}
+
+extension FinalCutPro.FCPXML {
     /// A text style that defines formatting for text strings.
     ///
     /// - SeeAlso: [FCPXML Text Style Documentation](
@@ -66,7 +76,7 @@ extension FinalCutPro.FCPXML {
         public var kerning: Double?
         
         /// The alignment of the text style.
-        public var alignment: XMLElement.TextAlignment?
+        public var alignment: FinalCutPro.FCPXML.TextAlignment?
         
         /// The line spacing.
         public var lineSpacing: Double?
@@ -149,7 +159,7 @@ extension FinalCutPro.FCPXML {
             shadowBlurRadius = try container.decodeIfPresent(Double.self, forKey: .shadowBlurRadius)
             kerning = try container.decodeIfPresent(Double.self, forKey: .kerning)
             if let alignmentString = try container.decodeIfPresent(String.self, forKey: .alignment) {
-                alignment = XMLElement.TextAlignment(rawValue: alignmentString)
+                alignment = FinalCutPro.FCPXML.TextAlignment(rawValue: alignmentString)
             }
             lineSpacing = try container.decodeIfPresent(Double.self, forKey: .lineSpacing)
             tabStops = try container.decodeIfPresent(Double.self, forKey: .tabStops)

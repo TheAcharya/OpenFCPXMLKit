@@ -24,7 +24,7 @@ extension FCPXMLElementTextChildren {
     }
 }
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns child `text` elements.
     public var fcpTexts: LazyFCPXMLChildrenSequence<FinalCutPro.FCPXML.Text> {
         get { children(whereFCPElement: .text) }

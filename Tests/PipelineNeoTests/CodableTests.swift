@@ -48,8 +48,8 @@ final class CodableTests: XCTestCase {
     func testRootCodableEncodingDecoding() throws {
         // Create a simple root element
         let root = FinalCutPro.FCPXML.Root()
-        root.element.addAttribute(withName: "version", value: "1.9")
-        root.resources = XMLElement(name: "resources")
+        root.element.addAttribute(name: "version", value: "1.9")
+        root.resources = FoundationXMLFactory().makeElement(name: "resources")
         
         // Encode to JSON
         let encoder = JSONEncoder()

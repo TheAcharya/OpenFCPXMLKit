@@ -25,17 +25,17 @@ extension FinalCutPro.FCPXML {
     /// >
     /// > See [`asset`](https://developer.apple.com/documentation/professional_video_applications/fcpxml_reference/asset).
     public struct Asset: FCPXMLElement {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .asset
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.asset]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -272,13 +272,13 @@ extension FinalCutPro.FCPXML.Asset {
     
     public var auxVideoFlags: String? { // only used by `asset`
         get { element.stringValue(forAttributeNamed: Attributes.auxVideoFlags.rawValue) }
-        nonmutating set { element.addAttribute(withName: Attributes.auxVideoFlags.rawValue, value: newValue) }
+        nonmutating set { element.addAttribute(name: Attributes.auxVideoFlags.rawValue, value: newValue) }
     }
     
     /// Hero eye override for stereoscopic. FCPXML 1.13+; backward compatible with 1.5 (omit when version < 1.13). Values: "left" | "right".
     public var heroEyeOverride: String? {
         get { element.stringValue(forAttributeNamed: Attributes.heroEyeOverride.rawValue) }
-        nonmutating set { element.addAttribute(withName: Attributes.heroEyeOverride.rawValue, value: newValue) }
+        nonmutating set { element.addAttribute(name: Attributes.heroEyeOverride.rawValue, value: newValue) }
     }
 }
 
@@ -322,18 +322,18 @@ extension FinalCutPro.FCPXML.Asset: FCPXMLElementMetadataChild { }
 // MARK: - Properties
 
 // Asset
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the `audioRate` attribute value (audio sample rate in Hz).
     /// Call this on a `asset` element only.
     public var fcpAssetAudioRate: FinalCutPro.FCPXML.AudioRate? {
         get {
             guard let value = stringValue(forAttributeNamed: "audioRate")
             else { return nil }
-            
+
             return FinalCutPro.FCPXML.AudioRate(rawValueForAsset: value)
         }
         set {
-            addAttribute(withName: "audioRate", value: newValue?.rawValueForAsset)
+            addAttribute(name: "audioRate", value: newValue?.rawValueForAsset)
         }
     }
 }
@@ -341,7 +341,7 @@ extension XMLElement {
 // MARK: - Typing
 
 // Asset
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in an ``FinalCutPro/FCPXML/Asset`` model object.
     /// Call this on an `asset` element only.
     public var fcpAsAsset: FinalCutPro.FCPXML.Asset? {

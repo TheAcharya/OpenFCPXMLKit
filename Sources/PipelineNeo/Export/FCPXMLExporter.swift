@@ -11,13 +11,11 @@
 import Foundation
 import CoreMedia
 
-/// Helper for creating XML attributes safely (Foundation XMLNode.attribute returns Any).
+/// Helper for creating XML attributes safely via PNXMLElement protocol.
 @available(macOS 12.0, *)
-private extension XMLElement {
-    func addStringAttribute(name: String, value: String) {
-        if let attr = XMLNode.attribute(withName: name, stringValue: value) as? XMLNode {
-            addAttribute(attr)
-        }
+private extension PNXMLElement {
+    func addStringAttribute(name attrName: String, value: String) {
+        addAttribute(name: attrName, value: value)
     }
 }
 
@@ -44,12 +42,18 @@ public enum FCPXMLExportError: Error, LocalizedError, Sendable {
 public struct FCPXMLExporter: Sendable {
 
     public var version: FCPXMLVersion
+    private nonisolated(unsafe) let factory: any PNXMLFactory
 
     /// Format resource ID used in exported FCPXML. Must not collide with asset IDs.
     public static let formatResourceID = "r1"
 
-    public init(version: FCPXMLVersion = .default) {
+    /// Creates a new exporter.
+    /// - Parameters:
+    ///   - version: FCPXML version (default: `.default`).
+    ///   - factory: XML factory for creating documents and elements (default: `PNXMLDefaultFactory()`).
+    public init(version: FCPXMLVersion = .default, factory: any PNXMLFactory = PNXMLDefaultFactory()) {
         self.version = version
+        self.factory = factory
     }
 
     /// Exports the timeline to FCPXML string.
@@ -96,10 +100,10 @@ public struct FCPXMLExporter: Sendable {
             colorSpace: .rec709
         )
         let formatID = Self.formatResourceID
-        var resourceElements: [XMLElement] = []
+        var resourceElements: [any PNXMLElement] = []
 
         // Format resource
-        let formatEl = XMLElement(name: "format")
+        let formatEl = factory.makeElement(name: "format")
         formatEl.addStringAttribute(name: "id", value: formatID)
         let fps = 1.0 / CMTimeGetSeconds(format.frameDuration)
         let roundedFPS = Float(round(fps * 100) / 100)
@@ -120,7 +124,7 @@ public struct FCPXMLExporter: Sendable {
 
         // Asset resources
         for asset in assets {
-            let el = XMLElement(name: "asset")
+            let el = factory.makeElement(name: "asset")
             el.addStringAttribute(name: "id", value: asset.id)
             if let name = asset.name, !name.isEmpty {
                 el.addStringAttribute(name: "name", value: name)
@@ -130,7 +134,7 @@ public struct FCPXMLExporter: Sendable {
             }
             el.addStringAttribute(name: "hasVideo", value: asset.hasVideo ? "1" : "0")
             el.addStringAttribute(name: "hasAudio", value: asset.hasAudio ? "1" : "0")
-            let mediaRep = XMLElement(name: "media-rep")
+            let mediaRep = factory.makeElement(name: "media-rep")
             mediaRep.addStringAttribute(name: "kind", value: "original-media")
             let srcString = asset.relativePath ?? asset.src.absoluteString
             mediaRep.addStringAttribute(name: "src", value: srcString)
@@ -139,14 +143,14 @@ public struct FCPXMLExporter: Sendable {
         }
 
         // Event > project > sequence > spine
-        let event = XMLElement(name: "event")
+        let event = factory.makeElement(name: "event")
         event.addStringAttribute(name: "name", value: eventName)
         event.addStringAttribute(name: "uid", value: eventUid ?? FCPXMLUID.random())
-        let project = XMLElement(name: "project")
+        let project = factory.makeElement(name: "project")
         project.addStringAttribute(name: "name", value: projectName ?? timeline.name)
         project.addStringAttribute(name: "uid", value: projectUid ?? FCPXMLUID.random())
         project.addStringAttribute(name: "modDate", value: Self._fcpxmlModDateString(from: Date()))
-        let sequence = XMLElement(name: "sequence")
+        let sequence = factory.makeElement(name: "sequence")
         sequence.addStringAttribute(name: "format", value: formatID)
         sequence.addStringAttribute(name: "duration", value: utility.fcpxmlTime(fromCMTime: timeline.duration))
         sequence.addStringAttribute(name: "tcStart", value: "0s")
@@ -154,9 +158,9 @@ public struct FCPXMLExporter: Sendable {
         sequence.addStringAttribute(name: "audioLayout", value: "stereo")
         sequence.addStringAttribute(name: "audioRate", value: "48k")
 
-        let spine = XMLElement(name: "spine")
+        let spine = factory.makeElement(name: "spine")
         for clip in timeline.sortedClips {
-            let clipEl = XMLElement(name: "asset-clip")
+            let clipEl = factory.makeElement(name: "asset-clip")
             clipEl.addStringAttribute(name: "ref", value: clip.assetRef)
             if let name = clip.name, !name.isEmpty {
                 clipEl.addStringAttribute(name: "name", value: name)
@@ -175,19 +179,19 @@ public struct FCPXMLExporter: Sendable {
 
             // Add clip-level metadata as children of asset-clip
             for marker in clip.markers {
-                clipEl.addChild(Self._markerElement(marker, utility: utility))
+                clipEl.addChild(_markerElement(marker, utility: utility))
             }
             for chapterMarker in clip.chapterMarkers {
-                clipEl.addChild(Self._chapterMarkerElement(chapterMarker, utility: utility))
+                clipEl.addChild(_chapterMarkerElement(chapterMarker, utility: utility))
             }
             for keyword in clip.keywords {
-                clipEl.addChild(Self._keywordElement(keyword, utility: utility))
+                clipEl.addChild(_keywordElement(keyword, utility: utility))
             }
             for rating in clip.ratings {
-                clipEl.addChild(Self._ratingElement(rating, utility: utility))
+                clipEl.addChild(_ratingElement(rating, utility: utility))
             }
             if let metadata = clip.metadata {
-                clipEl.addChild(Self._metadataElement(metadata))
+                clipEl.addChild(_metadataElement(metadata))
             }
 
             spine.addChild(clipEl)
@@ -197,78 +201,89 @@ public struct FCPXMLExporter: Sendable {
         event.addChild(project)
 
         // Build document tree: fcpxml > resources + library > event
-        let root = XMLElement(name: "fcpxml")
+        let root = factory.makeElement(name: "fcpxml")
         root.addStringAttribute(name: "version", value: version.stringValue)
-        let resourcesEl = XMLElement(name: "resources")
+        let resourcesEl = factory.makeElement(name: "resources")
         for el in resourceElements {
             resourcesEl.addChild(el)
         }
         root.addChild(resourcesEl)
-        let library = XMLElement(name: "library")
+        let library = factory.makeElement(name: "library")
         // DTD allows only location and colorProcessing on library; no "name" attribute.
         if let location = libraryLocation, !location.isEmpty {
             library.addStringAttribute(name: "location", value: location)
         }
         library.addChild(event)
         if includeDefaultSmartCollections {
-            for smartCollection in Self._defaultSmartCollectionElements() {
+            for smartCollection in _defaultSmartCollectionElements() {
                 library.addChild(smartCollection)
             }
         }
         root.addChild(library)
-        let doc = XMLDocument()
+        let doc = factory.makeDocument()
         doc.documentContentKind = .xml
         doc.characterEncoding = "UTF-8"
         doc.version = "1.0"
         doc.isStandalone = false  // Required for DTD validation with whitespace nodes
         doc.setRootElement(root)
-        doc.fcpxmlVersion = version.stringValue
-        let dtd = XMLDTD()
+        doc.rootElement()?.addAttribute(name: "version", value: version.stringValue)
+        #if canImport(FoundationXML) || os(macOS)
+        let dtd = factory.makeDTD()
         dtd.name = "fcpxml"
         doc.dtd = dtd
-        return doc.fcpxmlString
+        #endif
+        // Serialize as formatted FCPXML string with standalone="no" for DTD compatibility
+        let formattedData = doc.xmlData(options: .fcpxmlDefaults)
+        var formattedString = String(data: formattedData, encoding: .utf8) ?? ""
+        if formattedString.hasPrefix("<?xml") {
+            formattedString = formattedString.replacingOccurrences(
+                of: #"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>"#,
+                with: #"<?xml version="1.0" encoding="UTF-8" standalone="no"?>"#
+            )
+        }
+        return formattedString
     }
 
     /// FCP-style default smart collections (Projects, All Video, Audio Only, Stills, Favorites).
-    private static func _defaultSmartCollectionElements() -> [XMLElement] {
-        let projects = XMLElement(name: "smart-collection")
+    private func _defaultSmartCollectionElements() -> [any PNXMLElement] {
+        let projects = factory.makeElement(name: "smart-collection")
         projects.addStringAttribute(name: "name", value: "Projects")
         projects.addStringAttribute(name: "match", value: "all")
-        let matchClip = XMLElement(name: "match-clip")
+        let matchClip = factory.makeElement(name: "match-clip")
         matchClip.addStringAttribute(name: "rule", value: "is")
         matchClip.addStringAttribute(name: "type", value: "project")
         projects.addChild(matchClip)
 
-        let allVideo = XMLElement(name: "smart-collection")
+        let allVideo = factory.makeElement(name: "smart-collection")
         allVideo.addStringAttribute(name: "name", value: "All Video")
         allVideo.addStringAttribute(name: "match", value: "any")
         for type in ["videoOnly", "videoWithAudio"] {
-            let m = XMLElement(name: "match-media")
+            let m = factory.makeElement(name: "match-media")
             m.addStringAttribute(name: "rule", value: "is")
             m.addStringAttribute(name: "type", value: type)
             allVideo.addChild(m)
         }
 
-        let audioOnly = XMLElement(name: "smart-collection")
+        let audioOnly = factory.makeElement(name: "smart-collection")
         audioOnly.addStringAttribute(name: "name", value: "Audio Only")
         audioOnly.addStringAttribute(name: "match", value: "all")
-        let ma = XMLElement(name: "match-media")
+        let ma = factory.makeElement(name: "match-media")
         ma.addStringAttribute(name: "rule", value: "is")
         ma.addStringAttribute(name: "type", value: "audioOnly")
         audioOnly.addChild(ma)
 
-        let stills = XMLElement(name: "smart-collection")
+        let stills = factory.makeElement(name: "smart-collection")
         stills.addStringAttribute(name: "name", value: "Stills")
         stills.addStringAttribute(name: "match", value: "all")
-        let ms = XMLElement(name: "match-media")
+        let ms = factory.makeElement(name: "match-media")
         ms.addStringAttribute(name: "rule", value: "is")
         ms.addStringAttribute(name: "type", value: "stills")
         stills.addChild(ms)
 
-        let favorites = XMLElement(name: "smart-collection")
+        let favorites = factory.makeElement(name: "smart-collection")
         favorites.addStringAttribute(name: "name", value: "Favorites")
         favorites.addStringAttribute(name: "match", value: "all")
-        let mr = XMLElement(name: "match-ratings")
+        let mr = factory.makeElement(name: "match-ratings")
         mr.addStringAttribute(name: "value", value: "favorites")
         favorites.addChild(mr)
 
@@ -287,8 +302,8 @@ public struct FCPXMLExporter: Sendable {
     // MARK: - Metadata Element Generators
 
     /// Generates a `<marker>` XML element from a Marker.
-    private static func _markerElement(_ marker: Marker, utility: FCPXMLUtility) -> XMLElement {
-        let el = XMLElement(name: "marker")
+    private func _markerElement(_ marker: Marker, utility: FCPXMLUtility) -> any PNXMLElement {
+        let el = factory.makeElement(name: "marker")
         el.addStringAttribute(name: "start", value: utility.fcpxmlTime(fromCMTime: marker.start))
         el.addStringAttribute(name: "duration", value: utility.fcpxmlTime(fromCMTime: marker.duration))
         el.addStringAttribute(name: "value", value: marker.value)
@@ -302,8 +317,8 @@ public struct FCPXMLExporter: Sendable {
     }
 
     /// Generates a `<chapter-marker>` XML element from a ChapterMarker.
-    private static func _chapterMarkerElement(_ chapterMarker: ChapterMarker, utility: FCPXMLUtility) -> XMLElement {
-        let el = XMLElement(name: "chapter-marker")
+    private func _chapterMarkerElement(_ chapterMarker: ChapterMarker, utility: FCPXMLUtility) -> any PNXMLElement {
+        let el = factory.makeElement(name: "chapter-marker")
         el.addStringAttribute(name: "start", value: utility.fcpxmlTime(fromCMTime: chapterMarker.start))
         el.addStringAttribute(name: "value", value: chapterMarker.value)
         if let posterOffset = chapterMarker.posterOffset {
@@ -316,8 +331,8 @@ public struct FCPXMLExporter: Sendable {
     }
 
     /// Generates a `<keyword>` XML element from a Keyword.
-    private static func _keywordElement(_ keyword: Keyword, utility: FCPXMLUtility) -> XMLElement {
-        let el = XMLElement(name: "keyword")
+    private func _keywordElement(_ keyword: Keyword, utility: FCPXMLUtility) -> any PNXMLElement {
+        let el = factory.makeElement(name: "keyword")
         el.addStringAttribute(name: "start", value: utility.fcpxmlTime(fromCMTime: keyword.start))
         el.addStringAttribute(name: "duration", value: utility.fcpxmlTime(fromCMTime: keyword.duration))
         el.addStringAttribute(name: "value", value: keyword.value)
@@ -328,8 +343,8 @@ public struct FCPXMLExporter: Sendable {
     }
 
     /// Generates a `<rating>` XML element from a Rating.
-    private static func _ratingElement(_ rating: Rating, utility: FCPXMLUtility) -> XMLElement {
-        let el = XMLElement(name: "rating")
+    private func _ratingElement(_ rating: Rating, utility: FCPXMLUtility) -> any PNXMLElement {
+        let el = factory.makeElement(name: "rating")
         el.addStringAttribute(name: "start", value: utility.fcpxmlTime(fromCMTime: rating.start))
         el.addStringAttribute(name: "duration", value: utility.fcpxmlTime(fromCMTime: rating.duration))
         el.addStringAttribute(name: "value", value: rating.value.rawValue)
@@ -340,10 +355,10 @@ public struct FCPXMLExporter: Sendable {
     }
 
     /// Generates a `<metadata>` XML element from a Metadata struct.
-    private static func _metadataElement(_ metadata: Metadata) -> XMLElement {
-        let el = XMLElement(name: "metadata")
+    private func _metadataElement(_ metadata: Metadata) -> any PNXMLElement {
+        let el = factory.makeElement(name: "metadata")
         for (key, value) in metadata.entries.sorted(by: { $0.key < $1.key }) {
-            let mdEl = XMLElement(name: "md")
+            let mdEl = factory.makeElement(name: "md")
             mdEl.addStringAttribute(name: "key", value: key)
             mdEl.addStringAttribute(name: "value", value: value)
             el.addChild(mdEl)

@@ -1,10 +1,10 @@
 # Pipeline Neo — Test Suite
 
-This directory contains the test suite for Pipeline Neo, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration.
+This directory contains the test suite for Pipeline Neo, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration. The suite runs on **macOS** (Foundation XML backend). The library also supports **iOS 15+** (AEXML backend); CI builds for iOS Simulator; the same tests are not run on iOS because they rely on Foundation XML.
 
-- **Test count:** 655 tests  
-- **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation, timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines, audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), and all supported FCPXML versions and frame rates  
-- **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure  
+- **Test count:** 686 tests  
+- **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines, audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), and all supported FCPXML versions and frame rates  
+- **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure; validation and cross-platform XML tests  
 
 ---
 
@@ -48,10 +48,10 @@ This directory contains the test suite for Pipeline Neo, a Swift 6 framework for
 Tests/
 ├── README.md
 ├── FCPXML Samples/
-│   └── FCPXML/                 # Sample .fcpxml files
+│   └── FCPXML/
 └── PipelineNeoTests/
-    ├── TestResources.swift     # packageRoot, fcpxmlSamplesDirectory, urlForFCPXMLSample
-    ├── FCPXMLTestUtilities.swift  # loadFCPXMLSampleData, loadFCPXMLSample, fcpxmlFrameRateSampleNames, allFCPXMLSampleNames
+    ├── TestResources.swift
+    ├── FCPXMLTestUtilities.swift
     ├── FileTests/
     │   ├── FCPXMLFileTest_24.swift
     │   ├── FCPXMLFileTest_360Video.swift
@@ -61,7 +61,7 @@ Tests/
     │   ├── FCPXMLFileTest_BasicMarkers.swift
     │   ├── FCPXMLFileTest_Complex.swift
     │   ├── FCPXMLFileTest_CompoundClips.swift
-    │   ├── FCPXMLFileTest_EmptyFormatProjects.swift   # Empty projects: 1920x1080, 4096x2160, 5120x2160, Custom500x500
+    │   ├── FCPXMLFileTest_EmptyFormatProjects.swift
     │   ├── FCPXMLFileTest_FrameRates.swift
     │   ├── FCPXMLFileTest_ImageSample.swift
     │   ├── FCPXMLFileTest_Keywords.swift
@@ -72,44 +72,45 @@ Tests/
     │   ├── FCPXMLFileTest_StandaloneAssetClip.swift
     │   └── FCPXMLFileTest_SyncClip.swift
     ├── LogicAndParsing/
+    │   ├── FCPXMLFormatAssetTests.swift
     │   ├── FCPXMLRootVersionTests.swift
-    │   ├── FCPXMLStructureTests.swift
-    │   └── FCPXMLFormatAssetTests.swift   # Format heroEye (1.13+), Asset heroEyeOverride/mediaReps
+    │   └── FCPXMLStructureTests.swift
+    ├── AEXMLSerializationParityTests.swift
     ├── APIAndEdgeCaseTests.swift
     ├── AdjustmentTests.swift
+    ├── AssetDurationMeasurementTests.swift
+    ├── AssetValidationTests.swift
     ├── AudioEnhancementTests.swift
+    ├── AudioKeyframeTests.swift
     ├── CaptionTitleTests.swift
     ├── CMTimeCodableTests.swift
-    ├── CollectionTests.swift
     ├── CodableTests.swift
+    ├── CollectionTests.swift
     ├── CutDetectionTests.swift
+    ├── FCPXMLDTDValidatorTests.swift
+    ├── FCPXMLPerformanceTests.swift
+    ├── FCPXMLStructuralValidatorTests.swift
+    ├── FCPXMLTimecodeTests.swift
     ├── FilterTests.swift
     ├── ImportOptionsTests.swift
     ├── KeyframeAnimationTests.swift
-    ├── AudioKeyframeTests.swift
-    ├── SmartCollectionTests.swift
-    ├── Transform360Tests.swift
-    ├── VersionConversionTests.swift
     ├── MediaExtractionTests.swift
-    ├── TimelineManipulationTests.swift
-    ├── FCPXMLTimecodeTests.swift
     ├── MIMETypeDetectionTests.swift
-    ├── AssetValidationTests.swift
-    ├── SilenceDetectionTests.swift
-    ├── AssetDurationMeasurementTests.swift
     ├── ParallelFileIOTests.swift
-    ├── FCPXMLPerformanceTests.swift
     ├── PipelineNeoTests.swift
+    ├── SilenceDetectionTests.swift
+    ├── SmartCollectionTests.swift
     ├── TimelineExportValidationTests.swift
-    └── XCTestManifests.swift
+    ├── TimelineManipulationTests.swift
+    ├── Transform360Tests.swift
+    └── VersionConversionTests.swift
 ```
 
 **Shared utilities**
 
-- **TestResources.swift** — Path resolution from test file to package root and `Tests/FCPXML Samples/FCPXML/`; works from Xcode and `swift test` without bundle resources.
-- **FCPXMLTestUtilities** — `loadFCPXMLSampleData(named:)`, `loadFCPXMLSample(named:)`; throw `XCTSkip` when a sample is missing.
-- **PipelineNeoTests.swift** — Main test class; shared dependencies (parser, timecode converter, document manager, error handler) injected in `setUpWithError`.
-- **XCTestManifests.swift** — Exposes tests for Swift Package Manager on Linux.
+- **TestResources.swift** — Path resolution from test file to package root and `Tests/FCPXML Samples/FCPXML/`; works from Xcode and `swift test` without bundle resources. Defines **FCPXMLSampleName** enum for known sample names.
+- **FCPXMLTestUtilities.swift** — `loadFCPXMLSampleData(named:)`, `loadFCPXMLSample(named:)`; `fcpxmlFrameRateSampleNames`, `allFCPXMLSampleNames()`; throw **XCTSkip** when a sample is missing.
+- **PipelineNeoTests.swift** — Main test class; shared dependencies (parser, timecode converter, document manager, error handler, FCPXMLUtility, FCPXMLService) injected in `setUpWithError`. MARK sections group tests by category.
 
 ---
 
@@ -133,7 +134,7 @@ swift test --filter PipelineNeoTests             # By pattern
 
 ### Linux
 
-Tests are discoverable via **XCTestManifests.swift**. Run `swift test` in an environment that provides XCTest.
+Tests are discovered automatically by Swift PM. Run `swift test` in an environment that provides XCTest.
 
 ---
 
@@ -157,17 +158,23 @@ Tests are discoverable via **XCTestManifests.swift**. Run `swift test` in an env
 | **Error handling** | ErrorHandler for FCPXMLError; parser with invalid XML |
 | **Document management** | Document creation 1.5–1.14; add resources/sequences; validate structure |
 | **Element filtering** | Core, extended, and all `FCPXMLElementType` coverage |
-| **Modular extensions** | CMTime (timecode, fcpxmlTime, conformed); XMLElement (setAttribute, getAttribute, createChild); XMLDocument (addResource, addSequence, isValid) |
+| **Modular extensions** | CMTime (timecode, fcpxmlTime, conformed); PNXMLElement (setAttribute, getAttribute, createChild); PNXMLDocument (addResource, addSequence, isValid) |
 | **Performance (params)** | Timecode conversion all frame rates; document creation loop; element filtering large dataset |
 | **Edge cases** | Edge time values; concurrent timecode conversion |
 | **FCPXMLElementType** | tagName, isInferred (multicam, compound, asset, sequence, clip, none) |
 | **FCPXMLError** | Every case has non-empty errorDescription |
 | **ModularUtilities API** | createCustomPipeline, validateDocument (invalid doc), processFCPXML, processMultipleFCPXML, convertTimecodes |
-| **XMLDocument extension** | fcpxEventNames, add(events:); resource(matchingID:), remove(resourceAtIndex:); fcpxmlString, fcpxmlVersion; init(contentsOfFCPXML:) |
-| **XMLElement extension** | fcpxType, isFCPXResource, isFCPXStoryElement; fcpxEvent, eventClips, addToEvent, removeFromEvent; fcpxDuration; eventClips throws when not event |
+| **PNXMLDocument extension** | fcpxEventNames, add(events:); resource(matchingID:), remove(resourceAtIndex:); fcpxmlString, fcpxmlVersion; load via FCPXMLFileLoader or parser |
+| **PNXMLElement extension** | fcpxType, isFCPXResource, isFCPXStoryElement; fcpxEvent, eventClips, addToEvent, removeFromEvent; fcpxDuration; eventClips throws when not event |
 | **Parser filter** | Filter media by first child (multicam/compound); FCPXMLUtility.defaultForExtensions |
 
 ### 3.2 Dedicated test files (by theme)
+
+**Cross-platform XML**
+
+- **AEXMLSerializationParityTests** — AEXML round-trip (parse → serialize → re-parse, structure comparison); backend parity (Foundation vs AEXML on same FCPXML); all-samples smoke (AEXML parses every sample); root/version parity; DTD validation (AEXML throws dtdValidationUnavailable). Documents known serialization differences (attribute order, whitespace, empty elements, DOCTYPE stripping, comments).
+- **FCPXMLDTDValidatorTests** — Validates document against a given FCPXML version's DTD; on macOS full DTD validation; on iOS (or when DTD unavailable) uses FCPXMLStructuralValidator and may return structuralValidationOnly warning.
+- **FCPXMLStructuralValidatorTests** — Cross-platform structural validation: root name `fcpxml`, required `version`, required `resources`, at least one content element (library/event/project), element-name allowlist (1.5–1.14); unknownElementName error; structuralValidationOnly warning.
 
 **Media & extraction**
 
@@ -212,6 +219,7 @@ Tests are discoverable via **XCTestManifests.swift**. Run `swift test` in an env
 - **HiddenClipMarker (1.13+)** — **APIAndEdgeCaseTests**: testHiddenClipMarkerModelAndAnnotationElements (model from element, create new, fcpxAnnotations). VersionConversionTests: hidden-clip-marker stripped when converting to &lt; 1.13.
 - **SmartCollectionTests** — SmartCollection; MatchUsage, MatchRepresentation, MatchMarkers, MatchAnalysisType; round-trip; version stripping.
 - **VersionConversionTests** — Version conversion; save .fcpxml/.fcpxmld; DTD-based stripping (heroEye, hidden-clip-marker, etc.).
+- **ImportOptionsTests** — import-options element (get/set); setShouldCopyAssetsOnImport, setShouldSuppressWarningsOnImport, setLibraryLocationForImport; removeChildren(where:) behaviour with import-options.
 
 ---
 
@@ -261,13 +269,15 @@ Tests that require a sample use `loadFCPXMLSample(named:)` or `loadFCPXMLSampleD
 
 **Timeline & TimelineClip** — endTime; duration from primary lane; sortedClips order; TimelineFormat (hd1080p, uhd4K, presets, computed properties, equality); helpers on Timeline; **empty timeline creation** — testEmptyTimelineCreationAtDifferentSizesAndFrameRates: barebone `Timeline(name:format:clips: [])` at multiple sizes (720p, 1080p, 4K UHD, DCI 4K, custom 640×480) and frame rates (24, 25, 30); asserts name, clips empty, duration zero, format dimensions and frame duration, aspectRatio.
 
-**FCPXMLExporter** — Export minimal timeline (fcpxml, resources, refs); missingAsset throws when clips present; empty timeline (zero clips) succeeds with empty spine, event/project uid, modDate; optional eventUid, projectUid, libraryLocation; **clip-level metadata export (PR #14)** — testFCPXMLExporterExportsClipMarkers, testFCPXMLExporterExportsClipChapterMarkers, testFCPXMLExporterExportsClipKeywords, testFCPXMLExporterExportsClipRatings, testFCPXMLExporterExportsClipMetadata (markers, chapter-markers, keywords, ratings, metadata as children of asset-clip per FCPXML DTD); testFCPXMLExporterClipMetadataAllTypesValidatesAgainstDTD (one clip with all metadata types, export then parse and validate against DTD); **XML declaration** — testFCPXMLExporterXmlDeclarationStandaloneNo (exported FCPXML uses standalone="no" for xmllint/DTD compatibility); **project-creation style** — testProjectCreationStyleExportValidatesAgainstDTD: empty timeline with custom format (e.g. 1920×1080@25p), export with includeDefaultSmartCollections: true, assert output contains DOCTYPE, colorSpace, smart-collection; parse with FCPXMLService and validate against DTD (same flow as CLI --create-project); **project creation at different sizes and frame rates** — testProjectCreationAtDifferentSizesAndFrameRates: export empty timeline at multiple sizes (720p, 1080p, 4K, custom 640×480) and frame rates (24, 25, 30, 60), then parse and validate against DTD; **FCPXMLUID** — random() and isValid() for FCPXML-style UIDs.
+**FCPXMLExporter** — Export minimal timeline (fcpxml, resources, refs); missingAsset throws when clips present; empty timeline (zero clips) succeeds with empty spine, event/project uid, modDate; optional eventUid, projectUid, libraryLocation; **clip-level metadata export** — testFCPXMLExporterExportsClipMarkers, testFCPXMLExporterExportsClipChapterMarkers, testFCPXMLExporterExportsClipKeywords, testFCPXMLExporterExportsClipRatings, testFCPXMLExporterExportsClipMetadata (markers, chapter-markers, keywords, ratings, metadata as children of asset-clip per FCPXML DTD); testFCPXMLExporterClipMetadataAllTypesValidatesAgainstDTD (one clip with all metadata types, export then parse and validate against DTD); **XML declaration** — testFCPXMLExporterXmlDeclarationStandaloneNo (exported FCPXML uses standalone="no" for xmllint/DTD compatibility); **project-creation style** — testProjectCreationStyleExportValidatesAgainstDTD: empty timeline with custom format (e.g. 1920×1080@25p), export with includeDefaultSmartCollections: true, assert output contains DOCTYPE, colorSpace, smart-collection; parse with FCPXMLService and validate against DTD (same flow as CLI --create-project); **project creation at different sizes and frame rates** — testProjectCreationAtDifferentSizesAndFrameRates: export empty timeline at multiple sizes (720p, 1080p, 4K, custom 640×480) and frame rates (24, 25, 30, 60), then parse and validate against DTD; **FCPXMLUID** — random() and isValid() for FCPXML-style UIDs.
 
 **FCPXMLBundleExporter** — Creates bundle (Out.fcpxmld, Info.fcpxml, Info.plist); with includeMedia copies files and references in Info.fcpxml.
 
 **FCPXMLValidator** — Valid structure → valid; non-fcpxml root → invalid; unresolved ref → invalid with error.
 
-**FCPXMLDTDValidator** — Returns result; valid document → isValid true.
+**FCPXMLDTDValidator** — **FCPXMLDTDValidatorTests**: returns ValidationResult; valid document → isValid true; on macOS uses full DTD; on iOS uses FCPXMLStructuralValidator (structuralValidationOnly warning when DTD unavailable).
+
+**FCPXMLStructuralValidator** — **FCPXMLStructuralValidatorTests**: cross-platform checks (root name, version, resources, content element, element allowlist); unknownElementName error; structuralValidationOnly warning.
 
 **FCPXMLFileLoader** — Loads single file (root, name); loads .fcpxmld bundle (resolved URL Info.fcpxml, root exists); missing URL throws FCPXMLLoadError.
 
@@ -277,7 +287,7 @@ Tests that require a sample use `loadFCPXMLSample(named:)` or `loadFCPXMLSampleD
 
 **APIAndEdgeCaseTests** — Async load API; optional logging (NoOp, Print, createCustomPipeline); edge cases (parse empty/invalid/malformed data; invalid path, resolveFCPXMLFileURL); validation types (ValidationResult with errors, ValidationWarning); FCPXML creation (all versions); **Live Drawing (1.11+)** model and AnyTimeline round-trip; **HiddenClipMarker (1.13+)** model and fcpxAnnotations.
 
-**Other files** (see [§3.2](#32-dedicated-test-files-by-theme)) — TimelineManipulationTests, FCPXMLTimecodeTests, MIMETypeDetectionTests, AssetValidationTests, SilenceDetectionTests, AssetDurationMeasurementTests, ParallelFileIOTests, AdjustmentTests, AudioEnhancementTests, Transform360Tests, FilterTests, CaptionTitleTests, KeyframeAnimationTests, AudioKeyframeTests, CMTimeCodableTests, CollectionTests.
+**Other files** (see [§3.2](#32-dedicated-test-files-by-theme)) — AEXMLSerializationParityTests, FCPXMLDTDValidatorTests, FCPXMLStructuralValidatorTests, TimelineManipulationTests, FCPXMLTimecodeTests, MIMETypeDetectionTests, AssetValidationTests, SilenceDetectionTests, AssetDurationMeasurementTests, ParallelFileIOTests, AdjustmentTests, AudioEnhancementTests, Transform360Tests, FilterTests, CaptionTitleTests, KeyframeAnimationTests, AudioKeyframeTests, CMTimeCodableTests, CollectionTests.
 
 **FCPXMLFileLoader async** — testFCPXMLFileLoaderAsyncLoadFromURL (temp file, root/name); testFCPXMLFileLoaderAsyncLoadThrowsForMissingFile (FCPXMLLoadError).
 
@@ -338,7 +348,7 @@ Document manager tests create documents for **FCPXML 1.5 through 1.14** and asse
 
 ## 13. Continuous integration
 
-GitHub Actions (e.g. `.github/workflows/build.yml`) run on push and pull requests: build and unit tests (Xcode workspace, xcodebuild), Swift 6 and strict concurrency where applicable. All tests must pass with no regressions.
+GitHub Actions (e.g. `.github/workflows/build.yml`) run on push and pull requests: **macOS** — build and full unit test suite (Xcode workspace, xcodebuild); Swift 6 and strict concurrency job; **iOS** — build for iOS Simulator (orchetect/setup-xcode-simulator); tests are not run on iOS because they require Foundation XML. All macOS tests must pass with no regressions.
 
 ---
 
@@ -362,6 +372,7 @@ Add tests for new behaviour or edge cases; place them in the right file and MARK
 - **XCTest** (Apple documentation)
 - **Testing in Xcode** (Apple documentation)
 - **Pipeline Neo README** (project root) — overview and API usage
+- **Documentation/Manual** — full manual; [18 — Cross-Platform & iOS](../Documentation/Manual/18-Cross-Platform-iOS.md) for XML abstraction and iOS support
 - **Final Cut Pro XML (FCPXML)** — [fcp.cafe](https://fcp.cafe) for format reference
 - **SwiftTimecode** (GitHub) — timecode and frame rate types
 

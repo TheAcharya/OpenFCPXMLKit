@@ -12,11 +12,18 @@ import Foundation
 import SwiftExtensions
 import SwiftTimecode
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the root-level `fcpxml` element.
     /// This may be called on any element within a FCPXML.
-    public var fcpRoot: XMLElement? {
-        rootDocument?
-            .rootElement() // `fcpxml` element
+    ///
+    /// Walks up the parent chain to find the topmost element, which should be the `fcpxml` root.
+    public var fcpRoot: (any PNXMLElement)? {
+        var current: any PNXMLElement = self
+        while let parentEl = current.parent {
+            current = parentEl
+        }
+        // The topmost element should be `fcpxml`
+        guard current.name == "fcpxml" else { return nil }
+        return current
     }
 }

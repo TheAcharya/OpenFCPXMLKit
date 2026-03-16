@@ -9,33 +9,32 @@
 //
 
 import Foundation
-import SwiftExtensions
 
 // MARK: - Sequence First
 
-extension Sequence where Element == XMLElement {
+extension Sequence where Element == any PNXMLElement {
     /// FCPXML: Returns the first element with the given element type.
     public func first(
         whereFCPElementType elementType: FinalCutPro.FCPXML.ElementType
-    ) -> Element? {
+    ) -> (any PNXMLElement)? {
         first { $0.fcpElementType == elementType }
     }
-    
+
     /// FCPXML: Returns the first element with any of the given element types.
     public func first(
         whereFCPElementTypes elementTypes: Set<FinalCutPro.FCPXML.ElementType>
-    ) -> Element? {
+    ) -> (any PNXMLElement)? {
         first {
             guard let elementType = $0.fcpElementType else { return false }
             return elementTypes.contains(elementType)
         }
     }
-    
+
     /// FCPXML: Returns the first element that matches the given predicate.
     @_disfavoredOverload
     public func first(
         whereFCPElementType predicate: (_ elementType: FinalCutPro.FCPXML.ElementType) -> Bool
-    ) -> Element? {
+    ) -> (any PNXMLElement)? {
         first {
             guard let elementType = $0.fcpElementType else { return false }
             return predicate(elementType)
@@ -45,21 +44,21 @@ extension Sequence where Element == XMLElement {
 
 // MARK: - Sequence Filter
 
-extension Sequence where Element == XMLElement {
+extension Sequence where Element == any PNXMLElement {
     /// FCPXML: Returns the sequence filtered by the given element type.
     public func filter(
         whereFCPElementType elementType: FinalCutPro.FCPXML.ElementType
     ) -> LazyFilterSequence<Self> {
         self.lazy.filter(whereFCPElementType: elementType)
     }
-    
+
     /// FCPXML: Returns the sequence filtered by the given element types.
     public func filter(
         whereFCPElementTypes elementTypes: Set<FinalCutPro.FCPXML.ElementType>
     ) -> LazyFilterSequence<Self> {
         self.lazy.filter(whereFCPElementTypes: elementTypes)
     }
-    
+
     /// FCPXML: Returns the sequence filtered by the given predicate.
     @_disfavoredOverload
     public func filter(
@@ -72,14 +71,14 @@ extension Sequence where Element == XMLElement {
 
 // MARK: - LazySequence Filter
 
-extension LazySequence where Element == XMLElement {
+extension LazySequence where Element == any PNXMLElement {
     /// FCPXML: Returns the sequence filtered by the given element type.
     public func filter(
         whereFCPElementType elementType: FinalCutPro.FCPXML.ElementType
     ) -> LazyFilterSequence<LazySequence<Base>.Elements> {
        filter { $0.fcpElementType == elementType }
     }
-    
+
     /// FCPXML: Returns the sequence filtered by the given element types.
     public func filter(
         whereFCPElementTypes elementTypes: Set<FinalCutPro.FCPXML.ElementType>
@@ -89,7 +88,7 @@ extension LazySequence where Element == XMLElement {
             return elementTypes.contains(elementType)
         }
     }
-    
+
     /// FCPXML: Returns the sequence filtered by the given predicate.
     @_disfavoredOverload
     public func filter(
@@ -105,22 +104,22 @@ extension LazySequence where Element == XMLElement {
 
 // MARK: - Children
 
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the first child element of the given element type.
     public func firstChildElement(
         whereFCPElementType elementType: FinalCutPro.FCPXML.ElementType
-    ) -> XMLElement? {
+    ) -> (any PNXMLElement)? {
         childElements.first(whereFCPElementType: elementType)
     }
-    
+
     /// FCPXML: Returns the first child element of the given element type.
     /// If no matching child is found, the default is added as a child and returned.
     ///
     /// - Warning: Ensure the `defaultChild` is a new instance not already attached to any parent.
     public func firstChildElement(
         whereFCPElementType elementType: FinalCutPro.FCPXML.ElementType,
-        defaultChild: @autoclosure () -> XMLElement
-    ) -> XMLElement {
+        defaultChild: @autoclosure () -> any PNXMLElement
+    ) -> any PNXMLElement {
         if let existingChild = childElements
             .first(whereFCPElementType: elementType)
         {
@@ -131,30 +130,31 @@ extension XMLElement {
             return dc
         }
     }
-    
+
     /// FCPXML: Returns the first child element of the given element type.
-    /// If no matching child is found, the default is added as a child and returned.
+    /// If no matching child is found, a new element is created via the factory, added as a child and returned.
     ///
-    /// - Warning: Ensure the `defaultChild` is a new instance not already attached to any parent.
+    /// - Warning: Ensure the `factory` produces a new instance not already attached to any parent.
     public func firstDefaultedChildElement(
-        whereFCPElementType elementType: FinalCutPro.FCPXML.ElementType
-    ) -> XMLElement {
+        whereFCPElementType elementType: FinalCutPro.FCPXML.ElementType,
+        using factory: any PNXMLFactory
+    ) -> any PNXMLElement {
         if let existingChild = childElements
             .first(whereFCPElementType: elementType)
         {
             return existingChild
         } else {
-            let defaultChild = XMLElement(name: elementType.rawValue)
+            let defaultChild = factory.makeElement(name: elementType.rawValue)
             addChild(defaultChild)
             return defaultChild
         }
     }
-    
+
     /// FCPXML: Returns the first child element matching the given predicate.
     @_disfavoredOverload
     public func firstChildElement(
         whereFCPElementType predicate: (_ elementType: FinalCutPro.FCPXML.ElementType) -> Bool
-    ) -> XMLElement? {
+    ) -> (any PNXMLElement)? {
         childElements.first(whereFCPElementType: predicate)
     }
 }

@@ -24,7 +24,7 @@ extension FinalCutPro.FCPXML {
         }
         
         public func perform(
-            on extractable: XMLElement,
+            on extractable: any PNXMLElement,
             scope: FinalCutPro.FCPXML.ExtractionScope
         ) async -> [FinalCutPro.FCPXML.AnyRole] {
             // early return in case no types are specified

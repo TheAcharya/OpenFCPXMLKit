@@ -33,7 +33,7 @@ extension FinalCutPro.FCPXML.Title {
             
             // Add new text-style-def elements
             for styleDef in newValue {
-                let styleDefElement = XMLElement(name: "text-style-def")
+                let styleDefElement = PNXMLDefaultFactory().makeElement(name: "text-style-def")
                 styleDefElement.fcpID = styleDef.id
                 if let name = styleDef.name {
                     styleDefElement.fcpName = name
@@ -51,7 +51,7 @@ extension FinalCutPro.FCPXML.Title {
     }
     
     /// Helper to parse TextStyle from XML element.
-    private func parseTextStyle(from element: XMLElement) -> FinalCutPro.FCPXML.TextStyle? {
+    private func parseTextStyle(from element: any PNXMLElement) -> FinalCutPro.FCPXML.TextStyle? {
         let ref = element.fcpRef
         let value = element.stringValue
         
@@ -77,7 +77,6 @@ extension FinalCutPro.FCPXML.Title {
         let kerningString = element.stringValue(forAttributeNamed: "kerning")
         let kerning = kerningString.flatMap { Double($0) }
         let alignmentString = element.stringValue(forAttributeNamed: "alignment")
-        let alignment = alignmentString.flatMap { XMLElement.TextAlignment(rawValue: $0) }
         let lineSpacingString = element.stringValue(forAttributeNamed: "lineSpacing")
         let lineSpacing = lineSpacingString.flatMap { Double($0) }
         let tabStopsString = element.stringValue(forAttributeNamed: "tabStops")
@@ -109,7 +108,7 @@ extension FinalCutPro.FCPXML.Title {
         textStyle.shadowOffset = shadowOffset
         textStyle.shadowBlurRadius = shadowBlurRadius
         textStyle.kerning = kerning
-        textStyle.alignment = alignment
+        textStyle.alignment = alignmentString.flatMap { .init(rawValue: $0) }
         textStyle.lineSpacing = lineSpacing
         textStyle.tabStops = tabStops
         textStyle.baselineOffset = baselineOffset
@@ -119,8 +118,8 @@ extension FinalCutPro.FCPXML.Title {
     }
     
     /// Helper to create XML element from TextStyle.
-    private func createTextStyleElement(from textStyle: FinalCutPro.FCPXML.TextStyle) -> XMLElement {
-        let element = XMLElement(name: "text-style")
+    private func createTextStyleElement(from textStyle: FinalCutPro.FCPXML.TextStyle) -> any PNXMLElement {
+        let element = PNXMLDefaultFactory().makeElement(name: "text-style")
         
         if let ref = textStyle.referenceID {
             element.fcpRef = ref
@@ -130,78 +129,78 @@ extension FinalCutPro.FCPXML.Title {
         }
         
         if let font = textStyle.font {
-            element.addAttribute(withName: "font", value: font)
+            element.addAttribute(name: "font", value: font)
         }
         if let fontSize = textStyle.fontSize {
-            element.addAttribute(withName: "fontSize", value: String(fontSize))
+            element.addAttribute(name: "fontSize", value: String(fontSize))
         }
         if let fontFace = textStyle.fontFace {
-            element.addAttribute(withName: "fontFace", value: fontFace)
+            element.addAttribute(name: "fontFace", value: fontFace)
         }
         if let fontColor = textStyle.fontColor {
-            element.addAttribute(withName: "fontColor", value: fontColor)
+            element.addAttribute(name: "fontColor", value: fontColor)
         }
         if let backgroundColor = textStyle.backgroundColor {
-            element.addAttribute(withName: "backgroundColor", value: backgroundColor)
+            element.addAttribute(name: "backgroundColor", value: backgroundColor)
         }
         if let isBold = textStyle.isBold {
-            element.addAttribute(withName: "bold", value: isBold ? "1" : "0")
+            element.addAttribute(name: "bold", value: isBold ? "1" : "0")
         }
         if let isItalic = textStyle.isItalic {
-            element.addAttribute(withName: "italic", value: isItalic ? "1" : "0")
+            element.addAttribute(name: "italic", value: isItalic ? "1" : "0")
         }
         if let strokeColor = textStyle.strokeColor {
-            element.addAttribute(withName: "strokeColor", value: strokeColor)
+            element.addAttribute(name: "strokeColor", value: strokeColor)
         }
         if let strokeWidth = textStyle.strokeWidth {
-            element.addAttribute(withName: "strokeWidth", value: String(strokeWidth))
+            element.addAttribute(name: "strokeWidth", value: String(strokeWidth))
         }
         if let baseline = textStyle.baseline {
-            element.addAttribute(withName: "baseline", value: String(baseline))
+            element.addAttribute(name: "baseline", value: String(baseline))
         }
         if let shadowColor = textStyle.shadowColor {
-            element.addAttribute(withName: "shadowColor", value: shadowColor)
+            element.addAttribute(name: "shadowColor", value: shadowColor)
         }
         if let shadowOffset = textStyle.shadowOffset {
-            element.addAttribute(withName: "shadowOffset", value: shadowOffset)
+            element.addAttribute(name: "shadowOffset", value: shadowOffset)
         }
         if let shadowBlurRadius = textStyle.shadowBlurRadius {
-            element.addAttribute(withName: "shadowBlurRadius", value: String(shadowBlurRadius))
+            element.addAttribute(name: "shadowBlurRadius", value: String(shadowBlurRadius))
         }
         if let kerning = textStyle.kerning {
-            element.addAttribute(withName: "kerning", value: String(kerning))
+            element.addAttribute(name: "kerning", value: String(kerning))
         }
         if let alignment = textStyle.alignment {
-            element.addAttribute(withName: "alignment", value: alignment.rawValue)
+            element.addAttribute(name: "alignment", value: alignment.rawValue)
         }
         if let lineSpacing = textStyle.lineSpacing {
-            element.addAttribute(withName: "lineSpacing", value: String(lineSpacing))
+            element.addAttribute(name: "lineSpacing", value: String(lineSpacing))
         }
         if let tabStops = textStyle.tabStops {
-            element.addAttribute(withName: "tabStops", value: String(tabStops))
+            element.addAttribute(name: "tabStops", value: String(tabStops))
         }
         if let baselineOffset = textStyle.baselineOffset {
-            element.addAttribute(withName: "baselineOffset", value: String(baselineOffset))
+            element.addAttribute(name: "baselineOffset", value: String(baselineOffset))
         }
         if let isUnderlined = textStyle.isUnderlined {
-            element.addAttribute(withName: "underline", value: isUnderlined ? "1" : "0")
+            element.addAttribute(name: "underline", value: isUnderlined ? "1" : "0")
         }
         
         // Add param elements
         for param in textStyle.parameters {
-            let paramElement = XMLElement(name: "param")
-            paramElement.addAttribute(withName: "name", value: param.name)
+            let paramElement = PNXMLDefaultFactory().makeElement(name: "param")
+            paramElement.addAttribute(name: "name", value: param.name)
             if let key = param.key {
-                paramElement.addAttribute(withName: "key", value: key)
+                paramElement.addAttribute(name: "key", value: key)
             }
             if let value = param.value {
-                paramElement.addAttribute(withName: "value", value: value)
+                paramElement.addAttribute(name: "value", value: value)
             }
             if let auxValue = param.auxValue {
-                paramElement.addAttribute(withName: "auxValue", value: auxValue)
+                paramElement.addAttribute(name: "auxValue", value: auxValue)
             }
             if !param.isEnabled {
-                paramElement.addAttribute(withName: "enabled", value: "0")
+                paramElement.addAttribute(name: "enabled", value: "0")
             }
             element.addChild(paramElement)
         }

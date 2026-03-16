@@ -16,7 +16,7 @@ enum CheckVersion {
     static func run(fcpxmlPath: URL, logger: PipelineLogger = NoOpPipelineLogger()) throws {
         let service = FCPXMLService(logger: logger)
         let document = try service.parseFCPXML(from: fcpxmlPath)
-        let version = document.fcpxmlVersion ?? "(none)"
+        let version = document.rootElement()?.attribute(forName: "version") ?? "(none)"
         print(version)
         logger.log(level: .info, message: "FCPXML version: \(version)", metadata: ["path": fcpxmlPath.path])
     }

@@ -10,27 +10,29 @@
 
 import Foundation
 
-/// An XMLParser delegate for parsing attributes in XMLElement objects.
+/// An XMLParser delegate for parsing attributes in PNXMLElement objects.
 @available(macOS 12.0, *)
 final class AttributeParserDelegate: NSObject, XMLParserDelegate {
-    
+
     private let attribute: String
     private let elementName: String?
     private var parsedValues: [String] = []
-    
+
     init(attribute: String, elementName: String? = nil) {
         self.attribute = attribute
         self.elementName = elementName
         super.init()
     }
-    
-    init(element: XMLElement, attribute: String, inElementsWithName elementName: String?) {
+
+    init(element: any PNXMLElement, attribute: String, inElementsWithName elementName: String?) {
         self.attribute = attribute
         self.elementName = elementName
         super.init()
-        
-        let xmlDoc = XMLDocument(rootElement: element.copy() as? XMLElement)
-        let parser = XMLParser(data: xmlDoc.xmlData)
+
+        // Serialize the element to XML data via the protocol, then feed to SAX parser.
+        let xmlString = element.xmlString
+        guard let data = xmlString.data(using: .utf8) else { return }
+        let parser = XMLParser(data: data)
         parser.delegate = self
         parser.parse()
     }

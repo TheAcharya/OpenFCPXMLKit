@@ -25,17 +25,17 @@ extension FinalCutPro.FCPXML {
     /// >
     /// > See [`object-tracker`](https://developer.apple.com/documentation/professional_video_applications/fcpxml_reference/object-tracker).
     public struct ObjectTracker: FCPXMLElement {
-        public let element: XMLElement
-        
+        public let element: any PNXMLElement
+
         public let elementType: ElementType = .objectTracker
-        
+
         public static let supportedElementTypes: Set<ElementType> = [.objectTracker]
-        
+
         public init() {
-            element = XMLElement(name: elementType.rawValue)
+            element = PNXMLDefaultFactory().makeElement(name: elementType.rawValue)
         }
-        
-        public init?(element: XMLElement) {
+
+        public init?(element: any PNXMLElement) {
             self.element = element
             guard _isElementTypeSupported(element: element) else { return nil }
         }
@@ -74,7 +74,7 @@ extension FinalCutPro.FCPXML.ObjectTracker {
 // MARK: - Typing
 
 // ObjectTracker
-extension XMLElement {
+extension PNXMLElement {
     /// FCPXML: Returns the element wrapped in a ``FinalCutPro/FCPXML/ObjectTracker`` model object.
     /// Call this on a `object-tracker` element only.
     public var fcpAsObjectTracker: FinalCutPro.FCPXML.ObjectTracker? {

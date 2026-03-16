@@ -9,7 +9,6 @@
 //
 
 import Foundation
-import SwiftExtensions
 
 /// Default implementation of `MediaExtraction`.
 @available(macOS 12.0, *)
@@ -19,29 +18,34 @@ public final class MediaExtractor: MediaExtraction, Sendable {
 
     // MARK: - MediaExtraction (Sync)
 
-    public func extractMediaReferences(from document: XMLDocument, baseURL: URL?) -> MediaExtractionResult {
+    public func extractMediaReferences(from document: any PNXMLDocument, baseURL: URL?) -> MediaExtractionResult {
         _extract(from: document, baseURL: baseURL)
     }
 
-    public func copyReferencedMedia(from document: XMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any ProgressReporter)? = nil) -> MediaCopyResult {
+    public func copyReferencedMedia(from document: any PNXMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any ProgressReporter)? = nil) -> MediaCopyResult {
         _copy(from: document, to: destinationURL, baseURL: baseURL, progress: progress)
     }
 
     // MARK: - MediaExtraction (Async)
 
-    public func extractMediaReferences(from document: XMLDocument, baseURL: URL?) async -> MediaExtractionResult {
+    public func extractMediaReferences(from document: any PNXMLDocument, baseURL: URL?) async -> MediaExtractionResult {
         _extract(from: document, baseURL: baseURL)
     }
 
-    public func copyReferencedMedia(from document: XMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any ProgressReporter)? = nil) async -> MediaCopyResult {
+    public func copyReferencedMedia(from document: any PNXMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any ProgressReporter)? = nil) async -> MediaCopyResult {
         _copy(from: document, to: destinationURL, baseURL: baseURL, progress: progress)
     }
 
     // MARK: - Private
 
-    private func _extract(from document: XMLDocument, baseURL: URL?) -> MediaExtractionResult {
+    private func _extract(from document: any PNXMLDocument, baseURL: URL?) -> MediaExtractionResult {
         var refs: [MediaReference] = []
-        let resources = document.fcpxResources
+        // Traverse: root > fcpxml > resources > child elements
+        let resources: [any PNXMLElement] = {
+            guard let root = document.rootElement(),
+                  let resourcesEl = root.firstChildElement(named: "resources") else { return [] }
+            return Array(resourcesEl.childElements)
+        }()
 
         for resource in resources {
             let elementType = resource.fcpxType
@@ -58,7 +62,7 @@ public final class MediaExtractor: MediaExtraction, Sendable {
         return MediaExtractionResult(references: refs, baseURL: baseURL)
     }
 
-    private func _assetMediaReference(_ assetElement: XMLElement, baseURL: URL?) -> MediaReference? {
+    private func _assetMediaReference(_ assetElement: any PNXMLElement, baseURL: URL?) -> MediaReference? {
         guard let mediaRep = assetElement.firstChildElement(named: "media-rep") else { return nil }
         let srcString = mediaRep.getElementAttribute("src")
         guard let srcString = srcString, !srcString.isEmpty else { return nil }
@@ -75,7 +79,7 @@ public final class MediaExtractor: MediaExtraction, Sendable {
         )
     }
 
-    private func _locatorMediaReference(_ locatorElement: XMLElement, baseURL: URL?) -> MediaReference? {
+    private func _locatorMediaReference(_ locatorElement: any PNXMLElement, baseURL: URL?) -> MediaReference? {
         let urlString = locatorElement.getElementAttribute("url")
         guard let urlString = urlString, !urlString.isEmpty else { return nil }
         let url = _resolveURL(urlString, baseURL: baseURL)
@@ -117,7 +121,7 @@ public final class MediaExtractor: MediaExtraction, Sendable {
         return URL(string: srcString)
     }
 
-    private func _copy(from document: XMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any ProgressReporter)?) -> MediaCopyResult {
+    private func _copy(from document: any PNXMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any ProgressReporter)?) -> MediaCopyResult {
         let result = _extract(from: document, baseURL: baseURL)
         let fileRefs = result.fileReferences
         var seenSourceURLs: Set<URL> = []
