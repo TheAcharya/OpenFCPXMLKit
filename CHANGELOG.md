@@ -7,6 +7,28 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
+## [2.5.0](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.5.0) - 2026-03-16
+
+### ✨ New Features
+
+- **Cross-platform XML abstraction layer — iOS support (PR [#17](https://github.com/TheAcharya/pipeline-neo/pull/17)):** Pipeline Neo can now target **iOS 15+** (and tvOS, watchOS, visionOS) in addition to macOS. A protocol-based XML layer decouples the library from Foundation’s DOM API (macOS-only) and adds an AEXML-backed implementation for non-macOS platforms. Thanks @stovak!
+- **New `Sources/PipelineNeo/XML/`:** Protocols `PNXMLNode`, `PNXMLElement`, `PNXMLDocument`, `PNXMLDTDProtocol`, `PNXMLFactory`; Foundation backend on macOS (byte-identical behavior); AEXML backend for iOS and other platforms; `PNXMLDefaultFactory()` for platform dispatch.
+- **DTD validation:** On macOS, full DTD validation is unchanged. On iOS, **FCPXMLStructuralValidator** performs cross-platform structural validation (root element, required children, element allowlist, required attributes) when Foundation DTD is unavailable.
+- **Package.swift:** `.iOS(.v15)` added to platforms; **AEXML** added as a dependency.
+- **Backwards compatibility:** macOS behavior is unchanged; existing APIs remain source-compatible.
+
+### 🔧 Improvements
+
+- **Test suite:** Expanded to **686 tests**. Added `AEXMLSerializationParityTests` (AEXML round-trip and backend parity), `FCPXMLDTDValidatorTests` (platform-conditional DTD vs structural fallback), `FCPXMLStructuralValidatorTests` (cross-platform structural validation), and `ImportOptionsTests`. Updated `Tests/README.md` with current structure tree, categories, and coverage.
+- **Documentation:** New manual chapter **18 — Cross-Platform & iOS**; updated Overview, Loading/Parsing, Validation, XML Extensions, and Documentation README. Aligned `AGENT.md`, `ARCHITECTURE.md`, and `.cursorrules` with cross-platform XML layer, iOS support, 686 tests, and `FCPXMLStructuralValidator` / PNXML naming.
+- **CI:** New iOS Simulator build job.
+
+### 🐛 Bug Fixes
+
+- **`removeChildren(where:)` index mismatch (PR [#17](https://github.com/TheAcharya/pipeline-neo/pull/17)):** The default implementation previously used indices from `childElements` (elements only) when calling `removeChild(at:)` on the full `children` array (including text nodes), removing the wrong nodes when text/whitespace was present. It now iterates the full `children` array so indices match. Fixes failures in ImportOptionsTests and EventClips removal.
+
+---
+
 ## [2.4.3](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.4.3) - 2026-03-07
 
 ### ✨ New Features
