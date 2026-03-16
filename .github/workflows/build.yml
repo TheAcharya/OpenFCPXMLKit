@@ -26,6 +26,7 @@ on:
 
 env:
   SCHEME: "PipelineNeo-Package"
+  WORKSPACEPATH: ".swiftpm/xcode/package.xcworkspace"
 
 permissions:
   contents: read
@@ -77,12 +78,24 @@ jobs:
 
   # iOS Simulator build (no tests — tests require Foundation XML which is macOS-only)
   iOS:
-    name: iOS Simulator
+    name: iOS
     runs-on: macos-26
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: ${{ github.workspace }}
     steps:
     - uses: actions/checkout@main
-    - name: Build for iOS Simulator
-      run: xcodebuild build -scheme "PipelineNeo" -destination "platform=iOS Simulator,name=iPhone 17,OS=26.1" | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
+    - name: Prepare Device Simulator
+      id: sim-setup
+      uses: orchetect/setup-xcode-simulator@v1
+      with:
+        refresh: true
+        download: true
+        scheme: ${{ env.SCHEME }}
+        target: iOS
+    - name: Build
+      run: xcodebuild build -skipMacroValidation -workspace "$WORKSPACEPATH" -scheme "$SCHEME" -destination "generic/platform=$PLATFORMSHORT" | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
+      env:
+        PLATFORMSHORT: ${{ steps.sim-setup.outputs.platform-short }}
+        WORKSPACEPATH: ${{ steps.sim-setup.outputs.workspace-path }}
