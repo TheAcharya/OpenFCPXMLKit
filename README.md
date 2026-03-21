@@ -81,7 +81,7 @@ let package = Package(
         .iOS(.v15)
     ],
     dependencies: [
-        .package(url: "https://github.com/TheAcharya/pipeline-neo", from: "2.5.0")
+        .package(url: "https://github.com/TheAcharya/pipeline-neo", from: "2.5.1")
     ],
     targets: [
         .target(
@@ -144,7 +144,7 @@ sudo rm /usr/local/bin/pipeline-neo
 ### Compiled From Source
 
 ```shell
-VERSION=2.5.0 # replace this with the git tag of the version you need
+VERSION=2.5.1 # replace this with the git tag of the version you need
 git clone https://github.com/TheAcharya/pipeline-neo.git
 cd pipeline-neo
 git checkout "tags/$VERSION"

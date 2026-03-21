@@ -7,11 +7,29 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
+## [2.5.1](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.5.1) - 2026-03-21
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Timeline API documentation:** Clarified `Timeline.insertingClipWithRipple` behavior to explicitly state that clips overlapping the insertion point but starting before it are not shifted.
+- **Timeline test coverage clarity:** `TimelineManipulationTests` now includes explicit availability context for `@available(macOS 12.0, *)` and stronger comments describing ripple and lane-selection semantics.
+
+### 🐛 Bug Fixes
+
+- **Deterministic lane-selection assertions:** Updated `TimelineManipulationTests` to assert exact lane outcomes for outward lane search and multi-conflict auto-lane placement, preventing ambiguous assertions from masking behavior changes.
+- **Timestamp test stability:** Reworked `testTimelineTimestampsInitialization` to use fixed injected timestamps instead of real-time clock comparisons, removing race-prone timing assertions.
+
+---
+
 ## [2.5.0](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.5.0) - 2026-03-16
 
 ### ✨ New Features
 
-- **Cross-platform XML abstraction layer — iOS support (PR [#17](https://github.com/TheAcharya/pipeline-neo/pull/17)):** Pipeline Neo can now target **iOS 15+** (and tvOS, watchOS, visionOS) in addition to macOS. A protocol-based XML layer decouples the library from Foundation’s DOM API (macOS-only) and adds an AEXML-backed implementation for non-macOS platforms. Thanks @stovak!
+- **Cross-platform XML abstraction layer — iOS support (PR [#17](https://github.com/TheAcharya/pipeline-neo/pull/17)):** Pipeline Neo can now target **iOS 15+** in addition to macOS. A protocol-based XML layer decouples the library from Foundation’s DOM API (macOS-only) and adds an AEXML-backed implementation for non-macOS platforms. Thanks @stovak!
 - **New `Sources/PipelineNeo/XML/`:** Protocols `PNXMLNode`, `PNXMLElement`, `PNXMLDocument`, `PNXMLDTDProtocol`, `PNXMLFactory`; Foundation backend on macOS (byte-identical behavior); AEXML backend for iOS and other platforms; `PNXMLDefaultFactory()` for platform dispatch.
 - **DTD validation:** On macOS, full DTD validation is unchanged. On iOS, **FCPXMLStructuralValidator** performs cross-platform structural validation (root element, required children, element allowlist, required attributes) when Foundation DTD is unavailable.
 - **Package.swift:** `.iOS(.v15)` added to platforms; **AEXML** added as a dependency.

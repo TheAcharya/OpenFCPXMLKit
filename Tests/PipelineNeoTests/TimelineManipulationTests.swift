@@ -95,6 +95,8 @@ private func insertingClipAutoLaneOrFail(
     }
 }
 
+/// Timeline APIs are annotated `@available(macOS 12.0, *)`; tests mirror that availability.
+/// These tests validate behavior of timeline operations and are not expected to differ by macOS minor version.
 @available(macOS 12.0, *)
 final class TimelineManipulationTests: XCTestCase {
 
@@ -159,8 +161,10 @@ final class TimelineManipulationTests: XCTestCase {
         let newClip = TimelineClip(assetRef: "r3", offset: .zero, duration: CMTime(value: 5, timescale: 1), lane: 0)
         let result = timeline.insertClipWithRipple(newClip, at: CMTime(value: 15, timescale: 1))
         
-        // clip2 starts at 10, which is before 15, so under this behavior only clips whose *start time*
-        // is at or after the insert point are shifted; overlapping clips that start before 15 are not.
+        // IMPORTANT: By design, Timeline.insertClipWithRipple defines "affected clips" exclusively
+        // in terms of their *start time*. clip2 starts at 10, which is before 15, so even though it
+        // overlaps the insert position, it is NOT shifted; only clips whose start time is at or after
+        // the insert point are moved forward to make room for the inserted clip.
         XCTAssertEqual(result.shiftedClips.count, 0)
         
         // Verify new clip was inserted
@@ -508,8 +512,9 @@ final class TimelineManipulationTests: XCTestCase {
         // Find available lane starting from 0
         let availableLane = timelineWithClips.findAvailableLane(at: .zero, duration: CMTime(value: 10, timescale: 1), startingFrom: 0)
         
-        // Should find an available lane: 2 (positive) or -1 (negative); implementation alternates by distance.
-        XCTAssertTrue(availableLane == 2 || availableLane == -1)
+        // With lanes 0 and 1 occupied and deterministic outward search (+distance then -distance),
+        // lane +1 is blocked, so the next check is lane -1, which is selected.
+        XCTAssertEqual(availableLane, -1)
     }
     
     func testFindAvailableLaneReturnsPreferredWhenAvailable() {
@@ -575,8 +580,9 @@ final class TimelineManipulationTests: XCTestCase {
         let newClip = TimelineClip(assetRef: "r3", offset: .zero, duration: CMTime(value: 10, timescale: 1), lane: 0)
         guard let placement = insertClipAutoLaneOrFail(newClip, into: &timeline, at: .zero, preferredLane: 0) else { return }
 
-        // With lanes 0–2 filled, auto-lane assignment returns the next free lane (3 or -1 depending on search order).
-        XCTAssertTrue(placement.lane == 3 || placement.lane == -1)
+        // With lanes 0–2 filled and deterministic outward search (+distance then -distance),
+        // lane +1 is occupied first, then lane -1 is the first free result.
+        XCTAssertEqual(placement.lane, -1)
     }
     
     // MARK: - Advanced Clip Queries Tests
@@ -1009,13 +1015,17 @@ final class TimelineManipulationTests: XCTestCase {
     // MARK: - Timestamps Tests
     
     func testTimelineTimestampsInitialization() {
-        let timeline = Timeline(name: "Test")
+        // Use a fixed baseline time to keep this test deterministic and avoid clock races.
+        let baseline = Date(timeIntervalSince1970: 1000)
+        let timeline = Timeline(
+            name: "Test",
+            createdAt: baseline,
+            modifiedAt: baseline
+        )
         
-        // Timestamps should be set to current time (within a reasonable range)
-        let now = Date()
-        XCTAssertLessThan(abs(timeline.createdAt.timeIntervalSince(now)), 1.0)
-        XCTAssertLessThan(abs(timeline.modifiedAt.timeIntervalSince(now)), 1.0)
-        // createdAt and modifiedAt should be approximately equal (within 0.1 seconds)
+        // Timestamps should match injected baseline.
+        XCTAssertEqual(timeline.createdAt, baseline)
+        XCTAssertEqual(timeline.modifiedAt, baseline)
         XCTAssertLessThan(abs(timeline.createdAt.timeIntervalSince(timeline.modifiedAt)), 0.1)
     }
     

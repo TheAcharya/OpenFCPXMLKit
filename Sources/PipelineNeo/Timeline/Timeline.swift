@@ -239,6 +239,8 @@ public struct Timeline: Sendable, Equatable {
     ///
     /// When a clip is inserted, all clips that start at or after the insertion point
     /// on the affected lanes are shifted forward by the inserted clip's duration.
+    /// Clips that overlap the insertion point but start before it are intentionally
+    /// not shifted by this operation.
     ///
     /// - Parameters:
     ///   - clip: The clip to insert (will be modified with offset and lane).
