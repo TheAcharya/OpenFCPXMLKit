@@ -41,6 +41,9 @@ jobs:
         working-directory: ${{ github.workspace }}
     steps:
     - uses: actions/checkout@main
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
     - name: Build
       run: xcodebuild build -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "generic/platform=macOS,name=Any Mac" | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
     - name: Unit Tests
@@ -55,6 +58,9 @@ jobs:
         working-directory: ${{ github.workspace }}
     steps:
     - uses: actions/checkout@main
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
     - name: Set Package to Swift 6.0
       run: swift package tools-version --set "6.0"
     - name: Build
@@ -71,6 +77,9 @@ jobs:
         working-directory: ${{ github.workspace }}
     steps:
     - uses: actions/checkout@main
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
     - name: Build with strict concurrency
       run: xcodebuild build -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "generic/platform=macOS,name=Any Mac" OTHER_SWIFT_FLAGS="-strict-concurrency=complete" | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
     - name: Tests with strict concurrency
@@ -86,6 +95,9 @@ jobs:
         working-directory: ${{ github.workspace }}
     steps:
     - uses: actions/checkout@main
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
     - name: Prepare Device Simulator
       id: sim-setup
       uses: orchetect/setup-xcode-simulator@v1
