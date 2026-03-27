@@ -24,15 +24,15 @@ let package = Package(
     // Dependencies used by core library and CLI targets.
     dependencies: [
         // CLI argument parsing
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.6.0"),
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.7.1"),
         // Timecode operations
-        .package(url: "https://github.com/orchetect/swift-timecode", from: "3.0.0"),
+        .package(url: "https://github.com/orchetect/swift-timecode", from: "3.1.0"),
         // Utility extensions
-        .package(url: "https://github.com/orchetect/swift-extensions", from: "2.1.1"),
+        .package(url: "https://github.com/orchetect/swift-extensions", from: "2.1.4"),
         // Explicit logging dependency (Xcode 26 dynamic linking compatibility)
-        .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.10.1"),
         // Cross-platform XML parsing (AEXML backend for iOS and other non-macOS platforms)
-        .package(url: "https://github.com/tadija/AEXML", from: "4.0.0"),
+        .package(url: "https://github.com/tadija/AEXML", from: "4.7.0"),
     ],
     // Targets: core library, tests, user CLI, and DTD generator utility.
     targets: [

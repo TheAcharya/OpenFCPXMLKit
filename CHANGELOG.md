@@ -7,6 +7,23 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
+## [2.5.2](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.5.2) - 2026-03-27
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Timeline test availability wording:** Clarified `TimelineManipulationTests` availability comments to state behavior consistency across all supported macOS versions (12.0 and later), removing ambiguous minor-version phrasing.
+
+### 🐛 Bug Fixes
+
+- **Offset helper naming correctness:** In `FCPXMLElementOffset`, renamed a misleading local variable (`dur`) to `offset` in `_fcpOffsetAsTimecode`, aligning naming with actual semantics and reducing maintenance confusion.
+- **Timestamp test redundancy removal:** Removed a redundant tolerance assertion in `testTimelineTimestampsInitialization` now that both timestamps are intentionally injected with the same baseline value.
+
+---
+
 ## [2.5.1](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.5.1) - 2026-03-21
 
 ### ✨ New Features

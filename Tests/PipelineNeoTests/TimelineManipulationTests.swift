@@ -95,8 +95,8 @@ private func insertingClipAutoLaneOrFail(
     }
 }
 
-/// Timeline APIs are annotated `@available(macOS 12.0, *)`; tests mirror that availability.
-/// These tests validate behavior of timeline operations and are not expected to differ by macOS minor version.
+/// Timeline APIs are annotated `@available(macOS 12.0, *)`; these tests mirror that availability.
+/// These tests validate behavior expected to be consistent across all supported macOS versions (12.0 and later).
 @available(macOS 12.0, *)
 final class TimelineManipulationTests: XCTestCase {
 
@@ -1026,7 +1026,6 @@ final class TimelineManipulationTests: XCTestCase {
         // Timestamps should match injected baseline.
         XCTAssertEqual(timeline.createdAt, baseline)
         XCTAssertEqual(timeline.modifiedAt, baseline)
-        XCTAssertLessThan(abs(timeline.createdAt.timeIntervalSince(timeline.modifiedAt)), 0.1)
     }
     
     func testTimelineTimestampsCustomInitialization() {

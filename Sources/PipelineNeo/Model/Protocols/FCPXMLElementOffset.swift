@@ -63,10 +63,10 @@ extension PNXMLElement {
         frameRateSource: FinalCutPro.FCPXML.FrameRateSource = .localToElement,
         default defaultOffset: Fraction? = .zero
     ) -> Timecode? {
-        guard let dur = fcpOffset ?? defaultOffset else { return nil }
+        guard let offset = fcpOffset ?? defaultOffset else { return nil }
         
         return try? _fcpTimecode(
-            fromRational: dur,
+            fromRational: offset,
             frameRateSource: frameRateSource
         )
     }
