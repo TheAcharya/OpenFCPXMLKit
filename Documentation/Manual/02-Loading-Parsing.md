@@ -9,7 +9,7 @@
 **FCPXMLFileLoader** supports single `.fcpxml` files and `.fcpxmld` bundles. One code path for loading; prefer **async** for I/O.
 
 ```swift
-import PipelineNeo
+import OpenFCPXMLKit
 
 let loader = FCPXMLFileLoader()
 
@@ -38,10 +38,10 @@ let document = try await loader.load(from: bundleURL)
 
 ## Parsing
 
-Use **FCPXMLService** (or **FCPXMLParser** directly) to parse data or URL into an `any PNXMLDocument` (platform-agnostic; Foundation-backed on macOS, AEXML-backed on iOS):
+Use **FCPXMLService** (or **FCPXMLParser** directly) to parse data or URL into an `any OFKXMLDocument` (platform-agnostic; Foundation-backed on macOS, AEXML-backed on iOS):
 
 ```swift
-let service = ModularUtilities.createPipeline()
+let service = ModularUtilities.createService()
 
 // From URL (async preferred)
 let document = try await service.parseFCPXML(from: fileURL)
@@ -71,7 +71,7 @@ if version.supportsBundleFormat { /* can save as .fcpxmld */ }
 // Filter elements by type
 let types: [FCPXMLElementType] = [.assetResource, .sequence, .event]
 let filtered = service.filterElements(elements, ofTypes: types)
-let elementType = someElement.fcpxType  // PNXMLElement extension
+let elementType = someElement.fcpxType  // OFKXMLElement extension
 ```
 
 ---
@@ -81,7 +81,7 @@ let elementType = someElement.fcpxType  // PNXMLElement extension
 Create documents and add resources/sequences using **XMLDocumentManager** and modular extensions:
 
 ```swift
-let service = ModularUtilities.createPipeline()
+let service = ModularUtilities.createService()
 let document = service.createFCPXMLDocument(version: "1.10")
 
 let documentManager = XMLDocumentManager()

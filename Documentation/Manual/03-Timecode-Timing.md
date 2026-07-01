@@ -9,7 +9,7 @@
 Use **TimecodeConverter** (or **FCPXMLUtility** with injected converter) to convert between `CMTime`, SwiftTimecode **Timecode**, and FCPXML time strings:
 
 ```swift
-import PipelineNeo
+import OpenFCPXMLKit
 import SwiftTimecode
 
 let timecodeConverter = TimecodeConverter()
@@ -38,7 +38,7 @@ let fcpxmlTime = cmTime.fcpxmlTime(using: timecodeConverter)
 **FCPXMLTimecode** wraps SwiftTimecode's `Fraction` and provides FCPXML-oriented operations: arithmetic, frame alignment, CMTime conversion, and parsing of FCPXML time strings.
 
 ```swift
-import PipelineNeo
+import OpenFCPXMLKit
 
 // From seconds
 let fiveSeconds = FCPXMLTimecode(seconds: 5.0)
@@ -80,7 +80,7 @@ let alignedTC = timecode.aligned(to: .fps24)
 **CMTime** is extended to be **Codable** using FCPXML time string format (e.g. `"3000/600s"`):
 
 ```swift
-import PipelineNeo
+import OpenFCPXMLKit
 import CoreMedia
 
 let time = CMTime(seconds: 5.0, preferredTimescale: 600)
@@ -108,4 +108,4 @@ let conformed = await service.conform(time: time, toFrameDuration: frameDuration
 
 ## Next
 
-- [04 — Pipeline & Logging](04-Pipeline-Logging.md) — FCPXMLService, ModularUtilities, logging.
+- [04 — Service & Logging](04-Service-Logging.md) — FCPXMLService, ModularUtilities, logging.

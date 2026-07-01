@@ -6,7 +6,7 @@
 
 ## Error types
 
-Pipeline Neo uses explicit, typed errors. All conform to **LocalizedError** where applicable.
+OpenFCPXMLKit uses explicit, typed errors. All conform to **LocalizedError** where applicable.
 
 | Type | Cases / use |
 |------|-------------|
@@ -19,7 +19,7 @@ Pipeline Neo uses explicit, typed errors. All conform to **LocalizedError** wher
 | **ValidationError** / **ValidationWarning** | type, message, context; warning types include `negativeTimeAttribute` |
 | **FCPXMLDocumentError** | e.g. `dtdResourceNotFound`, `dtdResourceUnreadable` (camelCase cases) |
 
-**ErrorHandling** protocol (sync-only) and **ErrorHandler** turn errors into formatted messages. Use in pipelines or switch on error types in your code:
+**ErrorHandling** protocol (sync-only) and **ErrorHandler** turn errors into formatted messages. Use in services or switch on error types in your code:
 
 ```swift
 do {

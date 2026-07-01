@@ -1,22 +1,22 @@
-// swift-tools-version: 6.0
-// Pipeline Neo supports Swift 6 concurrency: Sendable protocols/implementations,
+// swift-tools-version: 6.3
+// OpenFCPXMLKit supports Swift 6 concurrency: Sendable protocols/implementations,
 // async/await APIs, and builds with -strict-concurrency=complete (see CI).
 
 import PackageDescription
 
 let package = Package(
-    name: "PipelineNeo",
+    name: "OpenFCPXMLKit",
     platforms: [
-        .macOS(.v12),
-        .iOS(.v15)
+        .macOS(.v26),
+        .iOS(.v26)
     ],
     products: [
         .library(
-            name: "PipelineNeo",
-            targets: ["PipelineNeo"]),
+            name: "OpenFCPXMLKit",
+            targets: ["OpenFCPXMLKit"]),
         .executable(
-            name: "pipeline-neo",
-            targets: ["PipelineNeoCLI"]),
+            name: "OpenFCPXMLKit-CLI",
+            targets: ["OpenFCPXMLKitCLI"]),
         .executable(
             name: "GenerateEmbeddedDTDs",
             targets: ["GenerateEmbeddedDTDs"]),
@@ -24,43 +24,56 @@ let package = Package(
     // Dependencies used by core library and CLI targets.
     dependencies: [
         // CLI argument parsing
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.7.1"),
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.8.2"),
         // Timecode operations
-        .package(url: "https://github.com/orchetect/swift-timecode", from: "3.1.0"),
+        .package(url: "https://github.com/orchetect/swift-timecode", from: "3.1.2"),
         // Utility extensions
-        .package(url: "https://github.com/orchetect/swift-extensions", from: "2.1.4"),
+        .package(url: "https://github.com/orchetect/swift-extensions", from: "2.2.0"),
         // Explicit logging dependency (Xcode 26 dynamic linking compatibility)
-        .package(url: "https://github.com/apple/swift-log.git", from: "1.10.1"),
+        .package(url: "https://github.com/apple/swift-log", from: "1.14.0"),
         // Cross-platform XML parsing (AEXML backend for iOS and other non-macOS platforms)
         .package(url: "https://github.com/tadija/AEXML", from: "4.7.0"),
+        // Excel file creation
+        .package(url: "https://github.com/TheAcharya/XLKit", from: "1.1.6"),
     ],
     // Targets: core library, tests, user CLI, and DTD generator utility.
     targets: [
         // Core framework target
         .target(
-            name: "PipelineNeo",
+            name: "OpenFCPXMLKit",
             dependencies: [
                 .product(name: "SwiftTimecode", package: "swift-timecode"),
                 .product(name: "SwiftExtensions", package: "swift-extensions"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "AEXML", package: "AEXML"),
+                .product(name: "XLKit", package: "XLKit"),
             ],
             resources: [
                 .process("FCPXML DTDs")
             ]),
         // Package test suite
         .testTarget(
-            name: "PipelineNeoTests",
-            dependencies: ["PipelineNeo"],
+            name: "OpenFCPXMLKitTests",
+            dependencies: [
+                "OpenFCPXMLKit",
+                .product(name: "XLKit", package: "XLKit"),
+            ],
             path: "Tests",
             exclude: ["README.md"],
-            sources: ["PipelineNeoTests"],
+            sources: ["OpenFCPXMLKitTests"],
             resources: [.process("FCPXML Samples/FCPXML")]),
+        .testTarget(
+            name: "ExcelReportTest",
+            dependencies: [
+                "OpenFCPXMLKit",
+                .product(name: "XLKit", package: "XLKit"),
+            ],
+            path: "Tests/ExcelReportTest"),
         // End-user CLI target
         .executableTarget(
-            name: "PipelineNeoCLI",
+            name: "OpenFCPXMLKitCLI",
             dependencies: [
-                "PipelineNeo",
+                "OpenFCPXMLKit",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ],
             exclude: ["README.md"]),

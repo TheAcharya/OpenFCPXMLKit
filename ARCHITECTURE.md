@@ -1,4 +1,4 @@
-# Pipeline Neo — Architecture & Conventions
+# OpenFCPXMLKit — Architecture & Conventions
 
 A guide for contributors: project structure, architecture, naming, styling, and design decisions.
 
@@ -8,11 +8,15 @@ A guide for contributors: project structure, architecture, naming, styling, and 
 
 ## 1. Project overview
 
-Pipeline Neo is a **Swift 6** framework for Final Cut Pro FCPXML: parsing, creation, manipulation, and timecode operations (via SwiftTimecode). It is **protocol-oriented** and **dependency-injected**: core behaviour is behind protocols; default implementations are injectable; extension APIs that cannot take parameters use a single shared instance.
+OpenFCPXMLKit is a **Swift 6** framework for Final Cut Pro FCPXML: parsing, creation, manipulation, and timecode operations (via SwiftTimecode). It is **protocol-oriented** and **dependency-injected**: core behaviour is behind protocols; default implementations are injectable; extension APIs that cannot take parameters use a single shared instance.
 
-- **Targets:** macOS 12+, iOS 15+, Xcode 16+, Swift 6.0.
-- **Dependencies:** SwiftTimecode 3.0+, SwiftExtensions 2.0+, AEXML 4.0+ (iOS/cross-platform XML), Foundation, CoreMedia.
+- **Package:** `OpenFCPXMLKit` (`swift-tools-version: 6.3`)
+- **Products:** `OpenFCPXMLKit` (library, includes XLKit Excel export), `OpenFCPXMLKit-CLI` (executable), `GenerateEmbeddedDTDs` (internal build tool)
+- **Targets:** macOS 26+, iOS 26+, Xcode 26+, Swift 6.3+
+- **Repository:** https://github.com/TheAcharya/OpenFCPXMLKit
+- **Dependencies:** SwiftTimecode 3.1.2+, SwiftExtensions 2.2.0+, swift-log 1.14.0+, AEXML 4.7.0+, swift-argument-parser 1.8.2+ (CLI only), Foundation, CoreMedia.
 - **FCPXML:** Versions 1.5–1.14 (DTDs included); Final Cut Pro frame rates (23.976, 24, 25, 29.97, 30, 50, 59.94, 60).
+- **Tests:** 877 tests; 58 sample `.fcpxml` files under `Tests/FCPXML Samples/FCPXML/`.
 
 ---
 
@@ -36,13 +40,13 @@ All major operations are defined as **protocols** with both **sync** and **async
 | SilenceDetection | SilenceDetector |
 | AssetDurationMeasurement | AssetDurationMeasurer |
 | ParallelFileIO | ParallelFileIOExecutor |
-| PipelineLogger | NoOpPipelineLogger, PrintPipelineLogger, FilePipelineLogger |
+| ServiceLogger | NoOpServiceLogger, PrintServiceLogger, FileServiceLogger |
 
-Semantic and DTD validation use **concrete structs** (`FCPXMLValidator`, `FCPXMLDTDValidator`) that are injected; they are not behind protocols.
+Semantic and DTD validation use **concrete structs** (`FCPXMLValidator`, `FCPXMLDTDValidator`, `FCPXMLStructuralValidator`) that are injected; they are not behind protocols.
 
 ### 2.2 Single injection point for extensions
 
-Extension APIs that **cannot take parameters** (e.g. `CMTime.fcpxmlString`, `XMLElement.fcpxDuration`) use **`FCPXMLUtility.defaultForExtensions`** (concurrency-safe). For custom pipelines, use the **modular API** with the `using:` parameter (e.g. `CMTime+Modular`, `XMLElement+Modular`, `XMLDocument+Modular`).
+Extension APIs that **cannot take parameters** (e.g. `CMTime.fcpxmlString`, `XMLElement.fcpxDuration`) use **`FCPXMLUtility.defaultForExtensions`** (concurrency-safe). For custom services, use the **modular API** with the `using:` parameter (e.g. `CMTime+Modular`, `XMLElement+Modular`, `XMLDocument+Modular`).
 
 - **Rule:** No hidden concrete types in extension APIs; use `defaultForExtensions` or inject via `using:`.
 
@@ -50,30 +54,171 @@ Extension APIs that **cannot take parameters** (e.g. `CMTime.fcpxmlString`, `XML
 
 - **FCPXMLService** — Preferred facade: inject dependencies and call service methods (parse, convert, validate, save, media operations). Sync and async.
 - **FCPXMLUtility** — Legacy/convenience facade; same dependencies and behaviour. Holds `defaultForExtensions`.
-- **ModularUtilities** — `createPipeline()` / `createCustomPipeline()` for building a default or custom `FCPXMLService`; `validateDocument(_:)`; `processFCPXML(from:using:)`; `convertTimecodes(...)`.
+- **ModularUtilities** — `createService()` / `createCustomService()` for building a default or custom `FCPXMLService`; `validateDocument(_:)`; `processFCPXML(from:using:)`; `convertTimecodes(...)`.
 
 ### 2.4 Concurrency
 
 - **Sendable** where appropriate; Swift 6 strict concurrency (`-strict-concurrency=complete`) in CI.
-- **Foundation XML** (XMLDocument, XMLElement), the **PNXML** protocol types (PNXMLDocument, PNXMLElement) that wrap them, and **SwiftTimecode** types are not Sendable. The codebase provides **async/await** APIs but avoids Task-based concurrency over these types.
+- **Foundation XML** (XMLDocument, XMLElement), the **OFKXML** protocol types (OFKXMLDocument, OFKXMLElement) that wrap them, and **SwiftTimecode** types are not Sendable. The codebase provides **async/await** APIs but avoids Task-based concurrency over these types.
 - Use `async/await` for asynchronous operations; use `Task`/`TaskGroup` only where types are Sendable.
 
-### 2.6 Cross-platform XML (iOS support)
+### 2.5 Cross-platform XML (iOS support)
 
-- **XML abstraction:** All document/element access goes through **protocols** (PNXMLNode, PNXMLElement, PNXMLDocument, PNXMLFactory). On **macOS** the default backend is Foundation (FoundationXMLElement, FoundationXMLDocument, FoundationXMLFactory). On **iOS** the backend is AEXML (AEXMLBackendElement, AEXMLBackendDocument, AEXMLBackendFactory). Use **PNXMLDefaultFactory()** so the correct backend is used for the current platform.
+- **XML abstraction:** All document/element access goes through **protocols** (OFKXMLNode, OFKXMLElement, OFKXMLDocument, OFKXMLFactory). On **macOS** the default backend is Foundation (FoundationXMLElement, FoundationXMLDocument, FoundationXMLFactory). On **iOS** the backend is AEXML (AEXMLBackendElement, AEXMLBackendDocument, AEXMLBackendFactory). Use **OFKXMLDefaultFactory()** so the correct backend is used for the current platform.
 - **DTD validation:** Full DTD validation is macOS-only. **FCPXMLDTDValidator** on iOS uses **FCPXMLStructuralValidator** (root, version, resources, element allowlist) and may add a `structuralValidationOnly` warning.
 
-### 2.5 Error handling
+### 2.6 Error handling
 
 - **Sync:** `Result<T, FCPXMLError>` or `do`/`catch`.
 - **Async:** `throw` and propagate `FCPXMLError` (e.g. `parsingFailed(Error)`).
 - **Module errors:** `FCPXMLError`, `FCPXMLLoadError`, `FCPXMLExportError`, `FCPXMLBundleExportError`, `FinalCutPro.FCPXML.ParseError`, `TimelineError`. Parse failures from all layers surface as `FCPXMLError.parsingFailed`.
 
+### 2.7 Reporting and core layers
+
+Workbook **reporting** (`Reporting/`) sits at the top of the stack. It maps already-extracted FCPXML facts into row models and sheet sections. It is **not** where new FCPXML semantics should first be implemented.
+
+When FCPXML grows more complex (nested sync-clips, compound clips, richer adjustments, role inheritance, occlusion, per-span metadata), extend the engine **bottom-up** so CLI, extraction presets, timeline tools, and reports share one foundation:
+
+```text
+XML/              OFKXML protocols and platform backends (Foundation, AEXML)
+    ↓
+Parsing/          Attribute and structure parsing (time, roles, clips, metadata)
+    ↓
+Model/            Typed elements, adjustments, filters, roles, occlusion
+    ↓
+Extraction/       fcpExtract, ExtractionScope, timeline/role context
+    ↓
+Reporting/        Row models, builders, sheet-specific presentation rules
+```
+
+**1. Model and Parsing** — Add or extend typed coverage first:
+
+- New element types in `FCPXMLElementType` and `Model/` (clips, adjustments, filters, resources).
+- Attribute parsing in `Parsing/` and element extensions on `OFKXMLElement`.
+- Shared value types (e.g. transform adjustments, volume spans) that any consumer can reuse.
+
+**2. Extraction** — Expose consistent context for callers:
+
+- Timeline absolute start/end via extraction context (`ExtractedElement`, `ElementContext`).
+- Inherited roles, occlusion, sync/mc/ref-clip traversal rules in `Extraction/`.
+- Presets and scope flags (`ExtractionScope`, `includeDisabled`, `occlusions`) rather than ad hoc XML walks.
+
+**3. Reporting** — Keep thin:
+
+- Builders call `fcpExtract` and shared context helpers (`ReportClipContext`, effect/title contexts).
+- Sheet-specific **presentation policy** only: column order, string formatting, sort order, inclusion allowlists (e.g. which custom filters appear on an effects sheet).
+- Do **not** duplicate timeline math, role resolution, or element traversal that belongs in Extraction/Model.
+
+**Where to put a change**
+
+| Concern | Layer |
+|--------|--------|
+| New `adjust-*` or `filter-*` element understood from XML | Model, Parsing |
+| Correct absolute timeline for a nested clip or effect span | Extraction |
+| Which rows appear on a given workbook sheet | Reporting |
+| Column labels, timecode strings, enabled checkmarks | Reporting |
+
+**Workflow when a report gap appears**
+
+1. Confirm whether the fact already exists in Model or Extraction; use it if so.
+2. If the fact is missing, implement it in Model/Parsing, then wire it through Extraction.
+3. Only then add or adjust Reporting builders to map that fact to rows.
+4. Add **core** tests (parsing, extraction, occlusion, roles) alongside **report** integration tests that assert row shape against an optional local FCPXML fixture.
+
+**Excel export** lives under **`Reporting/Excel/`** and serialises `Report` to XLKit workbooks; it should not introduce new FCPXML interpretation.
+
 ---
 
 ## 3. Project structure
 
-Source layout under **`Sources/PipelineNeo/`**:
+### 3.1 Codebase map
+
+The package builds one library, one CLI executable, and one internal build tool. The tree below shows **every source folder and subfolder**. The library is layered bottom-up (see §2.7): the platform-agnostic **XML** layer feeds **Parsing**, which builds the typed **Model**, which **Extraction** exposes with timeline/role context, which **Reporting** maps into workbook sheets. Cross-cutting subsystems (Classes, Implementations, Protocols, Services, Utilities, Extensions, Timeline, Export, Validation, etc.) sit alongside that pipeline.
+
+```mermaid
+flowchart LR
+    Pkg["OpenFCPXMLKit — Swift Package"]
+    Pkg --> SRC["Sources/"]
+    Pkg --> TST["Tests/"]
+    Pkg --> DOC["Documentation/"]
+
+    SRC --> LIB["OpenFCPXMLKit (library)"]
+    SRC --> CLI["OpenFCPXMLKitCLI (OpenFCPXMLKit-CLI)"]
+    SRC --> GEN["GenerateEmbeddedDTDs (build tool)"]
+
+    %% Library — top-level folders
+    LIB --> An["Analysis"]
+    LIB --> Ann["Annotations"]
+    LIB --> Cl["Classes"]
+    LIB --> Dl["Delegates"]
+    LIB --> Er["Errors"]
+    LIB --> Xt["Extensions"]
+    LIB --> Impl["Implementations"]
+    LIB --> Pro["Protocols"]
+    LIB --> Svc["Services"]
+    LIB --> Ut["Utilities"]
+    LIB --> Ex["Export"]
+    LIB --> Tl["Timeline"]
+    LIB --> Tm["Timing"]
+    LIB --> Val["Validation"]
+    LIB --> Fio["FileIO"]
+    LIB --> Med["Media"]
+    LIB --> Log["Logging"]
+    LIB --> Fmt["Format"]
+    LIB --> Prs["Parsing"]
+    LIB --> Mdl["Model"]
+    LIB --> Extr["Extraction"]
+    LIB --> Rep["Reporting"]
+    LIB --> Xml["XML"]
+    LIB --> Dtd["FCPXML DTDs"]
+
+    %% Model — subfolders
+    Mdl --> M_adj["Adjustments"]
+    Mdl --> M_ani["Animations"]
+    Mdl --> M_att["Attributes"]
+    Mdl --> M_clp["Clips"]
+    Mdl --> M_com["CommonElements"]
+    Mdl --> M_elt["ElementTypes"]
+    Mdl --> M_flt["Filters"]
+    Mdl --> M_occ["Occlusion"]
+    Mdl --> M_pro["Protocols"]
+    Mdl --> M_res["Resources"]
+    Mdl --> M_rol["Roles"]
+    Mdl --> M_str["Structure"]
+
+    %% Extraction — subfolders
+    Extr --> E_ctx["Context"]
+    Extr --> E_eff["Effects"]
+    Extr --> E_pre["Presets"]
+
+    %% Reporting — subfolders
+    Rep --> R_bld["Builders"]
+    Rep --> R_sec["Sections"]
+    Rep --> R_row["Rows"]
+    Rep --> R_sup["Support"]
+    Rep --> R_xls["Excel"]
+
+    %% XML — subfolders
+    Xml --> X_pro["Protocols"]
+    Xml --> X_fnd["Foundation"]
+    Xml --> X_aex["AEXML"]
+
+    %% CLI — subfolders
+    CLI --> C_cmd["Commands"]
+    CLI --> C_opt["Options"]
+    CLI --> C_gen["Generated"]
+
+    C_cmd --> cc_cv["CheckVersion"]
+    C_cmd --> cc_conv["ConvertVersion"]
+    C_cmd --> cc_val["Validate"]
+    C_cmd --> cc_em["ExtractMedia"]
+    C_cmd --> cc_cp["CreateProject"]
+    C_cmd --> cc_er["ExportReport"]
+```
+
+### 3.2 Library folders
+
+Source layout under **`Sources/OpenFCPXMLKit/`**:
 
 | Folder | Purpose |
 |--------|---------|
@@ -81,26 +226,32 @@ Source layout under **`Sources/PipelineNeo/`**:
 | **Classes** | FinalCutPro, FCPXML, FCPXMLElementType, FCPXMLUtility, FCPXMLVersion, FCPXMLRoot, FCPXMLRootVersion, FCPXMLInit, FCPXMLProperties. |
 | **Delegates** | AttributeParserDelegate, FCPXMLParserDelegate (internal). |
 | **Errors** | FCPXMLError, FCPXMLParseError, TimelineError. |
-| **Extensions** | CMTime, XMLElement, XMLDocument (+Modular, +Codable, and non-modular). FCPXML extensions operate on PNXMLElement/PNXMLDocument protocol types. |
+| **Extensions** | CMTime, XMLElement, XMLDocument (+Modular, +Codable, and non-modular). FCPXML extensions operate on OFKXMLElement/OFKXMLDocument protocol types. |
 | **Implementations** | Default implementations of all protocols above. |
 | **Protocols** | All operation protocols. |
 | **Services** | FCPXMLService. |
-| **Utilities** | ModularUtilities, FCPXMLTimeUtilities, SequencePlusAnySequence, XMLElementAncestorWalking, XMLElementSequenceAttributes, etc. |
+| **Utilities** | ModularUtilities, FCPXMLTimeUtilities, FCPXMLUID, FCPXMLCodableConverter, EmbeddedDTDProvider, FCPXMLDTDAllowlistGenerator, ProgressBar, ProgressBarStyle, SequencePlusAnySequence, XMLElementAncestorWalking, XMLElementSequenceAttributes. |
 | **Annotations** | Marker, ChapterMarker, Keyword, Rating, Metadata (creation-oriented). |
 | **Export** | FCPXMLExporter, FCPXMLBundleExporter, FCPXMLExportAsset. |
-| **Timeline** | Timeline, TimelineClip, TimelineFormat. |
+| **Timeline** | Timeline, TimelineClip (TimelineFormat presets live in Timeline.swift). |
 | **Timing** | FCPXMLTimecode. |
 | **Validation** | FCPXMLValidator, FCPXMLDTDValidator, FCPXMLStructuralValidator (cross-platform; used on iOS when DTD unavailable), ValidationResult, ValidationError/Warning, DocumentValidationReport. |
 | **FileIO** | FCPXMLFileLoader. |
-| **Logging** | PipelineLogger, PipelineLogLevel, NoOp/Print/FilePipelineLogger. |
+| **Logging** | ServiceLogger, ServiceLogLevel, NoOp/Print/FileServiceLogger. |
+| **Media** | MediaReference, MediaExtractionResult, MediaCopyResult. |
 | **Format** | ColorSpace. |
 | **Model** | FCPXML element models: Adjustments, Animations, Attributes, Clips, CommonElements, ElementTypes, Filters, Occlusion, Protocols, Resources, Roles, Structure (CollectionFolder, KeywordCollection, etc.). |
 | **Parsing** | XML parsing extensions (Attributes, Clip, Elements, Metadata, Resources, Roles, Root, Time and Frame Rate). |
-| **Extraction** | ExtractionScope, Extract, presets, Context. |
-| **XML** | Platform-agnostic XML layer: Protocols (PNXMLNode, PNXMLElement, PNXMLDocument, PNXMLDTDProtocol, PNXMLFactory), Foundation/ (Foundation backends), AEXML/ (AEXML backends), PNXMLDefaultFactory. |
+| **Extraction** | `fcpExtract`, ExtractedElement, ExtractionScope, ExtractableChildren. **Context/** (DisplayClipName, ElementContext, ElementContextItems/Tools, FrameRateSource), **Effects/** (EffectsCollector, ExtractedEffect), **Presets/** (Captions, Effects, FrameData, Markers, Roles, Titles, plus the base ExtractionPreset). |
+| **Reporting** | Production's Best Friend–style workbook reports. Top-level: Report, ReportOptions, ReportBuilder, ReportBuildProgress. **Builders/** (per-sheet builders: RoleInventory, Markers, Keywords, Titles, Transitions, Effects, SpeedChangeEffects, Summary), **Sections/** and **Rows/** (typed section/row models), **Support/** (RoleInventoryClipCollector, RoleInventoryRowBuilder, RoleSheetOrdering, TimelineBounds, ReportFormatting, ReportRoleExclusion, ReportClipCategory, EffectsReportPolicy, SpeedChangeFormatting, SummaryRoleDurationAggregator), **Excel/** (ReportExcelExport, ReportWorkbookExporter, ReportWorkbookColumnAutoFit via XLKit). Consumes Extraction; owns presentation only — see §2.7. |
+| **XML** | Platform-agnostic XML layer: Protocols (OFKXMLNode, OFKXMLElement, OFKXMLDocument, OFKXMLDTDProtocol, OFKXMLFactory), Foundation/ (Foundation backends), AEXML/ (AEXML backends), OFKXMLDefaultFactory. |
 | **FCPXML DTDs** | Version 1.5–1.14 DTDs. |
 
-**CLI:** `Sources/PipelineNeoCLI/` (commands, options, embedded DTDs).
+**CLI:** `Sources/OpenFCPXMLKitCLI/` — commands (`CheckVersion`, `ConvertVersion`, `Validate`, `ExtractMedia`, `CreateProject`, `ExportReport`), option groups (`GeneralOptions`, `TimelineOptions`, `ExtractionOptions`, `ReportCLIOptions`, `LogOptions`), embedded DTDs (`Generated/EmbeddedDTDs.swift`).
+
+**Internal tool:** `Sources/GenerateEmbeddedDTDs/` — generates embedded DTD source for the CLI.
+
+**Root:** `Version.swift` — package version constant at target root.
 
 ---
 
@@ -111,6 +262,7 @@ Source layout under **`Sources/PipelineNeo/`**:
 - **Types & protocols:** PascalCase (e.g. `FCPXMLParser`, `FCPXMLParsing`).
 - **Variables & functions:** camelCase.
 - **Descriptive names** for all public APIs; avoid abbreviations except common ones (e.g. URL, ID).
+- **No marketing terms in code:** Never use "PBF" or "Production's Best Friend" in source code, code comments, symbol names, or CLI/log output. Name the reporting feature neutrally (e.g. `Report`, `RoleInventoryReportBuilder`, "Excel report", "workbook export"). Those terms may appear only in prose documentation (README, CHANGELOG, Manual, and these agent guides) — never in the codebase itself.
 
 ### 4.2 File names
 
@@ -130,7 +282,7 @@ Source layout under **`Sources/PipelineNeo/`**:
 
 ### 5.1 Swift style
 
-- Swift 6.0 syntax and features; follow [Swift API Design Guidelines](https://swift.org/documentation/api-design-guidelines/).
+- Swift 6.3 syntax and features; follow [Swift API Design Guidelines](https://swift.org/documentation/api-design-guidelines/).
 - Use value types where appropriate; avoid force unwrapping; use optionals and `Result`/`throw` for failure.
 
 ### 5.2 File header (required for new Swift files)
@@ -138,7 +290,7 @@ Source layout under **`Sources/PipelineNeo/`**:
 ```swift
 //
 //  FileName.swift
-//  Pipeline Neo • https://github.com/TheAcharya/pipeline-neo
+//  OpenFCPXMLKit • https://github.com/TheAcharya/OpenFCPXMLKit
 //  © 2026 • Licensed under MIT License
 //
 
@@ -150,7 +302,7 @@ Source layout under **`Sources/PipelineNeo/`**:
 - Replace `FileName.swift` with the **actual** file name.
 - Purpose block: **tab** after `//`, not spaces.
 - Two blank lines between header block and purpose block.
-- Do **not** add `//  PipelineNeo`, `Created by`, or extra `Copyright ©` lines.
+- Do **not** add `Created by`, extra `Copyright ©` lines, or legacy project names.
 
 ### 5.3 Documentation
 
@@ -166,19 +318,27 @@ Source layout under **`Sources/PipelineNeo/`**:
 - **Version conversion** sets root version and **strips elements** not in the target DTD (e.g. adjust-colorConform, adjust-stereo-3D). Per-version DTD validation via `FCPXMLService.validateDocumentAgainstDTD(_:version:)` and `validateDocumentAgainstDeclaredVersion(_:)`.
 - **Timeline** is a value type; manipulation methods (e.g. ripple insert, auto lane) return new instances or results; timestamps (`createdAt`, `modifiedAt`) are updated on mutating operations.
 - **SwiftTimecode:** Use `Timecode(.realTime(seconds:), at: frameRate)` and frame rate cases `.fps23_976`, `.fps24`, `.fps25`, etc. (not the old `._24`, `._25`).
-- **Cross-platform XML:** Use `PNXMLDefaultFactory()` when creating documents/elements so iOS gets the AEXML backend. All parsing and model code uses `any PNXMLDocument` / `any PNXMLElement`; the concrete type is chosen at runtime.
+- **Cross-platform XML:** Use `OFKXMLDefaultFactory()` when creating documents/elements so iOS gets the AEXML backend. All parsing and model code uses `any OFKXMLDocument` / `any OFKXMLElement`; the concrete type is chosen at runtime.
+- **Logging:** `ServiceLogger` protocol with `ServiceLogLevel`; inject via `FCPXMLService` / `FCPXMLUtility` or build from CLI `LogOptions.makeLogger()`.
+- **Service factory:** `ModularUtilities.createService()` returns a fully configured `FCPXMLService`; `createCustomService(...)` accepts custom protocol implementations.
 
 ---
 
-## 7. Tests
+## 7. CLI
 
-- **Location:** `Tests/PipelineNeoTests/`; samples in `Tests/FCPXML Samples/FCPXML/`.
-- **Utilities:** `TestResources.swift`, `FCPXMLTestUtilities.swift` (path resolution, sample loading; `XCTSkip` when a sample is missing).
+Binary name: **`OpenFCPXMLKit-CLI`**. Mutually exclusive modes: `--check-version`, `--convert-version`, `--extension-type` (fcpxmld | fcpxml), `--validate`, `--media-copy`, `--report`, `--create-project` (requires `--width`, `--height`, `--rate`, `--project-version`, output-dir). **`--report`** builds a Production's Best Friend–style Excel workbook (role inventory by default); `--report-full` adds every optional sheet, per-section flags (`--report-markers`, `--report-keywords`, `--report-titles-generators`, `--report-transitions`, `--report-effects`, `--report-speed-change-effects`, `--report-summary`) select individual sheets, and `--exclude-role` / `--report-project` refine output. Log options: `--log`, `--log-level`, `--quiet`. See `Sources/OpenFCPXMLKitCLI/README.md`.
+
+---
+
+## 8. Tests
+
+- **Location:** `Tests/OpenFCPXMLKitTests/`; samples in `Tests/FCPXML Samples/FCPXML/` (58 files).
+- **Utilities:** `FCPXMLTestResources.swift`, `FCPXMLTestUtilities.swift` (path resolution, sample loading; `XCTSkip` when a sample is missing).
 - **Coverage:** Unit, integration, and performance tests; sync and async; all supported frame rates and FCPXML versions. See **Tests/README.md** for categories and how to run tests.
 
 ---
 
-## 8. Git & quality
+## 9. Git & quality
 
 - **Branches:** main, dev, feature/*, bugfix/*.
 - **Commits:** Clear, imperative subject; optional body; reference issues when applicable.
@@ -186,7 +346,7 @@ Source layout under **`Sources/PipelineNeo/`**:
 
 ---
 
-## 9. References
+## 10. References
 
 - **Internal:** [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Documentation/Manual.md](Documentation/Manual.md), [Tests/README.md](Tests/README.md).
 - **External:** [Final Cut Pro XML](https://fcp.cafe/developers/fcpxml/), [SwiftTimecode](https://github.com/orchetect/swift-timecode), [Swift API Design Guidelines](https://swift.org/documentation/api-design-guidelines/), [Swift Concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/).

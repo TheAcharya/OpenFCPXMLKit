@@ -1,0 +1,608 @@
+//
+//  FCPXMLReportFormatting.swift
+//  OpenFCPXMLKit • https://github.com/TheAcharya/OpenFCPXMLKit
+//  © 2026 • Licensed under MIT License
+//
+
+//
+//	Formatting helpers for report output.
+//
+
+import Foundation
+import SwiftTimecode
+import SwiftExtensions
+
+extension FinalCutPro.FCPXML {
+    /// Formats extracted values into workbook report column strings.
+    enum ReportFormatting {
+        static func timecodeString(_ timecode: Timecode) -> String {
+            String(
+                format: "%02d:%02d:%02d:%02d",
+                timecode.hours,
+                timecode.minutes,
+                timecode.seconds,
+                timecode.frames
+            )
+        }
+        
+        static func markerReportType(
+            for configuration: Marker.Configuration
+        ) -> MarkerReportType {
+            switch configuration {
+            case .standard:
+                return .standard
+            case let .toDo(completed: completed):
+                return completed ? .completedToDo : .incompleteToDo
+            case .chapter:
+                return .chapter
+            }
+        }
+        
+        static func roleSubroleDisplay(
+            from roles: [AnyInterpolatedRole]
+        ) -> String {
+            guard let primary = roles.first else { return "" }
+            return roleSubroleDisplay(from: primary)
+        }
+        
+        static func roleSubroleDisplay(
+            from role: AnyInterpolatedRole
+        ) -> String {
+            let wrapped = role.titleCasedDefaultRole(derivedOnly: true).wrapped
+            
+            if let subRole = wrapped.subRole, !subRole.isEmpty {
+                return "\(wrapped.role.titleCased) ▸ \(subRole)"
+            }
+            
+            return wrapped.role.titleCased
+        }
+        
+        /// Role display for Selected Roles inventory rows (workbook export casing).
+        static func inventoryRoleSubroleDisplay(
+            from role: AnyInterpolatedRole
+        ) -> String {
+            switch role.wrapped {
+            case let .video(videoRole):
+                return inventoryRoleDisplay(
+                    mainRole: videoRole.role,
+                    subRole: videoRole.subRole,
+                    isBuiltInMainRole: videoRole.isMainRoleBuiltIn
+                )
+            case let .audio(audioRole):
+                return inventoryRoleDisplay(
+                    mainRole: audioRole.role,
+                    subRole: audioRole.subRole,
+                    isBuiltInMainRole: audioRole.isMainRoleBuiltIn
+                )
+            case let .caption(captionRole):
+                let mainDisplay = inventoryMainRoleDisplay(
+                    mainRole: captionRole.role,
+                    isBuiltInMainRole: captionRole.isMainRoleBuiltIn
+                )
+                
+                let languageCode = captionRole.captionFormat
+                    .split(separator: ".", maxSplits: 1)
+                    .dropFirst()
+                    .first
+                    .map(String.init)
+                
+                guard let languageCode, !languageCode.isEmpty else { return mainDisplay }
+                return "\(mainDisplay) ▸ \(inventoryCaptionLanguageDisplay(languageCode))"
+            }
+        }
+        
+        private static func inventoryRoleDisplay(
+            mainRole: String,
+            subRole: String?,
+            isBuiltInMainRole: Bool
+        ) -> String {
+            let mainDisplay = inventoryMainRoleDisplay(
+                mainRole: mainRole,
+                isBuiltInMainRole: isBuiltInMainRole
+            )
+            
+            guard let subRole, !subRole.isEmpty else {
+                if usesBlankSubroleWhenEmpty(mainRole: mainRole) {
+                    return "\(mainDisplay) ▸ <Blank>"
+                }
+                return mainDisplay
+            }
+            
+            if subRole == "<Blank>" {
+                return "\(mainDisplay) ▸ <Blank>"
+            }
+            
+            return "\(mainDisplay) ▸ \(inventorySubroleDisplay(subRole))"
+        }
+        
+        private static func inventoryMainRoleDisplay(
+            mainRole: String,
+            isBuiltInMainRole: Bool
+        ) -> String {
+            if isBuiltInMainRole {
+                if mainRole == mainRole.uppercased(), !mainRole.contains(" ") {
+                    return mainRole
+                }
+                return mainRole.titleCased
+            }
+            
+            if mainRole == mainRole.uppercased(), !mainRole.contains(" ") {
+                return mainRole
+            }
+            
+            return mainRole.wordTitleCased
+        }
+        
+        private static func usesBlankSubroleWhenEmpty(mainRole: String) -> Bool {
+            switch mainRole.lowercased() {
+            case "dialogue":
+                return true
+            default:
+                return false
+            }
+        }
+        
+        private static func inventorySubroleDisplay(_ subRole: String) -> String {
+            if subRole == "<Blank>" {
+                return "<Blank>"
+            }
+            
+            if subRole.contains("-") {
+                let parts = subRole.split(separator: "-", omittingEmptySubsequences: false)
+                if parts.count == 2,
+                   parts[0] == parts[0].uppercased(),
+                   parts[0] != parts[0].lowercased()
+                {
+                    return subRole
+                }
+                
+                return parts.map { part in
+                    String(part).wordTitleCased
+                }.joined(separator: "-")
+            }
+            
+            if subRole.contains("_") {
+                return subRole
+                    .split(separator: "_", omittingEmptySubsequences: false)
+                    .map { String($0).wordTitleCased }
+                    .joined(separator: "_")
+            }
+            if subRole == subRole.uppercased(), subRole != subRole.lowercased() {
+                return subRole.wordTitleCased
+            }
+            
+            if subRole.contains(" ") {
+                return subRole.wordTitleCased
+            }
+            
+            if subRole.dropFirst().contains(where: \.isUppercase) {
+                return subRole.prefix(1).uppercased() + subRole.dropFirst().lowercased()
+            }
+            
+            return subRole.titleCased
+        }
+        
+        private static func inventoryCaptionLanguageDisplay(_ languageCode: String) -> String {
+            if languageCode.contains("-") {
+                return languageCode
+            }
+            
+            return languageCode.prefix(1).uppercased() + languageCode.dropFirst().lowercased()
+        }
+        
+        /// Combines role displays such as `Video` and `Dialogue ▸ Mix L` into workbook role fields.
+        static func inventoryCombinedRoleField(from displays: [String]) -> String {
+            guard !displays.isEmpty else { return "" }
+            
+            var mainOnlyRoles: [String] = []
+            var subrolePairs: [(main: String, sub: String)] = []
+            
+            for display in displays {
+                if let separator = display.range(of: " ▸ ") {
+                    let mainRole = String(display[..<separator.lowerBound])
+                    let subrole = String(display[separator.upperBound...])
+                    subrolePairs.append((mainRole, subrole))
+                } else {
+                    mainOnlyRoles.append(display)
+                }
+            }
+            
+            mainOnlyRoles = mainOnlyRoles.removingDuplicates()
+            subrolePairs = deduplicatedSubrolePairs(subrolePairs)
+            subrolePairs = subrolePairs.filter { pair in
+                guard pair.sub == "<Blank>" else { return true }
+                
+                let hasOtherSubrolesForMain = subrolePairs.contains {
+                    $0.main == pair.main && $0.sub != "<Blank>"
+                }
+                return !hasOtherSubrolesForMain
+            }
+            
+            let hasVideo = mainOnlyRoles.contains("Video")
+            var segments: [String] = []
+            
+            let sortedMainOnlyRoles = mainOnlyRoles.sorted { lhs, rhs in
+                if lhs == "Video" { return true }
+                if rhs == "Video" { return false }
+                return lhs.localizedStandardCompare(rhs) == .orderedAscending
+            }
+            segments.append(contentsOf: sortedMainOnlyRoles)
+            
+            let mainRoles = subrolePairs.map(\.main).removingDuplicates().sorted()
+            for mainRole in mainRoles {
+                let subroles = subrolePairs
+                    .filter { $0.main == mainRole }
+                    .map(\.sub)
+                    .removingDuplicates()
+                    .sorted {
+                        inventoryGroupedSubroleSortKey($0, preferMixFirst: !hasVideo)
+                            < inventoryGroupedSubroleSortKey($1, preferMixFirst: !hasVideo)
+                    }
+                
+                guard !subroles.isEmpty else { continue }
+                
+                if subroles == ["<Blank>"] {
+                    // A lone built-in audio role with no explicit subrole uses Final Cut Pro's
+                    // implicit default subrole (for example `Dialogue ▸ Dialogue-1`). When the
+                    // same main role carries sibling subroles, the blank component is dropped
+                    // by the filter above instead.
+                    segments.append("\(mainRole) ▸ \(mainRole)-1")
+                } else if hasVideo {
+                    let firstSubrole = subroles[0]
+                    let remainingSubroles = subroles.dropFirst()
+                    var segment = "\(mainRole) ▸ \(firstSubrole)"
+                    if !remainingSubroles.isEmpty {
+                        segment += ", " + remainingSubroles.joined(separator: ", ")
+                    }
+                    segments.append(segment)
+                } else {
+                    segments.append("\(mainRole) ▸ \(subroles.joined(separator: ", "))")
+                }
+            }
+            
+            return segments.joined(separator: ", ")
+        }
+        
+        /// Combines role displays while preserving the supplied order (no sorting) and keeping
+        /// every subrole, including `<Blank>` channels. Used for synced-audio channel lists,
+        /// which Final Cut Pro reports in `srcCh` order exactly as authored.
+        static func inventoryChannelOrderedRoleField(from displays: [String]) -> String {
+            var mainOrder: [String] = []
+            var subrolesByMain: [String: [String]] = [:]
+            var mainOnly: [String] = []
+            var seen = Set<String>()
+            
+            for display in displays {
+                guard seen.insert(display).inserted else { continue }
+                
+                guard let separator = display.range(of: " ▸ ") else {
+                    if !mainOnly.contains(display) { mainOnly.append(display) }
+                    continue
+                }
+                
+                let mainRole = String(display[..<separator.lowerBound])
+                let subrole = String(display[separator.upperBound...])
+                
+                if subrolesByMain[mainRole] == nil {
+                    mainOrder.append(mainRole)
+                    subrolesByMain[mainRole] = []
+                }
+                subrolesByMain[mainRole]?.append(subrole)
+            }
+            
+            var segments = mainOnly
+            for mainRole in mainOrder {
+                let subroles = subrolesByMain[mainRole] ?? []
+                segments.append(
+                    subroles.isEmpty
+                        ? mainRole
+                        : "\(mainRole) ▸ \(subroles.joined(separator: ", "))"
+                )
+            }
+            
+            return segments.joined(separator: ", ")
+        }
+        
+        private static func deduplicatedSubrolePairs(
+            _ pairs: [(main: String, sub: String)]
+        ) -> [(main: String, sub: String)] {
+            var seen = Set<String>()
+            var results: [(main: String, sub: String)] = []
+            
+            for pair in pairs {
+                let key = "\(pair.main)\u{0000}\(pair.sub)"
+                guard seen.insert(key).inserted else { continue }
+                results.append(pair)
+            }
+            
+            return results
+        }
+        
+        private static func inventoryGroupedSubroleSortRank(
+            _ subrole: String,
+            preferMixFirst: Bool
+        ) -> Int {
+            let lower = subrole.lowercased()
+            if lower.hasPrefix("mix") { return preferMixFirst ? 0 : 2 }
+            if lower.hasPrefix("boom") { return preferMixFirst ? 1 : 0 }
+            if lower.hasPrefix("r_") { return 3 }
+            if subrole == "<Blank>" { return 4 }
+            return 2
+        }
+        
+        private static func inventoryGroupedSubroleSortKey(
+            _ subrole: String,
+            preferMixFirst: Bool
+        ) -> (Int, Int, String) {
+            let normalized = normalizedSubroleToken(subrole)
+            return (
+                inventoryGroupedSubroleSortRank(subrole, preferMixFirst: preferMixFirst),
+                inventoryChannelOrderRank(for: normalized),
+                normalized
+            )
+        }
+        
+        private static func normalizedSubroleToken(_ subrole: String) -> String {
+            subrole
+                .lowercased()
+                .replacingOccurrences(of: " ", with: "")
+                .replacingOccurrences(of: "_", with: "")
+                .replacingOccurrences(of: "-", with: "")
+        }
+        
+        private static func inventoryChannelOrderRank(for normalizedSubrole: String) -> Int {
+            switch normalizedSubrole {
+            case "mixl":
+                return 0
+            case "mixr":
+                return 1
+            case "boom1":
+                return 2
+            case "boom2":
+                return 3
+            case "rslate":
+                return 4
+            case "rfahd":
+                return 5
+            default:
+                return 99
+            }
+        }
+        
+        private static func inventorySubroleSortRank(_ subrole: String) -> Int {
+            inventoryGroupedSubroleSortRank(subrole, preferMixFirst: true)
+        }
+        
+        /// Main role name only (no subrole), as used on the Markers report sheet.
+        static func mainRoleDisplay(
+            from role: AnyInterpolatedRole
+        ) -> String {
+            let wrapped = role.titleCasedDefaultRole(derivedOnly: true).wrapped
+            
+            if case let .video(videoRole) = wrapped, !videoRole.isMainRoleBuiltIn {
+                return videoRole.role.wordTitleCased
+            }
+            
+            return wrapped.role.titleCased
+        }
+        
+        static func metadataString(
+            from metadata: [Metadata.Metadatum],
+            key: Metadata.Key
+        ) -> String {
+            metadata
+                .first(where: { $0.key == key })?
+                .value ?? ""
+        }
+        
+        static func enabledCheckmark(for element: any OFKXMLElement) -> String {
+            element.fcpGetEnabled(default: true) ? "✓" : "✗"
+        }
+        
+        static func appleCheckmark(forAppleSupplied isAppleSupplied: Bool) -> String {
+            isAppleSupplied ? "✓" : ""
+        }
+        
+        static func appleCheckmarkForTitle(isAppleSupplied: Bool) -> String {
+            isAppleSupplied ? "✓" : "✗"
+        }
+        
+        static func markerRoleSubrole(
+            for extracted: some FCPXMLExtractedElement,
+            roleDisplayPreference: RoleDisplayPreference = .builtIn
+        ) -> String {
+            guard let preferred = extracted.preferredRole(
+                for: .markers,
+                using: roleDisplayPreference
+            ) else { return "" }
+            return mainRoleDisplay(from: preferred.collapsingSubRole())
+        }
+        
+        /// Main-role labels for a marker, one per host component.
+        ///
+        /// When the host clip carries both video and audio, the marker is reported once per
+        /// component (for example `Video` and `Dialogue`), matching Final Cut Pro's marker
+        /// role attribution. Single-component hosts (video-only, audio-only, titles) yield a
+        /// single label.
+        static func markerRoleDisplays(
+            for extracted: some FCPXMLExtractedElement,
+            roleDisplayPreference: RoleDisplayPreference = .builtIn
+        ) -> [String] {
+            let preferred = markerRoleSubrole(
+                for: extracted,
+                roleDisplayPreference: roleDisplayPreference
+            )
+            
+            guard let clipContext = extracted.ancestorClipContext() else {
+                return preferred.isEmpty ? [] : [preferred]
+            }
+            
+            let host = clipContext.element
+            let resources = extracted.resources
+            
+            guard host.fcpCarriesVideo(resources: resources),
+                  host.fcpCarriesAudio(resources: resources)
+            else {
+                return preferred.isEmpty ? [] : [preferred]
+            }
+            
+            let roles = extracted.inheritedRoles(for: .markers)
+            
+            let videoDisplay = firstMainRoleDisplay(in: roles, ofType: .video) ?? "Video"
+            let audioDisplay = firstMainRoleDisplay(in: roles, ofType: .audio)
+                ?? (preferred.isEmpty ? "Dialogue" : preferred)
+            
+            return [videoDisplay, audioDisplay]
+        }
+        
+        private static func firstMainRoleDisplay(
+            in roles: [AnyInterpolatedRole],
+            ofType roleType: RoleType
+        ) -> String? {
+            for role in roles where role.roleType == roleType {
+                let display = mainRoleDisplay(from: role.collapsingSubRole())
+                if !display.isEmpty { return display }
+            }
+            return nil
+        }
+        
+        static func titleRoleSubrole(
+            for extracted: some FCPXMLExtractedElement,
+            roleDisplayPreference: RoleDisplayPreference = .builtIn
+        ) -> String {
+            guard extracted.element.fcpElementType == .title else {
+                return markerRoleSubrole(
+                    for: extracted,
+                    roleDisplayPreference: roleDisplayPreference
+                )
+            }
+            
+            return "Titles"
+        }
+        
+        static func effectRoleSubrole(
+            for effect: ExtractedEffect,
+            roleDisplayPreference: RoleDisplayPreference = .builtIn
+        ) -> String {
+            switch effect.kind {
+            case .filterAudio, .volume, .implicitVolume:
+                guard let preferred = effect.host.preferredRole(
+                    for: .audioEffects,
+                    using: roleDisplayPreference
+                ) else { return "" }
+                return mainRoleDisplay(from: preferred.collapsingSubRole())
+            case .filterVideo, .transform, .compositing, .spatialConform:
+                if effect.host.element.fcpElementType == .title {
+                    return titleRoleSubrole(
+                        for: effect.host,
+                        roleDisplayPreference: roleDisplayPreference
+                    )
+                }
+                guard let preferred = effect.host.preferredRole(
+                    for: .videoEffects,
+                    using: roleDisplayPreference
+                ) else { return "" }
+                return mainRoleDisplay(from: preferred.collapsingSubRole())
+            }
+        }
+        
+        static func keywordRoleDisplays(
+            for extracted: some FCPXMLExtractedElement,
+            roleDisplayPreference: RoleDisplayPreference = .builtIn
+        ) -> [String] {
+            let roles = extracted.keywordInheritedRoles()
+            
+            let displays = roles
+                .map { mainRoleDisplay(from: $0.collapsingSubRole()) }
+                .removingDuplicates()
+            
+            guard !displays.isEmpty else { return [""] }
+            
+            return displays.sorted { lhs, rhs in
+                let lhsRank = RoleDisplayPreference.keywordSortRank(for: lhs)
+                let rhsRank = RoleDisplayPreference.keywordSortRank(for: rhs)
+                if lhsRank != rhsRank { return lhsRank < rhsRank }
+                return lhs.localizedStandardCompare(rhs) == .orderedAscending
+            }
+        }
+        
+        static func transitionCategory(
+            for placement: Transition.SpinePlacement
+        ) -> String {
+            switch placement {
+            case .primary:
+                return "Primary transition"
+            case .secondary:
+                return "Secondary transition"
+            }
+        }
+        
+        static func enabledCheckmark(for effect: ExtractedEffect) -> String {
+            let isEnabled = EffectsCollector.isEffectEnabled(
+                effectElement: effect.effectElement,
+                host: effect.host.element
+            )
+            return enabledCheckmark(forEnabled: isEnabled)
+        }
+        
+        static func enabledCheckmark(forEnabled isEnabled: Bool) -> String {
+            isEnabled ? "✓" : "✗"
+        }
+        
+        /// Marker label format used on Selected Roles inventory rows.
+        static func inventoryMarkerLabel(
+            name: String,
+            configuration: Marker.Configuration
+        ) -> String {
+            switch configuration {
+            case .standard:
+                return name
+            case .chapter:
+                return "\(name) (Chapter)"
+            case let .toDo(completed: completed):
+                return completed
+                    ? "\(name) (Completed to-do)"
+                    : "\(name) (Incomplete to-do)"
+            }
+        }
+        
+        static func effectSettingsDisplay(for effect: ExtractedEffect) -> String {
+            switch effect.settings {
+            case .empty:
+                return ""
+            case .text(let value):
+                return value
+            case .decibels(let amount):
+                return String(format: "%.1f dB", amount)
+            case .opacityPercent(let amount):
+                return String(format: "Opacity %.1f%%", amount)
+            case .conformType(let typeString):
+                return typeString.prefix(1).uppercased() + typeString.dropFirst()
+            case .transformCenter(let position):
+                return String(
+                    format: "Center %.1f px, %.1f px",
+                    position.x,
+                    position.y
+                )
+            case .transformRotation(let rotation):
+                return String(format: "Rotation %.1f°", rotation)
+            case .transformScale(let scale):
+                let averageScale = ((scale.x + scale.y) / 2) * 100
+                return String(format: "Scale %.1f%%", averageScale)
+            }
+        }
+    }
+}
+
+private extension String {
+    var titleCased: String {
+        guard !isEmpty else { return self }
+        return prefix(1).uppercased() + dropFirst()
+    }
+    
+    var wordTitleCased: String {
+        split(separator: " ").map { word in
+            word.prefix(1).uppercased() + word.dropFirst().lowercased()
+        }.joined(separator: " ")
+    }
+}

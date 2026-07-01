@@ -10,12 +10,14 @@ Extract elements from an FCPXML tree by type or using **presets**. **FinalCutPro
 
 **FCPXMLExtractionPreset** defines a preset with a typed result. Built-in presets:
 
-- **CaptionsExtractionPreset** — Captions with typed result
+- **CaptionsExtractionPreset** — Captions with typed result (**ExtractedCaption**)
 - **MarkersExtractionPreset** — Markers (returns e.g. **ExtractedMarker**)
 - **RolesExtractionPreset** — Role-based extraction
 - **FrameDataPreset** — Frame data (e.g. **ExtractedFrameData**)
+- **TitlesExtractionPreset** (`.titles`) — Titles visible on the main timeline (`[ExtractedElement]`)
+- **EffectsExtractionPreset** (`.effects`) — Semantic clip effects visible on the main timeline (`[ExtractedEffect]`, with `kind`, `name`, `settings`, `isAppleSupplied`)
 
-Call **extract(types:scope:)** on an `FCPXMLElement` (or **fcpExtract(types:scope:)** on `XMLElement`) for `[FinalCutPro.FCPXML.ExtractedElement]`. Call **extract(preset:scope:)** for a preset's result type. APIs are async.
+Call **extract(types:scope:)** on an `FCPXMLElement` (or **fcpExtract(types:scope:)** on `XMLElement`) for `[FinalCutPro.FCPXML.ExtractedElement]`. Call **extract(preset:scope:)** for a preset's result type. APIs are async. The `TitlesExtractionPreset` and `EffectsExtractionPreset` presets are also the basis of the Titles and Effects report sections — see [19 — Reporting & Excel Export](19-Reporting.md).
 
 ```swift
 let element: FCPXMLElement = // ... e.g. from document
@@ -46,7 +48,7 @@ let markersResult = await element.extract(
 Sync and async on **FCPXMLService** and **FCPXMLUtility**:
 
 ```swift
-let service = ModularUtilities.createPipeline()
+let service = ModularUtilities.createService()
 let document = try service.parseFCPXML(from: url)
 let baseURL = url.deletingLastPathComponent()
 
@@ -74,3 +76,4 @@ for entry in copyResult.failed { /* error */ }
 ## Next
 
 - [11 — Media Processing](11-Media-Processing.md) — MIME type, asset validation, silence, duration, parallel I/O.
+- [19 — Reporting & Excel Export](19-Reporting.md) — build reports from extracted elements and export to `.xlsx`.

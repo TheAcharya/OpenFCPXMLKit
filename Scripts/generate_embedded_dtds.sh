@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# Regenerate EmbeddedDTDs.swift from Sources/PipelineNeo/FCPXML DTDs.
+# Regenerate EmbeddedDTDs.swift from Sources/OpenFCPXMLKit/FCPXML DTDs.
 # Invokes the GenerateEmbeddedDTDs executable; output is written to
-# Sources/PipelineNeoCLI/Generated/EmbeddedDTDs.swift.
+# Sources/OpenFCPXMLKitCLI/Generated/EmbeddedDTDs.swift.
 #
 # Run from anywhere; the script finds the package root (directory containing Package.swift).
 # Usage: ./Scripts/generate_embedded_dtds.sh
@@ -19,7 +19,7 @@ if [[ ! -f "$PACKAGE_ROOT/Package.swift" ]]; then
     exit 1
 fi
 
-DTD_DIR="$PACKAGE_ROOT/Sources/PipelineNeo/FCPXML DTDs"
+DTD_DIR="$PACKAGE_ROOT/Sources/OpenFCPXMLKit/FCPXML DTDs"
 if [[ ! -d "$DTD_DIR" ]]; then
     echo "Error: DTD directory not found: $DTD_DIR" >&2
     exit 1

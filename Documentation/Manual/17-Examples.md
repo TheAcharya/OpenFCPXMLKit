@@ -98,8 +98,8 @@ do {
 Use `--create-project` with width, height, frame rate, and output directory. The project file name is derived from the format (e.g. `1920x1080@25p.fcpxml`). The output is validated against the FCPXML DTD before writing.
 
 ```bash
-pipeline-neo --create-project --width 1920 --height 1080 --rate 25 /path/to/output-dir
-pipeline-neo --create-project --width 640 --height 480 --rate 29.97 --project-version 1.13 /path/to/output-dir
+OpenFCPXMLKit-CLI --create-project --width 1920 --height 1080 --rate 25 /path/to/output-dir
+OpenFCPXMLKit-CLI --create-project --width 640 --height 480 --rate 29.97 --project-version 1.13 /path/to/output-dir
 ```
 
 ---
@@ -107,7 +107,7 @@ pipeline-neo --create-project --width 640 --height 480 --rate 29.97 --project-ve
 ## Create an empty project with custom format (dimensions and frame rate)
 
 ```swift
-import PipelineNeo
+import OpenFCPXMLKit
 import CoreMedia
 
 // Custom 500×500 at 25 fps
@@ -137,7 +137,7 @@ Use **TimelineFormat** presets (e.g. `hd1080p(frameDuration:colorSpace:)`) with 
 ## Complete timeline workflow
 
 ```swift
-import PipelineNeo
+import OpenFCPXMLKit
 import CoreMedia
 
 let format = TimelineFormat.hd1080p(
@@ -201,7 +201,7 @@ print("Exported to: \(bundleURL.path)")
 ## Validate assets before export
 
 ```swift
-import PipelineNeo
+import OpenFCPXMLKit
 
 let validator = AssetValidator()
 let detector = MIMETypeDetector()
@@ -228,6 +228,30 @@ for clip in timeline.clips {
     }
 }
 ```
+
+---
+
+## Build an Excel report
+
+```swift
+import OpenFCPXMLKit
+
+let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
+
+// Role inventory + every optional sheet, excluding a role
+var options = FinalCutPro.FCPXML.ReportOptions.full
+options.excludedRoles = ["Effects"]
+
+let report = try await fcpxml.buildReport(options: options) { phase in
+    print("Building \(phase.rawValue)…")
+}
+
+let outputURL = URL(fileURLWithPath: "/path/to/Report.xlsx")
+try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: outputURL)
+print("Wrote \(report.roleInventory?.roleSheets.count ?? 0) role sheet(s)")
+```
+
+See [19 — Reporting & Excel Export](19-Reporting.md) for the full reporting API.
 
 ---
 
