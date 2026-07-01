@@ -81,7 +81,7 @@ Detect edit points (cuts) on the first project spine: boundary type (hard cut, t
 **EditPoint** has `index`, `timelineOffset` (FCPXML time string), `editType`, `sourceRelationship`, `transitionName`, clip names and refs.
 
 ```swift
-let service = ModularUtilities.createPipeline()
+let service = ModularUtilities.createService()
 let document = try service.parseFCPXML(from: data)
 let result = service.detectCuts(in: document)
 

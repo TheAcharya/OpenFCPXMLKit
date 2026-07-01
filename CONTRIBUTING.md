@@ -1,17 +1,22 @@
-# Contributing to Pipeline Neo
-We love your input! We want to make contributing to this project as easy and transparent as possible, whether it's:
+# Contributing to OpenFCPXMLKit
 
-- Reporting a bug
-- Discussing the current state of the code
+Please note that this project is not under active or regular development, so response times to pull requests may be slow. The codebase is also highly complex, so please take time to understand its structure and logic before proposing changes.
+
+We appreciate your input! If you'd like to contribute, whether by:
+
 - Submitting a fix
 - Proposing new features
-- Becoming a maintainer
+- Discussing the current state of the code
 
-## Using Github's Tools
-We use github to host code, to track issues and feature requests, as well as accept pull requests.
+pull requests are the best way to do so.
 
-## Github Flow
-Pull requests are the best way to propose changes to the codebase (we use [Github Flow](https://docs.github.com/en/get-started/quickstart/github-flow)). We actively welcome your pull requests:
+## Using GitHub's Tools
+
+We use GitHub to host the code and accept pull requests.
+
+## GitHub Flow
+
+Pull requests are the best way to propose changes to the codebase (we use [GitHub Flow](https://docs.github.com/en/get-started/quickstart/github-flow)):
 
 1. Fork the repo and create your branch from `main`.
 2. If you've added code that should be tested, add tests.
@@ -20,14 +25,10 @@ Pull requests are the best way to propose changes to the codebase (we use [Githu
 5. Make sure your code lints.
 6. Issue that pull request!
 
-## Joining Our Team
-If this project is in the area of your interest and you would like to join the team, please get in touch with [me](https://bsky.app/profile/vigneswaranrajkumar.com).
+## Software Licence
 
-## Software License
-When you submit code changes, your submissions are understood to be under the same [MIT License](http://choosealicense.com/licenses/mit/) that covers the project. Feel free to contact the maintainers if that's a concern.
+When you submit code changes, your submissions are understood to be under the same [MIT Licence](http://choosealicense.com/licenses/mit/) that covers the project.
 
-## Report Bugs
-We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/TheAcharya/pipeline-neo/issues); it's that easy!
+## Licence
 
-## License
-By contributing, you agree that your contributions will be licensed under its MIT License.
+By contributing, you agree that your contributions will be licensed under its MIT Licence.

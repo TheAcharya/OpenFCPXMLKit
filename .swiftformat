@@ -23,7 +23,7 @@
 --funcattributes prev-line
 --groupedextension "MARK: %c"
 --guardelse auto
---header "\n {file}\n Pipeline Neo • https://github.com/TheAcharya/pipeline-neo\n Licensed under MIT License\n"
+--header "\n {file}\n OpenFCPXMLKit • https://github.com/TheAcharya/OpenFCPXMLKit\n Licensed under MIT License\n"
 --hexgrouping 4,8
 --hexliteralcase uppercase
 --ifdef no-indent

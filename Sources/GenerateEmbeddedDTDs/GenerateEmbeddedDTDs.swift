@@ -1,9 +1,9 @@
 //
 //  GenerateEmbeddedDTDs.swift
-//  Pipeline Neo • https://github.com/TheAcharya/pipeline-neo
+//  OpenFCPXMLKit • https://github.com/TheAcharya/OpenFCPXMLKit
 //  © 2026 • Licensed under MIT License
 //
-//  Generates EmbeddedDTDs.swift from Sources/PipelineNeo/FCPXML DTDs so the CLI
+//  Generates EmbeddedDTDs.swift from Sources/OpenFCPXMLKit/FCPXML DTDs so the CLI
 //  can run as a single binary without a resource bundle. Run from package root:
 //  swift run GenerateEmbeddedDTDs  or  ./Scripts/generate_embedded_dtds.sh
 //
@@ -28,8 +28,8 @@ struct GenerateEmbeddedDTDs {
     static func main() throws {
         let fileManager = FileManager.default
         let cwd = fileManager.currentDirectoryPath
-        let dtdDir = (cwd as NSString).appendingPathComponent("Sources/PipelineNeo/FCPXML DTDs")
-        let outDir = (cwd as NSString).appendingPathComponent("Sources/PipelineNeoCLI/Generated")
+        let dtdDir = (cwd as NSString).appendingPathComponent("Sources/OpenFCPXMLKit/FCPXML DTDs")
+        let outDir = (cwd as NSString).appendingPathComponent("Sources/OpenFCPXMLKitCLI/Generated")
         let outPath = (outDir as NSString).appendingPathComponent("EmbeddedDTDs.swift")
 
         guard let contents = try? fileManager.contentsOfDirectory(atPath: dtdDir) else {
@@ -61,7 +61,7 @@ struct GenerateEmbeddedDTDs {
         let header = """
         //
         //  EmbeddedDTDs.swift
-        //  Pipeline Neo • https://github.com/TheAcharya/pipeline-neo
+        //  OpenFCPXMLKit • https://github.com/TheAcharya/OpenFCPXMLKit
         //  © 2026 • Licensed under MIT License
         //
         //

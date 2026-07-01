@@ -9,7 +9,7 @@
 Build a **Timeline** with **TimelineClip** instances and an optional **TimelineFormat**:
 
 ```swift
-import PipelineNeo
+import OpenFCPXMLKit
 import CoreMedia
 
 let clip = TimelineClip(

@@ -1,6 +1,6 @@
-# Pipeline Neo — User Manual
+# OpenFCPXMLKit — User Manual
 
-Complete manual and usage guide for Pipeline Neo, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration.
+Complete manual and usage guide for OpenFCPXMLKit, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration.
 
 ---
 
@@ -15,7 +15,7 @@ From the index you can reach all chapters:
 - **01** — Overview (architecture, entry points, protocols)
 - **02** — Loading & Parsing (file loader, versions, element types)
 - **03** — Timecode & Timing (SwiftTimecode, FCPXMLTimecode, CMTime)
-- **04** — Pipeline & Logging (FCPXMLService, ModularUtilities)
+- **04** — Service & Logging (FCPXMLService, ModularUtilities)
 - **05** — Validation & Cut Detection
 - **06** — Version Conversion & Export
 - **07** — Timeline & Export
@@ -27,13 +27,15 @@ From the index you can reach all chapters:
 - **13** — XML Extensions (XMLDocument, XMLElement)
 - **14** — High-Level Model (FinalCutPro.FCPXML)
 - **15** — Errors & Utilities
-- **16** — CLI (pipeline-neo)
+- **16** — CLI (OpenFCPXMLKit-CLI)
 - **17** — Examples (workflows and code)
+- **18** — Cross-Platform & iOS (OFKXML abstraction, Foundation vs AEXML)
+- **19** — Reporting & Excel Export (report builder, sections, XLKit workbook)
 
 ---
 
 ## Quick links
 
 - **Documentation index:** [README.md](README.md)
-- **CLI reference:** [../Sources/PipelineNeoCLI/README.md](../Sources/PipelineNeoCLI/README.md)
+- **CLI reference:** [../Sources/OpenFCPXMLKitCLI/README.md](../Sources/OpenFCPXMLKitCLI/README.md)
 - **Project README:** [../README.md](../README.md)

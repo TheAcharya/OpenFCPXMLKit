@@ -8,17 +8,17 @@
 
 FCPXML document and element APIs are defined on **protocol types** so the same code works on macOS and iOS:
 
-- **PNXMLDocument** — document protocol (parse, root, metadata, serialization). On macOS the default implementation wraps Foundation `XMLDocument`; on iOS it wraps AEXML.
-- **PNXMLElement** — element protocol (attributes, children, serialization). On macOS the default wraps Foundation `XMLElement`; on iOS it wraps AEXML.
-- **PNXMLFactory** — factory for creating documents and elements. Use **PNXMLDefaultFactory()** to get the correct backend for the current platform.
+- **OFKXMLDocument** — document protocol (parse, root, metadata, serialization). On macOS the default implementation wraps Foundation `XMLDocument`; on iOS it wraps AEXML.
+- **OFKXMLElement** — element protocol (attributes, children, serialization). On macOS the default wraps Foundation `XMLElement`; on iOS it wraps AEXML.
+- **OFKXMLFactory** — factory for creating documents and elements. Use **OFKXMLDefaultFactory()** to get the correct backend for the current platform.
 
-All `fcpx*` extensions below apply to `PNXMLDocument` and `PNXMLElement`; the concrete type is chosen at runtime. See [18 — Cross-Platform & iOS](18-Cross-Platform-iOS.md) for details.
+All `fcpx*` extensions below apply to `OFKXMLDocument` and `OFKXMLElement`; the concrete type is chosen at runtime. See [18 — Cross-Platform & iOS](18-Cross-Platform-iOS.md) for details.
 
 ---
 
-## PNXMLDocument extension API
+## OFKXMLDocument extension API
 
-**PNXMLDocument** (and thus any conforming type) gains FCPXML-specific properties and methods. Prefer modular overloads (e.g. `addResource(_:using: documentManager)`) when injecting dependencies.
+**OFKXMLDocument** (and thus any conforming type) gains FCPXML-specific properties and methods. Prefer modular overloads (e.g. `addResource(_:using: documentManager)`) when injecting dependencies.
 
 | Property / method | Purpose |
 |-------------------|--------|
@@ -38,7 +38,7 @@ All `fcpx*` extensions below apply to `PNXMLDocument` and `PNXMLElement`; the co
 | `init(contentsOfFCPXML:)` | Load from URL |
 
 ```swift
-// Load via loader or parser (returns any PNXMLDocument)
+// Load via loader or parser (returns any OFKXMLDocument)
 let document = try await FCPXMLFileLoader().load(from: url)
 let version = document.fcpxmlVersion
 let eventNames = document.fcpxEventNames
@@ -51,9 +51,9 @@ try document.validateFCPXMLAgainst(version: .v1_14)
 
 ---
 
-## PNXMLElement extension API
+## OFKXMLElement extension API
 
-**PNXMLElement** gains `fcpx*` attribute accessors and structural helpers. Use `element.setAttribute(name:value:using: documentManager)` and `element.getAttribute(name:using: documentManager)` for modular attribute access.
+**OFKXMLElement** gains `fcpx*` attribute accessors and structural helpers. Use `element.setAttribute(name:value:using: documentManager)` and `element.getAttribute(name:using: documentManager)` for modular attribute access.
 
 | Property / method | Purpose |
 |-------------------|--------|

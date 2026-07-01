@@ -1,13 +1,37 @@
 # Changelog
 
-All notable changes to Pipeline Neo are documented in this file.
+All notable changes to OpenFCPXMLKit are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
-Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each release.
+OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for each release.
+
+> **Note:** OpenFCPXMLKit was previously released as **Pipeline Neo**. Releases up to and including 2.5.2 were published under the Pipeline Neo name; the rename to OpenFCPXMLKit landed in 3.0.0.
 
 ---
 
-## [2.5.2](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.5.2) - 2026-03-27
+## [3.0.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.0) - 2026-07-02
+
+### ✨ New Features
+
+- **Project renamed to OpenFCPXMLKit:** Pipeline Neo is now **OpenFCPXMLKit**. All code, APIs, documentation, and tooling use OpenFCPXMLKit naming exclusively — the `OpenFCPXMLKit` module, the `OpenFCPXMLKit-CLI` binary, and the `OFKXML*` cross-platform XML types. Existing FCPXML parsing, creation, and manipulation APIs remain source-compatible; the product name and module are what changed.
+- **Production's Best Friend–style Excel reports:** A new reporting subsystem builds structured, multi-sheet `.xlsx` workbooks from an FCPXML/FCPXMLD, modelled on Production's Best Friend report layouts. Sheets include **Role Inventory** (Selected Roles plus per-role sheets), **Markers**, **Keywords**, **Titles & Generators**, **Transitions**, **Video & Audio Effects**, **Speed Change Effects**, and a **Summary** sheet with per-role duration totals and percentages. Workbook export is XLKit-backed with Production's Best Friend–style formatting (black header rows, role and marker colour coding, numeric percentage cells, column auto-fit).
+- **Reporting API:** `FinalCutPro.FCPXML.buildReport(options:)` with `ReportBuilder`, typed `Report`/section/row models, and `ReportOptions` presets (`.full`, `.markersOnly`, `.roleInventoryOnly`, `.summaryOnly`, and more), plus role exclusions, project-name filtering, progress callbacks, and `RoleDisplayPreference`. `ReportExcelExport` renders any `Report` to a workbook or writes it to an `.xlsx` file.
+- **CLI `--report`:** New REPORT command on **OpenFCPXMLKit-CLI**. `--report` alone exports the role inventory; `--report-full` adds every optional sheet; per-section flags (`--report-markers`, `--report-keywords`, `--report-titles-generators`, `--report-transitions`, `--report-effects`, `--report-speed-change-effects`, `--report-summary`) select individual sheets, and `--exclude-role` / `--report-project` refine the output. Writes `{project-name}.xlsx` to the output directory.
+- **Extraction presets:** Added `TitlesExtractionPreset` and `EffectsExtractionPreset` alongside the existing presets to drive report-oriented element extraction.
+
+### 🔧 Improvements
+
+- **Dependencies:** Added **XLKit** for Excel workbook generation (`Reporting/Excel`).
+- **Test suite:** Expanded to **877 tests** with dedicated reporting and extraction coverage (role inventory, markers, keywords, titles, transitions, effects, speed-change effects, summary, Excel export, role display/exclusion, and extraction scope/presets). Test files and classes are standardised on the **`FCPXML`** prefix, with the module-named umbrella `OpenFCPXMLKitTests` as the sole exception.
+- **Documentation:** New manual chapter **19 — Reporting & Excel Export**; updated CLI and Extraction chapters, the manual index/README, and examples. `AGENT.md`, `ARCHITECTURE.md`, `.cursorrules`, and `Tests/README.md` updated for the reporting subsystem, OpenFCPXMLKit naming, and the standardised `FCPXML`-prefixed test naming.
+
+### 🐛 Bug Fixes
+
+- None in this release.
+
+---
+
+## [2.5.2](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/2.5.2) - 2026-03-27
 
 ### ✨ New Features
 
@@ -24,7 +48,7 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
-## [2.5.1](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.5.1) - 2026-03-21
+## [2.5.1](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/2.5.1) - 2026-03-21
 
 ### ✨ New Features
 
@@ -42,11 +66,11 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
-## [2.5.0](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.5.0) - 2026-03-16
+## [2.5.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/2.5.0) - 2026-03-16
 
 ### ✨ New Features
 
-- **Cross-platform XML abstraction layer — iOS support (PR [#17](https://github.com/TheAcharya/pipeline-neo/pull/17)):** Pipeline Neo can now target **iOS 15+** in addition to macOS. A protocol-based XML layer decouples the library from Foundation’s DOM API (macOS-only) and adds an AEXML-backed implementation for non-macOS platforms. Thanks @stovak!
+- **Cross-platform XML abstraction layer — iOS support (PR [#17](https://github.com/TheAcharya/OpenFCPXMLKit/pull/17)):** Pipeline Neo can now target **iOS 15+** in addition to macOS. A protocol-based XML layer decouples the library from Foundation’s DOM API (macOS-only) and adds an AEXML-backed implementation for non-macOS platforms. Thanks @stovak!
 - **New `Sources/PipelineNeo/XML/`:** Protocols `PNXMLNode`, `PNXMLElement`, `PNXMLDocument`, `PNXMLDTDProtocol`, `PNXMLFactory`; Foundation backend on macOS (byte-identical behavior); AEXML backend for iOS and other platforms; `PNXMLDefaultFactory()` for platform dispatch.
 - **DTD validation:** On macOS, full DTD validation is unchanged. On iOS, **FCPXMLStructuralValidator** performs cross-platform structural validation (root element, required children, element allowlist, required attributes) when Foundation DTD is unavailable.
 - **Package.swift:** `.iOS(.v15)` added to platforms; **AEXML** added as a dependency.
@@ -60,11 +84,11 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ### 🐛 Bug Fixes
 
-- **`removeChildren(where:)` index mismatch (PR [#17](https://github.com/TheAcharya/pipeline-neo/pull/17)):** The default implementation previously used indices from `childElements` (elements only) when calling `removeChild(at:)` on the full `children` array (including text nodes), removing the wrong nodes when text/whitespace was present. It now iterates the full `children` array so indices match. Fixes failures in ImportOptionsTests and EventClips removal.
+- **`removeChildren(where:)` index mismatch (PR [#17](https://github.com/TheAcharya/OpenFCPXMLKit/pull/17)):** The default implementation previously used indices from `childElements` (elements only) when calling `removeChild(at:)` on the full `children` array (including text nodes), removing the wrong nodes when text/whitespace was present. It now iterates the full `children` array so indices match. Fixes failures in ImportOptionsTests and EventClips removal.
 
 ---
 
-## [2.4.3](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.4.3) - 2026-03-07
+## [2.4.3](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/2.4.3) - 2026-03-07
 
 ### ✨ New Features
 
@@ -83,7 +107,7 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
-## [2.4.2](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.4.2) - 2026-03-06
+## [2.4.2](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/2.4.2) - 2026-03-06
 
 ### ✨ New Features
 
@@ -99,7 +123,7 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
-## [2.4.1](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.4.1) - 2026-03-02
+## [2.4.1](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/2.4.1) - 2026-03-02
 
 ### ✨ New Features
 
@@ -117,7 +141,7 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
-## [2.4.0](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.4.0) - 2026-02-23
+## [2.4.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/2.4.0) - 2026-02-23
 
 ### ✨ New Features
 
@@ -136,7 +160,7 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
-## [2.3.1](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.3.1) - 2026-02-18
+## [2.3.1](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/2.3.1) - 2026-02-18
 
 ### ✨ New Features
 
@@ -155,7 +179,7 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
-## [2.3.0](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.3.0) - 2026-02-16
+## [2.3.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/2.3.0) - 2026-02-16
 
 ### ✨ New Features
 
@@ -185,7 +209,7 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
-## [2.2.0](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.2.0) - 2026-02-14
+## [2.2.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/2.2.0) - 2026-02-14
 
 ### ✨ New Features
 
@@ -222,7 +246,7 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
-## [2.1.0](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.1.0) - 2026-02-13
+## [2.1.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/2.1.0) - 2026-02-13
 
 ### ✨ New Features
 
@@ -250,7 +274,7 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
-## [2.0.1](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.0.1) - 2026-02-11
+## [2.0.1](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/2.0.1) - 2026-02-11
 
 ### ✨ New Features
 
@@ -274,7 +298,7 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
-## [2.0.0](https://github.com/TheAcharya/pipeline-neo/releases/tag/2.0.0) - 2026-02-09
+## [2.0.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/2.0.0) - 2026-02-09
 
 ### ✨ New Features
 
@@ -296,7 +320,7 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
-## [1.1.0](https://github.com/TheAcharya/pipeline-neo/releases/tag/1.1.0) - 2026-02-06
+## [1.1.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/1.1.0) - 2026-02-06
 
 ### ✨ New Features
 
@@ -317,7 +341,7 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
-## [1.0.2](https://github.com/TheAcharya/pipeline-neo/releases/tag/1.0.2) - 2025-11-30
+## [1.0.2](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/1.0.2) - 2025-11-30
 
 ### ✨ New Features
 
@@ -333,7 +357,7 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
-## [1.0.1](https://github.com/TheAcharya/pipeline-neo/releases/tag/1.0.1) - 2025-07-11
+## [1.0.1](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/1.0.1) - 2025-07-11
 
 ### ✨ New Features
 
@@ -352,7 +376,7 @@ Pipeline Neo uses **New Features**, **Improvements**, and **Bug Fixes** for each
 
 ---
 
-## [1.0.0](https://github.com/TheAcharya/pipeline-neo/releases/tag/1.0.0) - 2025-07-10
+## [1.0.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/1.0.0) - 2025-07-10
 
 ### ✨ New Features
 

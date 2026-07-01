@@ -21,3 +21,8 @@ Package.resolved
 
 # Xcode
 xcuserdata/
+
+# Local Excel report integration fixture and generated workbooks (not committed).
+Tests/ExcelReportTest/Sample.fcpxmld/
+Tests/ExcelReportTest/Sample.fcpxml
+Tests/ExcelReportTest/Output/*.xlsx

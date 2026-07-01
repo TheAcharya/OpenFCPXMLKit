@@ -6,26 +6,26 @@
 
 ## Overview
 
-Pipeline Neo supports **macOS 12+** and **iOS 15+**. On macOS, the framework uses Foundation’s DOM XML API (`XMLDocument`, `XMLElement`). Those types are **not available on iOS** (Apple ships only the SAX-based `XMLParser` there). To support both platforms, Pipeline Neo uses a **protocol-based XML abstraction layer**: all document and element access goes through protocol types, with platform-specific backends.
+OpenFCPXMLKit supports **macOS 26+** and **iOS 26+**. On macOS, the framework uses Foundation’s DOM XML API (`XMLDocument`, `XMLElement`). Those types are **not available on iOS** (Apple ships only the SAX-based `XMLParser` there). To support both platforms, OpenFCPXMLKit uses a **protocol-based XML abstraction layer**: all document and element access goes through protocol types, with platform-specific backends.
 
 **Summary:**
 
-- **Protocols:** `PNXMLNode`, `PNXMLElement`, `PNXMLDocument`, `PNXMLDTDProtocol`, `PNXMLFactory` — platform-agnostic contracts.
+- **Protocols:** `OFKXMLNode`, `OFKXMLElement`, `OFKXMLDocument`, `OFKXMLDTDProtocol`, `OFKXMLFactory` — platform-agnostic contracts.
 - **macOS (and Linux with Foundation XML):** Foundation backend — `FoundationXMLElement`, `FoundationXMLDocument`, `FoundationXMLDTD`, `FoundationXMLFactory`. Behaviour is unchanged from the pre-abstraction implementation.
 - **iOS (and other platforms without Foundation DOM XML):** AEXML backend — `AEXMLBackendElement`, `AEXMLBackendDocument`, `AEXMLBackendFactory`. The library depends on [AEXML](https://github.com/tadija/AEXML) for parsing and DOM-style access.
-- **Dispatch:** `PNXMLDefaultFactory()` returns the appropriate factory for the current platform (`FoundationXMLFactory` on macOS, `AEXMLBackendFactory` on iOS).
+- **Dispatch:** `OFKXMLDefaultFactory()` returns the appropriate factory for the current platform (`FoundationXMLFactory` on macOS, `AEXMLBackendFactory` on iOS).
 
 ---
 
 ## What you use in code
 
-- **Parsing and documents:** You work with `any PNXMLDocument` and `any PNXMLElement`. The concrete type (Foundation vs AEXML) is chosen at runtime based on the platform.
-- **Creating elements/documents:** Use `PNXMLDefaultFactory()` (or an injected `PNXMLFactory`) so that on iOS the AEXML backend is used automatically.
-- **Extensions:** All FCPXML extensions (e.g. `fcpxType`, `fcpxDuration`, `fcpxResources`) are defined on `PNXMLElement` / `PNXMLDocument`, so the same API works on both platforms.
+- **Parsing and documents:** You work with `any OFKXMLDocument` and `any OFKXMLElement`. The concrete type (Foundation vs AEXML) is chosen at runtime based on the platform.
+- **Creating elements/documents:** Use `OFKXMLDefaultFactory()` (or an injected `OFKXMLFactory`) so that on iOS the AEXML backend is used automatically.
+- **Extensions:** All FCPXML extensions (e.g. `fcpxType`, `fcpxDuration`, `fcpxResources`) are defined on `OFKXMLElement` / `OFKXMLDocument`, so the same API works on both platforms.
 
 ```swift
 // Works on both macOS and iOS
-let factory = PNXMLDefaultFactory()
+let factory = OFKXMLDefaultFactory()
 let document = try factory.makeDocument(data: data, options: .fcpxmlDefaults)
 let root = document.rootElement()
 let version = root?.stringValue(forAttributeNamed: "version")
@@ -44,25 +44,25 @@ let version = root?.stringValue(forAttributeNamed: "version")
 
 ## Package and dependencies
 
-- **Package.swift** declares `.iOS(.v15)` and adds the **AEXML** dependency for the PipelineNeo target.
-- **SwiftTimecode**, **SwiftExtensions**, **swift-log**, **Foundation**, **CoreMedia** are used on both platforms. **PipelineNeoCLI** and **GenerateEmbeddedDTDs** remain macOS-only (or as currently configured).
+- **Package.swift** declares `.iOS(.v26)` and adds the **AEXML** dependency for the OpenFCPXMLKit target.
+- **SwiftTimecode**, **SwiftExtensions**, **swift-log**, **Foundation**, **CoreMedia** are used on both platforms. **OpenFCPXMLKitCLI** and **GenerateEmbeddedDTDs** remain macOS-only (or as currently configured).
 
 ---
 
 ## Testing
 
-- The full test suite (686 tests) runs on **macOS** and uses the Foundation backend.
+- The full test suite (877 tests) runs on **macOS** and uses the Foundation backend.
 - **iOS** is supported for building the library (e.g. iOS Simulator); running the same tests on iOS is not required for CI because they depend on Foundation XML. AEXML parity and structural validation are covered by tests that run on macOS.
 
 ---
 
 ## Backward compatibility
 
-**macOS:** No breaking changes. The Foundation backend is the default and produces the same behaviour as before the abstraction. All existing APIs that accepted or returned `XMLDocument`/`XMLElement` now use `any PNXMLDocument`/`any PNXMLElement`, which is source-compatible at call sites.
+**macOS:** No breaking changes. The Foundation backend is the default and produces the same behaviour as before the abstraction. All existing APIs that accepted or returned `XMLDocument`/`XMLElement` now use `any OFKXMLDocument`/`any OFKXMLElement`, which is source-compatible at call sites.
 
 ---
 
 ## Next
 
-- [13 — XML Extensions](13-XML-Extensions.md) — FCPXML extensions on PNXMLElement and PNXMLDocument.
+- [13 — XML Extensions](13-XML-Extensions.md) — FCPXML extensions on OFKXMLElement and OFKXMLDocument.
 - [05 — Validation & Cut Detection](05-Validation-CutDetection.md) — Semantic, DTD, and structural validation.

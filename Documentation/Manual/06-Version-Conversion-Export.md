@@ -9,7 +9,7 @@
 **FCPXMLVersionConverter** converts a document to a target FCPXML version (e.g. 1.14 → 1.10). It sets the root `version` attribute and **automatically removes elements and attributes not in the target version's DTD** (e.g. `adjust-colorConform`, `adjust-stereo-3D`, `hidden-clip-marker` for &lt; 1.13). Output validates and imports in Final Cut Pro.
 
 ```swift
-let service = ModularUtilities.createPipeline()
+let service = ModularUtilities.createService()
 let document = try service.parseFCPXML(from: url)
 
 // Convert to 1.10 (strips elements not in 1.10 DTD)
