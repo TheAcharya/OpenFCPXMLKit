@@ -47,7 +47,7 @@ jobs:
     - name: Build
       run: xcodebuild build -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "generic/platform=macOS,name=Any Mac" | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
     - name: Unit Tests
-      run: xcodebuild test -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "platform=macOS" | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
+      run: xcodebuild test -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "platform=macOS" | xcbeautify --renderer github-actions | awk '!/^::notice /' && exit ${PIPESTATUS[0]}
 
   # Strict concurrency: SWIFT_STRICT_CONCURRENCY=complete
   # (do not use OTHER_SWIFT_FLAGS here — it overrides per-target flags and
@@ -66,7 +66,7 @@ jobs:
     - name: Build with strict concurrency
       run: xcodebuild build -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "generic/platform=macOS,name=Any Mac" SWIFT_STRICT_CONCURRENCY=complete | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
     - name: Tests with strict concurrency
-      run: xcodebuild test -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "platform=macOS" SWIFT_STRICT_CONCURRENCY=complete | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
+      run: xcodebuild test -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "platform=macOS" SWIFT_STRICT_CONCURRENCY=complete | xcbeautify --renderer github-actions | awk '!/^::notice /' && exit ${PIPESTATUS[0]}
 
   # iOS Simulator build (no tests — tests require Foundation XML which is macOS-only)
   iOS:
