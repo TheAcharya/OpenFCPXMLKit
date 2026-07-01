@@ -136,7 +136,7 @@ Upon completion, find the installed binary `OpenFCPXMLKit-CLI` located within `/
 
 Download the latest release of the CLI installer package [here](https://github.com/TheAcharya/OpenFCPXMLKit/releases).
 
-Use the `OpenFCPXMLKit-CLI-cli.pkg` installer to install the command-line binary into your system. Upon completion, find the installed binary `OpenFCPXMLKit-CLI` located within `/usr/local/bin`. Since this is a standard directory part of the environment search path, it will allow running `OpenFCPXMLKit-CLI` from any directory like a standard command.
+Use the `OpenFCPXMLKit-CLI-<version>.pkg` installer to install the command-line binary into your system. Upon completion, find the installed binary `OpenFCPXMLKit-CLI` located within `/usr/local/bin`. Since this is a standard directory part of the environment search path, it will allow running `OpenFCPXMLKit-CLI` from any directory like a standard command.
 
 <p align="center"> <img src="https://github.com/TheAcharya/OpenFCPXMLKit/blob/main/Assets/macOS-installer.png?raw=true"> </p>
 

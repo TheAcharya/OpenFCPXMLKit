@@ -49,9 +49,11 @@ jobs:
     - name: Unit Tests
       run: xcodebuild test -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "platform=macOS" | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
 
-  # Strict concurrency: -strict-concurrency=complete
+  # Strict concurrency: SWIFT_STRICT_CONCURRENCY=complete
+  # (do not use OTHER_SWIFT_FLAGS here — it overrides per-target flags and
+  #  strips the experimental "Lifetimes" feature from SwiftExtensions/SwiftTimecodeAV)
   macOS-swift6-strict-concurrency:
-    name: macOS (Swift 6 strict concurrency)
+    name: macOS (strict concurrency)
     runs-on: macos-26
     defaults:
       run:
@@ -62,9 +64,9 @@ jobs:
       with:
         xcode-version: latest-stable
     - name: Build with strict concurrency
-      run: xcodebuild build -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "generic/platform=macOS,name=Any Mac" OTHER_SWIFT_FLAGS="-strict-concurrency=complete" | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
+      run: xcodebuild build -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "generic/platform=macOS,name=Any Mac" SWIFT_STRICT_CONCURRENCY=complete | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
     - name: Tests with strict concurrency
-      run: xcodebuild test -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "platform=macOS" OTHER_SWIFT_FLAGS="-strict-concurrency=complete" | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
+      run: xcodebuild test -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "platform=macOS" SWIFT_STRICT_CONCURRENCY=complete | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
 
   # iOS Simulator build (no tests — tests require Foundation XML which is macOS-only)
   iOS:
