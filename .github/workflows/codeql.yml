@@ -43,7 +43,7 @@ jobs:
     #   - https://gh.io/supported-runners-and-hardware-resources
     #   - https://gh.io/using-larger-runners (GitHub.com only)
     # Consider using larger runners or machines with greater resources for possible analysis time improvements.
-    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-26') || 'ubuntu-latest' }}
     permissions:
       # required for all workflows
       security-events: write
@@ -82,7 +82,7 @@ jobs:
       if: matrix.language == 'swift'
       uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: 'latest'
+        xcode-version: 'latest-stable'
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
