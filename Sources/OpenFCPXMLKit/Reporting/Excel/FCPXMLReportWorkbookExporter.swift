@@ -129,13 +129,21 @@ enum FCPXMLReportWorkbookExporter {
         return workbook
     }
     
+    /// Minimum width for the cover sheet's header column, wider than the auto-fit estimate so the
+    /// branding cell reads as a banner rather than a tight-fitting label.
+    private static let coverSheetColumnWidth = 48.0
+    
     private static func appendWorkbookCoverSheet(
         _ workbookCoverSheet: FinalCutPro.FCPXML.ReportWorkbookCoverSheet,
         to workbook: Workbook
     ) {
         let sheet = workbook.addSheet(name: sanitizeSheetName(workbookCoverSheet.title))
         sheet.setCell("A1", string: workbookCoverSheet.headerText, format: tableHeaderFormat())
-        FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet)
+        
+        // Use an explicit, generous width instead of the tight text-based auto-fit; grow further
+        // when a custom header text is longer than the default banner width.
+        let width = max(coverSheetColumnWidth, Double(workbookCoverSheet.headerText.count) + 4.0)
+        sheet.setColumnWidth(1, width: width)
     }
     
     private static func appendMarkers(
