@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-26 # required for Xcode 16.x
+    runs-on: macos-26 # required for Xcode 26.x
     timeout-minutes: 30
     defaults:
       run:
@@ -24,7 +24,7 @@ jobs:
 
     - name: Extract version number
       run: |
-        CLI_VERSION=$(sed -n 's/.*let packageVersion = "\(.*\)".*/\1/p' Sources/PipelineNeo/Version.swift)
+        CLI_VERSION=$(sed -n 's/.*let packageVersion = "\(.*\)".*/\1/p' Sources/OpenFCPXMLKit/Version.swift)
         echo "VERSION=$CLI_VERSION" >> $GITHUB_ENV
         echo $CLI_VERSION
       shell: bash
@@ -48,11 +48,11 @@ jobs:
         mkdir -p "$PARENT/dist/cli-build"
         mkdir dist_bin
 
-    - name: Build PipelineNeo
+    - name: Build OpenFCPXMLKit
       run: |
         PARENT=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
         WORKSPACE_PATH=".swiftpm/xcode/package.xcworkspace"
-        SCHEME="PipelineNeo-Package"
+        SCHEME="OpenFCPXMLKit-Package"
         CONFIGURATION="Release"
         DESTINATION="platform=macOS"
         BUILD_FOLDER="$PARENT/dist/cli-build"
@@ -67,27 +67,27 @@ jobs:
         mkdir -p "$PARENT/dist"
         mkdir -p "$PARENT/dist/latest-build"
 
-        cp -R $PARENT/dist/cli-build/Build/Products/${{ env.CONFIG }}/pipeline-neo "$PARENT/dist/latest-build/"
+        cp -R $PARENT/dist/cli-build/Build/Products/${{ env.CONFIG }}/OpenFCPXMLKit-CLI "$PARENT/dist/latest-build/"
 
-    - name: Codesign PipelineNeo
+    - name: Codesign OpenFCPXMLKit
       env:
         APPLE_CERT_DATA: ${{ secrets.APPLE_CERT_DATA }}
         APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
-        KEYCHAIN_PASSWORD_PN: ${{ secrets.KEYCHAIN_PASSWORD_PN }}
+        KEYCHAIN_PASSWORD_OFK: ${{ secrets.KEYCHAIN_PASSWORD_OFK }}
         APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       run: |
         PARENT=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
-        APP="$PARENT/dist/latest-build/pipeline-neo"
+        APP="$PARENT/dist/latest-build/OpenFCPXMLKit-CLI"
 
         echo $APPLE_CERT_DATA | base64 --decode > certificate.p12
-        security create-keychain -p $KEYCHAIN_PASSWORD_PN build-p.keychain
+        security create-keychain -p $KEYCHAIN_PASSWORD_OFK build-p.keychain
         security default-keychain -s build-p.keychain
-        security unlock-keychain -p $KEYCHAIN_PASSWORD_PN build-p.keychain
+        security unlock-keychain -p $KEYCHAIN_PASSWORD_OFK build-p.keychain
         security import certificate.p12 -k build-p.keychain -P $APPLE_CERT_PASSWORD -T /usr/bin/codesign
-        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $KEYCHAIN_PASSWORD_PN build-p.keychain
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $KEYCHAIN_PASSWORD_OFK build-p.keychain
         /usr/bin/codesign --force -s $APPLE_TEAM_ID --options runtime "$APP" -v
 
-    - name: Notarize PipelineNeo
+    - name: Notarize OpenFCPXMLKit
       env:
         APPLE_DEV_ID: ${{ secrets.APPLE_DEV_ID }}
         APPLE_DEV_ID_PASSWORD: ${{ secrets.APPLE_DEV_ID_PASSWORD }}
@@ -95,7 +95,7 @@ jobs:
       run: |
         mkdir -p dist
         PARENT=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
-        APP="$PARENT/dist/latest-build/pipeline-neo"
+        APP="$PARENT/dist/latest-build/OpenFCPXMLKit-CLI"
 
         echo "Create keychain profile"
         xcrun notarytool store-credentials "notarytool-profile" --apple-id $APPLE_DEV_ID --password $APPLE_DEV_ID_PASSWORD --team-id $APPLE_TEAM_ID
@@ -107,7 +107,7 @@ jobs:
         xcrun notarytool submit "notarization-p.zip" --keychain-profile "notarytool-profile" --progress --wait
 
         cp -R "$APP" dist/
-        zip -q -r dist_bin/pipeline-neo-cli-portable-${{ env.VERSION }}.zip "dist/"
+        zip -q -r dist_bin/OpenFCPXMLKit-CLI-portable-${{ env.VERSION }}.zip "dist/"
 
     - name: Save release binaries for cli
       uses: actions/upload-artifact@v7
@@ -115,13 +115,13 @@ jobs:
         name: release_dist_bin_cli
         path: dist_bin
 
-    - name: Create PipelineNeo PKG for macOS
+    - name: Create OpenFCPXMLKit PKG for macOS
       run: |
         PARENT=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
-        BINARY_PATH="$PARENT/dist/latest-build/pipeline-neo"
-        PKG_IDENTIFIER="co.theacharya.PipelineNeo"
+        BINARY_PATH="$PARENT/dist/latest-build/OpenFCPXMLKit-CLI"
+        PKG_IDENTIFIER="co.theacharya.OpenFCPXMLKit"
         INSTALL_LOCATION="/usr/local/bin"
-        PACKAGE_NAME="PipelineNeo-unsigned"
+        PACKAGE_NAME="OpenFCPXMLKit-unsigned"
         OUTPUT_DIR="$PARENT/dist/pkg-build"
         VERSION=${{ env.VERSION }}
 
@@ -142,7 +142,7 @@ jobs:
         echo "Checking copied files..."
         ls -l "$PARENT/dist/pkg-build"
 
-    - name: Productsign PipelineNeo
+    - name: Productsign OpenFCPXMLKit
       env:
         APPLE_INSTALL_CERT_DATA: ${{ secrets.APPLE_INSTALL_CERT_DATA }}
         APPLE_INSTALL_CERT_PASSWORD: ${{ secrets.APPLE_INSTALL_CERT_PASSWORD }}
@@ -150,8 +150,8 @@ jobs:
         APPLE_TEAM_ID_INSTALL: ${{ secrets.APPLE_TEAM_ID_INSTALL }}
       run: |
         PARENT=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
-        PKG="$PARENT/dist/pkg-build/PipelineNeo-unsigned.pkg"
-        SPKG="$PARENT/dist/pkg-build/pipeline-neo-cli-${{env.VERSION}}.pkg"
+        PKG="$PARENT/dist/pkg-build/OpenFCPXMLKit-unsigned.pkg"
+        SPKG="$PARENT/dist/pkg-build/OpenFCPXMLKit-CLI-${{env.VERSION}}.pkg"
         SIGNING_IDENTITY="$APPLE_TEAM_ID_INSTALL"
 
         echo $APPLE_INSTALL_CERT_DATA | base64 --decode > certificate.p12
@@ -163,20 +163,20 @@ jobs:
 
         /usr/bin/productsign --sign "$SIGNING_IDENTITY" "$PKG" "$SPKG"
 
-    - name: Notarize PipelineNeo PKG
+    - name: Notarize OpenFCPXMLKit PKG
       env:
         APPLE_DEV_ID: ${{ secrets.APPLE_DEV_ID }}
         APPLE_DEV_ID_PASSWORD: ${{ secrets.APPLE_DEV_ID_PASSWORD }}
         APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       run: |
         PARENT=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
-        SPKG="$PARENT/dist/pkg-build/pipeline-neo-cli-${{env.VERSION}}.pkg"
+        SPKG="$PARENT/dist/pkg-build/OpenFCPXMLKit-CLI-${{env.VERSION}}.pkg"
 
         echo "SPKG=$SPKG" >> $GITHUB_ENV
         echo "Create Keychain Profile"
         xcrun notarytool store-credentials "notarytool-profile" --apple-id $APPLE_DEV_ID --password $APPLE_DEV_ID_PASSWORD --team-id $APPLE_TEAM_ID
 
-        echo "Notarize PipelineNeo PKG"
+        echo "Notarize OpenFCPXMLKit PKG"
         xcrun notarytool submit "$SPKG" --keychain-profile "notarytool-profile" --progress --wait
 
         echo "Attach staple"
@@ -185,7 +185,7 @@ jobs:
     - name: Save release binaries for macos
       uses: actions/upload-artifact@v7
       with:
-        name: release_PipelineNeo_pkg
+        name: release_OpenFCPXMLKit_pkg
         path: ${{ env.SPKG }}
 
   release:
@@ -204,7 +204,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Get tag version
         run: |
-          CLI_VERSION=$(sed -n 's/.*let packageVersion = "\(.*\)".*/\1/p' Sources/PipelineNeo/Version.swift)
+          CLI_VERSION=$(sed -n 's/.*let packageVersion = "\(.*\)".*/\1/p' Sources/OpenFCPXMLKit/Version.swift)
           echo "VERSION=$CLI_VERSION" >> $GITHUB_ENV
 
       - name: Load release binaries for macos
@@ -216,7 +216,7 @@ jobs:
       - name: Load release pkg
         uses: actions/download-artifact@v8
         with:
-          name: release_PipelineNeo_pkg
+          name: release_OpenFCPXMLKit_pkg
           path: dist
 
       - name: Create Release

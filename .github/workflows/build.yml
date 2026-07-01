@@ -25,7 +25,7 @@ on:
     - cron: '0 0 * * *'     # Runs at 8 AM Singapore time (00:00 UTC) every day
 
 env:
-  SCHEME: "PipelineNeo-Package"
+  SCHEME: "OpenFCPXMLKit-Package"
   WORKSPACEPATH: ".swiftpm/xcode/package.xcworkspace"
 
 permissions:
@@ -44,25 +44,6 @@ jobs:
     - uses: maxim-lobanov/setup-xcode@v1
       with:
         xcode-version: latest-stable
-    - name: Build
-      run: xcodebuild build -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "generic/platform=macOS,name=Any Mac" | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
-    - name: Unit Tests
-      run: xcodebuild test -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "platform=macOS" | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
-
-  # Non-strict concurrency, Swift 6 tools version
-  macOS-swift6:
-    name: macOS (Swift 6)
-    runs-on: macos-26
-    defaults:
-      run:
-        working-directory: ${{ github.workspace }}
-    steps:
-    - uses: actions/checkout@main
-    - uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: latest-stable
-    - name: Set Package to Swift 6.0
-      run: swift package tools-version --set "6.0"
     - name: Build
       run: xcodebuild build -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "generic/platform=macOS,name=Any Mac" | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
     - name: Unit Tests
