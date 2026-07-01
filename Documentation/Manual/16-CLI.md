@@ -45,6 +45,22 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD. The workbook is wr
 | **--report-project &lt;name&gt;** | Project name filter when the FCPXML contains multiple projects. |
 | **--exclude-role &lt;role&gt;** | Exclude a role or subrole from the role inventory (repeatable). Excluding a main role also excludes its subroles. |
 
+#### Role exclusion matching
+
+`--exclude-role` matches on the **whole role name**, and matching is **case- and diacritic-insensitive**:
+
+- **Single word, no quotes needed:** `--exclude-role Music` and `--exclude-role music` are equivalent.
+- **Whole-name match (not substring):** `--exclude-role Music` matches the role `Music`, but not `Background Music`.
+- **Main role includes its subroles:** `--exclude-role Music` also removes `Music ▸ Score`, `Music ▸ Underscore`, etc.
+- **Subroles use the ` ▸ ` format:** to exclude a single subrole, pass the full path in quotes, e.g. `--exclude-role "Music ▸ Score"` (the separator is `▸`, U+25B8, with a space on each side).
+- **Quote names with spaces or `▸`:** e.g. `--exclude-role "Sound Effects"` or `--exclude-role "SRT ▸ de-DE"`.
+- **Repeatable:** pass the flag multiple times to exclude several roles.
+- Requires `--report`; leading/trailing whitespace is trimmed.
+
+```bash
+OpenFCPXMLKit-CLI --report --exclude-role Music --exclude-role Dialogue --exclude-role "SRT ▸ de-DE" /path/to/project.fcpxmld /path/to/output-dir
+```
+
 ### TIMELINE
 
 | Option | Description |
