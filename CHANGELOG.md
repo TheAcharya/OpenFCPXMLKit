@@ -21,13 +21,16 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 ### 🔧 Improvements
 
 - **Sheet naming:** Main role inventory tab renamed to **Selected Roles Inventory**; workbook sheet titles use Title Case.
-- **Excel export:** Improved column auto-fit (wider maximum and header-based minimum widths for path columns); `Report.excludedColumns` resolved at build time and applied across inventory, section sheets, summary metrics, and media summary.
-- **Test suite:** Expanded to **892** tests (891 in `OpenFCPXMLKitTests` + 1 optional `ExcelReportTest` integration), including `FCPXMLRoleInventoryColumnLayoutTests`, `FCPXMLReportColumnExclusionTests`, and `FCPXMLReportExcludeDisabledClipsTests`.
-- **Documentation:** Updated manual chapters **16 — CLI** and **19 — Reporting & Excel Export**, CLI README, project README, `AGENT.md`, `ARCHITECTURE.md` (top-down Mermaid diagrams), `.cursorrules`, and `Tests/README.md` / `Tests/ExcelReportTest/README.md`.
+- **Excel export:** Improved column auto-fit (wider maximum and header-based minimum widths for path columns); `Report.excludedColumns` resolved at build time and applied across inventory, section sheets, summary metrics, and media summary. **`FCPXMLReportWorkbookExporter`** applies sheet-specific row text colours via `RoleRowColorContext`: inventory rows tinted by role category (video/caption blue, titles purple, audio green, gap gray); Keywords, Titles & Generators, Effects, Speed Change Effects, and Transitions use dedicated rules when Category is unavailable; Summary project title uses the table header style with black data rows; Media Summary missing paths use red text; Markers retain marker-type colours.
+- **Test suite:** Expanded to **894** tests (893 in `OpenFCPXMLKitTests` + 1 optional `ExcelReportTest` integration), including `FCPXMLRoleInventoryColumnLayoutTests`, `FCPXMLReportColumnExclusionTests`, `FCPXMLReportExcludeDisabledClipsTests`, and `FCPXMLReportExcelExportTests` (workbook cell formatting: Summary title header, black role-duration data, red missing-media paths, inventory/section-sheet colour rules).
+- **Documentation:** Updated manual chapters **16 — CLI** and **19 — Reporting & Excel Export** (workbook cell colour policy), CLI README, project README, `AGENT.md`, `ARCHITECTURE.md` (§2.7 reporting layers, top-down Mermaid diagrams), `.cursorrules`, and `Tests/README.md` / `Tests/ExcelReportTest/README.md`.
 
 ### 🐛 Bug Fixes
 
-- None in this release.
+- **Summary sheet formatting:** Role-duration rows and **% of Total** no longer incorrectly tinted with role colours; data uses default black text. Project title row (row 1) now uses the table header style (bold white text on black fill).
+- **Section sheet row colours:** Keywords, Titles & Generators, Effects, Speed Change Effects, and Transitions no longer default to green when the Category column is absent; each sheet now applies its documented colour rules.
+- **Media Summary:** Missing media file paths now render in red (`#FF0000`).
+- **Gap role colour:** Inventory gap rows use gray (`#808080`) instead of black.
 
 ---
 

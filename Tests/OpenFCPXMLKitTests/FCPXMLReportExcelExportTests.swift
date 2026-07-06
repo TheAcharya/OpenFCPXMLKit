@@ -192,7 +192,9 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
         XCTAssertEqual(sheet?.getCellWithFormat("A1")?.format?.backgroundColor, "#000000")
         XCTAssertEqual(sheet?.getCellWithFormat("A1")?.format?.fontColor, "#FFFFFF")
         XCTAssertEqual(sheet?.getCellWithFormat("A2")?.value.stringValue, "/missing/clip.mov")
+        XCTAssertEqual(sheet?.getCellWithFormat("A2")?.format?.fontColor, "#FF0000")
         XCTAssertEqual(sheet?.getCellWithFormat("A3")?.value.stringValue, "/missing/audio.wav")
+        XCTAssertEqual(sheet?.getCellWithFormat("A3")?.format?.fontColor, "#FF0000")
     }
     
     @MainActor
@@ -363,7 +365,78 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
         XCTAssertEqual(sheet?.getCellWithFormat("C2")?.format?.fontColor, "#0066FF")
         XCTAssertEqual(sheet?.getCellWithFormat("A3")?.format?.fontColor, "#9933FF")
         XCTAssertEqual(sheet?.getCellWithFormat("A4")?.format?.fontColor, "#00AA44")
-        XCTAssertEqual(sheet?.getCellWithFormat("A5")?.format?.fontColor, "#000000")
+        XCTAssertEqual(sheet?.getCellWithFormat("A5")?.format?.fontColor, "#808080")
+    }
+    
+    @MainActor
+    func testKeywordsRowsUseBlueTextMatchingPBFSectionSheets() {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test Project",
+            keywords: FinalCutPro.FCPXML.KeywordsReportSection(rows: [
+                .init(
+                    keyword: "vfx final",
+                    timelineIn: "00:00:01:00",
+                    timelineOut: "00:00:02:00",
+                    duration: "00:00:01:00",
+                    clipName: "Clip",
+                    roleSubrole: "Dialogue"
+                )
+            ])
+        )
+        
+        let sheet = FinalCutPro.FCPXML.ReportExcelExport
+            .makeWorkbook(from: report)
+            .getSheet(name: FinalCutPro.FCPXML.KeywordsReportSection.defaultSheetName)
+        
+        XCTAssertEqual(sheet?.getCellWithFormat("A2")?.format?.fontColor, "#0066FF")
+        XCTAssertEqual(sheet?.getCellWithFormat("G2")?.format?.fontColor, "#0066FF")
+    }
+    
+    @MainActor
+    func testEffectsRowsUseRoleAppropriateColorsWhenCategoryUnavailable() {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test Project",
+            effects: FinalCutPro.FCPXML.EffectsReportSection(rows: [
+                .init(
+                    effect: "Transform",
+                    settings: "Scale 100.0%",
+                    enabled: "✓",
+                    isApple: "✓",
+                    clipName: "Video Clip",
+                    roleSubrole: "Video",
+                    timelineIn: "00:00:00:00",
+                    timelineOut: "00:00:01:00"
+                ),
+                .init(
+                    effect: "volume",
+                    settings: "-3.0 dB",
+                    enabled: "✓",
+                    isApple: "✓",
+                    clipName: "Audio Clip",
+                    roleSubrole: "Dialogue",
+                    timelineIn: "00:00:01:00",
+                    timelineOut: "00:00:02:00"
+                ),
+                .init(
+                    effect: "Timecode",
+                    settings: "Timecode",
+                    enabled: "✓",
+                    isApple: "✓",
+                    clipName: "Title Clip",
+                    roleSubrole: "Titles",
+                    timelineIn: "00:00:02:00",
+                    timelineOut: "00:00:03:00"
+                )
+            ])
+        )
+        
+        let sheet = FinalCutPro.FCPXML.ReportExcelExport
+            .makeWorkbook(from: report)
+            .getSheet(name: FinalCutPro.FCPXML.EffectsReportSection.defaultSheetName)
+        
+        XCTAssertEqual(sheet?.getCellWithFormat("A2")?.format?.fontColor, "#0066FF")
+        XCTAssertEqual(sheet?.getCellWithFormat("A3")?.format?.fontColor, "#00AA44")
+        XCTAssertEqual(sheet?.getCellWithFormat("A4")?.format?.fontColor, "#0066FF")
     }
     
     @MainActor
@@ -383,6 +456,11 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
                         roleSubrole: "Video",
                         estimatedTotal: "00:00:30:00",
                         percentOfTotal: 0.5
+                    ),
+                    FinalCutPro.FCPXML.SummaryRoleDurationRow(
+                        roleSubrole: "Dialogue",
+                        estimatedTotal: "00:00:20:00",
+                        percentOfTotal: 0.33
                     )
                 ]
             )
@@ -392,7 +470,13 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
             .makeWorkbook(from: report)
             .getSheet(name: FinalCutPro.FCPXML.SummaryReportSection.defaultSheetName)
         
-        // Header on row 3, first data row on row 4; the "% of Total" column is C.
+        let titleCell = sheet?.getCellWithFormat("A1")
+        XCTAssertEqual(titleCell?.value.stringValue, "Test Project")
+        XCTAssertEqual(titleCell?.format?.backgroundColor, "#000000")
+        XCTAssertEqual(titleCell?.format?.fontColor, "#FFFFFF")
+        XCTAssertEqual(titleCell?.format?.fontWeight, .bold)
+        
+        // Role table header on row 3, data rows on 4–5; the "% of Total" column is C.
         let percentCell = sheet?.getCellWithFormat("C4")
         
         // The value must be stored as the raw fraction in a numeric cell (not a text string),
@@ -400,6 +484,14 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
         XCTAssertEqual(percentCell?.value, .number(0.5))
         XCTAssertEqual(percentCell?.format?.numberFormat, .custom)
         XCTAssertEqual(percentCell?.format?.customNumberFormat, "0.0%")
+        XCTAssertNil(percentCell?.format?.fontColor)
+        
+        // Summary data uses default black text for all columns (no role colour coding).
+        XCTAssertNil(sheet?.getCellWithFormat("A4")?.format?.fontColor)
+        XCTAssertNil(sheet?.getCellWithFormat("B4")?.format?.fontColor)
+        XCTAssertNil(sheet?.getCellWithFormat("A5")?.format?.fontColor)
+        XCTAssertNil(sheet?.getCellWithFormat("B5")?.format?.fontColor)
+        XCTAssertNil(sheet?.getCellWithFormat("C5")?.format?.fontColor)
     }
     
     @MainActor

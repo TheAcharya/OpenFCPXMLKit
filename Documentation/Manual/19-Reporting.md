@@ -202,7 +202,9 @@ Use **RoleInventoryColumnLayout** (internal layout helper) or `RoleClipReportRow
 - `projectSummary: ProjectSummary?` — title, duration, resolution, frame rate, audio sample rate.
 - `roleDurations: [SummaryRoleDurationRow]` — Role ▸ Subrole, Estimated Total, % of Total.
 
-The **% of Total** value is stored as a fraction (for example `0.42`) and written to Excel as a numeric cell with a percentage number format (`0.0%`).
+In Excel export, the **project title** uses the table header style (bold white text on a black fill). Project metrics and role-duration rows use default **black** text (no role colour coding). The **% of Total** value is stored as a fraction (for example `0.42`) and written as a numeric cell with percentage number format (`0.0%`).
+
+See [Sheet order and formatting](#sheet-order-and-formatting) for colours on other sheets.
 
 #### Media Summary
 
@@ -210,7 +212,7 @@ The **% of Total** value is stored as a fraction (for example `0.42`) and writte
 
 - `missingMediaPaths: [String]` — file paths that could not be resolved on disk.
 
-The sheet renders a **Missing Media** section with a black header row (matching other report sheets). Relative paths are resolved against `mediaBaseURL` when provided.
+The sheet renders a **Missing Media** section with a black header row (matching other report sheets). Each missing file path is written in **red** text (`#FF0000`). Relative paths are resolved against `mediaBaseURL` when provided.
 
 ---
 
@@ -357,7 +359,17 @@ Sheet order follows the report:
 4. Video & Audio Effects, Speed Change Effects
 5. Summary, Media Summary
 
-Role/subrole cells are colour-coded by category (video/caption blue, titles purple, audio green, gap black). Table headers use a black fill with white text. Data columns are auto-sized per sheet (with wider minimum widths for path columns).
+Role/subrole cells are colour-coded by category on inventory sheets (video/caption blue `#0066FF`, titles purple `#9933FF`, audio green `#00AA44`, gap gray `#808080`). The entire row is tinted on those sheets so clip names, timecodes, and other columns match the role colour.
+
+Section sheets without a Category column use sheet-specific colour rules: **Keywords** rows are always blue; **Titles & Generators** infer purple for title roles; **Video & Audio Effects** and **Speed Change Effects** infer blue for video/VFX/title-host rows and green for audio roles; **Transitions** use gray text.
+
+The **Summary** sheet uses default black text for project metrics and role-duration data. The **project title** (row 1) and column header rows use the standard table header style: bold white text on a black fill.
+
+The **Media Summary** sheet lists missing file paths in **red** (`#FF0000`).
+
+**Markers** use marker-type colours for the whole row: standard blue, incomplete to-do red, completed to-do green, chapter orange.
+
+Table headers on tabular sheets use a black fill with white text. Data columns are auto-sized per sheet (with wider minimum widths for path columns).
 
 ### Cover sheet
 

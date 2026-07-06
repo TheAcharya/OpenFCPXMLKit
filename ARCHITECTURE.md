@@ -16,7 +16,7 @@ OpenFCPXMLKit is a **Swift 6** framework for Final Cut Pro FCPXML: parsing, crea
 - **Repository:** https://github.com/TheAcharya/OpenFCPXMLKit
 - **Dependencies:** SwiftTimecode 3.1.2+, SwiftExtensions 2.2.0+, swift-log 1.14.0+, AEXML 4.7.0+, swift-argument-parser 1.8.2+ (CLI only), Foundation, CoreMedia.
 - **FCPXML:** Versions 1.5–1.14 (DTDs included); Final Cut Pro frame rates (23.976, 24, 25, 29.97, 30, 50, 59.94, 60).
-- **Tests:** **892** tests listed in `swift test` — **891** in `OpenFCPXMLKitTests` (888 XCTest `func test` + 3 Swift Testing `@Test`) and **1** optional `ExcelReportTest` integration; **58** sample `.fcpxml` files under `Tests/FCPXML Samples/FCPXML/`.
+- **Tests:** **894** tests listed in `swift test` — **893** in `OpenFCPXMLKitTests` (890 XCTest `func test` + 3 Swift Testing `@Test`) and **1** optional `ExcelReportTest` integration; **58** sample `.fcpxml` files under `Tests/FCPXML Samples/FCPXML/`.
 
 ---
 
@@ -106,7 +106,7 @@ Reporting/        Row models, builders, sheet-specific presentation rules
 **3. Reporting** — Keep thin:
 
 - Builders call `fcpExtract` and shared context helpers (`ElementContext`, effect/title contexts).
-- Sheet-specific **presentation policy** only: column order, string formatting, sort order, inclusion allowlists (e.g. which custom filters appear on an effects sheet), workbook column exclusion (`ReportColumn`, `ReportColumnExclusion`), and optional cover-sheet branding.
+- Sheet-specific **presentation policy** only: column order, string formatting, sort order, inclusion allowlists (e.g. which custom filters appear on an effects sheet), workbook column exclusion (`ReportColumn`, `ReportColumnExclusion`), workbook cell colours (`FCPXMLReportWorkbookExporter`, `RoleRowColorContext`), and optional cover-sheet branding.
 - `ReportOptions.excludeDisabledClips` flows into `ExtractionScope.includeDisabled` at build time so disabled clips are omitted consistently across all timeline-based sections.
 - Do **not** duplicate timeline math, role resolution, or element traversal that belongs in Extraction/Model.
 
@@ -120,6 +120,7 @@ Reporting/        Row models, builders, sheet-specific presentation rules
 | Column labels, timecode strings, enabled checkmarks | Reporting |
 | Omit `enabled="0"` clips from all timeline sections | `ReportOptions.excludeDisabledClips` → Extraction scope |
 | Omit named columns from every applicable sheet | `ReportOptions.excludedColumns` → `Report.excludedColumns` → Excel export |
+| Workbook cell colours (inventory role category; section-sheet `RoleRowColorContext`; Summary header-style title + black data; Media Summary red paths; marker-type colours) | `FCPXMLReportWorkbookExporter` |
 | Missing media path list | Media Summary builder (`mediaBaseURL` for relative paths) |
 
 **Workflow when a report gap appears**
@@ -129,7 +130,7 @@ Reporting/        Row models, builders, sheet-specific presentation rules
 3. Only then add or adjust Reporting builders to map that fact to rows.
 4. Add **core** tests (parsing, extraction, occlusion, roles) alongside **report** integration tests that assert row shape against an optional local FCPXML fixture.
 
-**Excel export** lives under **`Reporting/Excel/`** and serialises `Report` to XLKit workbooks; it should not introduce new FCPXML interpretation.
+**Excel export** lives under **`Reporting/Excel/`** and serialises `Report` to XLKit workbooks via `ReportExcelExport` and `FCPXMLReportWorkbookExporter`; it applies column exclusion, tabular header styling (black fill, white bold text), and sheet-specific row text colours but should not introduce new FCPXML interpretation.
 
 ---
 
@@ -153,7 +154,7 @@ flowchart TB
     SRC --> CLI["OpenFCPXMLKitCLI → OpenFCPXMLKit-CLI"]
     SRC --> GEN["GenerateEmbeddedDTDs"]
 
-    TST --> OKT["OpenFCPXMLKitTests — 891 tests"]
+    TST --> OKT["OpenFCPXMLKitTests — 893 tests"]
     TST --> ERT["ExcelReportTest — 1 optional integration"]
     TST --> SMP["FCPXML Samples/ — 58 .fcpxml files"]
 ```
@@ -182,7 +183,7 @@ flowchart TB
         R_BLD["Builders/ — RoleInventory · Markers · Keywords · Titles · Transitions · Effects · SpeedChange · Summary · MediaSummary"]
         R_SEC["Sections/ + Rows/ — typed sheet models"]
         R_SUP["Support/ — RoleInventoryClipCollector · RoleInventoryColumnLayout · ReportColumnExclusion · ReportFormatting · …"]
-        R_XLS["Excel/ — ReportExcelExport · ReportWorkbookExporter · ColumnAutoFit"]
+        R_XLS["Excel/ — ReportExcelExport · FCPXMLReportWorkbookExporter · ColumnAutoFit"]
         R_TOP --> R_BLD --> R_SEC
         R_BLD --> R_SUP --> R_XLS
     end
@@ -258,7 +259,7 @@ Source layout under **`Sources/OpenFCPXMLKit/`**:
 | **Model** | FCPXML element models: Adjustments, Animations, Attributes, Clips, CommonElements, ElementTypes, Filters, Occlusion, Protocols, Resources, Roles, Structure (CollectionFolder, KeywordCollection, etc.). |
 | **Parsing** | XML parsing extensions (Attributes, Clip, Elements, Metadata, Resources, Roles, Root, Time and Frame Rate). |
 | **Extraction** | `fcpExtract`, ExtractedElement, ExtractionScope, ExtractableChildren. **Context/** (DisplayClipName, ElementContext, ElementContextItems/Tools, FrameRateSource), **Effects/** (EffectsCollector, ExtractedEffect), **Presets/** (Captions, Effects, FrameData, Markers, Roles, Titles, plus the base ExtractionPreset). |
-| **Reporting** | Excel workbook reports. Top-level: `Report`, `ReportOptions`, `ReportBuilder`, `ReportBuildProgress`. **Builders/** — per-sheet builders including `MediaSummaryReportBuilder` (missing media paths) and split `SummaryReportBuilder` (project metrics + role durations). **Sections/** and **Rows/** — typed section/row models (`Selected Roles Inventory`, Markers, Keywords, Titles & Generators, Transitions, Effects, Speed Change Effects, Summary, Media Summary). **Support/** — `RoleInventoryClipCollector`, `RoleInventoryRowBuilder`, `RoleInventoryColumnLayout` (Row + 23 fixed columns + dynamic metadata keys), `RoleInventoryRoleSheetOrdering`, `RoleInventoryTimelineBounds`, `ReportFormatting`, `ReportRoleExclusion`, `ReportColumnExclusion` (`ReportColumn` global column omission), `ReportClipCategory`, `EffectsReportPolicy`, `SpeedChangeFormatting`, `SummaryRoleDurationAggregator`. **Excel/** — `ReportExcelExport`, `ReportWorkbookExporter` (applies `Report.excludedColumns` across sheets), `ReportWorkbookColumnAutoFit`. `ReportOptions`: `excludeDisabledClips`, `excludedColumns`, `includeMediaSummary`, `mediaBaseURL`. Consumes Extraction; owns presentation only — see §2.7. |
+| **Reporting** | Excel workbook reports. Top-level: `Report`, `ReportOptions`, `ReportBuilder`, `ReportBuildProgress`. **Builders/** — per-sheet builders including `MediaSummaryReportBuilder` (missing media paths) and split `SummaryReportBuilder` (project metrics + role durations). **Sections/** and **Rows/** — typed section/row models (`Selected Roles Inventory`, Markers, Keywords, Titles & Generators, Transitions, Effects, Speed Change Effects, Summary, Media Summary). **Support/** — `RoleInventoryClipCollector`, `RoleInventoryRowBuilder`, `RoleInventoryColumnLayout` (Row + 23 fixed columns + dynamic metadata keys), `RoleInventoryRoleSheetOrdering`, `RoleInventoryTimelineBounds`, `ReportFormatting`, `ReportRoleExclusion`, `ReportColumnExclusion` (`ReportColumn` global column omission), `ReportClipCategory`, `EffectsReportPolicy`, `SpeedChangeFormatting`, `SummaryRoleDurationAggregator`. **Excel/** — `ReportExcelExport`, `FCPXMLReportWorkbookExporter` (applies `Report.excludedColumns`, `RoleRowColorContext` sheet-specific row colours, inventory role-category tints, Summary project-title header + black data rows, Media Summary red missing-media paths, marker-type colours), `ReportWorkbookColumnAutoFit`. `ReportOptions`: `excludeDisabledClips`, `excludedColumns`, `includeMediaSummary`, `mediaBaseURL`. Consumes Extraction; owns presentation only — see §2.7. |
 | **XML** | Platform-agnostic XML layer: Protocols (OFKXMLNode, OFKXMLElement, OFKXMLDocument, OFKXMLDTDProtocol, OFKXMLFactory), Foundation/ (Foundation backends), AEXML/ (AEXML backends), OFKXMLDefaultFactory. |
 | **FCPXML DTDs** | Version 1.5–1.14 DTDs. |
 
@@ -349,10 +350,10 @@ Binary name: **`OpenFCPXMLKit-CLI`**. Mutually exclusive modes: `--check-version
 
 ## 8. Tests
 
-- **Count:** **892** listed in `swift test` — **891** in `OpenFCPXMLKitTests` (888 XCTest + 3 Swift Testing `@Test` in `FCPXMLReportRoleExclusionTests`) and **1** in optional `ExcelReportTest` (skips without a local `.fcpxml`/`.fcpxmld` fixture).
+- **Count:** **894** listed in `swift test` — **893** in `OpenFCPXMLKitTests` (890 XCTest + 3 Swift Testing `@Test` in `FCPXMLReportRoleExclusionTests`) and **1** in optional `ExcelReportTest` (skips without a local `.fcpxml`/`.fcpxmld` fixture).
 - **Location:** `Tests/OpenFCPXMLKitTests/`; samples in `Tests/FCPXML Samples/FCPXML/` (58 files); optional integration under `Tests/ExcelReportTest/`.
 - **Utilities:** `FCPXMLTestResources.swift`, `FCPXMLTestUtilities.swift` (path resolution, sample loading; `XCTSkip` when a sample is missing); `FCPXMLReportingReportFixture.swift` / `FCPXMLReportingReportTestSupport.swift` for optional reporting fixtures.
-- **Reporting tests:** include `FCPXMLRoleInventoryColumnLayoutTests`, `FCPXMLReportColumnExclusionTests`, `FCPXMLReportExcludeDisabledClipsTests`, plus existing role inventory, section, Excel export, and formatting tests.
+- **Reporting tests:** include `FCPXMLRoleInventoryColumnLayoutTests`, `FCPXMLReportColumnExclusionTests`, `FCPXMLReportExcludeDisabledClipsTests`, `FCPXMLReportExcelExportTests` (workbook cell formatting: Summary title header, black role-duration data, red missing-media paths, inventory/section-sheet colour rules), plus existing role inventory, section, Excel export, and formatting tests.
 - **Coverage:** Unit, integration, and performance tests; sync and async; all supported frame rates and FCPXML versions. See **Tests/README.md** for categories and how to run tests.
 
 ---
