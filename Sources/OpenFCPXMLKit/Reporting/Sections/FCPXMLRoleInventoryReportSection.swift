@@ -11,7 +11,7 @@
 import Foundation
 
 extension FinalCutPro.FCPXML {
-    /// One row in the Selected Roles sheet or a per-role breakdown sheet.
+    /// One row in the Selected Roles Inventory sheet or a per-role breakdown sheet.
     public struct RoleClipReportRow: Sendable, Equatable {
         public var roleSubrole: String
         public var clipName: String
@@ -29,25 +29,22 @@ extension FinalCutPro.FCPXML {
         public var notes: String
         public var reel: String
         public var scene: String
+        public var take: String
+        public var cameraAngle: String
+        public var cameraName: String
+        public var frameRateSampleRate: String
+        public var frameSize: String
+        public var sourceFileName: String
+        public var sourceFilePath: String
+        /// Remaining metadata key/value pairs keyed by raw FCPXML metadata key.
+        public var metadataValues: [String: String]
         
-        public static let selectedRolesColumnHeaders: [String] = [
-            "Role ▸ Subrole",
-            "Clip Name",
-            "Category",
-            "Enabled",
-            "Timeline In",
-            "Timeline Out",
-            "Clip Duration",
-            "Source In",
-            "Source Out",
-            "Source Duration",
-            "Markers",
-            "Keywords",
-            "Effects",
-            "Notes",
-            "Reel",
-            "Scene"
-        ]
+        /// Fixed inventory column headers (excluding ``RoleInventoryColumnLayout/rowColumnHeader``
+        /// and dynamic metadata key columns).
+        public static let fixedColumnHeaders = RoleInventoryColumnLayout.fixedColumnHeaders
+        
+        /// Legacy alias for fixed inventory headers used by existing call sites.
+        public static let selectedRolesColumnHeaders = fixedColumnHeaders
         
         public init(
             roleSubrole: String,
@@ -65,7 +62,15 @@ extension FinalCutPro.FCPXML {
             effects: String = "",
             notes: String = "",
             reel: String = "",
-            scene: String = ""
+            scene: String = "",
+            take: String = "",
+            cameraAngle: String = "",
+            cameraName: String = "",
+            frameRateSampleRate: String = "",
+            frameSize: String = "",
+            sourceFileName: String = "",
+            sourceFilePath: String = "",
+            metadataValues: [String: String] = [:]
         ) {
             self.roleSubrole = roleSubrole
             self.clipName = clipName
@@ -83,10 +88,18 @@ extension FinalCutPro.FCPXML {
             self.notes = notes
             self.reel = reel
             self.scene = scene
+            self.take = take
+            self.cameraAngle = cameraAngle
+            self.cameraName = cameraName
+            self.frameRateSampleRate = frameRateSampleRate
+            self.frameSize = frameSize
+            self.sourceFileName = sourceFileName
+            self.sourceFilePath = sourceFilePath
+            self.metadataValues = metadataValues
         }
         
-        /// Values in ``selectedRolesColumnHeaders`` order.
-        public var columnValues: [String] {
+        /// Values for ``fixedColumnHeaders`` in column order.
+        public var fixedColumnValues: [String] {
             [
                 roleSubrole,
                 clipName,
@@ -103,8 +116,21 @@ extension FinalCutPro.FCPXML {
                 effects,
                 notes,
                 reel,
-                scene
+                scene,
+                take,
+                cameraAngle,
+                cameraName,
+                frameRateSampleRate,
+                frameSize,
+                sourceFileName,
+                sourceFilePath
             ]
+        }
+        
+        /// Values in ``fixedColumnHeaders`` order.
+        @available(*, deprecated, message: "Use fixedColumnValues or RoleInventoryColumnLayout.columnValues(for:metadataColumnKeys:)")
+        public var columnValues: [String] {
+            fixedColumnValues
         }
     }
     public struct RoleSheet: Sendable, Equatable {
@@ -117,19 +143,23 @@ extension FinalCutPro.FCPXML {
         }
     }
     
-    /// Role-based clip inventory (Selected Roles + per-role sheets).
+    /// Role-based clip inventory (Selected Roles Inventory + per-role sheets).
     public struct RoleInventoryReportSection: ReportSection, Sendable, Equatable {
-        public static let defaultSheetName = "Selected Roles"
+        public static let defaultSheetName = "Selected Roles Inventory"
         
         public var selectedRoles: [RoleClipReportRow]
         public var roleSheets: [RoleSheet]
+        /// Dynamic metadata key columns appended after the fixed inventory columns.
+        public var metadataColumnKeys: [String]
         
         public init(
             selectedRoles: [RoleClipReportRow] = [],
-            roleSheets: [RoleSheet] = []
+            roleSheets: [RoleSheet] = [],
+            metadataColumnKeys: [String] = []
         ) {
             self.selectedRoles = selectedRoles
             self.roleSheets = roleSheets
+            self.metadataColumnKeys = metadataColumnKeys
         }
     }
 }

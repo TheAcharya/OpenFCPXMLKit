@@ -66,23 +66,19 @@ extension FinalCutPro.FCPXML {
         }
     }
     
-    /// Summary report section (project header, role-duration breakdown, missing media paths).
+    /// Summary report section (project header and role-duration breakdown).
     public struct SummaryReportSection: ReportSection, Sendable, Equatable {
         public static let defaultSheetName = "Summary"
-        public static let missingMediaSectionTitle = "Missing Media"
         
         public var projectSummary: ProjectSummary?
         public var roleDurations: [SummaryRoleDurationRow]
-        public var missingMediaPaths: [String]
         
         public init(
             projectSummary: ProjectSummary? = nil,
-            roleDurations: [SummaryRoleDurationRow] = [],
-            missingMediaPaths: [String] = []
+            roleDurations: [SummaryRoleDurationRow] = []
         ) {
             self.projectSummary = projectSummary
             self.roleDurations = roleDurations
-            self.missingMediaPaths = missingMediaPaths
         }
     }
 }

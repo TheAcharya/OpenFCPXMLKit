@@ -20,7 +20,8 @@ extension FinalCutPro.FCPXML {
         case effects = "Video & Audio Effects"
         case speedChangeEffects = "Speed Change Effects"
         case summary = "Summary"
-        case roleInventory = "Role inventory"
+        case mediaSummary = "Media Summary"
+        case roleInventory = "Selected Roles Inventory"
     }
     
     /// Called when a report section begins building.

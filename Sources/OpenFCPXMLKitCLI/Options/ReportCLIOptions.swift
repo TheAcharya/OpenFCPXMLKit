@@ -63,9 +63,15 @@ struct ReportCLIOptions: ParsableArguments {
     
     @Flag(
         name: .customLong("report-summary"),
-        help: "Include the Files summary sheet (with --report)."
+        help: "Include the Summary sheet (project metrics and role-duration totals; with --report)."
     )
     var reportSummary: Bool = false
+    
+    @Flag(
+        name: .customLong("report-media-summary"),
+        help: "Include the Media Summary sheet (missing media file paths; with --report)."
+    )
+    var reportMediaSummary: Bool = false
     
     @Option(
         name: .customLong("report-project"),
@@ -79,6 +85,23 @@ struct ReportCLIOptions: ParsableArguments {
     )
     var excludeRole: [String] = []
     
+    @Flag(
+        name: .customLong("exclude-disabled-clips"),
+        help: "Omit disabled clips (enabled=\"0\") from all report sections (with --report)."
+    )
+    var excludeDisabledClips: Bool = false
+    
+    @Option(
+        name: .customLong("exclude-column"),
+        help: """
+        Exclude a workbook column from every applicable report sheet (repeatable; with --report). \
+        Case-insensitive names include Row Numbers, Role Subrole, Clip Name, Frame Rate, Reel, \
+        Metadata (role inventory dynamic metadata keys), and other shared column headers. \
+        Columns are removed wherever the sheet uses a matching header.
+        """
+    )
+    var excludeColumn: [String] = []
+    
     var hasSectionSelection: Bool {
         reportMarkers
             || reportKeywords
@@ -87,6 +110,7 @@ struct ReportCLIOptions: ParsableArguments {
             || reportEffects
             || reportSpeedChangeEffects
             || reportSummary
+            || reportMediaSummary
     }
     
     func makeLibraryReportOptions(mediaBaseURL: URL?) -> FinalCutPro.FCPXML.ReportOptions {
@@ -103,6 +127,7 @@ struct ReportCLIOptions: ParsableArguments {
                 includeEffects: reportEffects,
                 includeSpeedChangeEffects: reportSpeedChangeEffects,
                 includeSummary: reportSummary,
+                includeMediaSummary: reportMediaSummary,
                 includeRoleInventory: true
             )
         } else {
@@ -112,6 +137,8 @@ struct ReportCLIOptions: ParsableArguments {
         options.projectName = reportProject
         options.mediaBaseURL = mediaBaseURL
         options.excludedRoles = excludeRole
+        options.excludeDisabledClips = excludeDisabledClips
+        options.excludedColumns = excludeColumn
         return options
     }
 }

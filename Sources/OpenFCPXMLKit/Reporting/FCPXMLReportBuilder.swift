@@ -48,18 +48,20 @@ extension FinalCutPro.FCPXML {
                 .ancestorElements(includingSelf: false)
                 .first(whereFCPElementType: .event)?
                 .fcpName
+            let extractionScope = reportExtractionScope()
             
             var report = Report(
                 projectName: project.name ?? "",
                 eventName: eventName,
-                workbookCoverSheet: options.workbookCoverSheet
+                workbookCoverSheet: options.workbookCoverSheet,
+                excludedColumns: ReportColumnExclusion.resolve(options.excludedColumns)
             )
             
             if options.includeMarkers {
                 onPhaseStarted?(.markers)
                 report.markers = await MarkersReportBuilder.build(
                     from: timelineElement,
-                    scope: scope,
+                    scope: extractionScope,
                     includeChapterMarkers: options.includeChapterMarkersInMarkersReport,
                     roleDisplayPreference: options.roleDisplayPreference
                 )
@@ -70,7 +72,7 @@ extension FinalCutPro.FCPXML {
                 onPhaseStarted?(.keywords)
                 report.keywords = await KeywordsReportBuilder.build(
                     from: timelineElement,
-                    scope: scope,
+                    scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference
                 )
             }
@@ -78,7 +80,7 @@ extension FinalCutPro.FCPXML {
                 onPhaseStarted?(.titlesAndGenerators)
                 report.titlesAndGenerators = await TitlesReportBuilder.build(
                     from: timelineElement,
-                    scope: scope,
+                    scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference
                 )
             }
@@ -86,14 +88,14 @@ extension FinalCutPro.FCPXML {
                 onPhaseStarted?(.transitions)
                 report.transitions = await TransitionsReportBuilder.build(
                     from: timelineElement,
-                    scope: scope
+                    scope: extractionScope
                 )
             }
             if options.includeEffects {
                 onPhaseStarted?(.effects)
                 report.effects = await EffectsReportBuilder.build(
                     from: timelineElement,
-                    scope: scope,
+                    scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference
                 )
             }
@@ -101,7 +103,7 @@ extension FinalCutPro.FCPXML {
                 onPhaseStarted?(.speedChangeEffects)
                 report.speedChangeEffects = await SpeedChangeEffectsReportBuilder.build(
                     from: timelineElement,
-                    scope: scope,
+                    scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference
                 )
             }
@@ -110,16 +112,22 @@ extension FinalCutPro.FCPXML {
                 report.summary = await SummaryReportBuilder.build(
                     from: project,
                     document: fcpxml.xml,
-                    baseURL: options.mediaBaseURL,
-                    scope: scope,
+                    scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference
+                )
+            }
+            if options.includeMediaSummary {
+                onPhaseStarted?(.mediaSummary)
+                report.mediaSummary = MediaSummaryReportBuilder.build(
+                    document: fcpxml.xml,
+                    baseURL: options.mediaBaseURL
                 )
             }
             if options.includeRoleInventory {
                 onPhaseStarted?(.roleInventory)
                 var roleInventory = await RoleInventoryReportBuilder.build(
                     from: timelineElement,
-                    scope: scope,
+                    scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference
                 )
                 if !options.excludedRoles.isEmpty {
@@ -132,6 +140,13 @@ extension FinalCutPro.FCPXML {
             }
             
             return report
+        }
+        
+        /// Scope used for timeline extraction across all report sections.
+        private func reportExtractionScope() -> ExtractionScope {
+            var effectiveScope = scope
+            effectiveScope.includeDisabled = !options.excludeDisabledClips
+            return effectiveScope
         }
         
         private func resolveProject(in fcpxml: FinalCutPro.FCPXML) throws -> Project {

@@ -80,6 +80,8 @@ extension FinalCutPro.FCPXML {
             let clipContext = inventoryClipContext(for: extracted)
             let metadata = clipContext.value(forContext: .metadata)
             let sourceTimes = sourceTimecodes(for: clipContext, clipDuration: clipDuration)
+            let metadataValues = ReportFormatting.inventoryMetadataValueMap(from: metadata)
+            let sourceFile = ReportFormatting.inventorySourceFileInfo(for: clipContext)
             
             return RoleClipReportRow(
                 roleSubrole: entry.roleSubroleField,
@@ -95,9 +97,23 @@ extension FinalCutPro.FCPXML {
                 markers: markersDisplay(in: clipContext),
                 keywords: keywordsDisplay(for: clipContext),
                 effects: effectsDisplay(on: clipContext),
-                notes: "",
+                notes: ReportFormatting.clipNotesDisplay(for: clipContext.element),
                 reel: ReportFormatting.metadataString(from: metadata, key: .reel),
-                scene: ReportFormatting.metadataString(from: metadata, key: .scene)
+                scene: ReportFormatting.metadataString(from: metadata, key: .scene),
+                take: ReportFormatting.metadataString(from: metadata, key: .take),
+                cameraAngle: ReportFormatting.metadataString(from: metadata, key: .cameraAngle),
+                cameraName: ReportFormatting.metadataString(from: metadata, key: .cameraName),
+                frameRateSampleRate: ReportFormatting.inventoryFrameRateSampleRateDisplay(
+                    for: clipContext,
+                    category: entry.category
+                ),
+                frameSize: ReportFormatting.inventoryFrameSizeDisplay(
+                    for: clipContext,
+                    category: entry.category
+                ),
+                sourceFileName: sourceFile.name,
+                sourceFilePath: sourceFile.path,
+                metadataValues: metadataValues
             )
         }
         

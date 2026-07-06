@@ -50,6 +50,7 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
         XCTAssertNotNil(fullReport.effects)
         XCTAssertNotNil(fullReport.speedChangeEffects)
         XCTAssertNotNil(fullReport.summary)
+        XCTAssertNotNil(fullReport.mediaSummary)
     }
     
     @MainActor

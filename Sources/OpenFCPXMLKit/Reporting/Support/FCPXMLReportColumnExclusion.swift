@@ -1,0 +1,298 @@
+//
+//  FCPXMLReportColumnExclusion.swift
+//  OpenFCPXMLKit • https://github.com/TheAcharya/OpenFCPXMLKit
+//  © 2026 • Licensed under MIT License
+//
+
+//
+//	Global workbook column exclusion across all report sheets.
+//
+
+import Foundation
+
+extension FinalCutPro.FCPXML {
+    /// Logical report columns that can be omitted from every applicable workbook sheet.
+    public enum ReportColumn: String, Sendable, Hashable, CaseIterable {
+        case row
+        case roleSubrole
+        case clipName
+        case category
+        case enabled
+        case timelineIn
+        case timelineOut
+        case clipDuration
+        case duration
+        case sourceIn
+        case sourceOut
+        case sourceDuration
+        case sourcePosition
+        case duplicateFrames
+        case markers
+        case keywords
+        case effects
+        case notes
+        case reel
+        case scene
+        case take
+        case cameraAngle
+        case cameraName
+        case frameRateSampleRate
+        case frameSize
+        case sourceFileName
+        case sourceFilePath
+        case metadata
+    }
+    
+    /// Legacy name for ``ReportColumn``.
+    public typealias RoleInventoryReportColumn = ReportColumn
+    
+    /// Resolves user-facing column labels and filters workbook headers/rows.
+    enum ReportColumnExclusion {
+        static func resolve(_ labels: [String]) -> Set<ReportColumn> {
+            var resolved = Set<ReportColumn>()
+            for label in labels {
+                if let column = resolveColumn(label) {
+                    resolved.insert(column)
+                }
+            }
+            return resolved
+        }
+        
+        static func resolveColumn(_ label: String) -> ReportColumn? {
+            let normalized = normalizeColumnLabel(label)
+            guard !normalized.isEmpty else { return nil }
+            
+            return ReportColumn.allCases.first { column in
+                column.aliases.contains { alias in
+                    normalizeColumnLabel(alias).compare(
+                        normalized,
+                        options: [.caseInsensitive, .diacriticInsensitive]
+                    ) == .orderedSame
+                }
+            }
+        }
+        
+        static func filter(
+            headers: [String],
+            rows: [[String]],
+            excluded: Set<ReportColumn>,
+            metadataColumnKeys: [String] = []
+        ) -> (headers: [String], rows: [[String]]) {
+            guard !excluded.isEmpty else { return (headers, rows) }
+            
+            let indices = retainedColumnIndices(
+                in: headers,
+                excluded: excluded,
+                metadataColumnKeys: metadataColumnKeys
+            )
+            let filteredHeaders = indices.map { headers[$0] }
+            let filteredRows = rows.map { row in
+                indices.map { index in
+                    index < row.count ? row[index] : ""
+                }
+            }
+            return (filteredHeaders, filteredRows)
+        }
+        
+        static func filter(
+            headers: [String],
+            excluded: Set<ReportColumn>,
+            metadataColumnKeys: [String] = []
+        ) -> [String] {
+            filter(headers: headers, rows: [], excluded: excluded, metadataColumnKeys: metadataColumnKeys)
+                .headers
+        }
+        
+        static func isHeaderExcluded(
+            _ header: String,
+            excluded: Set<ReportColumn>,
+            metadataColumnKeys: [String]
+        ) -> Bool {
+            if excluded.contains(.metadata),
+               metadataColumnKeys.contains(header) || header.hasPrefix("com.apple.")
+            {
+                return true
+            }
+            
+            return excluded.contains { column in
+                column.workbookHeaders.contains { workbookHeader in
+                    headerMatches(workbookHeader, header)
+                }
+            }
+        }
+        
+        static func filteredProjectSummaryMetrics(
+            _ summary: ProjectSummary,
+            excluded: Set<ReportColumn>
+        ) -> [String] {
+            let metrics: [(column: ReportColumn?, value: String)] = [
+                (nil, ""),
+                (nil, summary.duration),
+                (.frameSize, summary.resolution),
+                (.frameRateSampleRate, summary.frameRate),
+                (.frameRateSampleRate, summary.audioSampleRate)
+            ]
+            
+            return metrics.compactMap { metric in
+                guard let column = metric.column else { return metric.value }
+                guard !excluded.contains(column) else { return nil }
+                return metric.value
+            }
+        }
+        
+        private static func retainedColumnIndices(
+            in headers: [String],
+            excluded: Set<ReportColumn>,
+            metadataColumnKeys: [String]
+        ) -> [Int] {
+            headers.enumerated().compactMap { index, header in
+                isHeaderExcluded(header, excluded: excluded, metadataColumnKeys: metadataColumnKeys)
+                    ? nil
+                    : index
+            }
+        }
+        
+        private static func headerMatches(_ lhs: String, _ rhs: String) -> Bool {
+            lhs.compare(rhs, options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
+        }
+        
+        private static func normalizeColumnLabel(_ label: String) -> String {
+            label
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .replacingOccurrences(of: "•", with: "▸")
+                .replacingOccurrences(of: "·", with: "▸")
+                .replacingOccurrences(of: "  ", with: " ")
+        }
+    }
+}
+
+extension FinalCutPro.FCPXML.ReportColumn {
+    /// Primary inventory header for a fixed column, when exported.
+    var exportHeader: String? {
+        workbookHeaders.first
+    }
+    
+    /// Workbook header strings matched on any report sheet for this logical column.
+    var workbookHeaders: [String] {
+        switch self {
+        case .row:
+            return ["Row"]
+        case .roleSubrole:
+            return ["Role ▸ Subrole"]
+        case .clipName:
+            return ["Clip Name"]
+        case .category:
+            return ["Category"]
+        case .enabled:
+            return ["Enabled"]
+        case .timelineIn:
+            return ["Timeline In"]
+        case .timelineOut:
+            return ["Timeline Out"]
+        case .clipDuration:
+            return ["Clip Duration"]
+        case .duration:
+            return ["Duration"]
+        case .sourceIn:
+            return ["Source In"]
+        case .sourceOut:
+            return ["Source Out"]
+        case .sourceDuration:
+            return ["Source Duration"]
+        case .sourcePosition:
+            return ["Source Position"]
+        case .duplicateFrames:
+            return ["Duplicate Frames"]
+        case .markers:
+            return ["Markers"]
+        case .keywords:
+            return ["Keywords", "Keyword"]
+        case .effects:
+            return ["Effects", "Effect"]
+        case .notes:
+            return ["Notes"]
+        case .reel:
+            return ["Reel"]
+        case .scene:
+            return ["Scene"]
+        case .take:
+            return ["Take"]
+        case .cameraAngle:
+            return ["Camera Angle"]
+        case .cameraName:
+            return ["Camera Name"]
+        case .frameRateSampleRate:
+            return ["Frame Rate/Sample Rate", "Frame Rate", "Sample Rate"]
+        case .frameSize:
+            return ["Frame Size"]
+        case .sourceFileName:
+            return ["Source File Name"]
+        case .sourceFilePath:
+            return ["Source File Path", "Missing Media"]
+        case .metadata:
+            return []
+        }
+    }
+    
+    /// User-facing aliases accepted by ``ReportColumnExclusion``.
+    fileprivate var aliases: [String] {
+        switch self {
+        case .row:
+            return ["Row", "Row Numbers", "Row Number"]
+        case .roleSubrole:
+            return ["Role ▸ Subrole", "Role • Subrole", "Role Subrole", "Role-Subrole"]
+        case .clipName:
+            return ["Clip Name"]
+        case .category:
+            return ["Category"]
+        case .enabled:
+            return ["Enabled"]
+        case .timelineIn:
+            return ["Timeline In"]
+        case .timelineOut:
+            return ["Timeline Out"]
+        case .clipDuration:
+            return ["Clip Duration"]
+        case .duration:
+            return ["Duration"]
+        case .sourceIn:
+            return ["Source In"]
+        case .sourceOut:
+            return ["Source Out"]
+        case .sourceDuration:
+            return ["Source Duration"]
+        case .sourcePosition:
+            return ["Source Position"]
+        case .duplicateFrames:
+            return ["Duplicate Frames"]
+        case .markers:
+            return ["Markers"]
+        case .keywords:
+            return ["Keywords", "Keyword"]
+        case .effects:
+            return ["Effects", "Effect"]
+        case .notes:
+            return ["Notes"]
+        case .reel:
+            return ["Reel"]
+        case .scene:
+            return ["Scene"]
+        case .take:
+            return ["Take"]
+        case .cameraAngle:
+            return ["Camera Angle"]
+        case .cameraName:
+            return ["Camera Name"]
+        case .frameRateSampleRate:
+            return ["Frame Rate/Sample Rate", "Frame Rate", "Sample Rate"]
+        case .frameSize:
+            return ["Frame Size"]
+        case .sourceFileName:
+            return ["Source File Name"]
+        case .sourceFilePath:
+            return ["Source File Path"]
+        case .metadata:
+            return ["Metadata"]
+        }
+    }
+}

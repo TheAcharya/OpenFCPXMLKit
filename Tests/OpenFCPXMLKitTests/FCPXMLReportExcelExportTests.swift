@@ -16,6 +16,37 @@ import XLKit
 @available(macOS 26.0, *)
 final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
     
+    func testReportWorkbookSheetTitlesUseTitleCase() {
+        let sheetTitles = [
+            FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.KeywordsReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.TitlesReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.TransitionsReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.EffectsReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.SpeedChangeEffectsReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.SummaryReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName
+        ]
+        
+        XCTAssertEqual(sheetTitles, [
+            "Markers",
+            "Keywords",
+            "Titles & Generators",
+            "Transitions",
+            "Video & Audio Effects",
+            "Speed Change Effects",
+            "Summary",
+            "Media Summary",
+            "Selected Roles Inventory"
+        ])
+        
+        XCTAssertEqual(
+            FinalCutPro.FCPXML.ReportBuildPhase.roleInventory.rawValue,
+            "Selected Roles Inventory"
+        )
+    }
+    
     func testSanitizeSheetNameReplacesInvalidCharactersAndTruncates() {
         let sanitized = FinalCutPro.FCPXML.ReportExcelExport.sanitizeSheetName(
             "Video: Effects? [test]/path\\name that is way too long"
@@ -100,7 +131,9 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
                         estimatedTotal: "00:01:00:00",
                         percentOfTotal: 1.0
                     )
-                ],
+                ]
+            ),
+            mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection(
                 missingMediaPaths: ["/missing/clip.mov"]
             ),
             roleInventory: FinalCutPro.FCPXML.RoleInventoryReportSection(
@@ -137,8 +170,29 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
             FinalCutPro.FCPXML.TransitionsReportSection.defaultSheetName,
             FinalCutPro.FCPXML.EffectsReportSection.defaultSheetName,
             FinalCutPro.FCPXML.SpeedChangeEffectsReportSection.defaultSheetName,
-            FinalCutPro.FCPXML.SummaryReportSection.defaultSheetName
+            FinalCutPro.FCPXML.SummaryReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName
         ])
+    }
+    
+    @MainActor
+    func testMediaSummarySheetListsMissingMediaPaths() {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test Project",
+            mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection(
+                missingMediaPaths: ["/missing/clip.mov", "/missing/audio.wav"]
+            )
+        )
+        
+        let sheet = FinalCutPro.FCPXML.ReportExcelExport
+            .makeWorkbook(from: report)
+            .getSheet(name: FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName)
+        
+        XCTAssertEqual(sheet?.getCellWithFormat("A1")?.value.stringValue, "Missing Media")
+        XCTAssertEqual(sheet?.getCellWithFormat("A1")?.format?.backgroundColor, "#000000")
+        XCTAssertEqual(sheet?.getCellWithFormat("A1")?.format?.fontColor, "#FFFFFF")
+        XCTAssertEqual(sheet?.getCellWithFormat("A2")?.value.stringValue, "/missing/clip.mov")
+        XCTAssertEqual(sheet?.getCellWithFormat("A3")?.value.stringValue, "/missing/audio.wav")
     }
     
     @MainActor
