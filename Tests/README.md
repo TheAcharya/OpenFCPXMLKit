@@ -2,9 +2,9 @@
 
 This directory contains the test suite for OpenFCPXMLKit, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration. The suite runs on **macOS** (Foundation XML backend). The library also supports **iOS 26+** (AEXML backend); CI builds for iOS Simulator; the same tests are not run on iOS because they rely on Foundation XML.
 
-- **Test count:** 877 tests  
-- **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines, audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), and all supported FCPXML versions and frame rates  
-- **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure; validation and cross-platform XML tests  
+- **Test count:** **892** tests listed in `swift test --list-tests` — **891** in `OpenFCPXMLKitTests` (888 XCTest `func test` methods + 3 Swift Testing `@Test` in `FCPXMLReportRoleExclusionTests`) and **1** in `ExcelReportTest` (optional integration; skips without a local fixture)  
+- **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines, audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), Excel reporting (role inventory columns, Summary and Media Summary sheets, global column exclusion, disabled-clip filtering, workbook export), and all supported FCPXML versions and frame rates  
+- **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure; validation and cross-platform XML tests; optional Excel report integration tests under `ExcelReportTest/`
 
 ---
 
@@ -29,16 +29,17 @@ This directory contains the test suite for OpenFCPXMLKit, a Swift 6 framework fo
 9. [Supported frame rates](#9-supported-frame-rates)
 10. [FCPXML versions](#10-fcpxml-versions)
 11. [Sample files](#11-sample-files)
+12. [Excel report integration tests](#12-excel-report-integration-tests)
 
 **Contributing & troubleshooting**
 
-12. [Writing and organising tests](#12-writing-and-organising-tests)
-13. [Continuous integration](#13-continuous-integration)
-14. [Debugging tests](#14-debugging-tests)
-15. [Contributing to tests](#15-contributing-to-tests)
-16. [Resources](#16-resources)
-17. [Resolving common test/build messages](#17-resolving-common-testbuild-messages)
-18. [Credits](#18-credits)
+13. [Writing and organising tests](#13-writing-and-organising-tests)
+14. [Continuous integration](#14-continuous-integration)
+15. [Debugging tests](#15-debugging-tests)
+16. [Contributing to tests](#16-contributing-to-tests)
+17. [Resources](#17-resources)
+18. [Resolving common test/build messages](#18-resolving-common-testbuild-messages)
+19. [Credits](#19-credits)
 
 ---
 
@@ -47,6 +48,11 @@ This directory contains the test suite for OpenFCPXMLKit, a Swift 6 framework fo
 ```
 Tests/
 ├── README.md
+├── ExcelReportTest/              # Optional integration: writes real .xlsx from local fixture
+│   ├── README.md
+│   ├── ExcelReportFixture.swift
+│   ├── ExcelReportExportTests.swift
+│   └── Output/                   # Generated workbooks (gitignored)
 ├── FCPXML Samples/
 │   └── FCPXML/
 └── OpenFCPXMLKitTests/
@@ -108,11 +114,14 @@ Tests/
     ├── FCPXMLMediaExtractionTests.swift
     ├── FCPXMLParallelFileIOTests.swift
     ├── FCPXMLPerformanceTests.swift
+    ├── FCPXMLReportColumnExclusionTests.swift
     ├── FCPXMLReportExcelExportTests.swift
+    ├── FCPXMLReportExcludeDisabledClipsTests.swift
     ├── FCPXMLReportFormattingTests.swift
     ├── FCPXMLReportRoleExclusionTests.swift
     ├── FCPXMLRoleDisplayPreferenceTests.swift
     ├── FCPXMLRoleInventoryClipCollectorTests.swift
+    ├── FCPXMLRoleInventoryColumnLayoutTests.swift
     ├── FCPXMLRoleInventoryReportTests.swift
     ├── FCPXMLRoleInventoryRoleSheetOrderingTests.swift
     ├── FCPXMLRolesExtractionPresetTests.swift
@@ -154,6 +163,14 @@ swift test                    # All tests
 swift test --verbose         # Verbose
 swift test --filter testAllSupportedFrameRates   # Single test
 swift test --filter OpenFCPXMLKitTests             # By pattern
+```
+
+To verify the documented test counts:
+
+```bash
+swift test --list-tests 2>/dev/null | grep -c '\.'                        # 892
+swift test --list-tests 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 891
+swift test --list-tests 2>/dev/null | grep -c 'ExcelReportTest\.'       # 1
 ```
 
 ### Xcode
@@ -245,16 +262,19 @@ Tests are discovered automatically by Swift PM. Run `swift test` in an environme
 
 **Reporting & Excel export** (see [19 — Reporting & Excel Export](../Documentation/Manual/19-Reporting.md))
 
-- **FCPXMLRoleInventoryReportTests** — Role inventory section: Selected Roles rows and per-role sheets, categories, columns.
+- **FCPXMLRoleInventoryReportTests** — Role inventory section: Selected Roles Inventory rows and per-role sheets, categories, columns.
+- **FCPXMLRoleInventoryColumnLayoutTests** — Inventory column order (Row + 23 fixed columns), dynamic metadata key discovery, row index values, audio rate display.
 - **FCPXMLMarkersReportTests** — Markers report rows (type, position, clip name, role ▸ subrole), chapter-marker inclusion.
 - **FCPXMLKeywordsReportTests** — Keywords report rows (keyword, timeline in/out, duration, role ▸ subrole).
 - **FCPXMLTitlesReportTests** — Titles & Generators rows (clip name, Apple flag, role ▸ subrole, font, title text).
 - **FCPXMLTransitionsReportTests** — Transitions rows (transition, category, Apple flag, timeline in/out, duration).
 - **FCPXMLEffectsReportTests** / **FCPXMLSpeedChangeEffectsReportTests** — Video & Audio Effects and Speed Change Effects rows.
-- **FCPXMLSummaryReportTests** — Project summary metrics, per-role duration rows, percentage of total, missing media.
-- **FCPXMLReportExcelExportTests** — XLKit workbook export: sheet ordering, sheet-name sanitisation, numeric percentage cell formatting, role colour coding.
+- **FCPXMLSummaryReportTests** — Summary sheet: project metrics, per-role duration rows, percentage of total; Media Summary sheet: missing media paths; `.summaryOnly` and `.mediaSummaryOnly` presets.
+- **FCPXMLReportExcelExportTests** — XLKit workbook export: Title Case sheet names, sheet ordering, sheet-name sanitisation, Media Summary sheet, numeric percentage cell formatting, role/marker colour coding, cover sheet styling, black/white table headers.
 - **FCPXMLReportFormattingTests** — Role ▸ subrole field formatting, `<Blank>` handling, channel-ordered role fields.
 - **FCPXMLReportRoleExclusionTests** — `excludedRoles` filtering (excluding a main role also excludes subroles).
+- **FCPXMLReportColumnExclusionTests** — `ReportColumn` alias resolution; header/value filtering; workbook export omits excluded columns on inventory and markers sheets.
+- **FCPXMLReportExcludeDisabledClipsTests** — `excludeDisabledClips` omits `enabled="0"` clips from role inventory and titles sections (uses `DisabledClips` sample).
 - **FCPXMLRoleDisplayPreferenceTests** — RoleDisplayPreference priority tables and preferred-role selection per context.
 - **FCPXMLRoleInventoryClipCollectorTests** / **FCPXMLRoleInventoryRoleSheetOrderingTests** — Clip collection into role entries; role-sheet ordering.
 - **FCPXMLSummaryRoleDurationAggregatorTests** — Per-role duration aggregation and percentage calculation.
@@ -389,7 +409,24 @@ Document manager tests create documents for **FCPXML 1.5 through 1.14** and asse
 
 ---
 
-## 12. Writing and organising tests
+## 12. Excel report integration tests
+
+The **`ExcelReportTest`** target (separate from `OpenFCPXMLKitTests`) builds real `.xlsx` workbooks from a **local** FCPXML fixture. It is optional: without a fixture, tests skip and CI stays green.
+
+| Item | Detail |
+|------|--------|
+| **Location** | `Tests/ExcelReportTest/` |
+| **Test class** | `ExcelReportExportTests` — writes `Output/OFK-Default.xlsx` and `Output/OFK-Full.xlsx` |
+| **Fixture** | `Sample.fcpxmld` / `Sample.fcpxml` in that folder, or `OFK_REPORTING_FCPXML_BUNDLE` env var |
+| **Run** | `swift test --filter ExcelReportExportTests` |
+
+Full setup, output description, and CI notes: **[ExcelReportTest/README.md](ExcelReportTest/README.md)**.
+
+Use this target for end-to-end workbook generation on a real project. Use **`OpenFCPXMLKitTests`** reporting files (listed under **Reporting & Excel export** in [§3.2](#32-dedicated-test-files-by-theme)) for unit and integration tests against bundled FCPXML samples.
+
+---
+
+## 13. Writing and organising tests
 
 **Naming** — Prefix every test file and class with **`FCPXML`** (e.g. `FCPXMLTimelineManipulationTests`, `FCPXMLFileTest_<Name>`), including non-test support files (`FCPXMLTestResources`, `FCPXMLTestUtilities`, `FCPXMLReportingReportFixture`, `FCPXMLReportingReportTestSupport`); the only exception is the module-named umbrella `OpenFCPXMLKitTests`. Name test methods `test<FeatureOrBehaviour>` (e.g. testAllSupportedFrameRates, testParserWithInvalidXML). Put new tests under the right MARK section and keep this README updated.
 
@@ -403,13 +440,13 @@ Document manager tests create documents for **FCPXML 1.5 through 1.14** and asse
 
 ---
 
-## 13. Continuous integration
+## 14. Continuous integration
 
 GitHub Actions (e.g. `.github/workflows/build.yml`) run on push and pull requests: **macOS** — build and full unit test suite (Xcode workspace, xcodebuild); Swift 6 and strict concurrency job; **iOS** — build for iOS Simulator (orchetect/setup-xcode-simulator); tests are not run on iOS because they require Foundation XML. All macOS tests must pass with no regressions.
 
 ---
 
-## 14. Debugging tests
+## 15. Debugging tests
 
 - Run a single test: `swift test --filter testMethodName` or run in Xcode (diamond next to the method).
 - Use print or breakpoints as needed; avoid leaving noisy prints in committed code.
@@ -418,24 +455,24 @@ GitHub Actions (e.g. `.github/workflows/build.yml`) run on push and pull request
 
 ---
 
-## 15. Contributing to tests
+## 16. Contributing to tests
 
 Add tests for new behaviour or edge cases; place them in the right file and MARK section; keep names descriptive. Update this README when adding a category or changing what a section covers. For “all FCP frame rates” use **fcpSupportedFrameRates**. Prefer minimal in-memory FCPXML or small fixtures; document assumptions (e.g. temp URL) in a comment or here.
 
 ---
 
-## 16. Resources
+## 17. Resources
 
 - **XCTest** (Apple documentation)
 - **Testing in Xcode** (Apple documentation)
 - **OpenFCPXMLKit README** (project root) — overview and API usage
-- **Documentation/Manual** — full manual; [18 — Cross-Platform & iOS](../Documentation/Manual/18-Cross-Platform-iOS.md) for XML abstraction and iOS support
+- **Documentation/Manual** — full manual; [19 — Reporting & Excel Export](../Documentation/Manual/19-Reporting.md) for report API; [18 — Cross-Platform & iOS](../Documentation/Manual/18-Cross-Platform-iOS.md) for XML abstraction and iOS support
 - **Final Cut Pro XML (FCPXML)** — [fcp.cafe](https://fcp.cafe) for format reference
 - **SwiftTimecode** (GitHub) — timecode and frame rate types
 
 ---
 
-## 17. Resolving common test/build messages
+## 18. Resolving common test/build messages
 
 **Swift PM cache warnings** — “configuration is not accessible or not writable” / “Caches is not accessible or not writable”: Swift PM cannot write to `~/Library/org.swift.swiftpm/` or `~/Library/Caches/org.swift.swiftpm/`. Fix: ensure directories exist and your user has write permission (e.g. `mkdir -p ~/Library/org.swift.swiftpm ~/Library/Caches/org.swift.swiftpm`). In CI/sandbox these warnings are harmless; Swift PM falls back to process-local cache.
 
@@ -447,6 +484,6 @@ Add tests for new behaviour or edge cases; place them in the right file and MARK
 
 ---
 
-## 18. Credits
+## 19. Credits
 
 Inspired and modeled after [swift-daw-file-tools](https://github.com/orchetect/swift-daw-file-tools)'s Test Suites.

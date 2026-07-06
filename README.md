@@ -7,7 +7,7 @@
 
 A modern Swift 6 framework for working with Final Cut Pro's FCPXML with full concurrency support, SwiftTimecode integration, and [XLKit](https://github.com/TheAcharya/XLKit) integration.
 
-OpenFCPXMLKit provides a comprehensive API for parsing, creating, and manipulating FCPXML files with advanced timecode operations, async/await patterns, and robust error handling. Built with Swift 6.3 and targeting **macOS 26+** and **iOS 26+**, it offers type-safe operations, comprehensive test coverage (877 tests), and seamless integration with SwiftTimecode and XLKit for professional video editing workflows. A cross-platform XML abstraction layer (Foundation on macOS, AEXML on iOS) keeps the library usable on both platforms.
+OpenFCPXMLKit provides a comprehensive API for parsing, creating, and manipulating FCPXML files with advanced timecode operations, async/await patterns, and robust error handling. Built with Swift 6.3 and targeting **macOS 26+** and **iOS 26+**, it offers type-safe operations, comprehensive test coverage (**892** tests: 891 in `OpenFCPXMLKitTests`, plus 1 optional `ExcelReportTest` integration), and seamless integration with SwiftTimecode and XLKit for professional video editing workflows. A cross-platform XML abstraction layer (Foundation on macOS, AEXML on iOS) keeps the library usable on both platforms.
 
 OpenFCPXMLKit is currently in an experimental stage. It covers most core FCPXML attributes and parameters and provides a solid foundation for parsing, creation, and manipulation, with room for future expansion and additional feature coverage.
 
@@ -45,7 +45,7 @@ This codebase is developed using AI agents.
 ## Core Features
 
 - **FCPXML I/O**: Read, create, modify documents (.fcpxml/.fcpxmld bundles); load via `FCPXMLFileLoader` (sync/async); create FCPXML from scratch with events, projects, resources, and clips.
-- **Parsing & Validation**: Parse and validate against bundled DTDs (1.5–1.14); structural/reference and DTD schema validation (full DTD on macOS; cross-platform structural validation on iOS via `FCPXMLStructuralValidator`); 877 tests across 58 FCPXML sample files (including empty timeline creation, project-creation export, AEXML parity, reporting, and validation suites).
+- **Parsing & Validation**: Parse and validate against bundled DTDs (1.5–1.14); structural/reference and DTD schema validation (full DTD on macOS; cross-platform structural validation on iOS via `FCPXMLStructuralValidator`); **892** tests (891 in `OpenFCPXMLKitTests` + 1 optional Excel report integration) across 58 FCPXML sample files.
 - **Timecode Operations**: SwiftTimecode integration (`CMTime`, `Timecode`, FCPXML time strings); `FCPXMLTimecode` custom type (arithmetic, frame alignment, conversion); all FCP frame rates (23.976, 24, 25, 29.97, 30, 50, 59.94, 60 fps).
 - **Typed Models**: Resources, events, clips, projects, adjustments (Crop, Transform, Blend, Stabilization, Volume, Loudness, NoiseReduction, HumReduction, Equalization, MatchEqualization, Transform360, ColorConform, Stereo3D, VoiceIsolation), filters (VideoFilter, AudioFilter, VideoFilterMask with FilterParameter), transitions, multicam (Media.Multicam, Angle, MulticamSource, MCClip), captions/titles (Caption, Title with TextStyle/TextStyleDefinition), smart collections (SmartCollection with match-clip, match-media, match-ratings, match-text, match-usage, match-representation, match-markers, match-analysis-type), collections (CollectionFolder, KeywordCollection).
 - **Timeline Operations**: Build `Timeline`; create valid projects with custom or preset dimensions and frame rate (via `TimelineFormat`); export to FCPXML/.fcpxmld (including zero-clip/empty timelines); optional event/project UIDs and library location (`FCPXMLUID`); ripple insert, auto lane assignment, clip queries (lane/time range/asset ID), lane range computation; metadata (markers, chapter markers, keywords, ratings, custom metadata, timestamps); secondary storylines; `TimelineFormat` presets and computed properties.
@@ -53,8 +53,8 @@ This codebase is developed using AI agents.
 - **Analysis & Conversion**: Cut detection (edit points, transitions, gaps); typed element filtering (`FCPXMLElementType`); version conversion (strip elements, validate, save as .fcpxml/.fcpxmld); per-version DTD validation; element stripping based on target version DTDs.
 - **Animation**: KeyframeAnimation, Keyframe with interpolation, FadeIn/FadeOut; integrated with FilterParameter; auxValue support (FCPXML 1.11+).
 - **Extensions**: CMTime Codable (FCPXML time string encoding/decoding); CollectionFolder and KeywordCollection for organization; Live Drawing (FCPXML 1.11+); HiddenClipMarker (FCPXML 1.13+); Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps).
-- **Excel Reporting**: Production's Best Friend–style multi-sheet `.xlsx` workbooks from an FCPXML/FCPXMLD via `FinalCutPro.FCPXML.buildReport(options:)` (XLKit-backed). Sheets for Role Inventory (Selected Roles + per-role), Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, and a Summary sheet with per-role duration totals and percentages; role exclusions, project-name filtering, and progress callbacks.
-- **CLI**: `OpenFCPXMLKit-CLI` with `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--create-project` (new empty FCPXML project with width/height/rate/version), `--report` (Excel report; `--report-full` and per-section flags), logging options (see CLI README).
+- **Excel Reporting**: Multi-sheet `.xlsx` workbooks from an FCPXML/FCPXMLD via `FinalCutPro.FCPXML.buildReport(options:)` (XLKit-backed). Sheets for Role Inventory (Selected Roles Inventory + per-role), Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, Summary (project metrics and role durations), and Media Summary (missing media paths); role exclusions, global column exclusion, disabled-clip filtering, project-name filtering, and progress callbacks.
+- **CLI**: `OpenFCPXMLKit-CLI` with `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--create-project` (new empty FCPXML project with width/height/rate/version), `--report` (Excel report; `--report-full`, per-section flags, `--exclude-role`, `--exclude-column`, `--exclude-disabled-clips`), logging options (see CLI README).
 - **Architecture**: Protocol-oriented, dependency-injected; sync/async APIs; Swift 6 concurrency-safe design; comprehensive test suite with file-based and logic tests.
 
 ## Requirements
@@ -236,7 +236,7 @@ OPTIONS:
 Complete manual, usage guide, and examples are in the [Documentation](Documentation/) folder:
 
 - [Manual](Documentation/Manual.md) — Full user manual: loading, modular operations, time conversions, logging, error handling, async/await, task groups, extensions, validation, version conversion, and step-by-step examples.
-- [Reporting & Excel Export](Documentation/Manual/19-Reporting.md) — Build Production's Best Friend–style Excel workbooks: `buildReport`, `ReportBuilder`, `ReportOptions`, `ReportExcelExport`, and CLI integration.
+- [Reporting & Excel Export](Documentation/Manual/19-Reporting.md) — Build Excel workbooks: `buildReport`, `ReportBuilder`, `ReportOptions`, `ReportColumn` exclusion, disabled-clip filtering, Summary and Media Summary sheets, `ReportExcelExport`, and CLI integration.
 - [CLI](Sources/OpenFCPXMLKitCLI/README.md) — Experimental command-line interface: `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--create-project`, `--report`, building and extending.
 
 ## FCPXML Version Support
@@ -250,7 +250,7 @@ OpenFCPXMLKit supports FCPXML versions 1.5 through 1.14. All DTDs for these vers
 
 - Protocol-oriented and dependency-injected: core behaviour (parsing, timecode, document ops, error handling) is behind protocols with default implementations you can replace. Inject when creating FCPXMLService or FCPXMLUtility or when using modular extension overloads.
 - Extension APIs that can't take a parameter use a single shared instance (FCPXMLUtility.defaultForExtensions) for consistency and concurrency safety; use overloads with a `using:` parameter for custom services.
-- Built with Swift 6 and strict concurrency; Sendable where possible, no unsafe code. Dependencies are up to date: [SwiftTimecode](https://github.com/orchetect/swift-timecode) 3.1.2+, [SwiftExtensions](https://github.com/orchetect/swift-extensions) 2.2.0+, [swift-log](https://github.com/apple/swift-log) 1.14.0+, [AEXML](https://github.com/tadija/AEXML) 4.7.0+ (iOS XML backend), [XLKit](https://github.com/TheAcharya/XLKit) 1.1.6+ (Excel report export), and [swift-argument-parser](https://github.com/apple/swift-argument-parser) 1.8.2+ (CLI only).
+- Built with Swift 6 and strict concurrency; Sendable where possible, no unsafe code. Key dependencies: [SwiftTimecode](https://github.com/orchetect/swift-timecode), [SwiftExtensions](https://github.com/orchetect/swift-extensions), [swift-log](https://github.com/apple/swift-log), [AEXML](https://github.com/tadija/AEXML) (iOS XML backend), [XLKit](https://github.com/TheAcharya/XLKit) (Excel report export), and [swift-argument-parser](https://github.com/apple/swift-argument-parser) (CLI only). Minimum versions are defined in `Package.swift`.
 
 ## Architecture Overview
 

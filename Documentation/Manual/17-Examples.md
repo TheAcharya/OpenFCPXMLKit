@@ -238,9 +238,12 @@ import OpenFCPXMLKit
 
 let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
 
-// Role inventory + every optional sheet, excluding a role
+// Role inventory + every optional sheet, with filtering
 var options = FinalCutPro.FCPXML.ReportOptions.full
 options.excludedRoles = ["Effects"]
+options.excludeDisabledClips = true
+options.excludedColumns = ["Reel", "Metadata", "Source File Path"]
+options.mediaBaseURL = URL(fileURLWithPath: "/path/to/project.fcpxmld")
 
 let report = try await fcpxml.buildReport(options: options) { phase in
     print("Building \(phase.rawValue)…")
@@ -249,6 +252,19 @@ let report = try await fcpxml.buildReport(options: options) { phase in
 let outputURL = URL(fileURLWithPath: "/path/to/Report.xlsx")
 try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: outputURL)
 print("Wrote \(report.roleInventory?.roleSheets.count ?? 0) role sheet(s)")
+print("Excluded columns: \(report.excludedColumns)")
+```
+
+Equivalent CLI:
+
+```bash
+OpenFCPXMLKit-CLI --report --report-full \
+  --exclude-role Effects \
+  --exclude-disabled-clips \
+  --exclude-column Reel \
+  --exclude-column Metadata \
+  --exclude-column "Source File Path" \
+  /path/to/project.fcpxmld /path/to/output-dir
 ```
 
 See [19 — Reporting & Excel Export](19-Reporting.md) for the full reporting API.

@@ -3,7 +3,10 @@
 Optional integration tests that build real `.xlsx` workbooks from a local FCPXML project. Use this target when you want to compare OpenFCPXMLKit output against reference exports without running the CLI each time.
 
 **Target:** `ExcelReportTest`  
-**Depends on:** `OpenFCPXMLKit`, `XLKit`
+**Depends on:** `OpenFCPXMLKit`, `XLKit`  
+**Tests:** 1 (`ExcelReportExportTests`)
+
+Unit-level reporting behaviour (column layout, column exclusion, disabled-clip filtering, sheet formatting) lives in **`OpenFCPXMLKitTests`** — see [Tests/README.md](../README.md#reporting--excel-export).
 
 ---
 
@@ -16,7 +19,7 @@ Tests accept **either** format:
 | **`.fcpxmld`** | A bundle directory (e.g. `MyProject.fcpxmld/`) containing `Info.fcpxml` | `FCPXMLFileLoader` reads `Info.fcpxml` inside the bundle |
 | **`.fcpxml`** | A single XML file | Loaded directly |
 
-Relative media paths in the Summary sheet are resolved from the bundle directory (for `.fcpxmld`) or the file's parent folder (for `.fcpxml`).
+Relative media paths for the **Media Summary** sheet are resolved from the bundle directory (for `.fcpxmld`) or the file's parent folder (for `.fcpxml`). `ExcelReportFixture.mediaBaseURL(for:)` supplies `ReportOptions.mediaBaseURL` automatically.
 
 ### Fixture resolution order
 
@@ -53,12 +56,38 @@ export OFK_REPORTING_FCPXML_BUNDLE="/path/to/Project.fcpxml"
 
 Running the export test writes workbooks to **`Output/`** (also gitignored):
 
-| File | CLI equivalent | Contents |
-|------|----------------|----------|
-| `Output/OFK-Default.xlsx` | `OpenFCPXMLKit-CLI --report <fixture> <dir>` | Role inventory only (Selected Roles + per-role sheets) |
-| `Output/OFK-Full.xlsx` | `OpenFCPXMLKit-CLI --report --report-full <fixture> <dir>` | Role inventory + Markers, Keywords, Titles & Generators, Transitions, Effects, Speed Change Effects, Summary |
+| File | Report preset | CLI equivalent | Contents |
+|------|---------------|----------------|----------|
+| `Output/OFK-Default.xlsx` | `ReportOptions.roleInventoryOnly` | `OpenFCPXMLKit-CLI --report <fixture> <dir>` | **Selected Roles Inventory** + per-role sheets (23 fixed columns + Row + dynamic metadata keys) |
+| `Output/OFK-Full.xlsx` | `ReportOptions.full` | `OpenFCPXMLKit-CLI --report --report-full <fixture> <dir>` | Default sheets plus Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, **Summary**, and **Media Summary** |
 
 See [Output/README.md](Output/README.md) for details on that folder.
+
+`testExportDefaultAndFullWorkbooks` asserts that the default export includes only role inventory, and that the full export includes every optional section (`summary`, `mediaSummary`, markers, keywords, titles, transitions, effects, speed-change effects).
+
+---
+
+## CLI parity
+
+The integration target mirrors the two most common CLI flows. For filtered exports, use the CLI or build reports in code:
+
+```bash
+# Omit disabled clips and columns (not covered by ExcelReportExportTests)
+OpenFCPXMLKit-CLI --report --report-full \
+  --exclude-disabled-clips \
+  --exclude-column Reel \
+  --exclude-column Metadata \
+  /path/to/project.fcpxmld /path/to/output-dir
+```
+
+```swift
+var options = FinalCutPro.FCPXML.ReportOptions.full
+options.excludeDisabledClips = true
+options.excludedColumns = ["Reel", "Metadata"]
+let report = try await fcpxml.buildReport(options: options)
+```
+
+See [Documentation/Manual/19-Reporting.md](../../Documentation/Manual/19-Reporting.md) for the full API.
 
 ---
 
@@ -80,9 +109,9 @@ First run on a large project can take ~1–2 minutes (report build + XLKit save)
 
 | File | Purpose |
 |------|---------|
-| `ExcelReportFixture.swift` | Resolves fixture URL and `Output/` path |
+| `ExcelReportFixture.swift` | Resolves fixture URL, `mediaBaseURL`, and `Output/` path; defines output file names |
 | `ExcelReportExportTests.swift` | Builds and writes `OFK-Default.xlsx` and `OFK-Full.xlsx` |
-| `Output/` | Generated workbooks (created by tests) |
+| `Output/` | Generated workbooks (created by tests; gitignored) |
 
 ---
 
@@ -102,4 +131,12 @@ env:
 
 ## Adding more tests
 
-Put new test classes in this directory. Reuse `ExcelReportFixture.requireFixtureURL()` and `ExcelReportFixture.outputDirectoryURL()` for consistent fixture and output paths. Parity checks against reference `.xlsx` files can read from `Output/` or from a separate local reference folder (keep references out of git if they are large or licensed).
+Put new test classes in this directory. Reuse `ExcelReportFixture.requireFixtureURL()` and `ExcelReportFixture.outputDirectoryURL()` for consistent fixture and output paths.
+
+Good candidates for this target:
+
+- Golden-file parity against a reference `.xlsx` (keep references out of git if large or licensed)
+- Filtered exports (`excludeDisabledClips`, `excludedColumns`, `excludedRoles`) written to additional `Output/` files
+- Sheet/column-count smoke checks on a known fixture
+
+Prefer **`OpenFCPXMLKitTests`** for logic that does not need a full local project (column resolution, layout, formatting, synthetic workbook structure).

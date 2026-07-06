@@ -9,6 +9,28 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.0.1](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.1) - 2026-07-07
+
+### ✨ New Features
+
+- **Media Summary sheet:** Split missing-media reporting out of Summary into a dedicated **Media Summary** sheet. `ReportOptions.includeMediaSummary`, `.mediaSummaryOnly`, and CLI `--report-media-summary` (included in `--report-full`).
+- **Global column exclusion:** `ReportOptions.excludedColumns` and `ReportColumn` omit named columns from every applicable workbook sheet at export. CLI `--exclude-column` (repeatable; case-insensitive aliases such as `Metadata`, `Row Numbers`, `Source File Path`).
+- **Disabled-clip filtering:** `ReportOptions.excludeDisabledClips` and CLI `--exclude-disabled-clips` omit `enabled="0"` clips from all timeline-based report sections (role inventory, markers, keywords, titles, transitions, effects, speed-change effects, summary role durations).
+- **Expanded role inventory columns:** **Selected Roles Inventory** and per-role sheets now use a shared 32-column layout (`RoleInventoryColumnLayout`): Row index, 23 fixed columns (including Take, Camera Angle/Name, Frame Rate/Sample Rate, Frame Size, Source File Name/Path), plus sorted dynamic metadata key columns.
+
+### 🔧 Improvements
+
+- **Sheet naming:** Main role inventory tab renamed to **Selected Roles Inventory**; workbook sheet titles use Title Case.
+- **Excel export:** Improved column auto-fit (wider maximum and header-based minimum widths for path columns); `Report.excludedColumns` resolved at build time and applied across inventory, section sheets, summary metrics, and media summary.
+- **Test suite:** Expanded to **892** tests (891 in `OpenFCPXMLKitTests` + 1 optional `ExcelReportTest` integration), including `FCPXMLRoleInventoryColumnLayoutTests`, `FCPXMLReportColumnExclusionTests`, and `FCPXMLReportExcludeDisabledClipsTests`.
+- **Documentation:** Updated manual chapters **16 — CLI** and **19 — Reporting & Excel Export**, CLI README, project README, `AGENT.md`, `ARCHITECTURE.md` (top-down Mermaid diagrams), `.cursorrules`, and `Tests/README.md` / `Tests/ExcelReportTest/README.md`.
+
+### 🐛 Bug Fixes
+
+- None in this release.
+
+---
+
 ## [3.0.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.0) - 2026-07-02
 
 ### ✨ New Features

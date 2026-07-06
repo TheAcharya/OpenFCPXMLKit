@@ -57,7 +57,7 @@ enum ExcelReportFixture {
         return url
     }
     
-    /// Base directory for resolving relative media paths in the Summary sheet.
+    /// Base directory for resolving relative media paths in the Media Summary sheet.
     static func mediaBaseURL(for fixtureURL: URL) -> URL {
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: fixtureURL.path, isDirectory: &isDirectory) else {
