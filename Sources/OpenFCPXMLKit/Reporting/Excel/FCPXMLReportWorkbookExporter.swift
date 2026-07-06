@@ -21,9 +21,14 @@ enum FCPXMLReportWorkbookExporter {
     
     private static func roleFontFormat(
         for roleSubrole: String,
-        categoryLabel: String? = nil
+        categoryLabel: String? = nil,
+        context: RoleRowColorContext = .roleInventory
     ) -> CellFormat? {
-        let bucket = roleColorBucket(for: roleSubrole, categoryLabel: categoryLabel)
+        let bucket = roleColorBucket(
+            for: roleSubrole,
+            categoryLabel: categoryLabel,
+            context: context
+        )
         guard let fontColor = bucket.fontColorHex else {
             return nil
         }
@@ -33,97 +38,204 @@ enum FCPXMLReportWorkbookExporter {
         return format
     }
     
+    /// Workbook sheet context for row text colour when Category is unavailable.
+    private enum RoleRowColorContext {
+        case roleInventory
+        case keywords
+        case titlesAndGenerators
+        case effects
+        case speedChangeEffects
+        case transitions
+    }
+    
     private static func roleColorBucket(
         for roleSubrole: String,
-        categoryLabel: String? = nil
+        categoryLabel: String? = nil,
+        context: RoleRowColorContext = .roleInventory
     ) -> RoleColorBucket {
-        if let categoryLabel,
-           let category = FinalCutPro.FCPXML.ReportClipCategory.matchingWorkbookLabel(categoryLabel)
-        {
-            if category == .primaryGap {
-                return .gap
+        switch context {
+        case .keywords:
+            return .videoOrSRT
+        case .transitions:
+            return .gap
+        case .effects, .speedChangeEffects:
+            return roleBucketFromRoleName(roleSubrole, titlesAsVideo: true)
+        case .titlesAndGenerators:
+            return roleBucketFromRoleName(roleSubrole, titlesAsVideo: false)
+        case .roleInventory:
+            if let categoryLabel,
+               let category = FinalCutPro.FCPXML.ReportClipCategory.matchingWorkbookLabel(categoryLabel)
+            {
+                if category == .primaryGap {
+                    return .gap
+                }
+                if category.isTitleCategory {
+                    return .titles
+                }
+                if category.isVideoCategory || category.isCaptionCategory {
+                    return .videoOrSRT
+                }
+                if category.isAudioCategory {
+                    return .audio
+                }
             }
-            if category.isTitleCategory {
-                return .titles
-            }
-            if category.isVideoCategory || category.isCaptionCategory {
-                return .videoOrSRT
-            }
-            if category.isAudioCategory {
-                return .audio
-            }
+            
+            return roleBucketFromRoleName(roleSubrole, titlesAsVideo: false)
         }
-        
+    }
+    
+    private static func roleBucketFromRoleName(
+        _ roleSubrole: String,
+        titlesAsVideo: Bool
+    ) -> RoleColorBucket {
         if roleSubrole.localizedCaseInsensitiveContains("gap") {
             return .gap
         }
         
-        return .audio
+        let mainRole = mainRoleName(in: roleSubrole).lowercased()
+        
+        if mainRole.isEmpty {
+            return .videoOrSRT
+        }
+        
+        if mainRole == "titles" || mainRole == "title" {
+            return titlesAsVideo ? .videoOrSRT : .titles
+        }
+        
+        if ["video", "srt", "vfx"].contains(mainRole) || mainRole.hasPrefix("vfx") {
+            return .videoOrSRT
+        }
+        
+        if ["dialogue", "effects", "music", "atmos", "score komponist", "sound mix"].contains(mainRole) {
+            return .audio
+        }
+        
+        if roleSubrole.localizedCaseInsensitiveContains("vfx")
+            || roleSubrole.localizedCaseInsensitiveContains("scanline")
+        {
+            return .videoOrSRT
+        }
+        
+        if roleSubrole.localizedCaseInsensitiveContains("title") {
+            return titlesAsVideo ? .videoOrSRT : .titles
+        }
+        
+        return .videoOrSRT
+    }
+    
+    private static func mainRoleName(in roleSubrole: String) -> String {
+        let trimmed = roleSubrole.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return "" }
+        
+        if let separatorIndex = trimmed.firstIndex(where: { ["▸", "•", "·"].contains(String($0)) }) {
+            return String(trimmed[..<separatorIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        
+        if let commaIndex = trimmed.firstIndex(of: ",") {
+            return String(trimmed[..<commaIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        
+        return trimmed
     }
     
     @MainActor
     static func makeWorkbook(from report: FinalCutPro.FCPXML.Report) -> Workbook {
         let workbook = Workbook()
+        let excludedColumns = report.excludedColumns
         
         if let workbookCoverSheet = report.workbookCoverSheet {
             appendWorkbookCoverSheet(workbookCoverSheet, to: workbook)
         }
         
         if let roleInventory = report.roleInventory {
-            appendRoleInventory(roleInventory, to: workbook)
+            appendRoleInventory(roleInventory, excludedColumns: excludedColumns, to: workbook)
         }
         
         if let markers = report.markers {
-            appendMarkers(markers, to: workbook)
+            appendMarkers(markers, excludedColumns: excludedColumns, to: workbook)
         }
         
         if let keywords = report.keywords {
+            let filtered = filteredTabularSection(
+                headers: FinalCutPro.FCPXML.KeywordReportRow.columnHeaders,
+                rows: keywords.rows.map(\.columnValues),
+                excludedColumns: excludedColumns
+            )
             appendTabularSection(
                 to: workbook,
                 sheetName: FinalCutPro.FCPXML.KeywordsReportSection.defaultSheetName,
-                headers: FinalCutPro.FCPXML.KeywordReportRow.columnHeaders,
-                rows: keywords.rows.map(\.columnValues)
+                headers: filtered.headers,
+                rows: filtered.rows,
+                colorContext: .keywords
             )
         }
         
         if let titles = report.titlesAndGenerators {
+            let filtered = filteredTabularSection(
+                headers: FinalCutPro.FCPXML.TitleReportRow.columnHeaders,
+                rows: titles.rows.map(\.columnValues),
+                excludedColumns: excludedColumns
+            )
             appendTabularSection(
                 to: workbook,
                 sheetName: FinalCutPro.FCPXML.TitlesReportSection.defaultSheetName,
-                headers: FinalCutPro.FCPXML.TitleReportRow.columnHeaders,
-                rows: titles.rows.map(\.columnValues)
+                headers: filtered.headers,
+                rows: filtered.rows,
+                colorContext: .titlesAndGenerators
             )
         }
         
         if let transitions = report.transitions {
+            let filtered = filteredTabularSection(
+                headers: FinalCutPro.FCPXML.TransitionReportRow.columnHeaders,
+                rows: transitions.rows.map(\.columnValues),
+                excludedColumns: excludedColumns
+            )
             appendTabularSection(
                 to: workbook,
                 sheetName: FinalCutPro.FCPXML.TransitionsReportSection.defaultSheetName,
-                headers: FinalCutPro.FCPXML.TransitionReportRow.columnHeaders,
-                rows: transitions.rows.map(\.columnValues)
+                headers: filtered.headers,
+                rows: filtered.rows,
+                colorContext: .transitions
             )
         }
         
         if let effects = report.effects {
+            let filtered = filteredTabularSection(
+                headers: FinalCutPro.FCPXML.EffectReportRow.columnHeaders,
+                rows: effects.rows.map(\.columnValues),
+                excludedColumns: excludedColumns
+            )
             appendTabularSection(
                 to: workbook,
                 sheetName: FinalCutPro.FCPXML.EffectsReportSection.defaultSheetName,
-                headers: FinalCutPro.FCPXML.EffectReportRow.columnHeaders,
-                rows: effects.rows.map(\.columnValues)
+                headers: filtered.headers,
+                rows: filtered.rows,
+                colorContext: .effects
             )
         }
         
         if let speedChangeEffects = report.speedChangeEffects {
+            let filtered = filteredTabularSection(
+                headers: FinalCutPro.FCPXML.EffectReportRow.columnHeaders,
+                rows: speedChangeEffects.rows.map(\.columnValues),
+                excludedColumns: excludedColumns
+            )
             appendTabularSection(
                 to: workbook,
                 sheetName: FinalCutPro.FCPXML.SpeedChangeEffectsReportSection.defaultSheetName,
-                headers: FinalCutPro.FCPXML.EffectReportRow.columnHeaders,
-                rows: speedChangeEffects.rows.map(\.columnValues)
+                headers: filtered.headers,
+                rows: filtered.rows,
+                colorContext: .speedChangeEffects
             )
         }
         
         if let summary = report.summary {
-            appendSummary(summary, to: workbook)
+            appendSummary(summary, excludedColumns: excludedColumns, to: workbook)
+        }
+        
+        if let mediaSummary = report.mediaSummary {
+            appendMediaSummary(mediaSummary, excludedColumns: excludedColumns, to: workbook)
         }
         
         return workbook
@@ -148,9 +260,15 @@ enum FCPXMLReportWorkbookExporter {
     
     private static func appendMarkers(
         _ markers: FinalCutPro.FCPXML.MarkersReportSection,
+        excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>,
         to workbook: Workbook
     ) {
-        let headers = FinalCutPro.FCPXML.MarkerReportRow.columnHeaders
+        let filtered = filteredTabularSection(
+            headers: FinalCutPro.FCPXML.MarkerReportRow.columnHeaders,
+            rows: markers.rows.map(\.columnValues),
+            excludedColumns: excludedColumns
+        )
+        let headers = filtered.headers
         let sheet = workbook.addSheet(
             name: sanitizeSheetName(FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName)
         )
@@ -158,7 +276,7 @@ enum FCPXMLReportWorkbookExporter {
         
         for (index, marker) in markers.rows.enumerated() {
             let rowIndex = index + 2
-            let values = marker.columnValues
+            let values = filtered.rows[index]
             sheet.setRow(rowIndex, strings: values)
             applyMarkerColorToRow(
                 sheet,
@@ -168,7 +286,7 @@ enum FCPXMLReportWorkbookExporter {
             )
         }
         
-        FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet)
+        FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet, headers: headers)
     }
     
     private static func applyMarkerColorToRow(
@@ -212,7 +330,8 @@ enum FCPXMLReportWorkbookExporter {
         to workbook: Workbook,
         sheetName: String,
         headers: [String],
-        rows: [[String]]
+        rows: [[String]],
+        colorContext: RoleRowColorContext = .roleInventory
     ) {
         let sheet = workbook.addSheet(name: sanitizeSheetName(sheetName))
         setTableHeaderRow(sheet, row: 1, strings: headers)
@@ -226,10 +345,11 @@ enum FCPXMLReportWorkbookExporter {
                 row: rowIndex,
                 values: values,
                 roleColumnIndex: roleColumnIndex,
-                categoryColumnIndex: categoryColumnIndex
+                categoryColumnIndex: categoryColumnIndex,
+                colorContext: colorContext
             )
         }
-        FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet)
+        FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet, headers: headers)
     }
     
     private static func applyRoleColorToRow(
@@ -237,7 +357,8 @@ enum FCPXMLReportWorkbookExporter {
         row: Int,
         values: [String],
         roleColumnIndex: Int?,
-        categoryColumnIndex: Int?
+        categoryColumnIndex: Int?,
+        colorContext: RoleRowColorContext = .roleInventory
     ) {
         guard let roleColumnIndex,
               values.indices.contains(roleColumnIndex - 1)
@@ -255,7 +376,8 @@ enum FCPXMLReportWorkbookExporter {
         
         guard let roleFormat = roleFontFormat(
             for: roleValue,
-            categoryLabel: categoryValue
+            categoryLabel: categoryValue,
+            context: colorContext
         ) else {
             return
         }
@@ -279,6 +401,7 @@ enum FCPXMLReportWorkbookExporter {
     
     private static func appendSummary(
         _ summary: FinalCutPro.FCPXML.SummaryReportSection,
+        excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>,
         to workbook: Workbook
     ) {
         let sheet = workbook.addSheet(
@@ -288,68 +411,91 @@ enum FCPXMLReportWorkbookExporter {
         var rowIndex = 1
         
         if let projectSummary = summary.projectSummary {
-            sheet.setRow(rowIndex, strings: [projectSummary.title])
+            sheet.setCell(
+                "A\(rowIndex)",
+                string: projectSummary.title,
+                format: tableHeaderFormat()
+            )
             rowIndex += 1
-            sheet.setRow(rowIndex, strings: projectSummary.headerMetricValues)
+            sheet.setRow(
+                rowIndex,
+                strings: FinalCutPro.FCPXML.ReportColumnExclusion.filteredProjectSummaryMetrics(
+                    projectSummary,
+                    excluded: excludedColumns
+                )
+            )
             rowIndex += 1
         }
         
         if !summary.roleDurations.isEmpty {
-            setTableHeaderRow(
-                sheet,
-                row: rowIndex,
-                strings: FinalCutPro.FCPXML.SummaryRoleDurationRow.columnHeaders
+            let filtered = filteredTabularSection(
+                headers: FinalCutPro.FCPXML.SummaryRoleDurationRow.columnHeaders,
+                rows: summary.roleDurations.map(\.columnValues),
+                excludedColumns: excludedColumns
             )
+            let headers = filtered.headers
+            setTableHeaderRow(sheet, row: rowIndex, strings: headers)
             rowIndex += 1
             
-            let roleColumnIndex = FinalCutPro.FCPXML.SummaryRoleDurationRow.columnHeaders
-                .firstIndex(of: roleSubroleColumnHeader)
-                .map { $0 + 1 }
-            let percentColumnIndex = FinalCutPro.FCPXML.SummaryRoleDurationRow.columnHeaders
+            let percentColumnIndex = headers
                 .firstIndex(of: percentOfTotalColumnHeader)
                 .map { $0 + 1 }
             
-            for roleDuration in summary.roleDurations {
-                let values = roleDuration.columnValues
+            for (index, roleDuration) in summary.roleDurations.enumerated() {
+                let values = filtered.rows[index]
                 sheet.setRow(rowIndex, strings: values)
-                applyRoleColorToRow(
-                    sheet,
-                    row: rowIndex,
-                    values: values,
-                    roleColumnIndex: roleColumnIndex,
-                    categoryColumnIndex: nil
-                )
                 
-                // The "% of Total" column is a percentage, so it must be written as a numeric
-                // cell with a percentage number format rather than a raw fraction string.
                 if let percentColumnIndex {
                     let coordinate = CellCoordinate(
                         row: rowIndex,
                         column: percentColumnIndex
                     ).excelAddress
-                    let fontColor = roleFontFormat(for: roleDuration.roleSubrole)?.fontColor
                     sheet.setCell(
                         coordinate,
                         number: roleDuration.percentOfTotal,
-                        format: summaryPercentFormat(fontColor: fontColor)
+                        format: summaryPercentFormat()
                     )
                 }
                 
                 rowIndex += 1
             }
+            
+            FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet, headers: headers)
+            return
         }
         
-        if !summary.missingMediaPaths.isEmpty {
-            sheet.setRow(
-                rowIndex,
-                strings: [FinalCutPro.FCPXML.SummaryReportSection.missingMediaSectionTitle]
-            )
+        FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet)
+    }
+    
+    private static func appendMediaSummary(
+        _ mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection,
+        excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>,
+        to workbook: Workbook
+    ) {
+        let sheet = workbook.addSheet(
+            name: sanitizeSheetName(FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName)
+        )
+        
+        var rowIndex = 1
+        let missingMediaTitle = FinalCutPro.FCPXML.MediaSummaryReportSection.missingMediaSectionTitle
+        
+        if !mediaSummary.missingMediaPaths.isEmpty,
+           !FinalCutPro.FCPXML.ReportColumnExclusion.isHeaderExcluded(
+               missingMediaTitle,
+               excluded: excludedColumns,
+               metadataColumnKeys: []
+           )
+        {
+            setTableHeaderRow(sheet, row: rowIndex, strings: [missingMediaTitle])
             rowIndex += 1
             
-            for path in summary.missingMediaPaths {
-                sheet.setRow(rowIndex, strings: [path])
+            for path in mediaSummary.missingMediaPaths {
+                sheet.setCell("A\(rowIndex)", string: path, format: missingMediaPathFormat())
                 rowIndex += 1
             }
+            
+            FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet, headers: [missingMediaTitle])
+            return
         }
         
         FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet)
@@ -357,13 +503,27 @@ enum FCPXMLReportWorkbookExporter {
     
     private static func appendRoleInventory(
         _ roleInventory: FinalCutPro.FCPXML.RoleInventoryReportSection,
+        excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>,
         to workbook: Workbook
     ) {
+        let metadataColumnKeys = roleInventory.metadataColumnKeys
+        let headers = FinalCutPro.FCPXML.RoleInventoryColumnLayout.columnHeaders(
+            metadataColumnKeys: metadataColumnKeys,
+            excludedColumns: excludedColumns
+        )
+        
         appendTabularSection(
             to: workbook,
             sheetName: FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName,
-            headers: FinalCutPro.FCPXML.RoleClipReportRow.selectedRolesColumnHeaders,
-            rows: roleInventory.selectedRoles.map(\.columnValues)
+            headers: headers,
+            rows: roleInventory.selectedRoles.enumerated().map { index, row in
+                FinalCutPro.FCPXML.RoleInventoryColumnLayout.columnValues(
+                    for: row,
+                    rowIndex: index + 1,
+                    metadataColumnKeys: metadataColumnKeys,
+                    excludedColumns: excludedColumns
+                )
+            }
         )
         
         for roleSheet in roleInventory.roleSheets {
@@ -372,10 +532,31 @@ enum FCPXMLReportWorkbookExporter {
                 sheetName: FinalCutPro.FCPXML.RoleInventoryRoleSheetOrdering.sheetTabName(
                     for: roleSheet.sheetName
                 ),
-                headers: FinalCutPro.FCPXML.RoleClipReportRow.selectedRolesColumnHeaders,
-                rows: roleSheet.rows.map(\.columnValues)
+                headers: headers,
+                rows: roleSheet.rows.enumerated().map { index, row in
+                    FinalCutPro.FCPXML.RoleInventoryColumnLayout.columnValues(
+                        for: row,
+                        rowIndex: index + 1,
+                        metadataColumnKeys: metadataColumnKeys,
+                        excludedColumns: excludedColumns
+                    )
+                }
             )
         }
+    }
+    
+    private static func filteredTabularSection(
+        headers: [String],
+        rows: [[String]],
+        excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>,
+        metadataColumnKeys: [String] = []
+    ) -> (headers: [String], rows: [[String]]) {
+        FinalCutPro.FCPXML.ReportColumnExclusion.filter(
+            headers: headers,
+            rows: rows,
+            excluded: excludedColumns,
+            metadataColumnKeys: metadataColumnKeys
+        )
     }
     
     /// Excel sheet names are limited to 31 characters and exclude `\ / ? * [ ] :`.
@@ -401,13 +582,20 @@ enum FCPXMLReportWorkbookExporter {
     private static let roleSubroleColumnHeader = "Role ▸ Subrole"
     private static let percentOfTotalColumnHeader = "% of Total"
     
+    /// Red text for missing media file paths on the Media Summary sheet.
+    private static func missingMediaPathFormat() -> CellFormat {
+        var format = CellFormat()
+        format.fontColor = "#FF0000"
+        return format
+    }
+    
     /// Percentage cell format matching Final Cut Pro's Summary sheet (`0.0%`). The stored value
     /// is a fraction (for example `0.42`), which the number format renders as `42.0%`.
-    private static func summaryPercentFormat(fontColor: String?) -> CellFormat {
+    /// Summary data cells use default black text (no role colour coding).
+    private static func summaryPercentFormat() -> CellFormat {
         var format = CellFormat()
         format.numberFormat = .custom
         format.customNumberFormat = "0.0%"
-        format.fontColor = fontColor
         return format
     }
 }
@@ -428,7 +616,7 @@ private extension FCPXMLReportWorkbookExporter {
             case .audio:
                 return "#00AA44"
             case .gap:
-                return "#000000"
+                return "#808080"
             }
         }
     }

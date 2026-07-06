@@ -141,13 +141,16 @@ extension FinalCutPro.FCPXML.ExtractionScope {
         extractionPredicate: nil
     )
     
-    /// Scope for report builders that include disabled elements and exclude items fully occluded
-    /// on the main timeline.
+    /// Scope for report builders that include disabled elements by default and exclude items
+    /// fully occluded on the main timeline.
+    ///
+    /// Honors ``includeDisabled`` on the modifying scope (set by ``ReportBuilder`` from
+    /// ``ReportOptions/excludeDisabledClips``). When called with the default empty scope,
+    /// disabled clips remain included.
     public static func reportMainTimelineVisible(
         modifying scope: Self = Self()
     ) -> Self {
         var scope = scope
-        scope.includeDisabled = true
         scope.occlusions = .allCases
         scope.maxContainerDepth = nil
         

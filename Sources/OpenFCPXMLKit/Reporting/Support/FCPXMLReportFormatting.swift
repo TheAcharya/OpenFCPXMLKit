@@ -391,8 +391,147 @@ extension FinalCutPro.FCPXML {
             key: Metadata.Key
         ) -> String {
             metadata
-                .first(where: { $0.key == key })?
-                .value ?? ""
+                .first(where: { $0.key == key })
+                .map { metadataDisplayValue(for: $0) } ?? ""
+        }
+        
+        static func metadataString(
+            from metadata: [Metadata.Metadatum],
+            keyString: String
+        ) -> String {
+            metadata
+                .first(where: { $0.keyString == keyString })
+                .map { metadataDisplayValue(for: $0) } ?? ""
+        }
+        
+        /// String form of a single metadatum (`value` attribute or child string array).
+        static func metadataDisplayValue(for metadatum: Metadata.Metadatum) -> String {
+            if let array = metadatum.valueArray, !array.isEmpty {
+                return array.joined(separator: ", ")
+            }
+            return metadatum.value ?? ""
+        }
+        
+        /// All metadata key/value pairs keyed by raw FCPXML metadata key.
+        static func inventoryMetadataValueMap(
+            from metadata: [Metadata.Metadatum]
+        ) -> [String: String] {
+            var values: [String: String] = [:]
+            for item in metadata where !item.keyString.isEmpty {
+                values[item.keyString] = metadataDisplayValue(for: item)
+            }
+            return values
+        }
+        
+        static func inventoryAudioRateDisplay(_ audioRate: AudioRate) -> String {
+            let raw = audioRate.rawValueForSequence
+            if raw.hasSuffix("k") {
+                return "\(raw.dropLast()) kHz"
+            }
+            return "\(raw)Hz"
+        }
+        
+        static func inventoryVideoFrameRateDisplay(frameDuration: Fraction) -> String {
+            guard frameDuration.numerator > 0 else { return "" }
+            let fps = Double(frameDuration.denominator) / Double(frameDuration.numerator)
+            let nearest = fps.rounded()
+            if abs(fps - nearest) < 0.001 {
+                return "\(Int(nearest)) fps"
+            }
+            return String(format: "%.3f fps", fps)
+        }
+        
+        static func inventoryFrameSizeDisplay(width: Int?, height: Int?) -> String {
+            guard let width, let height else { return "" }
+            return "\(width) × \(height)"
+        }
+        
+        static func inventoryFrameRateSampleRateDisplay(
+            for clipContext: ExtractedElement,
+            category: ReportClipCategory
+        ) -> String {
+            let element = clipContext.element
+            let resources = clipContext.resources
+            
+            if category.isAudioCategory, !category.isVideoCategory {
+                if let asset = element._fcpFirstResourceForElementOrAncestors(in: resources)?.fcpAsAsset,
+                   let audioRate = asset.audioRate
+                {
+                    return inventoryAudioRateDisplay(audioRate)
+                }
+                
+                if let sequence = inventoryAncestorSequence(for: clipContext),
+                   let audioRate = sequence.audioRate
+                {
+                    return inventoryAudioRateDisplay(audioRate)
+                }
+                
+                return ""
+            }
+            
+            if let format = element._fcpFirstDefinedFormatResourceForElementOrAncestors(in: resources),
+               let frameDuration = format.frameDuration
+            {
+                return inventoryVideoFrameRateDisplay(frameDuration: frameDuration)
+            }
+            
+            return ""
+        }
+        
+        static func inventoryFrameSizeDisplay(
+            for clipContext: ExtractedElement,
+            category: ReportClipCategory
+        ) -> String {
+            guard shouldIncludeFrameSize(for: category) else { return "" }
+            
+            let format = clipContext.element._fcpFirstDefinedFormatResourceForElementOrAncestors(
+                in: clipContext.resources
+            )
+            return inventoryFrameSizeDisplay(width: format?.width, height: format?.height)
+        }
+        
+        private static func shouldIncludeFrameSize(for category: ReportClipCategory) -> Bool {
+            if category.isAudioCategory, !category.isVideoCategory {
+                return false
+            }
+            
+            if category.isTitleCategory || category.isCaptionCategory || category == .primaryGap {
+                return false
+            }
+            
+            return category.isVideoCategory
+                || category == .primaryClip
+                || category == .connectedClip
+                || category == .connectedGenerator
+        }
+        
+        static func inventorySourceFileInfo(
+            for clipContext: ExtractedElement
+        ) -> (name: String, path: String) {
+            guard let url = clipContext.element.fcpMediaURL(in: clipContext.resources) else {
+                return ("", "")
+            }
+            return (url.lastPathComponent, url.path)
+        }
+        
+        static func clipNotesDisplay(for element: any OFKXMLElement) -> String {
+            element.firstChildElement(whereFCPElementType: .note)?.stringValue ?? ""
+        }
+        
+        private static func inventoryAncestorSequence(
+            for clipContext: ExtractedElement
+        ) -> Sequence? {
+            if let sequence = clipContext.element.fcpAsSequence {
+                return sequence
+            }
+            
+            for ancestor in clipContext.breadcrumbs.reversed() {
+                if let sequence = ancestor.fcpAsSequence {
+                    return sequence
+                }
+            }
+            
+            return nil
         }
         
         static func enabledCheckmark(for element: any OFKXMLElement) -> String {

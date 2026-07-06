@@ -33,7 +33,7 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD. The workbook is wr
 
 | Option | Description |
 |--------|-------------|
-| **--report** | Build a report workbook. Alone, exports the **role inventory only** (Selected Roles + per-role sheets). |
+| **--report** | Build a report workbook. Alone, exports the **role inventory only** (Selected Roles Inventory + per-role sheets). |
 | **--report-full** | Include **every** optional sheet (with `--report`). |
 | **--report-markers** | Include the Markers sheet (with `--report`). |
 | **--report-keywords** | Include the Keywords sheet (with `--report`). |
@@ -41,9 +41,16 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD. The workbook is wr
 | **--report-transitions** | Include the Transitions sheet (with `--report`). |
 | **--report-effects** | Include the Video & Audio Effects sheet (with `--report`). |
 | **--report-speed-change-effects** | Include the Speed Change Effects sheet (with `--report`). |
-| **--report-summary** | Include the Summary sheet (with `--report`). |
+| **--report-summary** | Include the Summary sheet (project metrics and role-duration totals; with `--report`). |
+| **--report-media-summary** | Include the Media Summary sheet (missing media file paths; with `--report`). |
 | **--report-project &lt;name&gt;** | Project name filter when the FCPXML contains multiple projects. |
 | **--exclude-role &lt;role&gt;** | Exclude a role or subrole from the role inventory (repeatable). Excluding a main role also excludes its subroles. |
+| **--exclude-disabled-clips** | Omit disabled clips (`enabled="0"`) from all timeline-based report sections (with `--report`). |
+| **--exclude-column &lt;column&gt;** | Exclude a workbook column from every applicable report sheet (repeatable; with `--report`). |
+
+When `--report` is used without `--report-full` or section flags, the CLI exports role inventory only. Use `--report-full` for every optional sheet, or set individual `--report-*` section flags for a partial export (role inventory is always included). `--report-full` takes precedence when combined with section flags.
+
+All REPORT flags except `--report` itself require `--report`.
 
 #### Role exclusion matching
 
@@ -55,10 +62,45 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD. The workbook is wr
 - **Subroles use the ` ▸ ` format:** to exclude a single subrole, pass the full path in quotes, e.g. `--exclude-role "Music ▸ Score"` (the separator is `▸`, U+25B8, with a space on each side).
 - **Quote names with spaces or `▸`:** e.g. `--exclude-role "Sound Effects"` or `--exclude-role "SRT ▸ de-DE"`.
 - **Repeatable:** pass the flag multiple times to exclude several roles.
-- Requires `--report`; leading/trailing whitespace is trimmed.
+- Leading/trailing whitespace is trimmed.
 
 ```bash
 OpenFCPXMLKit-CLI --report --exclude-role Music --exclude-role Dialogue --exclude-role "SRT ▸ de-DE" /path/to/project.fcpxmld /path/to/output-dir
+```
+
+#### Disabled clip exclusion
+
+`--exclude-disabled-clips` is a **boolean flag** (no value). Add it to any `--report` command to omit clips with `enabled="0"` from role inventory, markers, keywords, titles, transitions, effects, speed-change effects, and summary role durations.
+
+Omit the flag to keep disabled clips in the workbook (they typically appear with **Enabled** shown as `✗`).
+
+```bash
+OpenFCPXMLKit-CLI --report --report-full --exclude-disabled-clips /path/to/project.fcpxmld /path/to/output-dir
+```
+
+#### Column exclusion matching
+
+`--exclude-column` removes a logical column from **every applicable sheet** where a matching header exists. Matching is **case- and diacritic-insensitive**. Pass the flag once per column.
+
+Common values:
+
+| CLI value | Effect |
+|-----------|--------|
+| `Row Numbers` | Removes the Row index column on inventory sheets |
+| `Role Subrole` | Removes Role ▸ Subrole |
+| `Reel`, `Scene`, `Take` | Removes the named fixed column |
+| `Metadata` | Removes all dynamic metadata key columns on role inventory sheets |
+| `Source File Path` | Removes Source File Path (and Missing Media on Media Summary) |
+| `Frame Rate` | Removes Frame Rate/Sample Rate (and related summary metric cells) |
+
+Unknown column names are ignored. See [19 — Reporting & Excel Export](19-Reporting.md#column-exclusion) for the full **ReportColumn** list and aliases.
+
+```bash
+OpenFCPXMLKit-CLI --report \
+  --exclude-column Reel \
+  --exclude-column Notes \
+  --exclude-column Metadata \
+  /path/to/project.fcpxmld /path/to/output-dir
 ```
 
 ### TIMELINE
@@ -93,7 +135,15 @@ OpenFCPXMLKit-CLI --media-copy /path/to/project.fcpxmld /path/to/media-folder
 # Build report workbooks (.xlsx written to output-dir)
 OpenFCPXMLKit-CLI --report /path/to/project.fcpxmld /path/to/output-dir
 OpenFCPXMLKit-CLI --report --report-full /path/to/project.fcpxmld /path/to/output-dir
-OpenFCPXMLKit-CLI --report --report-markers --report-summary --exclude-role Effects /path/to/project.fcpxmld /path/to/output-dir
+OpenFCPXMLKit-CLI --report --report-markers --report-summary --report-media-summary /path/to/project.fcpxmld /path/to/output-dir
+
+# Filter roles, disabled clips, and columns
+OpenFCPXMLKit-CLI --report --report-full \
+  --exclude-role Effects \
+  --exclude-disabled-clips \
+  --exclude-column Reel \
+  --exclude-column Metadata \
+  /path/to/project.fcpxmld /path/to/output-dir
 
 # Create a new empty project (e.g. 1920×1080 at 25 fps), write to output-dir; project file name is 1920x1080@25p.fcpxml
 OpenFCPXMLKit-CLI --create-project --width 1920 --height 1080 --rate 25 /path/to/output-dir
@@ -114,3 +164,5 @@ For source layout, extending the CLI, and regenerating embedded DTDs, see **[Ope
 
 - [17 — Examples](17-Examples.md) — End-to-end workflows and code examples.
 - [19 — Reporting & Excel Export](19-Reporting.md) — the reporting API behind `--report`.
+
+[← Manual Index](00-Index.md)

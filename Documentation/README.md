@@ -30,9 +30,9 @@ The manual is split into **chapters** for easier navigation and maintenance:
 | [15 — Errors & Utilities](Manual/15-Errors-Utilities.md) | Error types, ErrorHandling, ProgressBar, FCPXMLUID |
 | [16 — CLI](Manual/16-CLI.md) | Experimental command-line interface (OpenFCPXMLKit-CLI) |
 | [17 — Examples](Manual/17-Examples.md) | End-to-end workflows and code examples |
-| [19 — Reporting & Excel Export](Manual/19-Reporting.md) | Report builder, ReportOptions, report sections, RoleDisplayPreference, XLKit workbook export |
+| [19 — Reporting & Excel Export](Manual/19-Reporting.md) | Report builder, ReportOptions, report sections, column/disabled-clip exclusion, RoleDisplayPreference, XLKit workbook export and cell formatting |
 
-The manual covers the **entire public API** with examples: core operations, async/await, file I/O, validation, timeline creation and manipulation, metadata, media processing, typed models (including Live Drawing, HiddenClipMarker, SmartCollection match rules, Format/Asset 1.13+), version conversion, reporting and Excel export, CLI, and utilities. **Chapter 18** describes the cross-platform XML abstraction (OFKXML protocols, Foundation vs AEXML backends) and **iOS 26+** support. **Chapter 19** covers the reporting subsystem (report builder, sections, and XLKit `.xlsx` export).
+The manual covers the **entire public API** with examples: core operations, async/await, file I/O, validation, timeline creation and manipulation, metadata, media processing, typed models (including Live Drawing, HiddenClipMarker, SmartCollection match rules, Format/Asset 1.13+), version conversion, reporting and Excel export, CLI, and utilities. **Chapter 18** describes the cross-platform XML abstraction (OFKXML protocols, Foundation vs AEXML backends) and **iOS 26+** support. **Chapter 19** covers the reporting subsystem (report builder, sections, role inventory columns, Summary and Media Summary sheets, global column and disabled-clip exclusion, XLKit `.xlsx` export, and workbook cell formatting).
 
 ---
 

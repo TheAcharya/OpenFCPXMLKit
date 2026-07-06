@@ -143,6 +143,9 @@ enum ExportReport {
         if report.summary != nil {
             parts.append("summary")
         }
+        if report.mediaSummary != nil {
+            parts.append("media summary")
+        }
         
         if parts.isEmpty {
             return "Report exported with no sections."
@@ -160,6 +163,7 @@ enum ExportReport {
             options.includeEffects,
             options.includeSpeedChangeEffects,
             options.includeSummary,
+            options.includeMediaSummary,
             options.includeRoleInventory
         ].filter { $0 }.count
     }

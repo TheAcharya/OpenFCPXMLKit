@@ -34,8 +34,11 @@ extension FinalCutPro.FCPXML {
         /// Include the Speed Change Effects report sheet.
         public var includeSpeedChangeEffects: Bool
         
-        /// Include the Files summary sheet.
+        /// Include the Summary sheet (project metrics and role-duration totals).
         public var includeSummary: Bool
+        
+        /// Include the Media Summary sheet (missing media file paths).
+        public var includeMediaSummary: Bool
         
         /// Include per-role clip inventory sheets (Selected Roles and role breakdown).
         public var includeRoleInventory: Bool
@@ -47,7 +50,7 @@ extension FinalCutPro.FCPXML {
         /// Optional project name filter. When `nil`, the first project in the document is used.
         public var projectName: String?
         
-        /// Base URL for resolving relative media paths when building the Summary missing-media list.
+        /// Base URL for resolving relative media paths when building the Media Summary missing-media list.
         public var mediaBaseURL: URL?
         
         /// Role priority tables used when a clip carries more than one inherited role.
@@ -64,6 +67,20 @@ extension FinalCutPro.FCPXML {
         /// excludes every `Dialogue ▸ …` subrole sheet.
         public var excludedRoles: [String]
         
+        /// When `true`, clips with `enabled="0"` are omitted from every report section that
+        /// walks the timeline (role inventory, markers, keywords, titles, transitions, effects,
+        /// speed-change effects, and summary role durations).
+        ///
+        /// Default is `false` (disabled clips are included, matching Final Cut Pro workbook exports).
+        public var excludeDisabledClips: Bool
+        
+        /// Column names to omit from every applicable workbook sheet.
+        ///
+        /// Matching is case-insensitive. Use ``ReportColumn`` header names or common aliases
+        /// (for example `Row Numbers`, `Role Subrole`, `Frame Rate`, `Metadata` for all dynamic
+        /// metadata key columns on role inventory sheets). Unknown labels are ignored.
+        public var excludedColumns: [String]
+        
         public init(
             includeMarkers: Bool = true,
             includeKeywords: Bool = false,
@@ -72,13 +89,16 @@ extension FinalCutPro.FCPXML {
             includeEffects: Bool = false,
             includeSpeedChangeEffects: Bool = false,
             includeSummary: Bool = false,
+            includeMediaSummary: Bool = false,
             includeRoleInventory: Bool = false,
             includeChapterMarkersInMarkersReport: Bool = false,
             projectName: String? = nil,
             mediaBaseURL: URL? = nil,
             roleDisplayPreference: RoleDisplayPreference = .builtIn,
             workbookCoverSheet: ReportWorkbookCoverSheet? = .openFCPXMLKitDefault,
-            excludedRoles: [String] = []
+            excludedRoles: [String] = [],
+            excludeDisabledClips: Bool = false,
+            excludedColumns: [String] = []
         ) {
             self.includeMarkers = includeMarkers
             self.includeKeywords = includeKeywords
@@ -87,6 +107,7 @@ extension FinalCutPro.FCPXML {
             self.includeEffects = includeEffects
             self.includeSpeedChangeEffects = includeSpeedChangeEffects
             self.includeSummary = includeSummary
+            self.includeMediaSummary = includeMediaSummary
             self.includeRoleInventory = includeRoleInventory
             self.includeChapterMarkersInMarkersReport = includeChapterMarkersInMarkersReport
             self.projectName = projectName
@@ -94,6 +115,8 @@ extension FinalCutPro.FCPXML {
             self.roleDisplayPreference = roleDisplayPreference
             self.workbookCoverSheet = workbookCoverSheet
             self.excludedRoles = excludedRoles
+            self.excludeDisabledClips = excludeDisabledClips
+            self.excludedColumns = excludedColumns
         }
         
         /// Role inventory only (Selected Roles and per-role sheets; no optional report sheets).
@@ -188,7 +211,7 @@ extension FinalCutPro.FCPXML {
             )
         }
         
-        /// Summary report sheet only.
+        /// Summary report sheet only (project metrics and role-duration totals).
         public static var summaryOnly: ReportOptions {
             ReportOptions(
                 includeMarkers: false,
@@ -197,6 +220,21 @@ extension FinalCutPro.FCPXML {
                 includeTransitions: false,
                 includeEffects: false,
                 includeSummary: true,
+                includeMediaSummary: false,
+                includeRoleInventory: false
+            )
+        }
+        
+        /// Media Summary report sheet only (missing media file paths).
+        public static var mediaSummaryOnly: ReportOptions {
+            ReportOptions(
+                includeMarkers: false,
+                includeKeywords: false,
+                includeTitlesAndGenerators: false,
+                includeTransitions: false,
+                includeEffects: false,
+                includeSummary: false,
+                includeMediaSummary: true,
                 includeRoleInventory: false
             )
         }
@@ -211,6 +249,7 @@ extension FinalCutPro.FCPXML {
                 includeEffects: true,
                 includeSpeedChangeEffects: true,
                 includeSummary: true,
+                includeMediaSummary: true,
                 includeRoleInventory: true,
                 includeChapterMarkersInMarkersReport: true
             )

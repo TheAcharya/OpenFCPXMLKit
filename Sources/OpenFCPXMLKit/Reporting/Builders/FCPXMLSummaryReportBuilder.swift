@@ -12,12 +12,11 @@ import Foundation
 import SwiftTimecode
 
 extension FinalCutPro.FCPXML {
-    /// Builds the Summary sheet: project metrics, per-role estimated totals, and missing media paths.
+    /// Builds the Summary sheet: project metrics and per-role estimated totals.
     enum SummaryReportBuilder {
         static func build(
             from project: Project,
             document: any OFKXMLDocument,
-            baseURL: URL?,
             scope: ExtractionScope,
             roleDisplayPreference: RoleDisplayPreference = .builtIn
         ) async -> SummaryReportSection {
@@ -48,15 +47,9 @@ extension FinalCutPro.FCPXML {
                 resources: resources
             )
             
-            let missingMediaPaths = missingMediaPaths(
-                in: document,
-                baseURL: baseURL
-            )
-            
             return SummaryReportSection(
                 projectSummary: projectSummary,
-                roleDurations: roleDurations,
-                missingMediaPaths: missingMediaPaths
+                roleDurations: roleDurations
             )
         }
         
@@ -143,28 +136,6 @@ extension FinalCutPro.FCPXML {
             }
             
             return duration.doubleValue
-        }
-        
-        private static func missingMediaPaths(
-            in document: any OFKXMLDocument,
-            baseURL: URL?
-        ) -> [String] {
-            let extractor = MediaExtractor()
-            let result = extractor.extractMediaReferences(from: document, baseURL: baseURL)
-            let fileManager = FileManager.default
-            
-            var missingPaths: Set<String> = []
-            
-            for reference in result.references {
-                guard let url = reference.url, url.isFileURL else { continue }
-                let path = url.path
-                guard !path.isEmpty else { continue }
-                if !fileManager.fileExists(atPath: path) {
-                    missingPaths.insert(path)
-                }
-            }
-            
-            return missingPaths.sorted()
         }
     }
 }

@@ -52,11 +52,16 @@ final class FCPXMLSummaryReportTests: XCTestCase, @unchecked Sendable {
     
     func testSummaryMissingMediaPathsFromFixture() async throws {
         let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
-        let report = try await fcpxml.buildReport(options: try summaryOptions())
+        var options = try FCPXMLReportingReportFixture.reportOptions {
+            $0.includeMediaSummary = true
+        }
+        options.mediaBaseURL = try FCPXMLReportingReportFixture.mediaBaseURL()
+        let report = try await fcpxml.buildReport(options: options)
         
-        let paths = report.summary?.missingMediaPaths ?? []
+        let paths = report.mediaSummary?.missingMediaPaths ?? []
         XCTAssertFalse(paths.isEmpty)
         XCTAssertTrue(paths.allSatisfy { $0.hasPrefix("/") })
+        XCTAssertNil(report.summary)
     }
     
     func testSummaryOnlyPresetEnablesSummarySectionOnly() {
@@ -68,6 +73,20 @@ final class FCPXMLSummaryReportTests: XCTestCase, @unchecked Sendable {
         XCTAssertFalse(options.includeTransitions)
         XCTAssertFalse(options.includeEffects)
         XCTAssertTrue(options.includeSummary)
+        XCTAssertFalse(options.includeMediaSummary)
+        XCTAssertFalse(options.includeRoleInventory)
+    }
+    
+    func testMediaSummaryOnlyPresetEnablesMediaSummarySectionOnly() {
+        let options = FinalCutPro.FCPXML.ReportOptions.mediaSummaryOnly
+        
+        XCTAssertFalse(options.includeMarkers)
+        XCTAssertFalse(options.includeKeywords)
+        XCTAssertFalse(options.includeTitlesAndGenerators)
+        XCTAssertFalse(options.includeTransitions)
+        XCTAssertFalse(options.includeEffects)
+        XCTAssertFalse(options.includeSummary)
+        XCTAssertTrue(options.includeMediaSummary)
         XCTAssertFalse(options.includeRoleInventory)
     }
 }

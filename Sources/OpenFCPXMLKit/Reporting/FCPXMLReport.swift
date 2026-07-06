@@ -59,14 +59,20 @@ extension FinalCutPro.FCPXML {
         /// Speed Change Effects report section.
         public var speedChangeEffects: SpeedChangeEffectsReportSection?
         
-        /// Summary report section (project metrics, role totals, missing media).
+        /// Summary report section (project metrics and role totals).
         public var summary: SummaryReportSection?
+        
+        /// Media Summary report section (missing media file paths).
+        public var mediaSummary: MediaSummaryReportSection?
         
         /// Role-based clip inventory (Selected Roles and per-role sheets).
         public var roleInventory: RoleInventoryReportSection?
         
         /// Optional first workbook sheet prepended by Excel export.
         public var workbookCoverSheet: ReportWorkbookCoverSheet?
+        
+        /// Columns omitted from every applicable workbook sheet at export.
+        public var excludedColumns: Set<ReportColumn>
         
         public init(
             projectName: String,
@@ -78,8 +84,10 @@ extension FinalCutPro.FCPXML {
             effects: EffectsReportSection? = nil,
             speedChangeEffects: SpeedChangeEffectsReportSection? = nil,
             summary: SummaryReportSection? = nil,
+            mediaSummary: MediaSummaryReportSection? = nil,
             roleInventory: RoleInventoryReportSection? = nil,
-            workbookCoverSheet: ReportWorkbookCoverSheet? = nil
+            workbookCoverSheet: ReportWorkbookCoverSheet? = nil,
+            excludedColumns: Set<ReportColumn> = []
         ) {
             self.projectName = projectName
             self.eventName = eventName
@@ -90,8 +98,10 @@ extension FinalCutPro.FCPXML {
             self.effects = effects
             self.speedChangeEffects = speedChangeEffects
             self.summary = summary
+            self.mediaSummary = mediaSummary
             self.roleInventory = roleInventory
             self.workbookCoverSheet = workbookCoverSheet
+            self.excludedColumns = excludedColumns
         }
     }
 }

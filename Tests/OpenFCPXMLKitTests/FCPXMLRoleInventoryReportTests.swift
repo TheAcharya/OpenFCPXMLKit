@@ -85,5 +85,12 @@ final class FCPXMLRoleInventoryReportTests: XCTestCase, @unchecked Sendable {
         XCTAssertFalse(options.includeTransitions)
         XCTAssertFalse(options.includeEffects)
         XCTAssertFalse(options.includeSummary)
+        XCTAssertFalse(options.includeMediaSummary)
+    }
+    
+    func testExcludeDisabledClipsOptionDefaultsToIncludingDisabledClips() {
+        let options = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
+        
+        XCTAssertFalse(options.excludeDisabledClips)
     }
 }

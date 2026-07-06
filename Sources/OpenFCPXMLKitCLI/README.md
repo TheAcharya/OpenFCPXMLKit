@@ -48,10 +48,20 @@ OpenFCPXMLKit-CLI --report /path/to/project.fcpxmld /path/to/output-dir
 OpenFCPXMLKit-CLI --report --report-full /path/to/project.fcpxmld /path/to/output-dir
 
 # Partial report: role inventory plus selected optional sheets only
-OpenFCPXMLKit-CLI --report --report-markers --report-effects /path/to/project.fcpxmld /path/to/output-dir
+OpenFCPXMLKit-CLI --report --report-markers --report-summary --report-media-summary /path/to/project.fcpxmld /path/to/output-dir
 
 # Exclude roles from role inventory (repeatable; case-insensitive)
 OpenFCPXMLKit-CLI --report --exclude-role Dialogue --exclude-role "SRT ▸ de-DE" /path/to/project.fcpxmld /path/to/output-dir
+
+# Omit disabled clips (enabled="0") from all timeline-based report sections
+OpenFCPXMLKit-CLI --report --report-full --exclude-disabled-clips /path/to/project.fcpxmld /path/to/output-dir
+
+# Exclude columns globally from every applicable sheet (repeatable)
+OpenFCPXMLKit-CLI --report \
+  --exclude-column Reel \
+  --exclude-column Metadata \
+  --exclude-column "Source File Path" \
+  /path/to/project.fcpxmld /path/to/output-dir
 
 # Create a new empty FCPXML project (requires --width, --height, --rate; optional --project-version; output-dir as single positional)
 # Project file name is derived from dimensions and rate (e.g. 1920x1080@25p.fcpxml). Output is DTD-validated before writing.
@@ -69,7 +79,7 @@ OpenFCPXMLKit-CLI --log-level debug --convert-version 1.10 /path/to/project.fcpx
 OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 ```
 
-**Validation:** Use only one of `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--report`, or `--create-project`. When using `--convert-version`, `--media-copy`, or `--report`, or when running the default process, you must provide `<output-dir>`. When using `--create-project`, you must provide `--width`, `--height`, `--rate`, and the output directory as the single positional argument. `--report-full`, REPORT section flags, and `--exclude-role` require `--report`. If `--log` is set and the file exists, it must be writable. Invalid `--log-level` or `--project-version` (for create-project) values produce an error.
+**Validation:** Use only one of `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--report`, or `--create-project`. When using `--convert-version`, `--media-copy`, or `--report`, or when running the default process, you must provide `<output-dir>`. When using `--create-project`, you must provide `--width`, `--height`, `--rate`, and the output directory as the single positional argument. `--report-full`, REPORT section flags, `--exclude-role`, `--exclude-disabled-clips`, and `--exclude-column` require `--report`. If `--log` is set and the file exists, it must be writable. Invalid `--log-level` or `--project-version` (for create-project) values produce an error.
 
 ---
 
@@ -85,7 +95,7 @@ OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 
 | Option | Description |
 |--------|-------------|
-| `--report` | Build an Excel report workbook from FCPXML/FCPXMLD. Default: role inventory only (Selected Roles and per-role sheets). Writes `{project-name}.xlsx` to output-dir; prints the output path to stdout. |
+| `--report` | Build an Excel report workbook from FCPXML/FCPXMLD. Default: role inventory only (Selected Roles Inventory and per-role sheets). Writes `{project-name}.xlsx` to output-dir; prints the output path to stdout. |
 | `--report-full` | Include every optional report sheet (requires `--report`). |
 | `--report-markers` | Include the Markers sheet (requires `--report`). |
 | `--report-keywords` | Include the Keywords sheet (requires `--report`). |
@@ -93,9 +103,12 @@ OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 | `--report-transitions` | Include the Transitions sheet (requires `--report`). |
 | `--report-effects` | Include the Video & Audio Effects sheet (requires `--report`). |
 | `--report-speed-change-effects` | Include the Speed Change Effects sheet (requires `--report`). |
-| `--report-summary` | Include the Files summary sheet (requires `--report`). |
+| `--report-summary` | Include the Summary sheet (project metrics and role-duration totals; requires `--report`). |
+| `--report-media-summary` | Include the Media Summary sheet (missing media file paths; requires `--report`). |
 | `--report-project <name>` | Project name filter when the FCPXML contains multiple projects. |
 | `--exclude-role <name>` | Exclude a role or subrole from role inventory (repeatable). Excluding a main role also excludes its subroles. Case-insensitive. |
+| `--exclude-disabled-clips` | Omit disabled clips (`enabled="0"`) from all timeline-based report sections (requires `--report`). |
+| `--exclude-column <column>` | Exclude a workbook column from every applicable report sheet (repeatable; requires `--report`). Case-insensitive; see [19 — Reporting](../../Documentation/Manual/19-Reporting.md#column-exclusion) for accepted names. |
 
 When `--report` is used without `--report-full` or section flags, the CLI exports role inventory only. Use `--report-full` for every optional sheet, or set individual `--report-*` section flags for a partial export (role inventory is always included). `--report-full` takes precedence when combined with section flags.
 

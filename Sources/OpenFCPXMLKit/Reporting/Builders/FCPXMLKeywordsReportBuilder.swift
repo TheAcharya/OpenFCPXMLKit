@@ -20,7 +20,6 @@ extension FinalCutPro.FCPXML {
             roleDisplayPreference: RoleDisplayPreference = .builtIn
         ) async -> KeywordsReportSection {
             var keywordScope = scope
-            keywordScope.includeDisabled = true
             keywordScope.occlusions = .allCases
             
             let extracted = await timeline.fcpExtract(

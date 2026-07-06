@@ -87,6 +87,12 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
         if !reportOptions.excludeRole.isEmpty && !reportOptions.report {
             throw ValidationError("--exclude-role requires --report.")
         }
+        if reportOptions.excludeDisabledClips && !reportOptions.report {
+            throw ValidationError("--exclude-disabled-clips requires --report.")
+        }
+        if !reportOptions.excludeColumn.isEmpty && !reportOptions.report {
+            throw ValidationError("--exclude-column requires --report.")
+        }
         if reportOptions.reportProject != nil && !reportOptions.report {
             throw ValidationError("--report-project requires --report.")
         }

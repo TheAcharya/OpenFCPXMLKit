@@ -18,7 +18,8 @@ extension FinalCutPro.FCPXML {
         ///
         /// Only non-`nil` report sections are written. Sheet order follows reference
         /// full-workbook exports: role inventory (when present), then Markers, Keywords,
-        /// Titles & Generators, Transitions, Video & Audio Effects, and Summary.
+        /// Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects,
+        /// Summary, and Media Summary.
         @MainActor
         public static func makeWorkbook(from report: Report) -> Workbook {
             FCPXMLReportWorkbookExporter.makeWorkbook(from: report)

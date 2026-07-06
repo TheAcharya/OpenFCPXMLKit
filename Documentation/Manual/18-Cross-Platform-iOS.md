@@ -51,7 +51,7 @@ let version = root?.stringValue(forAttributeNamed: "version")
 
 ## Testing
 
-- The full test suite (877 tests) runs on **macOS** and uses the Foundation backend.
+- The `OpenFCPXMLKitTests` suite (**891 tests**) runs on **macOS** and uses the Foundation backend. `swift test` also lists 1 optional `ExcelReportTest` integration test (892 total).
 - **iOS** is supported for building the library (e.g. iOS Simulator); running the same tests on iOS is not required for CI because they depend on Foundation XML. AEXML parity and structural validation are covered by tests that run on macOS.
 
 ---

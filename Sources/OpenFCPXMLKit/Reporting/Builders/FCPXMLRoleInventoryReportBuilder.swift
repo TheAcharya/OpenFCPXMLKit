@@ -29,10 +29,14 @@ extension FinalCutPro.FCPXML {
                 .compactMap { RoleInventoryRowBuilder.row(from: $0) }
             
             let roleSheets = RoleInventoryRoleSheetOrdering.roleSheets(from: selectedRoles)
+            let metadataColumnKeys = RoleInventoryColumnLayout.metadataColumnKeys(
+                from: selectedRoles
+            )
             
             return RoleInventoryReportSection(
                 selectedRoles: selectedRoles,
-                roleSheets: roleSheets
+                roleSheets: roleSheets,
+                metadataColumnKeys: metadataColumnKeys
             )
         }
     }
