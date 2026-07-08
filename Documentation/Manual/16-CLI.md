@@ -47,8 +47,11 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD. The workbook is wr
 | **--exclude-role &lt;role&gt;** | Exclude a role or subrole from the role inventory (repeatable). Excluding a main role also excludes its subroles. |
 | **--exclude-disabled-clips** | Omit disabled clips (`enabled="0"`) from all timeline-based report sections (with `--report`). |
 | **--exclude-column &lt;column&gt;** | Exclude a workbook column from every applicable report sheet (repeatable; with `--report`). |
+| **--timecode-format &lt;format&gt;** | Timeline time display format for Excel report cells (with `--report`). Values: `HH:MM:SS:FF` (default; SMPTE with frames, `;` before frames for drop-frame), `Frames`, `Feet+Frames`, `HH:MM:SS`. |
 
 When `--report` is used without `--report-full` or section flags, the CLI exports role inventory only. Use `--report-full` for every optional sheet, or set individual `--report-*` section flags for a partial export (role inventory is always included). `--report-full` takes precedence when combined with section flags.
+
+Build progress follows **product / workbook order** (Selected Roles Inventory first, then Markers … Media Summary). See [19 — Reporting](19-Reporting.md#progress-callbacks).
 
 All REPORT flags except `--report` itself require `--report`.
 
@@ -103,6 +106,23 @@ OpenFCPXMLKit-CLI --report \
   /path/to/project.fcpxmld /path/to/output-dir
 ```
 
+#### Timecode display format
+
+`--timecode-format` controls how timeline and source time columns are written in the workbook (and appends a header suffix when not using default SMPTE frames). See [19 — Reporting & Excel Export](19-Reporting.md#timecode-display-format).
+
+| Value | Cells | Example headers |
+|-------|-------|-----------------|
+| `HH:MM:SS:FF` (default) | SMPTE with frames (`:` NDF / `;` DF) | `Timeline In`, `Position` |
+| `Frames` | Integer frame count | `Timeline In (frames)` |
+| `Feet+Frames` | Film-style feet+frames | `Timeline In (feet+frames)` |
+| `HH:MM:SS` | Hours:minutes:seconds only | `Timeline In (HH:MM:SS)` |
+
+```bash
+OpenFCPXMLKit-CLI --report --report-full \
+  --timecode-format Frames \
+  /path/to/project.fcpxmld /path/to/output-dir
+```
+
 ### TIMELINE
 
 | Option | Description |
@@ -143,6 +163,11 @@ OpenFCPXMLKit-CLI --report --report-full \
   --exclude-disabled-clips \
   --exclude-column Reel \
   --exclude-column Metadata \
+  /path/to/project.fcpxmld /path/to/output-dir
+
+# Frame-count timecode columns
+OpenFCPXMLKit-CLI --report --report-full \
+  --timecode-format Frames \
   /path/to/project.fcpxmld /path/to/output-dir
 
 # Create a new empty project (e.g. 1920×1080 at 25 fps), write to output-dir; project file name is 1920x1080@25p.fcpxml

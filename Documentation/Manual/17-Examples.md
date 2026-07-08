@@ -238,12 +238,16 @@ import OpenFCPXMLKit
 
 let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
 
-// Role inventory + every optional sheet, with filtering
+// Role inventory + every optional sheet, with filtering and frame-count timecodes
 var options = FinalCutPro.FCPXML.ReportOptions.full
 options.excludedRoles = ["Effects"]
 options.excludeDisabledClips = true
 options.excludedColumns = ["Reel", "Metadata", "Source File Path"]
+options.timecodeFormat = .frames
 options.mediaBaseURL = URL(fileURLWithPath: "/path/to/project.fcpxmld")
+
+let phases = FinalCutPro.FCPXML.ReportBuildPhase.enabledPhases(for: options)
+print("Will build \(phases.count) section(s) in product order")
 
 let report = try await fcpxml.buildReport(options: options) { phase in
     print("Building \(phase.rawValue)…")
@@ -253,6 +257,7 @@ let outputURL = URL(fileURLWithPath: "/path/to/Report.xlsx")
 try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: outputURL)
 print("Wrote \(report.roleInventory?.roleSheets.count ?? 0) role sheet(s)")
 print("Excluded columns: \(report.excludedColumns)")
+print("Timecode format: \(report.timecodeFormat.rawValue)")
 ```
 
 Equivalent CLI:
@@ -264,6 +269,7 @@ OpenFCPXMLKit-CLI --report --report-full \
   --exclude-column Reel \
   --exclude-column Metadata \
   --exclude-column "Source File Path" \
+  --timecode-format Frames \
   /path/to/project.fcpxmld /path/to/output-dir
 ```
 

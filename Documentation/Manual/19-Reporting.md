@@ -12,8 +12,10 @@ Everything lives under **`FinalCutPro.FCPXML`**:
 
 - **buildReport(options:scope:onPhaseStarted:)** — convenience entry point on a parsed document.
 - **ReportBuilder** — assembles a **Report** from a document or a single **Project**.
-- **ReportOptions** — selects which sections to include, plus project filter, media base URL, role display preference, cover sheet, role exclusions, disabled-clip filtering, and column exclusions.
-- **Report** — the assembled value type (one optional property per section, plus resolved column exclusions).
+- **ReportOptions** — selects which sections to include, plus project filter, media base URL, role display preference, cover sheet, role exclusions, disabled-clip filtering, column exclusions, and **timecodeFormat**.
+- **ReportTimecodeFormat** — how timeline time values appear in workbook cells (`HH:MM:SS:FF`, Frames, Feet+Frames, `HH:MM:SS`).
+- **Report** — the assembled value type (one optional property per section, plus resolved column exclusions and `timecodeFormat`).
+- **ReportBuildPhase** — content phases in product / workbook order; use `enabledPhases(for:)` for GUI progress bars.
 - **ReportColumn** — logical workbook columns that can be omitted globally at export.
 - **ReportExcelExport** — turns a `Report` into an XLKit `Workbook` or writes it to disk.
 
@@ -70,6 +72,7 @@ try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: outputURL)
 | `excludedRoles` | `[]` | Role or subrole names to omit from the role inventory. Excluding a main role also excludes its subroles. |
 | `excludeDisabledClips` | `false` | When `true`, clips with `enabled="0"` are omitted from every timeline-based section. Default includes disabled clips (matching Final Cut Pro workbook exports). |
 | `excludedColumns` | `[]` | Column labels to omit from every applicable workbook sheet at export (see [Column exclusion](#column-exclusion)). |
+| `timecodeFormat` | `.smpteFrames` | How timeline time values are formatted in workbook cells (see [Timecode display format](#timecode-display-format)). |
 
 ### Presets
 
@@ -101,7 +104,34 @@ var options = FinalCutPro.FCPXML.ReportOptions(
 )
 options.projectName = "Opening Scene"
 options.mediaBaseURL = URL(fileURLWithPath: "/path/to/project.fcpxmld")
+options.timecodeFormat = .frames
 let report = try await fcpxml.buildReport(options: options)
+```
+
+---
+
+## Timecode display format
+
+**ReportTimecodeFormat** controls how every timeline / source time column is written in workbook cells. Set it on **`ReportOptions.timecodeFormat`**; the value is stored on **`Report.timecodeFormat`** and used by Excel export for both cell values and (non-default) column header suffixes.
+
+| Case | CLI / `rawValue` | Example cell | Default header suffix |
+|------|------------------|--------------|------------------------|
+| `.smpteFrames` | `HH:MM:SS:FF` | `01:02:03:04` or `01:00:00;00` (drop-frame) | *(none — e.g. `Timeline In`)* |
+| `.frames` | `Frames` | `1500` | ` (frames)` — e.g. `Timeline In (frames)` |
+| `.feetAndFrames` | `Feet+Frames` | `60+10` | ` (feet+frames)` |
+| `.smpteNoFrames` | `HH:MM:SS` | `01:02:03` | ` (HH:MM:SS)` |
+
+Drop-frame vs non-drop-frame for `.smpteFrames` follows the sequence `tcFormat` (SwiftTimecode `stringValue()`): semicolon before frames for DF, colons only for NDF.
+
+Row / section models expose format-aware headers via `columnHeaders(timecodeFormat:)` (static `columnHeaders` remains the default SMPTE list). `--exclude-column "Timeline In"` still matches suffixed headers such as `Timeline In (frames)`.
+
+Builders that sort after formatting (Keywords, Effects, Speed Change) use numeric compare for **Frames** and **Feet+Frames** so chronology matches SMPTE order.
+
+```swift
+var options = FinalCutPro.FCPXML.ReportOptions.full
+options.timecodeFormat = .frames
+let report = try await fcpxml.buildReport(options: options)
+// Cells are frame counts; headers e.g. "Timeline In (frames)", "Position (frames)"
 ```
 
 ---
@@ -122,8 +152,9 @@ let report = try await fcpxml.buildReport(options: options)
 - `mediaSummary: MediaSummaryReportSection?`
 - `workbookCoverSheet: ReportWorkbookCoverSheet?`
 - `excludedColumns: Set<ReportColumn>` — resolved from `ReportOptions.excludedColumns` at build time
+- `timecodeFormat: ReportTimecodeFormat` — copied from options; drives Excel headers and cell formatting
 
-A section property is `nil` when that section was not requested. Every section conforms to **ReportSection** and exposes a `defaultSheetName`. Row models expose `columnHeaders` (static) and `columnValues` in matching order, so sections can be rendered by any backend.
+A section property is `nil` when that section was not requested. Every section conforms to **ReportSection** and exposes a `defaultSheetName`. Row models expose `columnHeaders` / `columnHeaders(timecodeFormat:)` and `columnValues` in matching order, so sections can be rendered by any backend.
 
 ### Sections and columns
 
@@ -320,20 +351,33 @@ options.roleDisplayPreference = preference
 
 ## Progress callbacks
 
-`buildReport` and `ReportBuilder` accept an **onPhaseStarted** handler (**ReportBuildPhaseHandler**) called as each enabled **ReportBuildPhase** begins.
+`buildReport` and `ReportBuilder` accept an **onPhaseStarted** handler (**ReportBuildPhaseHandler**) called as each enabled **ReportBuildPhase** begins. Sections are also **built** in that same order.
 
-Phases follow product / workbook order via **`ReportBuildPhase.enabledPhases(for:)`**:
+### Product / workbook order
 
-`.roleInventory`, `.markers`, `.keywords`, `.titlesAndGenerators`, `.transitions`, `.effects`, `.speedChangeEffects`, `.summary`, `.mediaSummary`
+**`ReportBuildPhase.enabledPhases(for:)`** is the single source of truth for GUI checkboxes, CLI progress, and section assembly:
 
-(Only options that are enabled are included.) Each phase has a human-readable `rawValue` (for example `"Selected Roles Inventory"`, `"Video & Audio Effects"`).
+1. Selected Roles Inventory (`.roleInventory`)
+2. Markers
+3. Keywords
+4. Titles & Generators
+5. Transitions
+6. Video & Audio Effects
+7. Speed Change Effects
+8. Summary
+9. Media Summary
+
+Only options that are enabled are included. Each phase has a human-readable `rawValue` (for example `"Selected Roles Inventory"`, `"Video & Audio Effects"`).
+
+Use the same list in a GUI app for progress total and labels so they match your section checkboxes:
 
 ```swift
 let phases = FinalCutPro.FCPXML.ReportBuildPhase.enabledPhases(for: options)
-// Use `phases` for progress UI total / labels in GUI apps.
+// Use `phases.count` (+ 1 for “Saving workbook” if you export) for progress total.
 
 let report = try await fcpxml.buildReport(options: options) { phase in
-    print("Building \(phase.rawValue)…")
+    // Fires in product order for each enabled section
+    updateProgress(label: phase.rawValue)
 }
 ```
 
@@ -405,6 +449,7 @@ The same reports are available through **OpenFCPXMLKit-CLI**:
 | `--exclude-role <name>` | Omit roles from role inventory (repeatable) |
 | `--exclude-disabled-clips` | Omit `enabled="0"` clips from all timeline sections |
 | `--exclude-column <name>` | Omit a column from every applicable sheet (repeatable) |
+| `--timecode-format <format>` | Timeline cell format: `HH:MM:SS:FF` (default), `Frames`, `Feet+Frames`, `HH:MM:SS` |
 
 See [16 — CLI](16-CLI.md#report) for full option reference and matching rules.
 
@@ -417,6 +462,11 @@ OpenFCPXMLKit-CLI --report --report-full \
   --exclude-disabled-clips \
   --exclude-column Reel \
   --exclude-column Metadata \
+  /path/to/project.fcpxmld /path/to/output-dir
+
+# Frame-count timecode columns (headers e.g. "Timeline In (frames)")
+OpenFCPXMLKit-CLI --report --report-full \
+  --timecode-format Frames \
   /path/to/project.fcpxmld /path/to/output-dir
 
 # Partial export with role and column filtering

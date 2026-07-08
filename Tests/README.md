@@ -2,8 +2,8 @@
 
 This directory contains the test suite for OpenFCPXMLKit, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration. The suite runs on **macOS** (Foundation XML backend). The library also supports **iOS 26+** (AEXML backend); CI builds for iOS Simulator; the same tests are not run on iOS because they rely on Foundation XML.
 
-- **Test count:** **894** tests listed in `swift test --list-tests` — **893** in `OpenFCPXMLKitTests` (890 XCTest `func test` methods + 3 Swift Testing `@Test` in `FCPXMLReportRoleExclusionTests`) and **1** in `ExcelReportTest` (optional integration; skips without a local fixture)  
-- **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines, audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), Excel reporting (role inventory columns, Summary and Media Summary sheets, global column exclusion, disabled-clip filtering, workbook export and cell formatting), and all supported FCPXML versions and frame rates  
+- **Test count:** **925** tests listed in `swift test --list-tests` — **924** in `OpenFCPXMLKitTests` (921 XCTest `func test` methods + 3 Swift Testing `@Test` in `FCPXMLReportRoleExclusionTests`) and **1** in `ExcelReportTest` (optional integration; skips without a local fixture)  
+- **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines, audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), Excel reporting (role inventory columns, Summary and Media Summary sheets, configurable `ReportTimecodeFormat` / DF·NDF notation, format-aware headers, Frames/Feet+Frames sort order, inventory-first `ReportBuildPhase` progress, global column exclusion, disabled-clip filtering, workbook export and cell formatting), and all supported FCPXML versions and frame rates  
 - **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure; validation and cross-platform XML tests; optional Excel report integration tests under `ExcelReportTest/`
 
 ---
@@ -114,11 +114,13 @@ Tests/
     ├── FCPXMLMediaExtractionTests.swift
     ├── FCPXMLParallelFileIOTests.swift
     ├── FCPXMLPerformanceTests.swift
+    ├── FCPXMLReportBuildPhaseTests.swift
     ├── FCPXMLReportColumnExclusionTests.swift
     ├── FCPXMLReportExcelExportTests.swift
     ├── FCPXMLReportExcludeDisabledClipsTests.swift
     ├── FCPXMLReportFormattingTests.swift
     ├── FCPXMLReportRoleExclusionTests.swift
+    ├── FCPXMLReportTimecodeFormatTests.swift
     ├── FCPXMLRoleDisplayPreferenceTests.swift
     ├── FCPXMLRoleInventoryClipCollectorTests.swift
     ├── FCPXMLRoleInventoryColumnLayoutTests.swift
@@ -150,6 +152,7 @@ Tests/
 
 - **FCPXMLTestResources.swift** — Path resolution from test file to package root and `Tests/FCPXML Samples/FCPXML/`; works from Xcode and `swift test` without bundle resources. Defines **FCPXMLSampleName** enum for known sample names.
 - **FCPXMLTestUtilities.swift** — `loadFCPXMLSampleData(named:)`, `loadFCPXMLSample(named:)`; `fcpxmlFrameRateSampleNames`, `allFCPXMLSampleNames()`; throw **XCTSkip** when a sample is missing.
+- **FCPXMLReportingReportFixture.swift** / **FCPXMLReportingReportTestSupport.swift** — Optional reporting integration fixture; shared assertions for timecode cell values, format-aware column headers, sort order, and checkmarks (`assertReportTimecodeValues`, `assertReportColumnHeadersMatchTimecodeFormat`).
 - **OpenFCPXMLKitTests.swift** — Main test class; shared dependencies (parser, timecode converter, document manager, error handler, FCPXMLUtility, FCPXMLService) injected in `setUpWithError`. MARK sections group tests by category.
 
 ---
@@ -168,8 +171,8 @@ swift test --filter OpenFCPXMLKitTests             # By pattern
 To verify the documented test counts:
 
 ```bash
-swift test --list-tests 2>/dev/null | grep -c '\.'                        # 894
-swift test --list-tests 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 893
+swift test --list-tests 2>/dev/null | grep -c '\.'                        # 925
+swift test --list-tests 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 924
 swift test --list-tests 2>/dev/null | grep -c 'ExcelReportTest\.'       # 1
 ```
 
@@ -271,9 +274,11 @@ Tests are discovered automatically by Swift PM. Run `swift test` in an environme
 - **FCPXMLEffectsReportTests** / **FCPXMLSpeedChangeEffectsReportTests** — Video & Audio Effects and Speed Change Effects rows.
 - **FCPXMLSummaryReportTests** — Summary sheet: project metrics, per-role duration rows, percentage of total; Media Summary sheet: missing media paths; `.summaryOnly` and `.mediaSummaryOnly` presets.
 - **FCPXMLReportExcelExportTests** — XLKit workbook export: Title Case sheet names, sheet ordering, sheet-name sanitisation, Media Summary sheet (red missing-media paths), Summary sheet (project title header row, black role-duration data, numeric `% of Total` cells), inventory/marker/section-sheet colour rules (role category, marker type, sheet-specific inference for Keywords/Effects/Titles/Transitions), cover sheet styling, black/white table headers.
-- **FCPXMLReportFormattingTests** — Role ▸ subrole field formatting, `<Blank>` handling, channel-ordered role fields.
+- **FCPXMLReportFormattingTests** — Timecode string formats (SMPTE DF/NDF, Frames, Feet+Frames, HH:MM:SS); `compareTimelinePositions` numeric order for Frames and Feet+Frames vs lexicographic string order; role ▸ subrole field formatting, `<Blank>` handling, channel-ordered role fields.
+- **FCPXMLReportTimecodeFormatTests** — Integration: DF/NDF sample reports; all four `ReportTimecodeFormat` modes; full-report cell/header shape assertions; workbook header suffixes; Keywords Frames-mode numeric row order.
+- **FCPXMLReportBuildPhaseTests** — `ReportBuildPhase.enabledPhases(for:)` product order (Selected Roles Inventory first); `onPhaseStarted` callback order matches enabled phases for `.full`.
 - **FCPXMLReportRoleExclusionTests** — `excludedRoles` filtering (excluding a main role also excludes subroles).
-- **FCPXMLReportColumnExclusionTests** — `ReportColumn` alias resolution; header/value filtering; workbook export omits excluded columns on inventory and markers sheets.
+- **FCPXMLReportColumnExclusionTests** — `ReportColumn` alias resolution; header/value filtering; format-suffixed timeline headers still match exclusion; workbook export omits excluded columns on inventory and markers sheets.
 - **FCPXMLReportExcludeDisabledClipsTests** — `excludeDisabledClips` omits `enabled="0"` clips from role inventory and titles sections (uses `DisabledClips` sample).
 - **FCPXMLRoleDisplayPreferenceTests** — RoleDisplayPreference priority tables and preferred-role selection per context.
 - **FCPXMLRoleInventoryClipCollectorTests** / **FCPXMLRoleInventoryRoleSheetOrderingTests** — Clip collection into role entries; role-sheet ordering.

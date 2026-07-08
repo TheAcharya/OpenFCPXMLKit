@@ -6,7 +6,7 @@ Optional integration tests that build real `.xlsx` workbooks from a local FCPXML
 **Depends on:** `OpenFCPXMLKit`, `XLKit`  
 **Tests:** 1 (`ExcelReportExportTests`)
 
-Unit-level reporting behaviour (column layout, column exclusion, disabled-clip filtering, workbook cell formatting and sheet-specific colour rules) lives in **`OpenFCPXMLKitTests`** — see [Tests/README.md](../README.md#reporting--excel-export).
+Unit-level reporting behaviour (column layout, column exclusion, disabled-clip filtering, timecode formats / DF·NDF, format-aware headers, build-phase order, workbook cell formatting and sheet-specific colour rules) lives in **`OpenFCPXMLKitTests`** — see [Tests/README.md](../README.md#reporting--excel-export).
 
 ---
 
@@ -74,11 +74,12 @@ See [Output/README.md](Output/README.md) for details on that folder.
 The integration target mirrors the two most common CLI flows. For filtered exports, use the CLI or build reports in code:
 
 ```bash
-# Omit disabled clips and columns (not covered by ExcelReportExportTests)
+# Omit disabled clips, columns, and use frame-count timecode (not covered by ExcelReportExportTests)
 OpenFCPXMLKit-CLI --report --report-full \
   --exclude-disabled-clips \
   --exclude-column Reel \
   --exclude-column Metadata \
+  --timecode-format Frames \
   /path/to/project.fcpxmld /path/to/output-dir
 ```
 
@@ -86,10 +87,15 @@ OpenFCPXMLKit-CLI --report --report-full \
 var options = FinalCutPro.FCPXML.ReportOptions.full
 options.excludeDisabledClips = true
 options.excludedColumns = ["Reel", "Metadata"]
-let report = try await fcpxml.buildReport(options: options)
+options.timecodeFormat = .frames
+let phases = FinalCutPro.FCPXML.ReportBuildPhase.enabledPhases(for: options)
+let report = try await fcpxml.buildReport(options: options) { phase in
+    // phase order matches GUI / workbook: inventory first
+    _ = phases
+}
 ```
 
-See [Documentation/Manual/19-Reporting.md](../../Documentation/Manual/19-Reporting.md) for the full API.
+See [Documentation/Manual/19-Reporting.md](../../Documentation/Manual/19-Reporting.md) for the full API (`ReportTimecodeFormat`, progress phases, column exclusion).
 
 ---
 
@@ -141,4 +147,4 @@ Good candidates for this target:
 - Filtered exports (`excludeDisabledClips`, `excludedColumns`, `excludedRoles`) written to additional `Output/` files
 - Sheet/column-count or cell-format smoke checks on a known fixture
 
-Prefer **`OpenFCPXMLKitTests`** for logic that does not need a full local project (column resolution, layout, synthetic workbook structure, Summary/Media Summary/Keywords/Effects colour rules).
+Prefer **`OpenFCPXMLKitTests`** for logic that does not need a full local project (column resolution, layout, `ReportTimecodeFormat`, `ReportBuildPhase` order, synthetic workbook structure, Summary/Media Summary/Keywords/Effects colour rules).

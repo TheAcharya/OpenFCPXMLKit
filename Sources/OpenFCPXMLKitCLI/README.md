@@ -63,6 +63,11 @@ OpenFCPXMLKit-CLI --report \
   --exclude-column "Source File Path" \
   /path/to/project.fcpxmld /path/to/output-dir
 
+# Timeline timecode display format (default HH:MM:SS:FF; also Frames, Feet+Frames, HH:MM:SS)
+OpenFCPXMLKit-CLI --report --report-full \
+  --timecode-format Frames \
+  /path/to/project.fcpxmld /path/to/output-dir
+
 # Create a new empty FCPXML project (requires --width, --height, --rate; optional --project-version; output-dir as single positional)
 # Project file name is derived from dimensions and rate (e.g. 1920x1080@25p.fcpxml). Output is DTD-validated before writing.
 OpenFCPXMLKit-CLI --create-project --width 1920 --height 1080 --rate 25 /path/to/output-dir
@@ -79,7 +84,7 @@ OpenFCPXMLKit-CLI --log-level debug --convert-version 1.10 /path/to/project.fcpx
 OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 ```
 
-**Validation:** Use only one of `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--report`, or `--create-project`. When using `--convert-version`, `--media-copy`, or `--report`, or when running the default process, you must provide `<output-dir>`. When using `--create-project`, you must provide `--width`, `--height`, `--rate`, and the output directory as the single positional argument. `--report-full`, REPORT section flags, `--exclude-role`, `--exclude-disabled-clips`, and `--exclude-column` require `--report`. If `--log` is set and the file exists, it must be writable. Invalid `--log-level` or `--project-version` (for create-project) values produce an error.
+**Validation:** Use only one of `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--report`, or `--create-project`. When using `--convert-version`, `--media-copy`, or `--report`, or when running the default process, you must provide `<output-dir>`. When using `--create-project`, you must provide `--width`, `--height`, `--rate`, and the output directory as the single positional argument. `--report-full`, REPORT section flags, `--exclude-role`, `--exclude-disabled-clips`, `--exclude-column`, and `--timecode-format` require `--report`. If `--log` is set and the file exists, it must be writable. Invalid `--log-level`, `--project-version` (for create-project), or `--timecode-format` values produce an error.
 
 ---
 
@@ -109,8 +114,11 @@ OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 | `--exclude-role <name>` | Exclude a role or subrole from role inventory (repeatable). Excluding a main role also excludes its subroles. Case-insensitive. |
 | `--exclude-disabled-clips` | Omit disabled clips (`enabled="0"`) from all timeline-based report sections (requires `--report`). |
 | `--exclude-column <column>` | Exclude a workbook column from every applicable report sheet (repeatable; requires `--report`). Case-insensitive; see [19 — Reporting](../../Documentation/Manual/19-Reporting.md#column-exclusion) for accepted names. |
+| `--timecode-format <format>` | Timeline time display format for Excel report cells (requires `--report`). Values: `HH:MM:SS:FF` (default; SMPTE with frames; `;` before frames for drop-frame), `Frames`, `Feet+Frames`, `HH:MM:SS`. Non-default formats append a suffix to timecode column headers (e.g. `Timeline In (frames)`). See [19 — Reporting](../../Documentation/Manual/19-Reporting.md#timecode-display-format). |
 
 When `--report` is used without `--report-full` or section flags, the CLI exports role inventory only. Use `--report-full` for every optional sheet, or set individual `--report-*` section flags for a partial export (role inventory is always included). `--report-full` takes precedence when combined with section flags.
+
+Build progress follows **product / workbook order** (Selected Roles Inventory → Markers → Keywords → Titles & Generators → Transitions → Video & Audio Effects → Speed Change Effects → Summary → Media Summary). See [19 — Progress callbacks](../../Documentation/Manual/19-Reporting.md#progress-callbacks).
 
 ---
 

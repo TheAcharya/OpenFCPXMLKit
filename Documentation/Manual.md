@@ -30,7 +30,7 @@ From the index you can reach all chapters:
 - **16** — CLI (OpenFCPXMLKit-CLI)
 - **17** — Examples (workflows and code)
 - **18** — Cross-Platform & iOS (OFKXML abstraction, Foundation vs AEXML)
-- **19** — Reporting & Excel Export (report builder, sections, column/disabled-clip exclusion, XLKit workbook and cell formatting)
+- **19** — Reporting & Excel Export (ReportTimecodeFormat, ReportBuildPhase progress, sections, column/disabled-clip exclusion, XLKit workbook and cell formatting)
 
 ---
 
