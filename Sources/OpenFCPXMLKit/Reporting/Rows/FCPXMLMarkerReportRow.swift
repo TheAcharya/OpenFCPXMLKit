@@ -49,17 +49,23 @@ extension FinalCutPro.FCPXML {
         }
         
         /// Column headers for the Markers sheet.
-        public static let columnHeaders: [String] = [
-            "Marker Name",
-            "Type",
-            "Notes",
-            "Position",
-            "Clip Name",
-            "Role ▸ Subrole",
-            "Reel",
-            "Scene",
-            "Source Position"
-        ]
+        public static let columnHeaders: [String] = columnHeaders(timecodeFormat: .smpteFrames)
+        
+        public static func columnHeaders(
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+        ) -> [String] {
+            [
+                "Marker Name",
+                "Type",
+                "Notes",
+                timecodeFormat.formattedColumnHeader("Position"),
+                "Clip Name",
+                "Role ▸ Subrole",
+                "Reel",
+                "Scene",
+                timecodeFormat.formattedColumnHeader("Source Position")
+            ]
+        }
         
         /// Values in ``columnHeaders`` order.
         public var columnValues: [String] {

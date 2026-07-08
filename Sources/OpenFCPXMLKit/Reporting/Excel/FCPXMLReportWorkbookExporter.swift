@@ -142,22 +142,35 @@ enum FCPXMLReportWorkbookExporter {
     static func makeWorkbook(from report: FinalCutPro.FCPXML.Report) -> Workbook {
         let workbook = Workbook()
         let excludedColumns = report.excludedColumns
+        let timecodeFormat = report.timecodeFormat
         
         if let workbookCoverSheet = report.workbookCoverSheet {
             appendWorkbookCoverSheet(workbookCoverSheet, to: workbook)
         }
         
         if let roleInventory = report.roleInventory {
-            appendRoleInventory(roleInventory, excludedColumns: excludedColumns, to: workbook)
+            appendRoleInventory(
+                roleInventory,
+                excludedColumns: excludedColumns,
+                timecodeFormat: timecodeFormat,
+                to: workbook
+            )
         }
         
         if let markers = report.markers {
-            appendMarkers(markers, excludedColumns: excludedColumns, to: workbook)
+            appendMarkers(
+                markers,
+                excludedColumns: excludedColumns,
+                timecodeFormat: timecodeFormat,
+                to: workbook
+            )
         }
         
         if let keywords = report.keywords {
             let filtered = filteredTabularSection(
-                headers: FinalCutPro.FCPXML.KeywordReportRow.columnHeaders,
+                headers: FinalCutPro.FCPXML.KeywordReportRow.columnHeaders(
+                    timecodeFormat: timecodeFormat
+                ),
                 rows: keywords.rows.map(\.columnValues),
                 excludedColumns: excludedColumns
             )
@@ -172,7 +185,9 @@ enum FCPXMLReportWorkbookExporter {
         
         if let titles = report.titlesAndGenerators {
             let filtered = filteredTabularSection(
-                headers: FinalCutPro.FCPXML.TitleReportRow.columnHeaders,
+                headers: FinalCutPro.FCPXML.TitleReportRow.columnHeaders(
+                    timecodeFormat: timecodeFormat
+                ),
                 rows: titles.rows.map(\.columnValues),
                 excludedColumns: excludedColumns
             )
@@ -187,7 +202,9 @@ enum FCPXMLReportWorkbookExporter {
         
         if let transitions = report.transitions {
             let filtered = filteredTabularSection(
-                headers: FinalCutPro.FCPXML.TransitionReportRow.columnHeaders,
+                headers: FinalCutPro.FCPXML.TransitionReportRow.columnHeaders(
+                    timecodeFormat: timecodeFormat
+                ),
                 rows: transitions.rows.map(\.columnValues),
                 excludedColumns: excludedColumns
             )
@@ -202,7 +219,9 @@ enum FCPXMLReportWorkbookExporter {
         
         if let effects = report.effects {
             let filtered = filteredTabularSection(
-                headers: FinalCutPro.FCPXML.EffectReportRow.columnHeaders,
+                headers: FinalCutPro.FCPXML.EffectReportRow.columnHeaders(
+                    timecodeFormat: timecodeFormat
+                ),
                 rows: effects.rows.map(\.columnValues),
                 excludedColumns: excludedColumns
             )
@@ -217,7 +236,9 @@ enum FCPXMLReportWorkbookExporter {
         
         if let speedChangeEffects = report.speedChangeEffects {
             let filtered = filteredTabularSection(
-                headers: FinalCutPro.FCPXML.EffectReportRow.columnHeaders,
+                headers: FinalCutPro.FCPXML.EffectReportRow.columnHeaders(
+                    timecodeFormat: timecodeFormat
+                ),
                 rows: speedChangeEffects.rows.map(\.columnValues),
                 excludedColumns: excludedColumns
             )
@@ -231,7 +252,12 @@ enum FCPXMLReportWorkbookExporter {
         }
         
         if let summary = report.summary {
-            appendSummary(summary, excludedColumns: excludedColumns, to: workbook)
+            appendSummary(
+                summary,
+                excludedColumns: excludedColumns,
+                timecodeFormat: timecodeFormat,
+                to: workbook
+            )
         }
         
         if let mediaSummary = report.mediaSummary {
@@ -261,10 +287,13 @@ enum FCPXMLReportWorkbookExporter {
     private static func appendMarkers(
         _ markers: FinalCutPro.FCPXML.MarkersReportSection,
         excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>,
+        timecodeFormat: FinalCutPro.FCPXML.ReportTimecodeFormat,
         to workbook: Workbook
     ) {
         let filtered = filteredTabularSection(
-            headers: FinalCutPro.FCPXML.MarkerReportRow.columnHeaders,
+            headers: FinalCutPro.FCPXML.MarkerReportRow.columnHeaders(
+                timecodeFormat: timecodeFormat
+            ),
             rows: markers.rows.map(\.columnValues),
             excludedColumns: excludedColumns
         )
@@ -402,6 +431,7 @@ enum FCPXMLReportWorkbookExporter {
     private static func appendSummary(
         _ summary: FinalCutPro.FCPXML.SummaryReportSection,
         excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>,
+        timecodeFormat: FinalCutPro.FCPXML.ReportTimecodeFormat,
         to workbook: Workbook
     ) {
         let sheet = workbook.addSheet(
@@ -429,7 +459,9 @@ enum FCPXMLReportWorkbookExporter {
         
         if !summary.roleDurations.isEmpty {
             let filtered = filteredTabularSection(
-                headers: FinalCutPro.FCPXML.SummaryRoleDurationRow.columnHeaders,
+                headers: FinalCutPro.FCPXML.SummaryRoleDurationRow.columnHeaders(
+                    timecodeFormat: timecodeFormat
+                ),
                 rows: summary.roleDurations.map(\.columnValues),
                 excludedColumns: excludedColumns
             )
@@ -504,12 +536,14 @@ enum FCPXMLReportWorkbookExporter {
     private static func appendRoleInventory(
         _ roleInventory: FinalCutPro.FCPXML.RoleInventoryReportSection,
         excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>,
+        timecodeFormat: FinalCutPro.FCPXML.ReportTimecodeFormat,
         to workbook: Workbook
     ) {
         let metadataColumnKeys = roleInventory.metadataColumnKeys
         let headers = FinalCutPro.FCPXML.RoleInventoryColumnLayout.columnHeaders(
             metadataColumnKeys: metadataColumnKeys,
-            excludedColumns: excludedColumns
+            excludedColumns: excludedColumns,
+            timecodeFormat: timecodeFormat
         )
         
         appendTabularSection(

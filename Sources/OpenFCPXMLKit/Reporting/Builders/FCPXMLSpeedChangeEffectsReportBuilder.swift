@@ -16,7 +16,8 @@ extension FinalCutPro.FCPXML {
         static func build(
             from timeline: any OFKXMLElement,
             scope: ExtractionScope,
-            roleDisplayPreference: RoleDisplayPreference = .builtIn
+            roleDisplayPreference: RoleDisplayPreference = .builtIn,
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
         ) async -> SpeedChangeEffectsReportSection {
             let extracted = await timeline.fcpExtract(
                 types: .allClipCases,
@@ -27,17 +28,19 @@ extension FinalCutPro.FCPXML {
                 .compactMap {
                     speedChangeRow(
                         from: $0,
-                        roleDisplayPreference: roleDisplayPreference
+                        roleDisplayPreference: roleDisplayPreference,
+                        timecodeFormat: timecodeFormat
                     )
                 }
-                .sorted(by: sortSpeedChangeRows)
+                .sorted { sortSpeedChangeRows($0, $1, timecodeFormat: timecodeFormat) }
             
             return SpeedChangeEffectsReportSection(rows: rows)
         }
         
         private static func speedChangeRow(
             from extracted: ExtractedElement,
-            roleDisplayPreference: RoleDisplayPreference
+            roleDisplayPreference: RoleDisplayPreference,
+            timecodeFormat: ReportTimecodeFormat
         ) -> EffectReportRow? {
             guard let timeMap = extracted.element.fcpTimeMap,
                   let retime = SpeedChangeFormatting.retimeDisplay(from: timeMap),
@@ -59,21 +62,30 @@ extension FinalCutPro.FCPXML {
                     for: extracted,
                     roleDisplayPreference: roleDisplayPreference
                 ),
-                timelineIn: ReportFormatting.timecodeString(timelineIn),
-                timelineOut: ReportFormatting.timecodeString(timelineOut)
+                timelineIn: ReportFormatting.timecodeString(timelineIn, format: timecodeFormat),
+                timelineOut: ReportFormatting.timecodeString(timelineOut, format: timecodeFormat)
             )
         }
         
         private static func sortSpeedChangeRows(
             _ lhs: EffectReportRow,
-            _ rhs: EffectReportRow
+            _ rhs: EffectReportRow,
+            timecodeFormat: ReportTimecodeFormat
         ) -> Bool {
-            let timelineCompare = lhs.timelineIn.localizedStandardCompare(rhs.timelineIn)
+            let timelineCompare = ReportFormatting.compareTimelinePositions(
+                lhs.timelineIn,
+                rhs.timelineIn,
+                format: timecodeFormat
+            )
             if timelineCompare != .orderedSame {
                 return timelineCompare == .orderedAscending
             }
             
-            let durationCompare = rhs.timelineOut.localizedStandardCompare(lhs.timelineOut)
+            let durationCompare = ReportFormatting.compareTimelinePositions(
+                rhs.timelineOut,
+                lhs.timelineOut,
+                format: timecodeFormat
+            )
             if durationCompare != .orderedSame {
                 return durationCompare == .orderedAscending
             }

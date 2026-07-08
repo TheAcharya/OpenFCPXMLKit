@@ -17,7 +17,8 @@ extension FinalCutPro.FCPXML {
         static func build(
             from timeline: any OFKXMLElement,
             scope: ExtractionScope,
-            roleDisplayPreference: RoleDisplayPreference = .builtIn
+            roleDisplayPreference: RoleDisplayPreference = .builtIn,
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
         ) async -> TitlesReportSection {
             let extracted = await TitlesExtractionPreset().perform(
                 on: timeline,
@@ -26,14 +27,21 @@ extension FinalCutPro.FCPXML {
             
             let rows = extracted
                 .sortedByAbsoluteStartTimecode()
-                .compactMap { titleRow(from: $0, roleDisplayPreference: roleDisplayPreference) }
+                .compactMap {
+                    titleRow(
+                        from: $0,
+                        roleDisplayPreference: roleDisplayPreference,
+                        timecodeFormat: timecodeFormat
+                    )
+                }
             
             return TitlesReportSection(rows: rows)
         }
         
         private static func titleRow(
             from extracted: ExtractedElement,
-            roleDisplayPreference: RoleDisplayPreference
+            roleDisplayPreference: RoleDisplayPreference,
+            timecodeFormat: ReportTimecodeFormat
         ) -> TitleReportRow? {
             guard let title = extracted.element.fcpAsTitle,
                   let timelineIn = extracted.value(
@@ -55,9 +63,9 @@ extension FinalCutPro.FCPXML {
                     for: extracted,
                     roleDisplayPreference: roleDisplayPreference
                 ),
-                timelineIn: ReportFormatting.timecodeString(timelineIn),
-                timelineOut: ReportFormatting.timecodeString(timelineOut),
-                duration: ReportFormatting.timecodeString(duration),
+                timelineIn: ReportFormatting.timecodeString(timelineIn, format: timecodeFormat),
+                timelineOut: ReportFormatting.timecodeString(timelineOut, format: timecodeFormat),
+                duration: ReportFormatting.timecodeString(duration, format: timecodeFormat),
                 font: title.displayFontSpecifications(),
                 titleText: title.concatenatedDisplayText()
             )

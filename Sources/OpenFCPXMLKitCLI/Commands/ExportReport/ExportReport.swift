@@ -71,9 +71,9 @@ enum ExportReport {
                 : fcpxmlPath.deletingLastPathComponent()
         }
         
-        let phaseCount = Self.enabledPhaseCount(for: reportOptions)
-        let progress: ProgressBar? = showProgress && phaseCount > 0
-            ? ProgressBar(total: phaseCount + 1, desc: "Building report")
+        let phases = FinalCutPro.FCPXML.ReportBuildPhase.enabledPhases(for: reportOptions)
+        let progress: ProgressBar? = showProgress && !phases.isEmpty
+            ? ProgressBar(total: phases.count + 1, desc: "Building report")
             : nil
         
         if progress == nil, showProgress {
@@ -152,19 +152,5 @@ enum ExportReport {
         }
         
         return "Report sections: \(parts.joined(separator: ", "))."
-    }
-    
-    private static func enabledPhaseCount(for options: FinalCutPro.FCPXML.ReportOptions) -> Int {
-        [
-            options.includeMarkers,
-            options.includeKeywords,
-            options.includeTitlesAndGenerators,
-            options.includeTransitions,
-            options.includeEffects,
-            options.includeSpeedChangeEffects,
-            options.includeSummary,
-            options.includeMediaSummary,
-            options.includeRoleInventory
-        ].filter { $0 }.count
     }
 }

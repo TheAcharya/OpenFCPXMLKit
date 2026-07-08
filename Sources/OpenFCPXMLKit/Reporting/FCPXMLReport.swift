@@ -74,6 +74,9 @@ extension FinalCutPro.FCPXML {
         /// Columns omitted from every applicable workbook sheet at export.
         public var excludedColumns: Set<ReportColumn>
         
+        /// Timecode display format used for workbook timecode columns.
+        public var timecodeFormat: ReportTimecodeFormat
+        
         public init(
             projectName: String,
             eventName: String? = nil,
@@ -87,7 +90,8 @@ extension FinalCutPro.FCPXML {
             mediaSummary: MediaSummaryReportSection? = nil,
             roleInventory: RoleInventoryReportSection? = nil,
             workbookCoverSheet: ReportWorkbookCoverSheet? = nil,
-            excludedColumns: Set<ReportColumn> = []
+            excludedColumns: Set<ReportColumn> = [],
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
         ) {
             self.projectName = projectName
             self.eventName = eventName
@@ -102,6 +106,7 @@ extension FinalCutPro.FCPXML {
             self.roleInventory = roleInventory
             self.workbookCoverSheet = workbookCoverSheet
             self.excludedColumns = excludedColumns
+            self.timecodeFormat = timecodeFormat
         }
     }
 }

@@ -18,7 +18,8 @@ extension FinalCutPro.FCPXML {
             from timeline: any OFKXMLElement,
             scope: ExtractionScope,
             includeChapterMarkers: Bool,
-            roleDisplayPreference: RoleDisplayPreference = .builtIn
+            roleDisplayPreference: RoleDisplayPreference = .builtIn,
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
         ) async -> MarkersReportSection {
             let extracted = await timeline.fcpExtract(preset: MarkersExtractionPreset(), scope: scope)
             
@@ -31,7 +32,13 @@ extension FinalCutPro.FCPXML {
             
             let rows = filtered
                 .sortedByAbsoluteStartTimecode()
-                .flatMap { markerRows(from: $0, roleDisplayPreference: roleDisplayPreference) }
+                .flatMap {
+                    markerRows(
+                        from: $0,
+                        roleDisplayPreference: roleDisplayPreference,
+                        timecodeFormat: timecodeFormat
+                    )
+                }
             
             return MarkersReportSection(rows: rows)
         }
@@ -42,7 +49,8 @@ extension FinalCutPro.FCPXML {
         /// `Video` and `Dialogue`); single-component hosts yield one row.
         private static func markerRows(
             from extracted: ExtractedMarker,
-            roleDisplayPreference: RoleDisplayPreference
+            roleDisplayPreference: RoleDisplayPreference,
+            timecodeFormat: ReportTimecodeFormat
         ) -> [MarkerReportRow] {
             guard let positionTimecode = extracted.value(
                 forContext: .absoluteStartAsTimecode(frameRateSource: .mainTimeline)
@@ -55,7 +63,10 @@ extension FinalCutPro.FCPXML {
                 breadcrumbs: extracted.breadcrumbs,
                 resources: extracted.resources
             ) {
-                sourcePosition = ReportFormatting.timecodeString(sourceTimecode)
+                sourcePosition = ReportFormatting.timecodeString(
+                    sourceTimecode,
+                    format: timecodeFormat
+                )
             } else {
                 sourcePosition = ""
             }
@@ -73,7 +84,10 @@ extension FinalCutPro.FCPXML {
                     markerName: extracted.name,
                     type: ReportFormatting.markerReportType(for: extracted.configuration),
                     notes: extracted.note ?? "",
-                    position: ReportFormatting.timecodeString(positionTimecode),
+                    position: ReportFormatting.timecodeString(
+                        positionTimecode,
+                        format: timecodeFormat
+                    ),
                     clipName: extracted.displayClipName(),
                     roleSubrole: roleDisplay,
                     reel: ReportFormatting.metadataString(from: metadata, key: .reel),

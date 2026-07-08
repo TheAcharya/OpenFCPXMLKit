@@ -9,7 +9,7 @@ This folder holds **generated** `.xlsx` workbooks from the `ExcelReportTest` tar
 | File | Report preset | Description |
 |------|---------------|-------------|
 | **`OFK-Default.xlsx`** | `ReportOptions.roleInventoryOnly` | Selected Roles Inventory sheet and per-role inventory tabs only (same as CLI `--report` without `--report-full`) |
-| **`OFK-Full.xlsx`** | `ReportOptions.full` | Default sheets plus Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, Summary, and Media Summary |
+| **`OFK-Full.xlsx`** | `ReportOptions.full` | Default sheets plus Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, Summary, and Media Summary (default timecode format `HH:MM:SS:FF`; use CLI `--timecode-format` for other modes) |
 
 Each test run **overwrites** these files if they already exist.
 

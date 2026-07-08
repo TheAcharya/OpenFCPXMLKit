@@ -102,6 +102,16 @@ struct ReportCLIOptions: ParsableArguments {
     )
     var excludeColumn: [String] = []
     
+    @Option(
+        name: .customLong("timecode-format"),
+        help: """
+        Timeline time display format for Excel report cells (with --report). \
+        Values: \(FinalCutPro.FCPXML.ReportTimecodeFormat.cliHelpValues). \
+        Default: HH:MM:SS:FF (SMPTE with frames; semicolon before frames for drop-frame).
+        """
+    )
+    var timecodeFormat: String = FinalCutPro.FCPXML.ReportTimecodeFormat.smpteFrames.rawValue
+    
     var hasSectionSelection: Bool {
         reportMarkers
             || reportKeywords
@@ -139,6 +149,18 @@ struct ReportCLIOptions: ParsableArguments {
         options.excludedRoles = excludeRole
         options.excludeDisabledClips = excludeDisabledClips
         options.excludedColumns = excludeColumn
+        if let format = FinalCutPro.FCPXML.ReportTimecodeFormat(cliValue: timecodeFormat) {
+            options.timecodeFormat = format
+        }
         return options
+    }
+    
+    func resolvedTimecodeFormat() throws -> FinalCutPro.FCPXML.ReportTimecodeFormat {
+        guard let format = FinalCutPro.FCPXML.ReportTimecodeFormat(cliValue: timecodeFormat) else {
+            throw ValidationError(
+                "Invalid --timecode-format: '\(timecodeFormat)'. Use one of: \(FinalCutPro.FCPXML.ReportTimecodeFormat.cliHelpValues)."
+            )
+        }
+        return format
     }
 }

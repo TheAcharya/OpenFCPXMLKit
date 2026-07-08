@@ -17,6 +17,10 @@ extension FinalCutPro.FCPXML {
     /// let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
     /// let report = await fcpxml.buildReport(options: .markersOnly)
     /// ```
+    ///
+    /// Sections are built in ``ReportBuildPhase/enabledPhases(for:)`` order (product /
+    /// workbook order). ``onPhaseStarted`` is invoked once per enabled phase before that
+    /// section is assembled.
     public struct ReportBuilder: Sendable {
         public var options: ReportOptions
         public var scope: ExtractionScope
@@ -43,7 +47,6 @@ extension FinalCutPro.FCPXML {
             from project: Project,
             fcpxml: FinalCutPro.FCPXML
         ) async -> Report {
-            let timelineElement = project.sequence.element
             let eventName = project.element
                 .ancestorElements(includingSelf: false)
                 .first(whereFCPElementType: .event)?
@@ -54,81 +57,34 @@ extension FinalCutPro.FCPXML {
                 projectName: project.name ?? "",
                 eventName: eventName,
                 workbookCoverSheet: options.workbookCoverSheet,
-                excludedColumns: ReportColumnExclusion.resolve(options.excludedColumns)
+                excludedColumns: ReportColumnExclusion.resolve(options.excludedColumns),
+                timecodeFormat: options.timecodeFormat
             )
             
-            if options.includeMarkers {
-                onPhaseStarted?(.markers)
-                report.markers = await MarkersReportBuilder.build(
-                    from: timelineElement,
-                    scope: extractionScope,
-                    includeChapterMarkers: options.includeChapterMarkersInMarkersReport,
-                    roleDisplayPreference: options.roleDisplayPreference
-                )
+            for phase in ReportBuildPhase.enabledPhases(for: options) {
+                onPhaseStarted?(phase)
+                await build(phase, into: &report, project: project, fcpxml: fcpxml, scope: extractionScope)
             }
             
-            // Subsequent build-order steps: keywords, transitions, titles, effects, summary, role inventory.
-            if options.includeKeywords {
-                onPhaseStarted?(.keywords)
-                report.keywords = await KeywordsReportBuilder.build(
-                    from: timelineElement,
-                    scope: extractionScope,
-                    roleDisplayPreference: options.roleDisplayPreference
-                )
-            }
-            if options.includeTitlesAndGenerators {
-                onPhaseStarted?(.titlesAndGenerators)
-                report.titlesAndGenerators = await TitlesReportBuilder.build(
-                    from: timelineElement,
-                    scope: extractionScope,
-                    roleDisplayPreference: options.roleDisplayPreference
-                )
-            }
-            if options.includeTransitions {
-                onPhaseStarted?(.transitions)
-                report.transitions = await TransitionsReportBuilder.build(
-                    from: timelineElement,
-                    scope: extractionScope
-                )
-            }
-            if options.includeEffects {
-                onPhaseStarted?(.effects)
-                report.effects = await EffectsReportBuilder.build(
-                    from: timelineElement,
-                    scope: extractionScope,
-                    roleDisplayPreference: options.roleDisplayPreference
-                )
-            }
-            if options.includeSpeedChangeEffects {
-                onPhaseStarted?(.speedChangeEffects)
-                report.speedChangeEffects = await SpeedChangeEffectsReportBuilder.build(
-                    from: timelineElement,
-                    scope: extractionScope,
-                    roleDisplayPreference: options.roleDisplayPreference
-                )
-            }
-            if options.includeSummary {
-                onPhaseStarted?(.summary)
-                report.summary = await SummaryReportBuilder.build(
-                    from: project,
-                    document: fcpxml.xml,
-                    scope: extractionScope,
-                    roleDisplayPreference: options.roleDisplayPreference
-                )
-            }
-            if options.includeMediaSummary {
-                onPhaseStarted?(.mediaSummary)
-                report.mediaSummary = MediaSummaryReportBuilder.build(
-                    document: fcpxml.xml,
-                    baseURL: options.mediaBaseURL
-                )
-            }
-            if options.includeRoleInventory {
-                onPhaseStarted?(.roleInventory)
+            return report
+        }
+        
+        private func build(
+            _ phase: ReportBuildPhase,
+            into report: inout Report,
+            project: Project,
+            fcpxml: FinalCutPro.FCPXML,
+            scope extractionScope: ExtractionScope
+        ) async {
+            let timelineElement = project.sequence.element
+            
+            switch phase {
+            case .roleInventory:
                 var roleInventory = await RoleInventoryReportBuilder.build(
                     from: timelineElement,
                     scope: extractionScope,
-                    roleDisplayPreference: options.roleDisplayPreference
+                    roleDisplayPreference: options.roleDisplayPreference,
+                    timecodeFormat: options.timecodeFormat
                 )
                 if !options.excludedRoles.isEmpty {
                     roleInventory = ReportRoleExclusion.applying(
@@ -137,9 +93,70 @@ extension FinalCutPro.FCPXML {
                     )
                 }
                 report.roleInventory = roleInventory
+                
+            case .markers:
+                report.markers = await MarkersReportBuilder.build(
+                    from: timelineElement,
+                    scope: extractionScope,
+                    includeChapterMarkers: options.includeChapterMarkersInMarkersReport,
+                    roleDisplayPreference: options.roleDisplayPreference,
+                    timecodeFormat: options.timecodeFormat
+                )
+                
+            case .keywords:
+                report.keywords = await KeywordsReportBuilder.build(
+                    from: timelineElement,
+                    scope: extractionScope,
+                    roleDisplayPreference: options.roleDisplayPreference,
+                    timecodeFormat: options.timecodeFormat
+                )
+                
+            case .titlesAndGenerators:
+                report.titlesAndGenerators = await TitlesReportBuilder.build(
+                    from: timelineElement,
+                    scope: extractionScope,
+                    roleDisplayPreference: options.roleDisplayPreference,
+                    timecodeFormat: options.timecodeFormat
+                )
+                
+            case .transitions:
+                report.transitions = await TransitionsReportBuilder.build(
+                    from: timelineElement,
+                    scope: extractionScope,
+                    timecodeFormat: options.timecodeFormat
+                )
+                
+            case .effects:
+                report.effects = await EffectsReportBuilder.build(
+                    from: timelineElement,
+                    scope: extractionScope,
+                    roleDisplayPreference: options.roleDisplayPreference,
+                    timecodeFormat: options.timecodeFormat
+                )
+                
+            case .speedChangeEffects:
+                report.speedChangeEffects = await SpeedChangeEffectsReportBuilder.build(
+                    from: timelineElement,
+                    scope: extractionScope,
+                    roleDisplayPreference: options.roleDisplayPreference,
+                    timecodeFormat: options.timecodeFormat
+                )
+                
+            case .summary:
+                report.summary = await SummaryReportBuilder.build(
+                    from: project,
+                    document: fcpxml.xml,
+                    scope: extractionScope,
+                    roleDisplayPreference: options.roleDisplayPreference,
+                    timecodeFormat: options.timecodeFormat
+                )
+                
+            case .mediaSummary:
+                report.mediaSummary = MediaSummaryReportBuilder.build(
+                    document: fcpxml.xml,
+                    baseURL: options.mediaBaseURL
+                )
             }
-            
-            return report
         }
         
         /// Scope used for timeline extraction across all report sections.
@@ -185,6 +202,8 @@ extension FinalCutPro.FCPXML {
 
 extension FinalCutPro.FCPXML {
     /// Convenience entry point for building a report from this document.
+    ///
+    /// Progress callbacks follow ``ReportBuildPhase/enabledPhases(for:)`` order.
     public func buildReport(
         options: ReportOptions = .markersOnly,
         scope: ExtractionScope = .mainTimeline,

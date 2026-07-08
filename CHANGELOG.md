@@ -9,6 +9,28 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.0.2](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.2) - 2026-07-08
+
+### ✨ New Features
+
+- **Configurable report timecode formats:** `ReportOptions.timecodeFormat` / `Report.timecodeFormat` (`ReportTimecodeFormat`) control timeline time cells across all report sheets. Modes: `.smpteFrames` (`HH:MM:SS:FF`, default), `.frames` (`Frames`), `.feetAndFrames` (`Feet+Frames`), and `.smpteNoFrames` (`HH:MM:SS`). CLI `--timecode-format` accepts the same values.
+- **Format-aware column headers:** Timecode columns use dynamic suffixes in Excel (e.g. `Timeline In (frames)`); `ReportColumn` exclusion matches both plain and suffixed headers.
+- **Shared build / progress order:** `ReportBuildPhase.enabledPhases(for:)` is the single source of truth for inventory-first product order (Selected Roles Inventory → Markers → … → Media Summary). `ReportBuilder`, CLI progress, and GUI `onPhaseStarted` callbacks share the same phase list.
+
+### 🔧 Improvements
+
+- **Timeline string formatting:** Report SMPTE cells use SwiftTimecode `stringValue()` so non-drop-frame uses `:` and drop-frame uses `;` before frames.
+- **Sort guardrails:** Timeline position sorting is numeric for Frames and Feet+Frames (avoids lexicographic order issues such as `100` before `20`).
+- **Test suite:** Expanded to **925** tests (**924** in `OpenFCPXMLKitTests` + **1** optional `ExcelReportTest`), including `FCPXMLReportTimecodeFormatTests` and `FCPXMLReportBuildPhaseTests`, plus format-aware header and numeric-sort coverage in formatting/column-exclusion tests.
+- **Documentation:** Updated manual chapters **16 — CLI**, **17 — Examples**, and **19 — Reporting & Excel Export**; CLI README; project README; `AGENT.md`, `ARCHITECTURE.md` (§2.7 / §3), `.cursorrules`; and `Tests/README.md` / `Tests/ExcelReportTest/README.md`.
+
+### 🐛 Bug Fixes
+
+- **Drop-frame notation:** SMPTE report cells for drop-frame rates (e.g. 29.97 DF) now correctly use semicolon separators instead of always formatting as non-drop-frame.
+- **Build progress order:** Report build and progress callbacks no longer finish inventory after optional sheets; phases now match the GUI / workbook product order (Selected Roles Inventory first).
+
+---
+
 ## [3.0.1](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.1) - 2026-07-07
 
 ### ✨ New Features

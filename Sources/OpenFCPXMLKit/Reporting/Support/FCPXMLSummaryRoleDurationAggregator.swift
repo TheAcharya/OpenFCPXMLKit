@@ -23,7 +23,8 @@ extension FinalCutPro.FCPXML {
             from components: [RoleInventoryClipComponent],
             projectDurationSeconds: Double,
             timeline: any OFKXMLElement,
-            resources: (any OFKXMLElement)?
+            resources: (any OFKXMLElement)?,
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
         ) -> [SummaryRoleDurationRow] {
             let subroleIndex = RoleInventoryRoleSheetOrdering.subroleRoleIndex(from: components)
             let roleNames = uniqueRoleNames(from: components, subroleIndex: subroleIndex)
@@ -52,7 +53,8 @@ extension FinalCutPro.FCPXML {
                         estimatedTotal: timecodeString(
                             seconds: totalSeconds,
                             timeline: timeline,
-                            resources: resources
+                            resources: resources,
+                            timecodeFormat: timecodeFormat
                         ),
                         percentOfTotal: percent
                     )
@@ -81,7 +83,8 @@ extension FinalCutPro.FCPXML {
                 rowData,
                 projectDurationSeconds: projectDurationSeconds,
                 timeline: timeline,
-                resources: resources
+                resources: resources,
+                timecodeFormat: timecodeFormat
             )
         }
         
@@ -89,7 +92,8 @@ extension FinalCutPro.FCPXML {
             _ rows: [(row: SummaryRoleDurationRow, section: SummarySection, seconds: Double)],
             projectDurationSeconds: Double,
             timeline: any OFKXMLElement,
-            resources: (any OFKXMLElement)?
+            resources: (any OFKXMLElement)?,
+            timecodeFormat: ReportTimecodeFormat
         ) -> [SummaryRoleDurationRow] {
             guard !rows.isEmpty else { return [] }
             
@@ -105,7 +109,8 @@ extension FinalCutPro.FCPXML {
                                 seconds: visualSeconds,
                                 projectDurationSeconds: projectDurationSeconds,
                                 timeline: timeline,
-                                resources: resources
+                                resources: resources,
+                                timecodeFormat: timecodeFormat
                             )
                         )
                     }
@@ -126,7 +131,8 @@ extension FinalCutPro.FCPXML {
             seconds: Double,
             projectDurationSeconds: Double,
             timeline: any OFKXMLElement,
-            resources: (any OFKXMLElement)?
+            resources: (any OFKXMLElement)?,
+            timecodeFormat: ReportTimecodeFormat
         ) -> SummaryRoleDurationRow {
             let percent = projectDurationSeconds > 0
                 ? seconds / projectDurationSeconds
@@ -137,7 +143,8 @@ extension FinalCutPro.FCPXML {
                 estimatedTotal: timecodeString(
                     seconds: seconds,
                     timeline: timeline,
-                    resources: resources
+                    resources: resources,
+                    timecodeFormat: timecodeFormat
                 ),
                 percentOfTotal: percent
             )
@@ -339,7 +346,8 @@ extension FinalCutPro.FCPXML {
         private static func timecodeString(
             seconds: Double,
             timeline: any OFKXMLElement,
-            resources: (any OFKXMLElement)?
+            resources: (any OFKXMLElement)?,
+            timecodeFormat: ReportTimecodeFormat
         ) -> String {
             guard let frameRate = timeline._fcpTimecodeFrameRate(in: resources),
                   let timecode = try? Timecode(
@@ -348,7 +356,7 @@ extension FinalCutPro.FCPXML {
                   )
             else { return "" }
             
-            return ReportFormatting.timecodeString(timecode)
+            return ReportFormatting.timecodeString(timecode, format: timecodeFormat)
         }
     }
 }

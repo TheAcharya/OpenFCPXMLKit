@@ -16,7 +16,8 @@ extension FinalCutPro.FCPXML {
         static func build(
             from timeline: any OFKXMLElement,
             scope: ExtractionScope,
-            roleDisplayPreference: RoleDisplayPreference = .builtIn
+            roleDisplayPreference: RoleDisplayPreference = .builtIn,
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
         ) async -> RoleInventoryReportSection {
             let entries = await RoleInventoryClipCollector.collectEntries(
                 from: timeline,
@@ -26,7 +27,7 @@ extension FinalCutPro.FCPXML {
             
             let selectedRoles = entries
                 .sortedByTimelinePosition()
-                .compactMap { RoleInventoryRowBuilder.row(from: $0) }
+                .compactMap { RoleInventoryRowBuilder.row(from: $0, timecodeFormat: timecodeFormat) }
             
             let roleSheets = RoleInventoryRoleSheetOrdering.roleSheets(from: selectedRoles)
             let metadataColumnKeys = RoleInventoryColumnLayout.metadataColumnKeys(
