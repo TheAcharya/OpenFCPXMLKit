@@ -180,8 +180,8 @@ GENERAL:
   --convert-version <version>
                           Convert FCPXML to the given version (e.g. 1.10, 1.14) and write to output-dir.
   --extension-type <extension-type>
-                          Output format for --convert-version: fcpxmld (bundle) or fcpxml (single file). Default: fcpxmld. For
-                          target versions 1.5–1.9, .fcpxml is used regardless. (values: fcpxml, fcpxmld; default: fcpxmld)
+                          Output format for --convert-version: fcpxmld (bundle) or fcpxml (single file). Default: fcpxmld. For target versions 1.5–1.9,
+                          .fcpxml is used regardless. (values: fcpxml, fcpxmld; default: fcpxmld)
   --validate              Perform robust check and validation of FCPXML/FCPXMLD (semantic + DTD).
 
 TIMELINE:
@@ -211,15 +211,16 @@ REPORT:
   --report-project <report-project>
                           Project name filter when the FCPXML contains multiple projects.
   --exclude-role <exclude-role>
-                          Exclude a role or subrole from role inventory (repeatable). Excluding a main role also excludes its
-                          subroles.
+                          Exclude a role or subrole from role inventory (repeatable). Excluding a main role also excludes its subroles.
   --exclude-disabled-clips
                           Omit disabled clips (enabled="0") from all report sections (with --report).
   --exclude-column <exclude-column>
-                          Exclude a workbook column from every applicable report sheet (repeatable; with --report).
-                          Case-insensitive names include Row Numbers, Role Subrole, Clip Name, Frame Rate, Reel, Metadata (role
-                          inventory dynamic metadata keys), and other shared column headers. Columns are removed wherever the sheet
-                          uses a matching header.
+                          Exclude a workbook column from every applicable report sheet (repeatable; with --report). Case-insensitive names include Row
+                          Numbers, Role Subrole, Clip Name, Frame Rate, Reel, Metadata (role inventory dynamic metadata keys), and other shared column
+                          headers. Columns are removed wherever the sheet uses a matching header.
+  --timecode-format <timecode-format>
+                          Timeline time display format for Excel report cells (with --report). Values: HH:MM:SS:FF, Frames, Feet+Frames, HH:MM:SS.
+                          Default: HH:MM:SS:FF (SMPTE with frames; semicolon before frames for drop-frame). (default: HH:MM:SS:FF)
 
 LOG:
   --log <log>             Log file path.

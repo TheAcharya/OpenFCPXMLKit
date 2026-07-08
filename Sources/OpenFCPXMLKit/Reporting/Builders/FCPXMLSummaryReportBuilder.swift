@@ -18,7 +18,8 @@ extension FinalCutPro.FCPXML {
             from project: Project,
             document: any OFKXMLDocument,
             scope: ExtractionScope,
-            roleDisplayPreference: RoleDisplayPreference = .builtIn
+            roleDisplayPreference: RoleDisplayPreference = .builtIn,
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
         ) async -> SummaryReportSection {
             let resources = resourcesElement(in: document)
             let sequence = project.sequence
@@ -26,7 +27,8 @@ extension FinalCutPro.FCPXML {
             let projectSummary = projectSummary(
                 for: project,
                 sequence: sequence,
-                resources: resources
+                resources: resources,
+                timecodeFormat: timecodeFormat
             )
             
             let projectDurationSeconds = projectDurationSeconds(
@@ -44,7 +46,8 @@ extension FinalCutPro.FCPXML {
                 from: inventoryComponents,
                 projectDurationSeconds: projectDurationSeconds,
                 timeline: timelineElement,
-                resources: resources
+                resources: resources,
+                timecodeFormat: timecodeFormat
             )
             
             return SummaryReportSection(
@@ -60,11 +63,13 @@ extension FinalCutPro.FCPXML {
         private static func projectSummary(
             for project: Project,
             sequence: Sequence,
-            resources: (any OFKXMLElement)?
+            resources: (any OFKXMLElement)?,
+            timecodeFormat: ReportTimecodeFormat
         ) -> ProjectSummary {
             let duration = projectDurationTimecode(
                 for: sequence,
-                resources: resources
+                resources: resources,
+                timecodeFormat: timecodeFormat
             )
             
             let format = sequence.element._fcpFirstDefinedFormatResourceForElementOrAncestors(
@@ -106,7 +111,8 @@ extension FinalCutPro.FCPXML {
         
         private static func projectDurationTimecode(
             for sequence: Sequence,
-            resources: (any OFKXMLElement)?
+            resources: (any OFKXMLElement)?,
+            timecodeFormat: ReportTimecodeFormat
         ) -> String {
             guard let duration = sequence.duration,
                   let timecode = try? sequence.element._fcpTimecode(
@@ -117,7 +123,7 @@ extension FinalCutPro.FCPXML {
                   )
             else { return "" }
             
-            return ReportFormatting.timecodeString(timecode)
+            return ReportFormatting.timecodeString(timecode, format: timecodeFormat)
         }
         
         private static func projectDurationSeconds(

@@ -15,14 +15,82 @@ import SwiftExtensions
 extension FinalCutPro.FCPXML {
     /// Formats extracted values into workbook report column strings.
     enum ReportFormatting {
-        static func timecodeString(_ timecode: Timecode) -> String {
-            String(
-                format: "%02d:%02d:%02d:%02d",
-                timecode.hours,
-                timecode.minutes,
-                timecode.seconds,
-                timecode.frames
-            )
+        /// SMPTE timecode for workbook cells (format controlled by ``ReportTimecodeFormat``).
+        ///
+        /// Default is ``ReportTimecodeFormat/smpteFrames`` (`HH:MM:SS:FF` or `HH:MM:SS;FF`).
+        static func timecodeString(
+            _ timecode: Timecode,
+            format: ReportTimecodeFormat = .smpteFrames
+        ) -> String {
+            switch format {
+            case .smpteFrames:
+                return timecode.stringValue()
+            case .frames:
+                return String(timecode.frameCount.wholeFrames)
+            case .feetAndFrames:
+                return timecode.feetAndFramesValue.stringValue
+            case .smpteNoFrames:
+                return String(
+                    format: "%02d:%02d:%02d",
+                    timecode.hours,
+                    timecode.minutes,
+                    timecode.seconds
+                )
+            }
+        }
+        
+        /// Compares formatted timeline position strings for row sorting.
+        static func compareTimelinePositions(
+            _ lhs: String,
+            _ rhs: String,
+            format: ReportTimecodeFormat
+        ) -> ComparisonResult {
+            switch format {
+            case .frames:
+                return compareNumericIntegers(lhs, rhs)
+            case .feetAndFrames:
+                return compareFeetAndFrames(lhs, rhs)
+            default:
+                return lhs.localizedStandardCompare(rhs)
+            }
+        }
+        
+        private static func compareNumericIntegers(
+            _ lhs: String,
+            _ rhs: String
+        ) -> ComparisonResult {
+            let left = Int(lhs) ?? Int.min
+            let right = Int(rhs) ?? Int.min
+            if left < right { return .orderedAscending }
+            if left > right { return .orderedDescending }
+            return .orderedSame
+        }
+        
+        private static func compareFeetAndFrames(
+            _ lhs: String,
+            _ rhs: String
+        ) -> ComparisonResult {
+            let left = parseFeetAndFrames(lhs)
+            let right = parseFeetAndFrames(rhs)
+            
+            if left.feet != right.feet {
+                return left.feet < right.feet ? .orderedAscending : .orderedDescending
+            }
+            if left.frames != right.frames {
+                return left.frames < right.frames ? .orderedAscending : .orderedDescending
+            }
+            return .orderedSame
+        }
+        
+        private static func parseFeetAndFrames(_ value: String) -> (feet: Int, frames: Int) {
+            let parts = value.split(separator: "+", maxSplits: 1).map(String.init)
+            guard parts.count == 2,
+                  let feet = Int(parts[0]),
+                  let frames = Int(parts[1])
+            else {
+                return (Int.min, Int.min)
+            }
+            return (feet, frames)
         }
         
         static func markerReportType(

@@ -16,7 +16,8 @@ extension FinalCutPro.FCPXML {
     enum TransitionsReportBuilder {
         static func build(
             from timeline: any OFKXMLElement,
-            scope: ExtractionScope
+            scope: ExtractionScope,
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
         ) async -> TransitionsReportSection {
             let extracted = await timeline.fcpExtract(
                 types: [.transition],
@@ -25,13 +26,14 @@ extension FinalCutPro.FCPXML {
             
             let rows = extracted
                 .sortedByAbsoluteStartTimecode()
-                .compactMap { transitionRow(from: $0) }
+                .compactMap { transitionRow(from: $0, timecodeFormat: timecodeFormat) }
             
             return TransitionsReportSection(rows: rows)
         }
         
         private static func transitionRow(
-            from extracted: ExtractedElement
+            from extracted: ExtractedElement,
+            timecodeFormat: ReportTimecodeFormat
         ) -> TransitionReportRow? {
             guard let transition = extracted.element.fcpAsTransition,
                   let timelineIn = extracted.value(
@@ -53,9 +55,9 @@ extension FinalCutPro.FCPXML {
                 isApple: ReportFormatting.appleCheckmark(
                     forAppleSupplied: transition.isAppleSuppliedPrimaryEffect(in: extracted.resources)
                 ),
-                timelineIn: ReportFormatting.timecodeString(timelineIn),
-                timelineOut: ReportFormatting.timecodeString(timelineOut),
-                duration: ReportFormatting.timecodeString(duration)
+                timelineIn: ReportFormatting.timecodeString(timelineIn, format: timecodeFormat),
+                timelineOut: ReportFormatting.timecodeString(timelineOut, format: timecodeFormat),
+                duration: ReportFormatting.timecodeString(duration, format: timecodeFormat)
             )
         }
     }

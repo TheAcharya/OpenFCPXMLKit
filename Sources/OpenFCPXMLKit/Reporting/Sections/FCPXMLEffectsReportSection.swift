@@ -23,16 +23,22 @@ extension FinalCutPro.FCPXML {
         public var timelineIn: String
         public var timelineOut: String
         
-        public static let columnHeaders: [String] = [
-            "Effect",
-            "Settings",
-            "Enabled",
-            "Apple",
-            "Clip Name",
-            "Role ▸ Subrole",
-            "Timeline In",
-            "Timeline Out"
-        ]
+        public static let columnHeaders: [String] = columnHeaders(timecodeFormat: .smpteFrames)
+        
+        public static func columnHeaders(
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+        ) -> [String] {
+            [
+                "Effect",
+                "Settings",
+                "Enabled",
+                "Apple",
+                "Clip Name",
+                "Role ▸ Subrole",
+                timecodeFormat.formattedColumnHeader("Timeline In"),
+                timecodeFormat.formattedColumnHeader("Timeline Out")
+            ]
+        }
         
         public init(
             effect: String,
@@ -57,7 +63,8 @@ extension FinalCutPro.FCPXML {
         /// Maps a semantic extracted effect to a workbook row.
         init?(
             from effect: ExtractedEffect,
-            roleDisplayPreference: RoleDisplayPreference = .builtIn
+            roleDisplayPreference: RoleDisplayPreference = .builtIn,
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
         ) {
             let timelineContext = effect.timelineContext ?? effect.host
             
@@ -79,8 +86,8 @@ extension FinalCutPro.FCPXML {
                     for: effect,
                     roleDisplayPreference: roleDisplayPreference
                 ),
-                timelineIn: ReportFormatting.timecodeString(timelineIn),
-                timelineOut: ReportFormatting.timecodeString(timelineOut)
+                timelineIn: ReportFormatting.timecodeString(timelineIn, format: timecodeFormat),
+                timelineOut: ReportFormatting.timecodeString(timelineOut, format: timecodeFormat)
             )
         }
         

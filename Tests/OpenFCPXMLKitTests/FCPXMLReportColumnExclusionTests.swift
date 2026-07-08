@@ -50,6 +50,28 @@ final class FCPXMLReportColumnExclusionTests: XCTestCase {
         XCTAssertTrue(headers.contains("Role ▸ Subrole"))
     }
     
+    func testColumnHeadersUseTimecodeFormatSuffix() {
+        let headers = Layout.columnHeaders(
+            metadataColumnKeys: [],
+            timecodeFormat: .frames
+        )
+        
+        XCTAssertEqual(headers[5], "Timeline In (frames)")
+        XCTAssertEqual(headers[6], "Timeline Out (frames)")
+        XCTAssertEqual(headers[7], "Clip Duration (frames)")
+        XCTAssertEqual(headers[8], "Source In (frames)")
+    }
+    
+    func testExclusionMatchesFormatSuffixedTimelineInHeader() {
+        XCTAssertTrue(
+            FinalCutPro.FCPXML.ReportColumnExclusion.isHeaderExcluded(
+                "Timeline In (frames)",
+                excluded: [.timelineIn],
+                metadataColumnKeys: []
+            )
+        )
+    }
+    
     func testColumnValuesAlignWithExcludedHeaders() {
         let ingestKey = FinalCutPro.FCPXML.Metadata.Key.ingestDate.rawValue
         let row = FinalCutPro.FCPXML.RoleClipReportRow(

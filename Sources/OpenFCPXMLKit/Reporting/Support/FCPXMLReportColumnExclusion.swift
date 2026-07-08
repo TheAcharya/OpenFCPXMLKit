@@ -115,9 +115,7 @@ extension FinalCutPro.FCPXML {
             }
             
             return excluded.contains { column in
-                column.workbookHeaders.contains { workbookHeader in
-                    headerMatches(workbookHeader, header)
-                }
+                headerMatchesColumn(header, column: column)
             }
         }
         
@@ -156,6 +154,24 @@ extension FinalCutPro.FCPXML {
             lhs.compare(rhs, options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
         }
         
+        private static func headerMatchesColumn(
+            _ header: String,
+            column: ReportColumn
+        ) -> Bool {
+            if column.workbookHeaders.contains(where: { headerMatches($0, header) }) {
+                return true
+            }
+            
+            guard column.isTimecodeColumn else { return false }
+            
+            return FinalCutPro.FCPXML.ReportTimecodeFormat.allCases.contains { format in
+                guard let exportHeader = column.workbookHeader(timecodeFormat: format) else {
+                    return false
+                }
+                return headerMatches(exportHeader, header)
+            }
+        }
+        
         private static func normalizeColumnLabel(_ label: String) -> String {
             label
                 .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -167,9 +183,27 @@ extension FinalCutPro.FCPXML {
 }
 
 extension FinalCutPro.FCPXML.ReportColumn {
+    /// Whether workbook cells for this column use ``ReportTimecodeFormat`` display strings.
+    var isTimecodeColumn: Bool {
+        switch self {
+        case .timelineIn, .timelineOut, .clipDuration, .duration,
+             .sourceIn, .sourceOut, .sourceDuration, .sourcePosition:
+            return true
+        default:
+            return false
+        }
+    }
+    
     /// Primary inventory header for a fixed column, when exported.
     var exportHeader: String? {
-        workbookHeaders.first
+        workbookHeader(timecodeFormat: FinalCutPro.FCPXML.ReportTimecodeFormat.smpteFrames)
+    }
+    
+    /// Workbook header for a fixed column, adjusted for the active timecode display format.
+    func workbookHeader(timecodeFormat: FinalCutPro.FCPXML.ReportTimecodeFormat) -> String? {
+        guard let base = workbookHeaders.first else { return nil }
+        guard isTimecodeColumn else { return base }
+        return timecodeFormat.formattedColumnHeader(base)
     }
     
     /// Workbook header strings matched on any report sheet for this logical column.

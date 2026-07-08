@@ -23,17 +23,23 @@ extension FinalCutPro.FCPXML {
         public var reel: String
         public var scene: String
         
-        public static let columnHeaders: [String] = [
-            "Keyword",
-            "Notes",
-            "Timeline In",
-            "Timeline Out",
-            "Duration",
-            "Clip Name",
-            "Role ▸ Subrole",
-            "Reel",
-            "Scene"
-        ]
+        public static let columnHeaders: [String] = columnHeaders(timecodeFormat: .smpteFrames)
+        
+        public static func columnHeaders(
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+        ) -> [String] {
+            [
+                "Keyword",
+                "Notes",
+                timecodeFormat.formattedColumnHeader("Timeline In"),
+                timecodeFormat.formattedColumnHeader("Timeline Out"),
+                timecodeFormat.formattedColumnHeader("Duration"),
+                "Clip Name",
+                "Role ▸ Subrole",
+                "Reel",
+                "Scene"
+            ]
+        }
         
         public init(
             keyword: String,

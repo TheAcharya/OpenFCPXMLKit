@@ -44,7 +44,13 @@ extension FinalCutPro.FCPXML {
         ]
         
         /// Fixed inventory column headers excluding ``rowColumnHeader`` and dynamic metadata keys.
-        static let fixedColumnHeaders: [String] = fixedColumns.compactMap(\.exportHeader)
+        static let fixedColumnHeaders: [String] = fixedColumnHeaders(timecodeFormat: .smpteFrames)
+        
+        static func fixedColumnHeaders(
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+        ) -> [String] {
+            fixedColumns.compactMap { $0.workbookHeader(timecodeFormat: timecodeFormat) }
+        }
         
         /// Metadata keys that already have dedicated inventory columns and are omitted from
         /// the dynamic metadata key columns appended after the fixed block.
@@ -58,19 +64,20 @@ extension FinalCutPro.FCPXML {
         /// Full header row for an inventory sheet.
         static func columnHeaders(
             metadataColumnKeys: [String],
-            excludedColumns: Set<ReportColumn> = []
+            excludedColumns: Set<ReportColumn> = [],
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
         ) -> [String] {
             var headers: [String] = []
             
             if !excludedColumns.contains(.row),
-               let header = ReportColumn.row.exportHeader
+               let header = ReportColumn.row.workbookHeader(timecodeFormat: timecodeFormat)
             {
                 headers.append(header)
             }
             
             for column in fixedColumns {
                 guard !excludedColumns.contains(column),
-                      let header = column.exportHeader
+                      let header = column.workbookHeader(timecodeFormat: timecodeFormat)
                 else { continue }
                 headers.append(header)
             }

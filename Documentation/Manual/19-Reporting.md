@@ -320,14 +320,19 @@ options.roleDisplayPreference = preference
 
 ## Progress callbacks
 
-`buildReport` and `ReportBuilder` accept an **onPhaseStarted** handler (**ReportBuildPhaseHandler**) called as each **ReportBuildPhase** begins:
+`buildReport` and `ReportBuilder` accept an **onPhaseStarted** handler (**ReportBuildPhaseHandler**) called as each enabled **ReportBuildPhase** begins.
 
-`.markers`, `.keywords`, `.titlesAndGenerators`, `.transitions`, `.effects`, `.speedChangeEffects`, `.summary`, `.mediaSummary`, `.roleInventory`
+Phases follow product / workbook order via **`ReportBuildPhase.enabledPhases(for:)`**:
 
-Each phase has a human-readable `rawValue` (for example `"Video & Audio Effects"`, `"Selected Roles Inventory"`).
+`.roleInventory`, `.markers`, `.keywords`, `.titlesAndGenerators`, `.transitions`, `.effects`, `.speedChangeEffects`, `.summary`, `.mediaSummary`
+
+(Only options that are enabled are included.) Each phase has a human-readable `rawValue` (for example `"Selected Roles Inventory"`, `"Video & Audio Effects"`).
 
 ```swift
-let report = try await fcpxml.buildReport(options: .full) { phase in
+let phases = FinalCutPro.FCPXML.ReportBuildPhase.enabledPhases(for: options)
+// Use `phases` for progress UI total / labels in GUI apps.
+
+let report = try await fcpxml.buildReport(options: options) { phase in
     print("Building \(phase.rawValue)…")
 }
 ```

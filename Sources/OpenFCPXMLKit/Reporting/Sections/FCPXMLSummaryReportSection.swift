@@ -45,11 +45,17 @@ extension FinalCutPro.FCPXML {
         public var estimatedTotal: String
         public var percentOfTotal: Double
         
-        public static let columnHeaders: [String] = [
-            "Role ▸ Subrole",
-            "Estimated Total",
-            "% of Total"
-        ]
+        public static let columnHeaders: [String] = columnHeaders(timecodeFormat: .smpteFrames)
+        
+        public static func columnHeaders(
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+        ) -> [String] {
+            [
+                "Role ▸ Subrole",
+                timecodeFormat.formattedColumnHeader("Estimated Total"),
+                "% of Total"
+            ]
+        }
         
         public init(roleSubrole: String, estimatedTotal: String, percentOfTotal: Double) {
             self.roleSubrole = roleSubrole

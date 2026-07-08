@@ -20,14 +20,20 @@ extension FinalCutPro.FCPXML {
         public var timelineOut: String
         public var duration: String
         
-        public static let columnHeaders: [String] = [
-            "Transition",
-            "Category",
-            "Apple",
-            "Timeline In",
-            "Timeline Out",
-            "Duration"
-        ]
+        public static let columnHeaders: [String] = columnHeaders(timecodeFormat: .smpteFrames)
+        
+        public static func columnHeaders(
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+        ) -> [String] {
+            [
+                "Transition",
+                "Category",
+                "Apple",
+                timecodeFormat.formattedColumnHeader("Timeline In"),
+                timecodeFormat.formattedColumnHeader("Timeline Out"),
+                timecodeFormat.formattedColumnHeader("Duration")
+            ]
+        }
         
         public init(
             transition: String,

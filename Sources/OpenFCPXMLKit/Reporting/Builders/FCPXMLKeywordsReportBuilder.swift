@@ -17,7 +17,8 @@ extension FinalCutPro.FCPXML {
         static func build(
             from timeline: any OFKXMLElement,
             scope: ExtractionScope,
-            roleDisplayPreference: RoleDisplayPreference = .builtIn
+            roleDisplayPreference: RoleDisplayPreference = .builtIn,
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
         ) async -> KeywordsReportSection {
             var keywordScope = scope
             keywordScope.occlusions = .allCases
@@ -28,9 +29,19 @@ extension FinalCutPro.FCPXML {
             )
             
             let rows = extracted
-                .flatMap { keywordRows(from: $0, roleDisplayPreference: roleDisplayPreference) }
+                .flatMap {
+                    keywordRows(
+                        from: $0,
+                        roleDisplayPreference: roleDisplayPreference,
+                        timecodeFormat: timecodeFormat
+                    )
+                }
                 .sorted {
-                    $0.timelineIn.localizedStandardCompare($1.timelineIn) == .orderedAscending
+                    ReportFormatting.compareTimelinePositions(
+                        $0.timelineIn,
+                        $1.timelineIn,
+                        format: timecodeFormat
+                    ) == .orderedAscending
                 }
             
             return KeywordsReportSection(rows: rows)
@@ -38,7 +49,8 @@ extension FinalCutPro.FCPXML {
         
         private static func keywordRows(
             from extracted: ExtractedElement,
-            roleDisplayPreference: RoleDisplayPreference
+            roleDisplayPreference: RoleDisplayPreference,
+            timecodeFormat: ReportTimecodeFormat
         ) -> [KeywordReportRow] {
             guard let timelineRange = extracted.visibleKeywordRangeOnMainTimeline()
             else { return [] }
@@ -52,9 +64,18 @@ extension FinalCutPro.FCPXML {
                 roleDisplayPreference: roleDisplayPreference
             )
             
-            let timelineInString = ReportFormatting.timecodeString(timelineRange.timelineIn)
-            let timelineOutString = ReportFormatting.timecodeString(timelineRange.timelineOut)
-            let durationString = ReportFormatting.timecodeString(timelineRange.duration)
+            let timelineInString = ReportFormatting.timecodeString(
+                timelineRange.timelineIn,
+                format: timecodeFormat
+            )
+            let timelineOutString = ReportFormatting.timecodeString(
+                timelineRange.timelineOut,
+                format: timecodeFormat
+            )
+            let durationString = ReportFormatting.timecodeString(
+                timelineRange.duration,
+                format: timecodeFormat
+            )
             let reel = ReportFormatting.metadataString(from: metadata, key: .reel)
             let scene = ReportFormatting.metadataString(from: metadata, key: .scene)
             

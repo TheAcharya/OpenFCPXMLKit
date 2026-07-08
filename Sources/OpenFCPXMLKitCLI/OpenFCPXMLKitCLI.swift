@@ -96,6 +96,9 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
         if reportOptions.reportProject != nil && !reportOptions.report {
             throw ValidationError("--report-project requires --report.")
         }
+        if reportOptions.report {
+            _ = try reportOptions.resolvedTimecodeFormat()
+        }
         if general.checkVersion || general.validate {
             return
         }

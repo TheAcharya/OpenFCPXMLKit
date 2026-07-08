@@ -13,7 +13,10 @@ import SwiftTimecode
 
 extension FinalCutPro.FCPXML {
     enum RoleInventoryRowBuilder {
-        static func row(from entry: RoleInventoryClipEntry) -> RoleClipReportRow? {
+        static func row(
+            from entry: RoleInventoryClipEntry,
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+        ) -> RoleClipReportRow? {
             let extracted = entry.extracted
             let element = extracted.element
             let resources = extracted.resources
@@ -79,7 +82,11 @@ extension FinalCutPro.FCPXML {
             
             let clipContext = inventoryClipContext(for: extracted)
             let metadata = clipContext.value(forContext: .metadata)
-            let sourceTimes = sourceTimecodes(for: clipContext, clipDuration: clipDuration)
+            let sourceTimes = sourceTimecodes(
+                for: clipContext,
+                clipDuration: clipDuration,
+                timecodeFormat: timecodeFormat
+            )
             let metadataValues = ReportFormatting.inventoryMetadataValueMap(from: metadata)
             let sourceFile = ReportFormatting.inventorySourceFileInfo(for: clipContext)
             
@@ -88,9 +95,9 @@ extension FinalCutPro.FCPXML {
                 clipName: displayClipName(for: entry),
                 category: entry.category.workbookExportLabel,
                 enabled: ReportFormatting.enabledCheckmark(for: extracted.element),
-                timelineIn: ReportFormatting.timecodeString(timelineIn),
-                timelineOut: ReportFormatting.timecodeString(timelineOut),
-                clipDuration: ReportFormatting.timecodeString(clipDuration),
+                timelineIn: ReportFormatting.timecodeString(timelineIn, format: timecodeFormat),
+                timelineOut: ReportFormatting.timecodeString(timelineOut, format: timecodeFormat),
+                clipDuration: ReportFormatting.timecodeString(clipDuration, format: timecodeFormat),
                 sourceIn: sourceTimes.sourceIn,
                 sourceOut: sourceTimes.sourceOut,
                 sourceDuration: sourceTimes.sourceDuration,
@@ -148,7 +155,8 @@ extension FinalCutPro.FCPXML {
         
         private static func sourceTimecodes(
             for clipContext: ExtractedElement,
-            clipDuration: Timecode
+            clipDuration: Timecode,
+            timecodeFormat: ReportTimecodeFormat
         ) -> (sourceIn: String, sourceOut: String, sourceDuration: String) {
             let element = clipContext.element
             let resources = clipContext.resources
@@ -157,7 +165,7 @@ extension FinalCutPro.FCPXML {
             guard let sourceInTimecode = element._fcpTimelineStartAsTimecode()
                 ?? element._fcpStartAsTimecode(frameRateSource: .localToElement, default: nil)
             else {
-                return ("", "", ReportFormatting.timecodeString(clipDuration))
+                return ("", "", ReportFormatting.timecodeString(clipDuration, format: timecodeFormat))
             }
             
             let sourceOutTimecode: Timecode
@@ -176,16 +184,16 @@ extension FinalCutPro.FCPXML {
                 sourceOutTimecode = end
             } else {
                 return (
-                    ReportFormatting.timecodeString(sourceInTimecode),
+                    ReportFormatting.timecodeString(sourceInTimecode, format: timecodeFormat),
                     "",
-                    ReportFormatting.timecodeString(clipDuration)
+                    ReportFormatting.timecodeString(clipDuration, format: timecodeFormat)
                 )
             }
             
             return (
-                ReportFormatting.timecodeString(sourceInTimecode),
-                ReportFormatting.timecodeString(sourceOutTimecode),
-                ReportFormatting.timecodeString(clipDuration)
+                ReportFormatting.timecodeString(sourceInTimecode, format: timecodeFormat),
+                ReportFormatting.timecodeString(sourceOutTimecode, format: timecodeFormat),
+                ReportFormatting.timecodeString(clipDuration, format: timecodeFormat)
             )
         }
         

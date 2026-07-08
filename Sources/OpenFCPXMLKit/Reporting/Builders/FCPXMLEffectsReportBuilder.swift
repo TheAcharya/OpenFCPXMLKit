@@ -16,7 +16,8 @@ extension FinalCutPro.FCPXML {
         static func build(
             from timeline: any OFKXMLElement,
             scope: ExtractionScope,
-            roleDisplayPreference: RoleDisplayPreference = .builtIn
+            roleDisplayPreference: RoleDisplayPreference = .builtIn,
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
         ) async -> EffectsReportSection {
             let extractedEffects = await EffectsExtractionPreset().perform(
                 on: timeline,
@@ -28,25 +29,35 @@ extension FinalCutPro.FCPXML {
                 .compactMap {
                     EffectReportRow(
                         from: $0,
-                        roleDisplayPreference: roleDisplayPreference
+                        roleDisplayPreference: roleDisplayPreference,
+                        timecodeFormat: timecodeFormat
                     )
                 }
                 .removingDuplicateEffectRows()
-                .sorted(by: sortEffectRows)
+                .sorted { sortEffectRows($0, $1, timecodeFormat: timecodeFormat) }
             
             return EffectsReportSection(rows: rows)
         }
         
         private static func sortEffectRows(
             _ lhs: EffectReportRow,
-            _ rhs: EffectReportRow
+            _ rhs: EffectReportRow,
+            timecodeFormat: ReportTimecodeFormat
         ) -> Bool {
-            let timelineCompare = lhs.timelineIn.localizedStandardCompare(rhs.timelineIn)
+            let timelineCompare = ReportFormatting.compareTimelinePositions(
+                lhs.timelineIn,
+                rhs.timelineIn,
+                format: timecodeFormat
+            )
             if timelineCompare != .orderedSame {
                 return timelineCompare == .orderedAscending
             }
             
-            let durationCompare = rhs.timelineOut.localizedStandardCompare(lhs.timelineOut)
+            let durationCompare = ReportFormatting.compareTimelinePositions(
+                rhs.timelineOut,
+                lhs.timelineOut,
+                format: timecodeFormat
+            )
             if durationCompare != .orderedSame {
                 return durationCompare == .orderedAscending
             }

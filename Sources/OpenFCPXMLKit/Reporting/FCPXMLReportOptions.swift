@@ -81,6 +81,11 @@ extension FinalCutPro.FCPXML {
         /// metadata key columns on role inventory sheets). Unknown labels are ignored.
         public var excludedColumns: [String]
         
+        /// How timeline time values are formatted in workbook cells.
+        ///
+        /// Default is ``ReportTimecodeFormat/smpteFrames`` (`HH:MM:SS:FF` or `HH:MM:SS;FF`).
+        public var timecodeFormat: ReportTimecodeFormat
+        
         public init(
             includeMarkers: Bool = true,
             includeKeywords: Bool = false,
@@ -98,7 +103,8 @@ extension FinalCutPro.FCPXML {
             workbookCoverSheet: ReportWorkbookCoverSheet? = .openFCPXMLKitDefault,
             excludedRoles: [String] = [],
             excludeDisabledClips: Bool = false,
-            excludedColumns: [String] = []
+            excludedColumns: [String] = [],
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
         ) {
             self.includeMarkers = includeMarkers
             self.includeKeywords = includeKeywords
@@ -117,6 +123,7 @@ extension FinalCutPro.FCPXML {
             self.excludedRoles = excludedRoles
             self.excludeDisabledClips = excludeDisabledClips
             self.excludedColumns = excludedColumns
+            self.timecodeFormat = timecodeFormat
         }
         
         /// Role inventory only (Selected Roles and per-role sheets; no optional report sheets).
