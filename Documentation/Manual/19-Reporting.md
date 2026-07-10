@@ -38,7 +38,7 @@ let outputURL = URL(fileURLWithPath: "/path/to/Report.xlsx")
 try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: outputURL)
 ```
 
-`buildReport` throws **ReportError** (`noProjectsFound`, `projectNotFound(name)`) when the requested project cannot be resolved.
+`buildReport` throws **ReportError** (`noProjectsFound`, `projectNotFound(name)`) when no reportable timeline can be resolved. Resolution uses ``FinalCutPro/FCPXML/allReportTimelineSources()``: normal `<project>` sequences first, then event-level compound clips (`ref-clip` → `media`/`sequence`) when the document has no project (FCP “Export XML” of a compound clip).
 
 ---
 
@@ -65,7 +65,7 @@ try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: outputURL)
 
 | Property | Default | Purpose |
 |----------|---------|---------|
-| `projectName` | `nil` | Pick a project by name when the document has more than one (otherwise the first project is used). |
+| `projectName` | `nil` | Pick a timeline by name when the document has more than one. Matches a `<project>` name or a standalone compound-clip / `ref-clip` name. When `nil`, the first project is preferred; if there is no project, the first event-level compound clip is used. |
 | `mediaBaseURL` | `nil` | Base URL for resolving relative media paths when building the Media Summary missing-media list. The CLI defaults this to the document/bundle location. |
 | `roleDisplayPreference` | `.builtIn` | Which inherited role to surface on compound clips (see [Role display preference](#role-display-preference)). |
 | `workbookCoverSheet` | `.openFCPXMLKitDefault` | Optional cover sheet; set to `nil` to omit. |
@@ -445,7 +445,7 @@ The same reports are available through **OpenFCPXMLKit-CLI**:
 | `--report-markers`, `--report-keywords`, … | Individual optional sheets |
 | `--report-summary` | Summary sheet |
 | `--report-media-summary` | Media Summary sheet |
-| `--report-project <name>` | Project name filter |
+| `--report-project <name>` | Timeline name filter (project or standalone compound-clip name) |
 | `--exclude-role <name>` | Omit roles from role inventory (repeatable) |
 | `--exclude-disabled-clips` | Omit `enabled="0"` clips from all timeline sections |
 | `--exclude-column <name>` | Omit a column from every applicable sheet (repeatable) |

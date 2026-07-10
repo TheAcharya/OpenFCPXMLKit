@@ -116,6 +116,91 @@ extension FinalCutPro.FCPXML {
     public func allTimelines() -> [FinalCutPro.FCPXML.AnyTimeline] {
         root.element._fcpMetaTimelinesAsAnyTimelines()
     }
+    
+    /// Reportable timeline sources in document order.
+    ///
+    /// Includes:
+    /// - every ``Project`` (via its required `sequence`)
+    /// - every event-level ``RefClip`` whose `media` resource contains a `sequence`
+    ///   (standalone compound-clip exports that have no `<project>`)
+    ///
+    /// Prefer ``allProjects()`` when only project timelines are needed. Use this when
+    /// consumers (for example Excel reporting) must also support compound-clip-only FCPXML.
+    public func allReportTimelineSources() -> [ReportTimelineSource] {
+        var sources: [ReportTimelineSource] = []
+        
+        for project in allProjects() {
+            let eventName = project.element
+                .ancestorElements(includingSelf: false)
+                .first(whereFCPElementType: .event)?
+                .fcpName
+            sources.append(
+                ReportTimelineSource(
+                    displayName: project.name ?? "",
+                    eventName: eventName,
+                    sequence: project.sequence,
+                    project: project
+                )
+            )
+        }
+        
+        for event in allEvents() {
+            for element in event.storyElements {
+                guard let refClip = element.fcpAsRefClip,
+                      let sequence = refClip.mediaSequence
+                else { continue }
+                
+                let displayName = refClip.name
+                    ?? refClip.mediaResource?.name
+                    ?? ""
+                sources.append(
+                    ReportTimelineSource(
+                        displayName: displayName,
+                        eventName: event.name.isEmpty ? nil : event.name,
+                        sequence: sequence,
+                        project: nil
+                    )
+                )
+            }
+        }
+        
+        return sources
+    }
+}
+
+extension FinalCutPro.FCPXML {
+    /// A timeline that Excel reporting (and similar consumers) can build from.
+    ///
+    /// Either a normal ``Project`` sequence, or a compound-clip `media`/`sequence`
+    /// referenced by an event-level ``RefClip`` when the document has no `<project>`.
+    ///
+    /// Not `Sendable`: wraps ``Sequence`` / ``Project`` which hold non-Sendable OFKXML elements.
+    public struct ReportTimelineSource {
+        /// Display name used for workbook naming and Summary title
+        /// (`project` name, or compound clip / media name).
+        public let displayName: String
+        
+        /// Parent event name when the timeline lives under an event.
+        public let eventName: String?
+        
+        /// The sequence whose spine is walked for report sections.
+        public let sequence: Sequence
+        
+        /// The owning project when this source came from a `<project>`; otherwise `nil`.
+        public let project: Project?
+        
+        public init(
+            displayName: String,
+            eventName: String?,
+            sequence: Sequence,
+            project: Project?
+        ) {
+            self.displayName = displayName
+            self.eventName = eventName
+            self.sequence = sequence
+            self.project = project
+        }
+    }
 }
 
 extension FinalCutPro.FCPXML.Library {

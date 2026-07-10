@@ -2,8 +2,8 @@
 
 This directory contains the test suite for OpenFCPXMLKit, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration. The suite runs on **macOS** (Foundation XML backend). The library also supports **iOS 26+** (AEXML backend); CI builds for iOS Simulator; the same tests are not run on iOS because they rely on Foundation XML.
 
-- **Test count:** **925** tests listed in `swift test --list-tests` — **924** in `OpenFCPXMLKitTests` (921 XCTest `func test` methods + 3 Swift Testing `@Test` in `FCPXMLReportRoleExclusionTests`) and **1** in `ExcelReportTest` (optional integration; skips without a local fixture)  
-- **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines, audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), Excel reporting (role inventory columns, Summary and Media Summary sheets, configurable `ReportTimecodeFormat` / DF·NDF notation, format-aware headers, Frames/Feet+Frames sort order, inventory-first `ReportBuildPhase` progress, global column exclusion, disabled-clip filtering, workbook export and cell formatting), and all supported FCPXML versions and frame rates  
+- **Test count:** **933** tests listed in `swift test --list-tests` — **932** in `OpenFCPXMLKitTests` (929 XCTest `func test` methods + 3 Swift Testing `@Test` in `FCPXMLReportRoleExclusionTests`) and **1** in `ExcelReportTest` (optional integration; skips without a local fixture)  
+- **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines, audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), Excel reporting (role inventory columns, Summary and Media Summary sheets, configurable `ReportTimecodeFormat` / DF·NDF notation, format-aware headers, Frames/Feet+Frames sort order, inventory-first `ReportBuildPhase` progress, global column exclusion, disabled-clip filtering, workbook export and cell formatting, standalone compound-clip timelines via `allReportTimelineSources()` / `FCPXMLCompoundClipReportTests`), and all supported FCPXML versions and frame rates  
 - **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure; validation and cross-platform XML tests; optional Excel report integration tests under `ExcelReportTest/`
 
 ---
@@ -124,6 +124,7 @@ Tests/
     ├── FCPXMLRoleDisplayPreferenceTests.swift
     ├── FCPXMLRoleInventoryClipCollectorTests.swift
     ├── FCPXMLRoleInventoryColumnLayoutTests.swift
+    ├── FCPXMLCompoundClipReportTests.swift
     ├── FCPXMLRoleInventoryReportTests.swift
     ├── FCPXMLRoleInventoryRoleSheetOrderingTests.swift
     ├── FCPXMLRolesExtractionPresetTests.swift
@@ -171,8 +172,8 @@ swift test --filter OpenFCPXMLKitTests             # By pattern
 To verify the documented test counts:
 
 ```bash
-swift test --list-tests 2>/dev/null | grep -c '\.'                        # 925
-swift test --list-tests 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 924
+swift test --list-tests 2>/dev/null | grep -c '\.'                        # 933
+swift test --list-tests 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 932
 swift test --list-tests 2>/dev/null | grep -c 'ExcelReportTest\.'       # 1
 ```
 
@@ -265,6 +266,7 @@ Tests are discovered automatically by Swift PM. Run `swift test` in an environme
 
 **Reporting & Excel export** (see [19 — Reporting & Excel Export](../Documentation/Manual/19-Reporting.md))
 
+- **FCPXMLCompoundClipReportTests** — Standalone compound-clip FCPXML (event `ref-clip` → `media`/`sequence`, no `<project>`): `allReportTimelineSources()`, role inventory / markers / summary via `buildReport`, project-name filter, and regression that normal project reports still resolve.
 - **FCPXMLRoleInventoryReportTests** — Role inventory section: Selected Roles Inventory rows and per-role sheets, categories, columns.
 - **FCPXMLRoleInventoryColumnLayoutTests** — Inventory column order (Row + 23 fixed columns), dynamic metadata key discovery, row index values, audio rate display.
 - **FCPXMLMarkersReportTests** — Markers report rows (type, position, clip name, role ▸ subrole), chapter-marker inclusion.
@@ -416,7 +418,7 @@ Document manager tests create documents for **FCPXML 1.5 through 1.14** and asse
 
 ## 12. Excel report integration tests
 
-The **`ExcelReportTest`** target (separate from `OpenFCPXMLKitTests`) builds real `.xlsx` workbooks from a **local** FCPXML fixture. It is optional: without a fixture, tests skip and CI stays green.
+The **`ExcelReportTest`** target (separate from `OpenFCPXMLKitTests`) builds real `.xlsx` workbooks from a **local** FCPXML fixture (a normal project **or** a standalone compound-clip export). It is optional: without a fixture, tests skip and CI stays green.
 
 | Item | Detail |
 |------|--------|
@@ -427,7 +429,7 @@ The **`ExcelReportTest`** target (separate from `OpenFCPXMLKitTests`) builds rea
 
 Full setup, output description, and CI notes: **[ExcelReportTest/README.md](ExcelReportTest/README.md)**.
 
-Use this target for end-to-end workbook generation on a real project (open `Output/OFK-Full.xlsx` to visually verify sheet layout and cell colours on your fixture). Use **`OpenFCPXMLKitTests`** reporting files (listed under **Reporting & Excel export** in [§3.2](#32-dedicated-test-files-by-theme)) for unit and integration tests against bundled FCPXML samples and synthetic workbook structure.
+Use this target for end-to-end workbook generation on a real fixture (open `Output/OFK-Full.xlsx` to visually verify sheet layout and cell colours). Standalone compound-clip reporting (no `<project>`) is covered in unit form by **`FCPXMLCompoundClipReportTests`** in `OpenFCPXMLKitTests`. Use other **`OpenFCPXMLKitTests`** reporting files (listed under **Reporting & Excel export** in [§3.2](#32-dedicated-test-files-by-theme)) for unit and integration tests against bundled FCPXML samples and synthetic workbook structure.
 
 ---
 

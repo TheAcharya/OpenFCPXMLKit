@@ -43,5 +43,5 @@ Then open `OFK-Default.xlsx` or `OFK-Full.xlsx` in Excel, Numbers, or your diff 
 ## Notes
 
 - Output file names are fixed (`OFK-Default.xlsx`, `OFK-Full.xlsx`) so paths stay stable for scripts and future parity tests.  
-- The CLI names files after the **project name** inside the FCPXML; test output uses these constant names instead.  
+- The CLI names files after the **project or compound-clip name** inside the FCPXML; test output uses these constant names instead.  
 - Do not commit large generated workbooks unless you intentionally add golden files for regression testing.

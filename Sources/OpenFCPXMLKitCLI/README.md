@@ -100,7 +100,7 @@ OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 
 | Option | Description |
 |--------|-------------|
-| `--report` | Build an Excel report workbook from FCPXML/FCPXMLD. Default: role inventory only (Selected Roles Inventory and per-role sheets). Writes `{project-name}.xlsx` to output-dir; prints the output path to stdout. |
+| `--report` | Build an Excel report workbook from FCPXML/FCPXMLD (normal projects or standalone compound-clip exports). Default: role inventory only (Selected Roles Inventory and per-role sheets). Writes `{project-or-clip-name}.xlsx` to output-dir; prints the output path to stdout. |
 | `--report-full` | Include every optional report sheet (requires `--report`). |
 | `--report-markers` | Include the Markers sheet (requires `--report`). |
 | `--report-keywords` | Include the Keywords sheet (requires `--report`). |
@@ -110,7 +110,7 @@ OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 | `--report-speed-change-effects` | Include the Speed Change Effects sheet (requires `--report`). |
 | `--report-summary` | Include the Summary sheet (project metrics and role-duration totals; requires `--report`). |
 | `--report-media-summary` | Include the Media Summary sheet (missing media file paths; requires `--report`). |
-| `--report-project <name>` | Project name filter when the FCPXML contains multiple projects. |
+| `--report-project <name>` | Timeline name filter: matches a `<project>` name or a standalone compound-clip / `ref-clip` name when the document has more than one reportable timeline. |
 | `--exclude-role <name>` | Exclude a role or subrole from role inventory (repeatable). Excluding a main role also excludes its subroles. Case-insensitive. |
 | `--exclude-disabled-clips` | Omit disabled clips (`enabled="0"`) from all timeline-based report sections (requires `--report`). |
 | `--exclude-column <column>` | Exclude a workbook column from every applicable report sheet (repeatable; requires `--report`). Case-insensitive; see [19 — Reporting](../../Documentation/Manual/19-Reporting.md#column-exclusion) for accepted names. |

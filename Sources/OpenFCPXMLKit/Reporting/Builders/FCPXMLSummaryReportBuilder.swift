@@ -4,6 +4,7 @@
 //  © 2026 • Licensed under MIT License
 //
 
+
 //
 //	Builds the Summary report section from FCPXML.
 //
@@ -21,11 +22,37 @@ extension FinalCutPro.FCPXML {
             roleDisplayPreference: RoleDisplayPreference = .builtIn,
             timecodeFormat: ReportTimecodeFormat = .smpteFrames
         ) async -> SummaryReportSection {
+            let eventName = project.element
+                .ancestorElements(includingSelf: false)
+                .first(whereFCPElementType: .event)?
+                .fcpName
+            let source = ReportTimelineSource(
+                displayName: project.name ?? "",
+                eventName: eventName,
+                sequence: project.sequence,
+                project: project
+            )
+            return await build(
+                from: source,
+                document: document,
+                scope: scope,
+                roleDisplayPreference: roleDisplayPreference,
+                timecodeFormat: timecodeFormat
+            )
+        }
+        
+        static func build(
+            from source: ReportTimelineSource,
+            document: any OFKXMLDocument,
+            scope: ExtractionScope,
+            roleDisplayPreference: RoleDisplayPreference = .builtIn,
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+        ) async -> SummaryReportSection {
             let resources = resourcesElement(in: document)
-            let sequence = project.sequence
+            let sequence = source.sequence
             let timelineElement = sequence.element
-            let projectSummary = projectSummary(
-                for: project,
+            let projectSummary = timelineSummary(
+                title: source.displayName,
                 sequence: sequence,
                 resources: resources,
                 timecodeFormat: timecodeFormat
@@ -60,8 +87,8 @@ extension FinalCutPro.FCPXML {
             document.rootElement()?.firstChildElement(named: "resources")
         }
         
-        private static func projectSummary(
-            for project: Project,
+        private static func timelineSummary(
+            title: String,
             sequence: Sequence,
             resources: (any OFKXMLElement)?,
             timecodeFormat: ReportTimecodeFormat
@@ -95,7 +122,7 @@ extension FinalCutPro.FCPXML {
             let audioSampleRate = sequence.audioRate.map(summaryAudioSampleRateDisplay) ?? ""
             
             return ProjectSummary(
-                title: project.name ?? "",
+                title: title,
                 duration: duration,
                 resolution: resolution,
                 frameRate: frameRate,
