@@ -27,6 +27,7 @@ This codebase is developed using AI agents.
 - [Core Features](#core-features)
 - [Requirements](#requirements)
 - [Installation](#installation)
+  - [Swift Package Manager](#swift-package-manager)
 - [Before CLI Usage](#before-cli-usage)
   - [Pre-Compiled CLI Binary](#pre-compiled-cli-binary)
   - [Using Homebrew](#using-homebrew)
@@ -37,10 +38,13 @@ This codebase is developed using AI agents.
 - [FCPXML Version Support](#fcpxml-version-support)
 - [Modularity & Safety](#modularity--safety)
 - [Architecture Overview](#architecture-overview)
+- [Utilised By](#utilised-by)
 - [Credits](#credits)
 - [License](#license)
 - [Reporting Bugs](#reporting-bugs)
 - [Contribution](#contribution)
+  - [AI Agent Development](#ai-agent-development)
+- [Legacy](#legacy)
 
 ## Core Features
 
@@ -88,7 +92,7 @@ let package = Package(
         .iOS(.v26)
     ],
     dependencies: [
-        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.0.2")
+        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.0.3")
     ],
     targets: [
         .target(
@@ -151,7 +155,7 @@ sudo rm /usr/local/bin/OpenFCPXMLKit-CLI
 ### Compiled From Source
 
 ```shell
-VERSION=3.0.2 # replace this with the git tag of the version you need
+VERSION=3.0.3 # replace this with the git tag of the version you need
 git clone https://github.com/TheAcharya/OpenFCPXMLKit.git
 cd OpenFCPXMLKit
 git checkout "tags/$VERSION"
@@ -261,6 +265,18 @@ OpenFCPXMLKit supports FCPXML versions 1.5 through 1.14. All DTDs for these vers
 - The engine is layered bottom-up — `XML → Parsing → Model → Extraction → Reporting` — so the CLI, extraction presets, timeline tools, and reports share one foundation. The `Reporting/` layer (with `Reporting/Excel/` for XLKit workbook export) maps already-extracted facts into report rows and sheets; it owns presentation only. See [ARCHITECTURE.md](ARCHITECTURE.md) for the full codebase map and layer boundaries.
 
 See AGENT.md for a detailed breakdown for AI agents and contributors.
+
+## Utilised By
+
+### [Production Data](https://productiondata.theacharya.co)
+
+<details><summary>Production Data's Main Window</summary>
+<p>
+
+<p align="center"> <img src="https://github.com/TheAcharya/ProductionData-Website/blob/main/docs/assets/pd-main.png?raw=true"> </p>
+
+</p>
+</details>
 
 ## Credits
 
