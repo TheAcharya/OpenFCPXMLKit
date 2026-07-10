@@ -47,7 +47,9 @@ extension FinalCutPro.FCPXML {
         /// Chapter markers are omitted from the Markers sheet by default.
         public var includeChapterMarkersInMarkersReport: Bool
         
-        /// Optional project name filter. When `nil`, the first project in the document is used.
+        /// Optional timeline name filter. When `nil`, the first project is preferred; if the
+        /// document has no `<project>`, the first event-level compound clip (`ref-clip` →
+        /// `media`/`sequence`) is used. Matching uses the project name or compound clip name.
         public var projectName: String?
         
         /// Base URL for resolving relative media paths when building the Media Summary missing-media list.

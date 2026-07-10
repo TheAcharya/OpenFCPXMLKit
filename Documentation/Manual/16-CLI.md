@@ -29,7 +29,7 @@ Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-c
 
 ### REPORT
 
-Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD. The workbook is written to `<output-dir>`; its file name is derived from the project name. See [19 — Reporting & Excel Export](19-Reporting.md) for the underlying API.
+Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD. Works for normal project timelines and for standalone compound-clip exports (event `ref-clip` with no `<project>`). The workbook is written to `<output-dir>`; its file name is derived from the project or compound-clip name. See [19 — Reporting & Excel Export](19-Reporting.md) for the underlying API.
 
 | Option | Description |
 |--------|-------------|
@@ -43,7 +43,7 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD. The workbook is wr
 | **--report-speed-change-effects** | Include the Speed Change Effects sheet (with `--report`). |
 | **--report-summary** | Include the Summary sheet (project metrics and role-duration totals; with `--report`). |
 | **--report-media-summary** | Include the Media Summary sheet (missing media file paths; with `--report`). |
-| **--report-project &lt;name&gt;** | Project name filter when the FCPXML contains multiple projects. |
+| **--report-project &lt;name&gt;** | Timeline name filter: matches a `<project>` name or a standalone compound-clip / `ref-clip` name when the document has more than one reportable timeline. |
 | **--exclude-role &lt;role&gt;** | Exclude a role or subrole from the role inventory (repeatable). Excluding a main role also excludes its subroles. |
 | **--exclude-disabled-clips** | Omit disabled clips (`enabled="0"`) from all timeline-based report sections (with `--report`). |
 | **--exclude-column &lt;column&gt;** | Exclude a workbook column from every applicable report sheet (repeatable; with `--report`). |

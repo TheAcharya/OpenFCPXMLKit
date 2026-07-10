@@ -4,6 +4,7 @@
 //  © 2026 • Licensed under MIT License
 //
 
+
 //
 //	Builds structured reports from FCPXML documents.
 //
@@ -21,6 +22,10 @@ extension FinalCutPro.FCPXML {
     /// Sections are built in ``ReportBuildPhase/enabledPhases(for:)`` order (product /
     /// workbook order). ``onPhaseStarted`` is invoked once per enabled phase before that
     /// section is assembled.
+    ///
+    /// Supports both normal project timelines (`library` → `event` → `project` → `sequence`)
+    /// and standalone compound-clip exports (`event` → `ref-clip` → `media`/`sequence`) via
+    /// ``allReportTimelineSources()``.
     public struct ReportBuilder: Sendable {
         public var options: ReportOptions
         public var scope: ExtractionScope
@@ -38,8 +43,8 @@ extension FinalCutPro.FCPXML {
         
         /// Build a report from a parsed FCPXML document.
         public func build(from fcpxml: FinalCutPro.FCPXML) async throws -> Report {
-            let project = try resolveProject(in: fcpxml)
-            return await build(from: project, fcpxml: fcpxml)
+            let source = try resolveTimelineSource(in: fcpxml)
+            return await build(from: source, fcpxml: fcpxml)
         }
         
         /// Build a report from a single project.
@@ -51,11 +56,25 @@ extension FinalCutPro.FCPXML {
                 .ancestorElements(includingSelf: false)
                 .first(whereFCPElementType: .event)?
                 .fcpName
+            let source = ReportTimelineSource(
+                displayName: project.name ?? "",
+                eventName: eventName,
+                sequence: project.sequence,
+                project: project
+            )
+            return await build(from: source, fcpxml: fcpxml)
+        }
+        
+        /// Build a report from a resolved timeline source (project or compound clip).
+        public func build(
+            from source: ReportTimelineSource,
+            fcpxml: FinalCutPro.FCPXML
+        ) async -> Report {
             let extractionScope = reportExtractionScope()
             
             var report = Report(
-                projectName: project.name ?? "",
-                eventName: eventName,
+                projectName: source.displayName,
+                eventName: source.eventName,
                 workbookCoverSheet: options.workbookCoverSheet,
                 excludedColumns: ReportColumnExclusion.resolve(options.excludedColumns),
                 timecodeFormat: options.timecodeFormat
@@ -63,7 +82,7 @@ extension FinalCutPro.FCPXML {
             
             for phase in ReportBuildPhase.enabledPhases(for: options) {
                 onPhaseStarted?(phase)
-                await build(phase, into: &report, project: project, fcpxml: fcpxml, scope: extractionScope)
+                await build(phase, into: &report, source: source, fcpxml: fcpxml, scope: extractionScope)
             }
             
             return report
@@ -72,11 +91,11 @@ extension FinalCutPro.FCPXML {
         private func build(
             _ phase: ReportBuildPhase,
             into report: inout Report,
-            project: Project,
+            source: ReportTimelineSource,
             fcpxml: FinalCutPro.FCPXML,
             scope extractionScope: ExtractionScope
         ) async {
-            let timelineElement = project.sequence.element
+            let timelineElement = source.sequence.element
             
             switch phase {
             case .roleInventory:
@@ -144,7 +163,7 @@ extension FinalCutPro.FCPXML {
                 
             case .summary:
                 report.summary = await SummaryReportBuilder.build(
-                    from: project,
+                    from: source,
                     document: fcpxml.xml,
                     scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference,
@@ -166,21 +185,27 @@ extension FinalCutPro.FCPXML {
             return effectiveScope
         }
         
-        private func resolveProject(in fcpxml: FinalCutPro.FCPXML) throws -> Project {
-            let projects = fcpxml.allProjects()
+        private func resolveTimelineSource(in fcpxml: FinalCutPro.FCPXML) throws -> ReportTimelineSource {
+            let sources = fcpxml.allReportTimelineSources()
             
             if let name = options.projectName {
-                guard let project = projects.first(where: { $0.name == name }) else {
+                guard let source = sources.first(where: { $0.displayName == name }) else {
                     throw ReportError.projectNotFound(name)
                 }
-                return project
+                return source
             }
             
-            guard let project = projects.first else {
+            // Prefer a real project when both projects and event-level compound clips exist
+            // (e.g. CompoundClipSample embeds a compound inside a project timeline).
+            if let projectSource = sources.first(where: { $0.project != nil }) {
+                return projectSource
+            }
+            
+            guard let source = sources.first else {
                 throw ReportError.noProjectsFound
             }
             
-            return project
+            return source
         }
     }
     
@@ -192,9 +217,9 @@ extension FinalCutPro.FCPXML {
         public var errorDescription: String? {
             switch self {
             case .noProjectsFound:
-                return "No projects were found in the FCPXML document."
+                return "No projects or compound-clip timelines were found in the FCPXML document."
             case let .projectNotFound(name):
-                return "No project named \"\(name)\" was found in the FCPXML document."
+                return "No project or compound clip named \"\(name)\" was found in the FCPXML document."
             }
         }
     }

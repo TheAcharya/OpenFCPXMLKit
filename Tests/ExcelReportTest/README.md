@@ -1,12 +1,12 @@
 # Excel report integration tests
 
-Optional integration tests that build real `.xlsx` workbooks from a local FCPXML project. Use this target when you want to compare OpenFCPXMLKit output against reference exports without running the CLI each time.
+Optional integration tests that build real `.xlsx` workbooks from a local FCPXML fixture. Use a normal **project** export or a standalone **compound-clip** export (event `ref-clip` with no `<project>`). Use this target when you want to compare OpenFCPXMLKit output against reference exports without running the CLI each time.
 
 **Target:** `ExcelReportTest`  
 **Depends on:** `OpenFCPXMLKit`, `XLKit`  
 **Tests:** 1 (`ExcelReportExportTests`)
 
-Unit-level reporting behaviour (column layout, column exclusion, disabled-clip filtering, timecode formats / DF·NDF, format-aware headers, build-phase order, workbook cell formatting and sheet-specific colour rules) lives in **`OpenFCPXMLKitTests`** — see [Tests/README.md](../README.md#reporting--excel-export).
+Unit-level reporting behaviour (column layout, column exclusion, disabled-clip filtering, timecode formats / DF·NDF, format-aware headers, build-phase order, workbook cell formatting and sheet-specific colour rules, **standalone compound-clip timeline resolution**) lives in **`OpenFCPXMLKitTests`** — see [Tests/README.md](../README.md#reporting--excel-export) (`FCPXMLCompoundClipReportTests` and related files).
 
 ---
 
@@ -27,11 +27,11 @@ Relative media paths for the **Media Summary** sheet are resolved from the bundl
 2. **Preferred local names** — `Sample.fcpxmld` then `Sample.fcpxml` in this directory  
 3. **Auto-discovery** — first valid `.fcpxml` / `.fcpxmld` in this directory (excluding `Output/`, Swift sources, and markdown)
 
-If no fixture is found, tests **skip** (`XCTSkip`) so CI can pass without a local project.
+If no fixture is found, tests **skip** (`XCTSkip`) so CI can pass without a local fixture.
 
 ### Setup (local)
 
-Place your project here (not committed — see `.gitignore`):
+Place your project or compound-clip export here (not committed — see `.gitignore`):
 
 ```
 Tests/ExcelReportTest/
@@ -109,7 +109,7 @@ swift test --filter ExcelReportExportTests
 swift test --filter ExcelReportTest
 ```
 
-First run on a large project can take ~1–2 minutes (report build + XLKit save).
+First run on a large fixture can take ~1–2 minutes (report build + XLKit save).
 
 ---
 
@@ -147,4 +147,4 @@ Good candidates for this target:
 - Filtered exports (`excludeDisabledClips`, `excludedColumns`, `excludedRoles`) written to additional `Output/` files
 - Sheet/column-count or cell-format smoke checks on a known fixture
 
-Prefer **`OpenFCPXMLKitTests`** for logic that does not need a full local project (column resolution, layout, `ReportTimecodeFormat`, `ReportBuildPhase` order, synthetic workbook structure, Summary/Media Summary/Keywords/Effects colour rules).
+Prefer **`OpenFCPXMLKitTests`** for logic that does not need a full local fixture (column resolution, layout, `ReportTimecodeFormat`, `ReportBuildPhase` order, synthetic workbook structure, Summary/Media Summary/Keywords/Effects colour rules, compound-clip-only timeline discovery).

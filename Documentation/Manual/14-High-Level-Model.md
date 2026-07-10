@@ -17,8 +17,10 @@ For quick inspection and high-level access without walking the XML tree, use **F
 
 - **root** — Root wrapper
 - **version** — Version (FinalCutPro.FCPXML.Version)
-- **allEvents()** — Event names (or equivalent)
-- **allProjects()** — Project names (or equivalent)
+- **allEvents()** — All events in the document
+- **allProjects()** — All projects in the document
+- **allTimelines()** — Top-level timelines (sequences, clips, etc.) in document order
+- **allReportTimelineSources()** — Timelines suitable for Excel reporting: every project sequence, plus event-level compound clips (`ref-clip` → `media`/`sequence`) when FCP exported a compound clip without a `<project>`
 
 ```swift
 let data = try loader.loadData(from: url)
@@ -26,11 +28,14 @@ let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
 
 let eventNames = fcpxml.allEvents()
 let projectNames = fcpxml.allProjects()
+let reportSources = fcpxml.allReportTimelineSources()
 let root = fcpxml.root
 let version = fcpxml.version
 ```
 
 Bridging with **FCPXMLVersion** (DTD/validation): use `.fcpxmlVersion` and `.dtdVersion` and `init(from:)` converters where provided.
+
+For building Excel reports from either a project or a standalone compound clip, see [19 — Reporting & Excel Export](19-Reporting.md).
 
 ---
 

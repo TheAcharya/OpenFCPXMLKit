@@ -9,6 +9,22 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.0.3](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.3) - 2026-07-10
+
+### ✨ New Features
+
+- **Compound-clip Excel reports:** `FinalCutPro.FCPXML.allReportTimelineSources()` discovers both project sequences and standalone compound-clip timelines (event-level `ref-clip` → `media`/`sequence`). `ReportBuilder` / `buildReport` and Summary use this so FCP “Export XML” of a compound clip (no `<project>`) produces role inventory, markers, and other sheets like a normal project.
+
+### 🔧 Improvements
+
+- **Test suite:** Expanded to **933** tests (**932** in `OpenFCPXMLKitTests` + **1** optional `ExcelReportTest`), including `FCPXMLCompoundClipReportTests`.
+
+### 🐛 Bug Fixes
+
+- **Report timeline resolution:** Documents that contain only an event-level compound clip no longer fail with `ReportError.noProjectsFound`; reporting walks the compound clip’s `media` sequence instead.
+
+---
+
 ## [3.0.2](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.2) - 2026-07-08
 
 ### ✨ New Features
