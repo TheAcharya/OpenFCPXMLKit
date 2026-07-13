@@ -99,6 +99,9 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
         if reportOptions.report {
             _ = try reportOptions.resolvedTimecodeFormat()
         }
+        if reportOptions.createPDF && !reportOptions.report {
+            throw ValidationError("--create-pdf requires --report.")
+        }
         if general.checkVersion || general.validate {
             return
         }
@@ -159,6 +162,7 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
                 fcpxmlPath: fcpxmlPath,
                 outputDir: outDir,
                 options: options,
+                createPDF: reportOptions.createPDF,
                 logger: logger,
                 showProgress: !logOptions.quiet
             )

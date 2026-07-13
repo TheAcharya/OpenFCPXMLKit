@@ -73,6 +73,12 @@ struct ReportCLIOptions: ParsableArguments {
     )
     var reportMediaSummary: Bool = false
     
+    @Flag(
+        name: .customLong("create-pdf"),
+        help: "Also write a PDF report alongside the Excel workbook (with --report). Includes the same workbook sections, column exclusions, and timecode formatting when present."
+    )
+    var createPDF: Bool = false
+    
     @Option(
         name: .customLong("report-project"),
         help: "Project name filter when the FCPXML contains multiple projects."

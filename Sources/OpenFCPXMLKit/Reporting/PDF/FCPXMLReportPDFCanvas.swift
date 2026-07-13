@@ -1,0 +1,681 @@
+//
+//  FCPXMLReportPDFCanvas.swift
+//  OpenFCPXMLKit • https://github.com/TheAcharya/OpenFCPXMLKit
+//  © 2026 • Licensed under MIT License
+//
+
+//
+//	CoreGraphics PDF page drawing helpers for report export.
+//
+
+import CoreGraphics
+import CoreText
+import Foundation
+
+enum FCPXMLReportPDFCanvas {
+    final class Builder {
+        private let context: CGContext
+        private var projectName = ""
+        private var eventName: String?
+        private var exportBrandingText = FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.brandingText
+        private var pageNumber = 0
+        private var cursorY = FCPXMLReportPDFStyle.contentTop
+        private var hasOpenPage = false
+        private var runningPageTitle = ""
+        private var runningContentHeading: String?
+        private var runningColumnPart: Int?
+        private var runningColumnPartCount: Int?
+        private var runningSheetColorIndex = 0
+        private var runningSheetContentColor = FCPXMLReportPDFStyle.pageBackgroundColor
+        private var runningSheetAccentColor = FCPXMLReportPDFStyle.pageBackgroundColor
+        private var sectionStartRecorder: ((String, Int) -> Void)?
+        
+        init(context: CGContext) {
+            self.context = context
+        }
+        
+        func configureDocument(
+            projectName: String,
+            eventName: String?,
+            exportBrandingText: String,
+            sectionStartRecorder: ((String, Int) -> Void)? = nil
+        ) {
+            self.projectName = projectName
+            self.eventName = eventName
+            self.exportBrandingText = exportBrandingText
+            self.sectionStartRecorder = sectionStartRecorder
+        }
+        
+        func reserveBlankPages(_ count: Int) {
+            guard count > 0 else { return }
+            for _ in 0..<count {
+                beginPage(drawRunningBands: false)
+                endPage()
+            }
+        }
+        
+        func drawTableOfContents(entries: [FCPXMLReportPDFSheetPlan.SheetEntry]) {
+            let validEntries = entries.filter { $0.startPage > 0 }
+            guard !validEntries.isEmpty else { return }
+            
+            let pageColumnWidth: CGFloat = 44
+            let indexColumnWidth: CGFloat = 24
+            let sheetColumnWidth = FCPXMLReportPDFStyle.contentWidth - pageColumnWidth - indexColumnWidth
+            let columnWidths = [indexColumnWidth, sheetColumnWidth, pageColumnWidth]
+            let headers = ["#", "Sheet", "Page"]
+            let rowsPerPage = FCPXMLReportPDFSheetPlan.tocRowsPerPage()
+            var entryOffset = 0
+            
+            while entryOffset < validEntries.count {
+                let pageEntries = Array(validEntries.dropFirst(entryOffset).prefix(rowsPerPage))
+                
+                runningPageTitle = "Table of Contents"
+                beginPage(drawRunningBands: true, sheetColorIndex: nil)
+                cursorY = FCPXMLReportPDFStyle.contentTop
+                
+                if entryOffset == 0 {
+                    drawSectionTitle("Table of Contents")
+                } else {
+                    drawContinuationTitle("Table of Contents")
+                }
+                
+                drawTableHeaderRow(headers: headers, columnWidths: columnWidths)
+                
+                for (offset, entry) in pageEntries.enumerated() {
+                    drawTOCTableDataRow(
+                        index: entryOffset + offset + 1,
+                        title: entry.title,
+                        startPage: entry.startPage,
+                        columnWidths: columnWidths
+                    )
+                }
+                
+                endPage()
+                entryOffset += pageEntries.count
+            }
+        }
+        
+        func drawCoverPage(projectName: String, eventName: String?) {
+            beginPage(drawRunningBands: false)
+            
+            drawText(
+                projectName,
+                x: FCPXMLReportPDFStyle.margin,
+                y: FCPXMLReportPDFStyle.margin + FCPXMLReportPDFStyle.coverTitleFontSize,
+                fontName: FCPXMLReportPDFStyle.boldFontName,
+                fontSize: FCPXMLReportPDFStyle.coverTitleFontSize,
+                color: FCPXMLReportPDFStyle.textColor
+            )
+            
+            var y = FCPXMLReportPDFStyle.margin + FCPXMLReportPDFStyle.coverTitleFontSize + 20
+            
+            if let eventName, !eventName.isEmpty {
+                drawText(
+                    eventName,
+                    x: FCPXMLReportPDFStyle.margin,
+                    y: y + FCPXMLReportPDFStyle.coverSubtitleFontSize,
+                    fontName: FCPXMLReportPDFStyle.regularFontName,
+                    fontSize: FCPXMLReportPDFStyle.coverSubtitleFontSize,
+                    color: FCPXMLReportPDFStyle.mutedTextColor
+                )
+                y += FCPXMLReportPDFStyle.coverSubtitleFontSize + 14
+            }
+            
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .short
+            
+            drawText(
+                "Generated on \(formatter.string(from: Date()))",
+                x: FCPXMLReportPDFStyle.margin,
+                y: y + FCPXMLReportPDFStyle.coverSubtitleFontSize,
+                fontName: FCPXMLReportPDFStyle.regularFontName,
+                fontSize: FCPXMLReportPDFStyle.coverSubtitleFontSize,
+                color: FCPXMLReportPDFStyle.mutedTextColor
+            )
+            y += FCPXMLReportPDFStyle.coverSubtitleFontSize + 14
+            
+            drawText(
+                exportBrandingText,
+                x: FCPXMLReportPDFStyle.margin,
+                y: y + FCPXMLReportPDFStyle.coverSubtitleFontSize,
+                fontName: FCPXMLReportPDFStyle.regularFontName,
+                fontSize: FCPXMLReportPDFStyle.coverSubtitleFontSize,
+                color: FCPXMLReportPDFStyle.mutedTextColor
+            )
+            
+            drawCoverInformationBox()
+            
+            endPage()
+        }
+        
+        private func drawCoverInformationBox() {
+            let boxX = FCPXMLReportPDFStyle.margin
+            let boxWidth = FCPXMLReportPDFStyle.contentWidth
+            let padding = FCPXMLReportPDFStyle.coverInfoBoxPadding
+            let innerWidth = boxWidth - (padding * 2)
+            let titleFontSize = FCPXMLReportPDFStyle.coverInfoTitleFontSize
+            let bodyFontSize = FCPXMLReportPDFStyle.coverInfoBodyFontSize
+            let lineSpacing = FCPXMLReportPDFStyle.coverInfoLineSpacing
+            let paragraphSpacing = FCPXMLReportPDFStyle.coverInfoParagraphSpacing
+            
+            var bodyLineCount = 0
+            for paragraph in FCPXMLReportPDFCoverNotes.paragraphs {
+                bodyLineCount += FCPXMLReportPDFTableLayout.wrappedLines(
+                    paragraph,
+                    maxWidth: innerWidth,
+                    fontSize: bodyFontSize
+                ).count
+            }
+            
+            let boxHeight = padding * 2
+                + titleFontSize
+                + paragraphSpacing
+                + CGFloat(bodyLineCount) * (bodyFontSize + lineSpacing)
+                + CGFloat(max(0, FCPXMLReportPDFCoverNotes.paragraphs.count - 1)) * paragraphSpacing
+            
+            let boxY = FCPXMLReportPDFStyle.pageSize.height
+                - FCPXMLReportPDFStyle.margin
+                - boxHeight
+            
+            let boxRect = CGRect(x: boxX, y: boxY, width: boxWidth, height: boxHeight)
+            context.setFillColor(FCPXMLReportPDFStyle.coverInfoBoxBackgroundColor)
+            context.fill(boxRect)
+            context.setStrokeColor(FCPXMLReportPDFStyle.coverInfoBoxBorderColor)
+            context.setLineWidth(0.75)
+            context.stroke(boxRect)
+            
+            var cursor = boxY + padding + titleFontSize
+            
+            drawText(
+                FCPXMLReportPDFCoverNotes.title,
+                x: boxX + padding,
+                y: cursor,
+                fontName: FCPXMLReportPDFStyle.boldFontName,
+                fontSize: titleFontSize,
+                color: FCPXMLReportPDFStyle.textColor
+            )
+            cursor += titleFontSize + paragraphSpacing
+            
+            for (index, paragraph) in FCPXMLReportPDFCoverNotes.paragraphs.enumerated() {
+                let lines = FCPXMLReportPDFTableLayout.wrappedLines(
+                    paragraph,
+                    maxWidth: innerWidth,
+                    fontSize: bodyFontSize
+                )
+                
+                for line in lines {
+                    drawText(
+                        line,
+                        x: boxX + padding,
+                        y: cursor,
+                        fontName: FCPXMLReportPDFStyle.regularFontName,
+                        fontSize: bodyFontSize,
+                        color: FCPXMLReportPDFStyle.mutedTextColor
+                    )
+                    cursor += bodyFontSize + lineSpacing
+                }
+                
+                if index < FCPXMLReportPDFCoverNotes.paragraphs.count - 1 {
+                    cursor += paragraphSpacing
+                }
+            }
+        }
+        
+        func beginContentPage(
+            pageTitle: String,
+            sheetColorIndex: Int,
+            contentHeading: String? = nil,
+            columnPart: Int? = nil,
+            columnPartCount: Int? = nil,
+            repeatOnContinuation: Bool = false,
+            recordsSectionStart: Bool = false
+        ) {
+            if hasOpenPage {
+                endPage()
+            }
+            
+            runningPageTitle = pageTitle
+            runningContentHeading = contentHeading
+            runningColumnPart = columnPart
+            runningColumnPartCount = columnPartCount
+            applySheetColors(sheetColorIndex: sheetColorIndex)
+            
+            beginPage(drawRunningBands: true, sheetColorIndex: sheetColorIndex)
+            
+            if recordsSectionStart, let sectionStartRecorder {
+                sectionStartRecorder(pageTitle, pageNumber)
+            }
+            
+            cursorY = FCPXMLReportPDFStyle.contentTop
+            
+            if !repeatOnContinuation {
+                let heading = contentHeading ?? pageTitle
+                drawSectionTitle(heading)
+            } else {
+                let heading = contentHeading ?? pageTitle
+                drawContinuationTitle(heading)
+            }
+        }
+        
+        func endContentPage() {
+            endPage()
+        }
+        
+        func drawSectionTitle(_ title: String) {
+            drawText(
+                title,
+                x: FCPXMLReportPDFStyle.margin,
+                y: cursorY + FCPXMLReportPDFStyle.sectionTitleFontSize,
+                fontName: FCPXMLReportPDFStyle.boldFontName,
+                fontSize: FCPXMLReportPDFStyle.sectionTitleFontSize,
+                color: FCPXMLReportPDFStyle.textColor
+            )
+            cursorY += FCPXMLReportPDFStyle.sectionTitleFontSize + 10
+        }
+        
+        private func drawContinuationTitle(_ title: String) {
+            drawText(
+                "\(title) (continued)",
+                x: FCPXMLReportPDFStyle.margin,
+                y: cursorY + FCPXMLReportPDFStyle.subsectionTitleFontSize,
+                fontName: FCPXMLReportPDFStyle.boldFontName,
+                fontSize: FCPXMLReportPDFStyle.subsectionTitleFontSize,
+                color: FCPXMLReportPDFStyle.mutedTextColor
+            )
+            cursorY += FCPXMLReportPDFStyle.subsectionTitleFontSize + 8
+        }
+        
+        func drawSubsectionTitle(_ title: String) {
+            drawText(
+                title,
+                x: FCPXMLReportPDFStyle.margin,
+                y: cursorY + FCPXMLReportPDFStyle.subsectionTitleFontSize,
+                fontName: FCPXMLReportPDFStyle.boldFontName,
+                fontSize: FCPXMLReportPDFStyle.subsectionTitleFontSize,
+                color: FCPXMLReportPDFStyle.textColor
+            )
+            cursorY += FCPXMLReportPDFStyle.subsectionTitleFontSize + 8
+        }
+        
+        func drawBodyLine(
+            _ text: String,
+            color: CGColor = FCPXMLReportPDFStyle.textColor,
+            fontSize: CGFloat = FCPXMLReportPDFStyle.bodyFontSize
+        ) {
+            ensureVerticalSpace(fontSize + 8)
+            drawText(
+                text,
+                x: FCPXMLReportPDFStyle.margin,
+                y: cursorY + fontSize,
+                fontName: FCPXMLReportPDFStyle.regularFontName,
+                fontSize: fontSize,
+                color: color
+            )
+            cursorY += fontSize + 8
+        }
+        
+        func drawSummaryProjectTitle(_ title: String) {
+            ensureVerticalSpace(FCPXMLReportPDFStyle.summaryTitleFontSize + 10)
+            drawText(
+                title,
+                x: FCPXMLReportPDFStyle.margin,
+                y: cursorY + FCPXMLReportPDFStyle.summaryTitleFontSize,
+                fontName: FCPXMLReportPDFStyle.boldFontName,
+                fontSize: FCPXMLReportPDFStyle.summaryTitleFontSize,
+                color: FCPXMLReportPDFStyle.textColor
+            )
+            cursorY += FCPXMLReportPDFStyle.summaryTitleFontSize + 10
+        }
+        
+        func drawTable(
+            context tableContext: FCPXMLReportPDFTableRenderer.TableDrawContext,
+            headers: [String],
+            rows: [[String]],
+            rowTextColor: CGColor = FCPXMLReportPDFStyle.textColor,
+            rowTextColorForRow: ((Int, [String]) -> CGColor)? = nil
+        ) {
+            FCPXMLReportPDFTableRenderer.drawTable(
+                on: self,
+                context: tableContext,
+                headers: headers,
+                rows: rows,
+                rowTextColor: rowTextColor,
+                rowTextColorForRow: rowTextColorForRow
+            )
+            cursorY += FCPXMLReportPDFStyle.tableSpacing
+        }
+        
+        func drawTableHeaderRow(headers: [String], columnWidths: [CGFloat]) {
+            ensureVerticalSpace(FCPXMLReportPDFStyle.headerRowHeight)
+            
+            let originX = FCPXMLReportPDFStyle.margin
+            let tableWidth = columnWidths.reduce(0, +)
+            let rowRect = CGRect(
+                x: originX,
+                y: cursorY,
+                width: tableWidth,
+                height: FCPXMLReportPDFStyle.headerRowHeight
+            )
+            
+            context.setFillColor(FCPXMLReportPDFStyle.headerBackgroundColor)
+            context.fill(rowRect)
+            
+            var x = originX
+            for (index, header) in headers.enumerated() {
+                let width = columnWidths[index]
+                let text = FCPXMLReportPDFTableLayout.truncated(
+                    header,
+                    maxWidth: width,
+                    bold: true,
+                    fontSize: FCPXMLReportPDFStyle.headerFontSize
+                )
+                drawText(
+                    text,
+                    x: x + FCPXMLReportPDFStyle.cellPadding,
+                    y: cursorY + FCPXMLReportPDFStyle.headerFontSize + 4,
+                    fontName: FCPXMLReportPDFStyle.boldFontName,
+                    fontSize: FCPXMLReportPDFStyle.headerFontSize,
+                    color: FCPXMLReportPDFStyle.headerTextColor
+                )
+                x += width
+            }
+            
+            cursorY += FCPXMLReportPDFStyle.headerRowHeight
+        }
+        
+        func drawTableDataRow(
+            values: [String],
+            columnWidths: [CGFloat],
+            textColor: CGColor = FCPXMLReportPDFStyle.textColor
+        ) {
+            ensureVerticalSpace(FCPXMLReportPDFStyle.rowHeight)
+            
+            var x = FCPXMLReportPDFStyle.margin
+            let tableWidth = columnWidths.reduce(0, +)
+            
+            for (index, value) in values.enumerated() {
+                let width = columnWidths[index]
+                let text = FCPXMLReportPDFTableLayout.truncated(
+                    value,
+                    maxWidth: width,
+                    fontSize: FCPXMLReportPDFStyle.bodyFontSize
+                )
+                drawText(
+                    text,
+                    x: x + FCPXMLReportPDFStyle.cellPadding,
+                    y: cursorY + FCPXMLReportPDFStyle.bodyFontSize + 3,
+                    fontName: FCPXMLReportPDFStyle.regularFontName,
+                    fontSize: FCPXMLReportPDFStyle.bodyFontSize,
+                    color: textColor
+                )
+                x += width
+            }
+            
+            context.setStrokeColor(FCPXMLReportPDFStyle.ruleColor)
+            context.setLineWidth(0.5)
+            context.move(to: CGPoint(x: FCPXMLReportPDFStyle.margin, y: cursorY + FCPXMLReportPDFStyle.rowHeight))
+            context.addLine(to: CGPoint(x: FCPXMLReportPDFStyle.margin + tableWidth, y: cursorY + FCPXMLReportPDFStyle.rowHeight))
+            context.strokePath()
+            
+            cursorY += FCPXMLReportPDFStyle.rowHeight
+        }
+        
+        func finishDocument() {
+            if hasOpenPage {
+                endPage()
+            }
+            context.closePDF()
+        }
+        
+        private func ensureVerticalSpace(_ height: CGFloat) {
+            guard cursorY + height > FCPXMLReportPDFStyle.contentBottom else { return }
+            
+            endPage()
+            beginContentPage(
+                pageTitle: runningPageTitle,
+                sheetColorIndex: runningSheetColorIndex,
+                contentHeading: runningContentHeading,
+                columnPart: runningColumnPart,
+                columnPartCount: runningColumnPartCount,
+                repeatOnContinuation: true
+            )
+        }
+        
+        private func applySheetColors(sheetColorIndex: Int) {
+            runningSheetColorIndex = sheetColorIndex
+            runningSheetContentColor = FCPXMLReportPDFStyle.sheetContentBackgroundColor(
+                forSheetIndex: sheetColorIndex
+            )
+            runningSheetAccentColor = FCPXMLReportPDFStyle.sheetAccentColor(
+                forSheetIndex: sheetColorIndex
+            )
+        }
+        
+        private func beginPage(drawRunningBands: Bool, sheetColorIndex: Int? = nil) {
+            pageNumber += 1
+            
+            var mediaBox = CGRect(origin: .zero, size: FCPXMLReportPDFStyle.pageSize)
+            context.beginPage(mediaBox: &mediaBox)
+            context.saveGState()
+            context.translateBy(x: 0, y: FCPXMLReportPDFStyle.pageSize.height)
+            context.scaleBy(x: 1, y: -1)
+            hasOpenPage = true
+            
+            if drawRunningBands {
+                if let sheetColorIndex {
+                    applySheetColors(sheetColorIndex: sheetColorIndex)
+                }
+                drawPageChrome(includeSheetGrouping: sheetColorIndex != nil)
+                drawRunningHeader()
+                drawRunningFooter()
+            } else {
+                drawPageChrome(includeSheetGrouping: false)
+            }
+        }
+        
+        private func drawPageChrome(includeSheetGrouping: Bool) {
+            context.setFillColor(FCPXMLReportPDFStyle.pageBackgroundColor)
+            context.fill(CGRect(origin: .zero, size: FCPXMLReportPDFStyle.pageSize))
+            
+            guard includeSheetGrouping else { return }
+            
+            context.setFillColor(runningSheetContentColor)
+            context.fill(FCPXMLReportPDFStyle.contentAreaRect)
+            
+            context.setFillColor(runningSheetAccentColor)
+            context.fill(CGRect(
+                x: FCPXMLReportPDFStyle.margin - FCPXMLReportPDFStyle.sheetAccentStripeWidth - 2,
+                y: FCPXMLReportPDFStyle.margin,
+                width: FCPXMLReportPDFStyle.sheetAccentStripeWidth,
+                height: FCPXMLReportPDFStyle.headerBandHeight
+            ))
+        }
+        
+        private func endPage() {
+            guard hasOpenPage else { return }
+            context.restoreGState()
+            context.endPage()
+            hasOpenPage = false
+        }
+        
+        private func drawRunningHeader() {
+            let baseline = FCPXMLReportPDFStyle.margin + FCPXMLReportPDFStyle.runningHeaderFontSize
+            
+            drawText(
+                projectName,
+                x: FCPXMLReportPDFStyle.margin,
+                y: baseline,
+                fontName: FCPXMLReportPDFStyle.boldFontName,
+                fontSize: FCPXMLReportPDFStyle.runningHeaderFontSize,
+                color: FCPXMLReportPDFStyle.textColor
+            )
+            
+            var headerRight = runningPageTitle
+            if let runningColumnPart,
+               let runningColumnPartCount,
+               runningColumnPartCount > 1
+            {
+                headerRight += " · Columns \(runningColumnPart) of \(runningColumnPartCount)"
+            }
+            
+            let rightWidth = FCPXMLReportPDFTableLayout.measuredWidth(
+                headerRight,
+                bold: false,
+                fontSize: FCPXMLReportPDFStyle.runningHeaderFontSize
+            )
+            drawText(
+                headerRight,
+                x: max(
+                    FCPXMLReportPDFStyle.margin,
+                    FCPXMLReportPDFStyle.pageSize.width - FCPXMLReportPDFStyle.margin - rightWidth
+                ),
+                y: baseline,
+                fontName: FCPXMLReportPDFStyle.regularFontName,
+                fontSize: FCPXMLReportPDFStyle.runningHeaderFontSize,
+                color: FCPXMLReportPDFStyle.mutedTextColor
+            )
+            
+            drawHorizontalRule(atY: FCPXMLReportPDFStyle.headerRuleY)
+        }
+        
+        private func drawRunningFooter() {
+            drawHorizontalRule(atY: FCPXMLReportPDFStyle.footerRuleY)
+            
+            let baseline = FCPXMLReportPDFStyle.footerRuleY
+                + FCPXMLReportPDFStyle.footerRuleToTextSpacing
+                + FCPXMLReportPDFStyle.runningFooterFontSize
+            
+            let brandingLabel = FCPXMLReportPDFTableLayout.truncated(
+                exportBrandingText,
+                maxWidth: (FCPXMLReportPDFStyle.pageSize.width - (FCPXMLReportPDFStyle.margin * 2)) * 0.55,
+                fontSize: FCPXMLReportPDFStyle.runningFooterFontSize
+            )
+            drawText(
+                brandingLabel,
+                x: FCPXMLReportPDFStyle.margin,
+                y: baseline,
+                fontName: FCPXMLReportPDFStyle.regularFontName,
+                fontSize: FCPXMLReportPDFStyle.runningFooterFontSize,
+                color: FCPXMLReportPDFStyle.mutedTextColor
+            )
+            
+            let pageLabel = "Page \(pageNumber)"
+            let pageLabelWidth = FCPXMLReportPDFTableLayout.measuredWidth(
+                pageLabel,
+                bold: false,
+                fontSize: FCPXMLReportPDFStyle.runningFooterFontSize
+            )
+            drawText(
+                pageLabel,
+                x: FCPXMLReportPDFStyle.pageSize.width - FCPXMLReportPDFStyle.margin - pageLabelWidth,
+                y: baseline,
+                fontName: FCPXMLReportPDFStyle.regularFontName,
+                fontSize: FCPXMLReportPDFStyle.runningFooterFontSize,
+                color: FCPXMLReportPDFStyle.mutedTextColor
+            )
+        }
+        
+        private func drawHorizontalRule(atY y: CGFloat) {
+            context.setStrokeColor(FCPXMLReportPDFStyle.ruleColor)
+            context.setLineWidth(0.5)
+            context.move(to: CGPoint(x: FCPXMLReportPDFStyle.margin, y: y))
+            context.addLine(to: CGPoint(
+                x: FCPXMLReportPDFStyle.pageSize.width - FCPXMLReportPDFStyle.margin,
+                y: y
+            ))
+            context.strokePath()
+        }
+        
+        private func drawTOCTableDataRow(
+            index: Int,
+            title: String,
+            startPage: Int,
+            columnWidths: [CGFloat]
+        ) {
+            ensureVerticalSpace(FCPXMLReportPDFStyle.rowHeight)
+            
+            let originX = FCPXMLReportPDFStyle.margin
+            let tableWidth = columnWidths.reduce(0, +)
+            let fontSize = FCPXMLReportPDFStyle.bodyFontSize
+            let baseline = cursorY + fontSize + 3
+            
+            let indexText = "\(index)"
+            drawText(
+                indexText,
+                x: originX + FCPXMLReportPDFStyle.cellPadding,
+                y: baseline,
+                fontName: FCPXMLReportPDFStyle.regularFontName,
+                fontSize: fontSize,
+                color: FCPXMLReportPDFStyle.mutedTextColor
+            )
+            
+            let sheetX = originX + columnWidths[0]
+            let sheetWidth = columnWidths[1]
+            let sheetText = FCPXMLReportPDFTableLayout.truncated(
+                title,
+                maxWidth: sheetWidth,
+                fontSize: fontSize
+            )
+            drawText(
+                sheetText,
+                x: sheetX + FCPXMLReportPDFStyle.cellPadding,
+                y: baseline,
+                fontName: FCPXMLReportPDFStyle.regularFontName,
+                fontSize: fontSize,
+                color: FCPXMLReportPDFStyle.textColor
+            )
+            
+            let pageText = "\(startPage)"
+            let pageColumnX = originX + columnWidths[0] + columnWidths[1]
+            let pageColumnWidth = columnWidths[2]
+            let pageTextWidth = FCPXMLReportPDFTableLayout.measuredWidth(
+                pageText,
+                bold: false,
+                fontSize: fontSize
+            )
+            drawText(
+                pageText,
+                x: pageColumnX + pageColumnWidth - FCPXMLReportPDFStyle.cellPadding - pageTextWidth,
+                y: baseline,
+                fontName: FCPXMLReportPDFStyle.regularFontName,
+                fontSize: fontSize,
+                color: FCPXMLReportPDFStyle.textColor
+            )
+            
+            context.setStrokeColor(FCPXMLReportPDFStyle.ruleColor)
+            context.setLineWidth(0.5)
+            context.move(to: CGPoint(x: originX, y: cursorY + FCPXMLReportPDFStyle.rowHeight))
+            context.addLine(to: CGPoint(x: originX + tableWidth, y: cursorY + FCPXMLReportPDFStyle.rowHeight))
+            context.strokePath()
+            
+            cursorY += FCPXMLReportPDFStyle.rowHeight
+        }
+        
+        private func drawText(
+            _ text: String,
+            x: CGFloat,
+            y: CGFloat,
+            fontName: String,
+            fontSize: CGFloat,
+            color: CGColor
+        ) {
+            guard !text.isEmpty else { return }
+            
+            let font = CTFontCreateWithName(fontName as CFString, fontSize, nil)
+            let attributes: [NSAttributedString.Key: Any] = [
+                kCTFontAttributeName as NSAttributedString.Key: font,
+                kCTForegroundColorAttributeName as NSAttributedString.Key: color,
+            ]
+            let attributed = NSAttributedString(string: text, attributes: attributes)
+            let line = CTLineCreateWithAttributedString(attributed)
+            
+            context.saveGState()
+            context.setTextDrawingMode(.fill)
+            context.textMatrix = CGAffineTransform(scaleX: 1, y: -1)
+            context.textPosition = CGPoint(x: x, y: y)
+            CTLineDraw(line, context)
+            context.restoreGState()
+        }
+    }
+}

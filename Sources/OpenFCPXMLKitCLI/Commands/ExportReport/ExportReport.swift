@@ -21,6 +21,7 @@ enum ExportReport {
         fcpxmlPath: URL,
         outputDir: URL,
         options: FinalCutPro.FCPXML.ReportOptions,
+        createPDF: Bool = false,
         logger: ServiceLogger = NoOpServiceLogger(),
         showProgress: Bool = true
     ) throws {
@@ -33,6 +34,7 @@ enum ExportReport {
                     fcpxmlPath: fcpxmlPath,
                     outputDir: outputDir,
                     options: options,
+                    createPDF: createPDF,
                     logger: logger,
                     showProgress: showProgress
                 )
@@ -57,6 +59,7 @@ enum ExportReport {
         fcpxmlPath: URL,
         outputDir: URL,
         options: FinalCutPro.FCPXML.ReportOptions,
+        createPDF: Bool = false,
         logger: ServiceLogger = NoOpServiceLogger(),
         showProgress: Bool = true
     ) async throws {
@@ -72,8 +75,9 @@ enum ExportReport {
         }
         
         let phases = FinalCutPro.FCPXML.ReportBuildPhase.enabledPhases(for: reportOptions)
+        let extraSteps = (createPDF ? 1 : 0) + 1
         let progress: ProgressBar? = showProgress && !phases.isEmpty
-            ? ProgressBar(total: phases.count + 1, desc: "Building report")
+            ? ProgressBar(total: phases.count + extraSteps, desc: "Building report")
             : nil
         
         if progress == nil, showProgress {
@@ -93,10 +97,20 @@ enum ExportReport {
         progress?.setPostfix("Saving workbook")
         progress?.update(1)
         try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: outputURL)
-        progress?.close()
         
         print(outputURL.path)
         logger.log(level: .info, message: "Report exported to \(outputURL.path)", metadata: nil)
+        
+        if createPDF {
+            let pdfURL = outputDir.appendingPathComponent("\(fileStem).pdf")
+            progress?.setPostfix("Saving PDF")
+            progress?.update(1)
+            try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
+            print(pdfURL.path)
+            logger.log(level: .info, message: "PDF report exported to \(pdfURL.path)", metadata: nil)
+        }
+        
+        progress?.close()
         
         let summary = reportSummary(for: report)
         fputs("\(summary)\n", stderr)

@@ -184,24 +184,29 @@ GENERAL:
   --convert-version <version>
                           Convert FCPXML to the given version (e.g. 1.10, 1.14) and write to output-dir.
   --extension-type <extension-type>
-                          Output format for --convert-version: fcpxmld (bundle) or fcpxml (single file). Default: fcpxmld. For target versions 1.5–1.9,
-                          .fcpxml is used regardless. (values: fcpxml, fcpxmld; default: fcpxmld)
+                          Output format for --convert-version: fcpxmld (bundle) or fcpxml (single file). Default:
+                          fcpxmld. For target versions 1.5–1.9, .fcpxml is used regardless. (values: fcpxml, fcpxmld;
+                          default: fcpxmld)
   --validate              Perform robust check and validation of FCPXML/FCPXMLD (semantic + DTD).
 
 TIMELINE:
-  --create-project        Create a new empty FCPXML project (requires --width, --height, --rate, and <output-dir> positional).
+  --create-project        Create a new empty FCPXML project (requires --width, --height, --rate, and <output-dir>
+                          positional).
   --width <width>         Project width in pixels (used with --create-project).
   --height <height>       Project height in pixels (used with --create-project).
   --rate <rate>           Frame rate (e.g. 24, 25, 29.97) (used with --create-project).
   --project-version <project-version>
-                          FCPXML version for the new project (e.g. 1.10, 1.14). Default: 1.14. (used with --create-project).
+                          FCPXML version for the new project (e.g. 1.10, 1.14). Default: 1.14. (used with
+                          --create-project).
 
 EXTRACTION:
   --media-copy            Scan FCPXML/FCPXMLD and copy all referenced media files to output-dir.
 
 REPORT:
-  --report                Build an Excel report workbook from FCPXML (role inventory only; use --report-full for all sheets).
-  --report-full           Include every optional report sheet (with --report). Default --report exports role inventory only.
+  --report                Build an Excel report workbook from FCPXML (role inventory only; use --report-full for all
+                          sheets).
+  --report-full           Include every optional report sheet (with --report). Default --report exports role inventory
+                          only.
   --report-markers        Include the Markers sheet (with --report).
   --report-keywords       Include the Keywords sheet (with --report).
   --report-titles-generators
@@ -212,23 +217,29 @@ REPORT:
                           Include the Speed Change Effects sheet (with --report).
   --report-summary        Include the Summary sheet (project metrics and role-duration totals; with --report).
   --report-media-summary  Include the Media Summary sheet (missing media file paths; with --report).
+  --create-pdf            Also write a PDF report alongside the Excel workbook (with --report). Includes the same
+                          workbook sections, column exclusions, and timecode formatting when present.
   --report-project <report-project>
                           Project name filter when the FCPXML contains multiple projects.
   --exclude-role <exclude-role>
-                          Exclude a role or subrole from role inventory (repeatable). Excluding a main role also excludes its subroles.
+                          Exclude a role or subrole from role inventory (repeatable). Excluding a main role also
+                          excludes its subroles.
   --exclude-disabled-clips
                           Omit disabled clips (enabled="0") from all report sections (with --report).
   --exclude-column <exclude-column>
-                          Exclude a workbook column from every applicable report sheet (repeatable; with --report). Case-insensitive names include Row
-                          Numbers, Role Subrole, Clip Name, Frame Rate, Reel, Metadata (role inventory dynamic metadata keys), and other shared column
-                          headers. Columns are removed wherever the sheet uses a matching header.
+                          Exclude a workbook column from every applicable report sheet (repeatable; with --report).
+                          Case-insensitive names include Row Numbers, Role Subrole, Clip Name, Frame Rate, Reel,
+                          Metadata (role inventory dynamic metadata keys), and other shared column headers. Columns
+                          are removed wherever the sheet uses a matching header.
   --timecode-format <timecode-format>
-                          Timeline time display format for Excel report cells (with --report). Values: HH:MM:SS:FF, Frames, Feet+Frames, HH:MM:SS.
-                          Default: HH:MM:SS:FF (SMPTE with frames; semicolon before frames for drop-frame). (default: HH:MM:SS:FF)
+                          Timeline time display format for Excel report cells (with --report). Values: HH:MM:SS:FF,
+                          Frames, Feet+Frames, HH:MM:SS. Default: HH:MM:SS:FF (SMPTE with frames; semicolon before
+                          frames for drop-frame). (default: HH:MM:SS:FF)
 
 LOG:
   --log <log>             Log file path.
-  --log-level <log-level> Log level. (values: trace, debug, info, notice, warning, error, critical; default: info) (default: info)
+  --log-level <log-level> Log level. (values: trace, debug, info, notice, warning, error, critical; default: info)
+                          (default: info)
   --quiet                 Disable log.
 
 OPTIONS:

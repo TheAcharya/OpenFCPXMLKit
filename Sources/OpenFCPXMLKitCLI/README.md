@@ -50,6 +50,9 @@ OpenFCPXMLKit-CLI --report --report-full /path/to/project.fcpxmld /path/to/outpu
 # Partial report: role inventory plus selected optional sheets only
 OpenFCPXMLKit-CLI --report --report-markers --report-summary --report-media-summary /path/to/project.fcpxmld /path/to/output-dir
 
+# Excel workbook plus PDF (same workbook sections, column exclusions, and timecode formatting)
+OpenFCPXMLKit-CLI --report --create-pdf --report-markers --report-summary /path/to/project.fcpxmld /path/to/output-dir
+
 # Exclude roles from role inventory (repeatable; case-insensitive)
 OpenFCPXMLKit-CLI --report --exclude-role Dialogue --exclude-role "SRT ▸ de-DE" /path/to/project.fcpxmld /path/to/output-dir
 
@@ -84,7 +87,7 @@ OpenFCPXMLKit-CLI --log-level debug --convert-version 1.10 /path/to/project.fcpx
 OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 ```
 
-**Validation:** Use only one of `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--report`, or `--create-project`. When using `--convert-version`, `--media-copy`, or `--report`, or when running the default process, you must provide `<output-dir>`. When using `--create-project`, you must provide `--width`, `--height`, `--rate`, and the output directory as the single positional argument. `--report-full`, REPORT section flags, `--exclude-role`, `--exclude-disabled-clips`, `--exclude-column`, and `--timecode-format` require `--report`. If `--log` is set and the file exists, it must be writable. Invalid `--log-level`, `--project-version` (for create-project), or `--timecode-format` values produce an error.
+**Validation:** Use only one of `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--report`, or `--create-project`. When using `--convert-version`, `--media-copy`, or `--report`, or when running the default process, you must provide `<output-dir>`. When using `--create-project`, you must provide `--width`, `--height`, `--rate`, and the output directory as the single positional argument. `--report-full`, REPORT section flags, `--exclude-role`, `--exclude-disabled-clips`, `--exclude-column`, `--timecode-format`, and `--create-pdf` require `--report`. If `--log` is set and the file exists, it must be writable. Invalid `--log-level`, `--project-version` (for create-project), or `--timecode-format` values produce an error.
 
 ---
 
@@ -110,6 +113,7 @@ OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 | `--report-speed-change-effects` | Include the Speed Change Effects sheet (requires `--report`). |
 | `--report-summary` | Include the Summary sheet (project metrics and role-duration totals; requires `--report`). |
 | `--report-media-summary` | Include the Media Summary sheet (missing media file paths; requires `--report`). |
+| `--create-pdf` | Also write a PDF report alongside the Excel workbook (requires `--report`). Includes the same workbook sections, column exclusions, and timecode formatting when present in the report. Writes `{project-or-clip-name}.pdf` to output-dir; prints the PDF path to stdout after the `.xlsx` path. |
 | `--report-project <name>` | Timeline name filter: matches a `<project>` name or a standalone compound-clip / `ref-clip` name when the document has more than one reportable timeline. |
 | `--exclude-role <name>` | Exclude a role or subrole from role inventory (repeatable). Excluding a main role also excludes its subroles. Case-insensitive. |
 | `--exclude-disabled-clips` | Omit disabled clips (`enabled="0"`) from all timeline-based report sections (requires `--report`). |

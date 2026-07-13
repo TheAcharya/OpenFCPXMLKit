@@ -19,123 +19,23 @@ enum FCPXMLReportWorkbookExporter {
         return format
     }
     
+    /// Workbook sheet context for row text colour when Category is unavailable.
+    private typealias RoleRowColorContext = FCPXMLReportRowColorPolicy.Context
+    
     private static func roleFontFormat(
         for roleSubrole: String,
         categoryLabel: String? = nil,
         context: RoleRowColorContext = .roleInventory
     ) -> CellFormat? {
-        let bucket = roleColorBucket(
+        let bucket = FCPXMLReportRowColorPolicy.bucket(
             for: roleSubrole,
             categoryLabel: categoryLabel,
             context: context
         )
-        guard let fontColor = bucket.fontColorHex else {
-            return nil
-        }
         
         var format = CellFormat()
-        format.fontColor = fontColor
+        format.fontColor = bucket.fontColorHex
         return format
-    }
-    
-    /// Workbook sheet context for row text colour when Category is unavailable.
-    private enum RoleRowColorContext {
-        case roleInventory
-        case keywords
-        case titlesAndGenerators
-        case effects
-        case speedChangeEffects
-        case transitions
-    }
-    
-    private static func roleColorBucket(
-        for roleSubrole: String,
-        categoryLabel: String? = nil,
-        context: RoleRowColorContext = .roleInventory
-    ) -> RoleColorBucket {
-        switch context {
-        case .keywords:
-            return .videoOrSRT
-        case .transitions:
-            return .gap
-        case .effects, .speedChangeEffects:
-            return roleBucketFromRoleName(roleSubrole, titlesAsVideo: true)
-        case .titlesAndGenerators:
-            return roleBucketFromRoleName(roleSubrole, titlesAsVideo: false)
-        case .roleInventory:
-            if let categoryLabel,
-               let category = FinalCutPro.FCPXML.ReportClipCategory.matchingWorkbookLabel(categoryLabel)
-            {
-                if category == .primaryGap {
-                    return .gap
-                }
-                if category.isTitleCategory {
-                    return .titles
-                }
-                if category.isVideoCategory || category.isCaptionCategory {
-                    return .videoOrSRT
-                }
-                if category.isAudioCategory {
-                    return .audio
-                }
-            }
-            
-            return roleBucketFromRoleName(roleSubrole, titlesAsVideo: false)
-        }
-    }
-    
-    private static func roleBucketFromRoleName(
-        _ roleSubrole: String,
-        titlesAsVideo: Bool
-    ) -> RoleColorBucket {
-        if roleSubrole.localizedCaseInsensitiveContains("gap") {
-            return .gap
-        }
-        
-        let mainRole = mainRoleName(in: roleSubrole).lowercased()
-        
-        if mainRole.isEmpty {
-            return .videoOrSRT
-        }
-        
-        if mainRole == "titles" || mainRole == "title" {
-            return titlesAsVideo ? .videoOrSRT : .titles
-        }
-        
-        if ["video", "srt", "vfx"].contains(mainRole) || mainRole.hasPrefix("vfx") {
-            return .videoOrSRT
-        }
-        
-        if ["dialogue", "effects", "music", "atmos", "score komponist", "sound mix"].contains(mainRole) {
-            return .audio
-        }
-        
-        if roleSubrole.localizedCaseInsensitiveContains("vfx")
-            || roleSubrole.localizedCaseInsensitiveContains("scanline")
-        {
-            return .videoOrSRT
-        }
-        
-        if roleSubrole.localizedCaseInsensitiveContains("title") {
-            return titlesAsVideo ? .videoOrSRT : .titles
-        }
-        
-        return .videoOrSRT
-    }
-    
-    private static func mainRoleName(in roleSubrole: String) -> String {
-        let trimmed = roleSubrole.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return "" }
-        
-        if let separatorIndex = trimmed.firstIndex(where: { ["▸", "•", "·"].contains(String($0)) }) {
-            return String(trimmed[..<separatorIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-        
-        if let commaIndex = trimmed.firstIndex(of: ",") {
-            return String(trimmed[..<commaIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-        
-        return trimmed
     }
     
     @MainActor
@@ -343,16 +243,7 @@ enum FCPXMLReportWorkbookExporter {
     private static func markerFontColorHex(
         for markerType: FinalCutPro.FCPXML.MarkerReportType
     ) -> String {
-        switch markerType {
-        case .standard:
-            return RoleColorBucket.videoOrSRT.fontColorHex!
-        case .incompleteToDo:
-            return "#FF0000"
-        case .completedToDo:
-            return RoleColorBucket.audio.fontColorHex!
-        case .chapter:
-            return "#FF8800"
-        }
+        FCPXMLReportRowColorPolicy.markerFontColorHex(for: markerType)
     }
     
     private static func appendTabularSection(
@@ -364,8 +255,8 @@ enum FCPXMLReportWorkbookExporter {
     ) {
         let sheet = workbook.addSheet(name: sanitizeSheetName(sheetName))
         setTableHeaderRow(sheet, row: 1, strings: headers)
-        let roleColumnIndex = headers.firstIndex(of: roleSubroleColumnHeader).map { $0 + 1 }
-        let categoryColumnIndex = headers.firstIndex(of: "Category").map { $0 + 1 }
+        let roleColumnIndex = headers.firstIndex(of: FCPXMLReportRowColorPolicy.roleSubroleColumnHeader).map { $0 + 1 }
+        let categoryColumnIndex = headers.firstIndex(of: FCPXMLReportRowColorPolicy.categoryColumnHeader).map { $0 + 1 }
         for (index, values) in rows.enumerated() {
             let rowIndex = index + 2
             sheet.setRow(rowIndex, strings: values)
@@ -403,13 +294,11 @@ enum FCPXMLReportWorkbookExporter {
             categoryValue = values[categoryColumnIndex - 1]
         }
         
-        guard let roleFormat = roleFontFormat(
+        let roleFormat = roleFontFormat(
             for: roleValue,
             categoryLabel: categoryValue,
             context: colorContext
-        ) else {
-            return
-        }
+        )
         
         for (columnIndex, value) in values.enumerated() {
             let coordinate = CellCoordinate(row: row, column: columnIndex + 1).excelAddress
@@ -613,7 +502,6 @@ enum FCPXMLReportWorkbookExporter {
         return String(string.prefix(31))
     }
     
-    private static let roleSubroleColumnHeader = "Role ▸ Subrole"
     private static let percentOfTotalColumnHeader = "% of Total"
     
     /// Red text for missing media file paths on the Media Summary sheet.
@@ -631,27 +519,5 @@ enum FCPXMLReportWorkbookExporter {
         format.numberFormat = .custom
         format.customNumberFormat = "0.0%"
         return format
-    }
-}
-
-private extension FCPXMLReportWorkbookExporter {
-    enum RoleColorBucket {
-        case videoOrSRT
-        case titles
-        case audio
-        case gap
-        
-        var fontColorHex: String? {
-            switch self {
-            case .videoOrSRT:
-                return "#0066FF"
-            case .titles:
-                return "#9933FF"
-            case .audio:
-                return "#00AA44"
-            case .gap:
-                return "#808080"
-            }
-        }
     }
 }
