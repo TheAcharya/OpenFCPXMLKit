@@ -16,7 +16,7 @@ import OpenFCPXMLKit
 struct OpenFCPXMLKitCLI: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "OpenFCPXMLKit-CLI",
-        abstract: "Experimental tool to read, validate and generate Excel report from Final Cut Pro FCPXML/FCPXMLD.",
+        abstract: "Experimental tool to read, validate and generate Excel/PDF reports from Final Cut Pro FCPXML/FCPXMLD.",
         usage: "[<options>] [<fcpxml-path>] [<output-dir>]",
         discussion: "https://github.com/TheAcharya/OpenFCPXMLKit",
         version: packageVersion,
@@ -99,6 +99,9 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
         if reportOptions.report {
             _ = try reportOptions.resolvedTimecodeFormat()
         }
+        if reportOptions.createPDF && !reportOptions.report {
+            throw ValidationError("--create-pdf requires --report.")
+        }
         if general.checkVersion || general.validate {
             return
         }
@@ -159,6 +162,7 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
                 fcpxmlPath: fcpxmlPath,
                 outputDir: outDir,
                 options: options,
+                createPDF: reportOptions.createPDF,
                 logger: logger,
                 showProgress: !logOptions.quiet
             )

@@ -17,7 +17,7 @@ Extract elements from an FCPXML tree by type or using **presets**. **FinalCutPro
 - **TitlesExtractionPreset** (`.titles`) — Titles visible on the main timeline (`[ExtractedElement]`)
 - **EffectsExtractionPreset** (`.effects`) — Semantic clip effects visible on the main timeline (`[ExtractedEffect]`, with `kind`, `name`, `settings`, `isAppleSupplied`)
 
-Call **extract(types:scope:)** on an `FCPXMLElement` (or **fcpExtract(types:scope:)** on `XMLElement`) for `[FinalCutPro.FCPXML.ExtractedElement]`. Call **extract(preset:scope:)** for a preset's result type. APIs are async. The `TitlesExtractionPreset` and `EffectsExtractionPreset` presets are also the basis of the Titles and Effects report sections — see [19 — Reporting & Excel Export](19-Reporting.md).
+Call **extract(types:scope:)** on an `FCPXMLElement` (or **fcpExtract(types:scope:)** on `XMLElement`) for `[FinalCutPro.FCPXML.ExtractedElement]`. Call **extract(preset:scope:)** for a preset's result type. APIs are async. The `TitlesExtractionPreset` and `EffectsExtractionPreset` presets are also the basis of the Titles and Effects report sections — see [19 — Reporting, Excel & PDF Export](19-Reporting.md).
 
 ```swift
 let element: FCPXMLElement = // ... e.g. from document
@@ -76,4 +76,4 @@ for entry in copyResult.failed { /* error */ }
 ## Next
 
 - [11 — Media Processing](11-Media-Processing.md) — MIME type, asset validation, silence, duration, parallel I/O.
-- [19 — Reporting & Excel Export](19-Reporting.md) — build reports from extracted elements and export to `.xlsx`.
+- [19 — Reporting, Excel & PDF Export](19-Reporting.md) — build reports from extracted elements and export to `.xlsx` or `.pdf`.

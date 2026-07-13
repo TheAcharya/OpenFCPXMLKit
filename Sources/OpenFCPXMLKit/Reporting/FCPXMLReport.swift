@@ -11,12 +11,12 @@
 import Foundation
 
 extension FinalCutPro.FCPXML {
-    /// Workbook cover sheet settings used by Excel export.
+    /// Workbook cover sheet settings used by Excel export and PDF cover/footer branding.
     public struct ReportWorkbookCoverSheet: Sendable, Equatable {
         /// Worksheet tab title.
         public var title: String
         
-        /// Header text written into cell `A1`.
+        /// Header text written into Excel cell `A1` and used for PDF cover/footer branding.
         public var headerText: String
         
         public init(
@@ -29,11 +29,14 @@ extension FinalCutPro.FCPXML {
         
         /// Default OpenFCPXMLKit-branded cover sheet.
         public static let openFCPXMLKitDefault = ReportWorkbookCoverSheet()
+        
+        /// Branding label shared by Excel cover cell A1 and PDF cover/footer.
+        public var brandingText: String { headerText }
     }
     
     /// Structured report data extracted from an FCPXML project.
     ///
-    /// Export to Excel via ``ReportExcelExport``.
+    /// Export to Excel via ``ReportExcelExport`` or PDF via ``ReportPDFExport``.
     public struct Report: Sendable, Equatable {
         /// Name of the project the report was built from.
         public var projectName: String
@@ -68,7 +71,7 @@ extension FinalCutPro.FCPXML {
         /// Role-based clip inventory (Selected Roles and per-role sheets).
         public var roleInventory: RoleInventoryReportSection?
         
-        /// Optional first workbook sheet prepended by Excel export.
+        /// Optional cover sheet prepended by Excel export; branding text is also used on PDF cover/footer.
         public var workbookCoverSheet: ReportWorkbookCoverSheet?
         
         /// Columns omitted from every applicable workbook sheet at export.
@@ -107,6 +110,13 @@ extension FinalCutPro.FCPXML {
             self.workbookCoverSheet = workbookCoverSheet
             self.excludedColumns = excludedColumns
             self.timecodeFormat = timecodeFormat
+        }
+        
+        /// Resolved export branding for Excel cover and PDF cover/footer.
+        ///
+        /// Uses ``workbookCoverSheet`` when set; otherwise ``ReportWorkbookCoverSheet/openFCPXMLKitDefault``.
+        public var exportBrandingText: String {
+            workbookCoverSheet?.brandingText ?? ReportWorkbookCoverSheet.openFCPXMLKitDefault.brandingText
         }
     }
 }

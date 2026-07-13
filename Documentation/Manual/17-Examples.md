@@ -231,7 +231,7 @@ for clip in timeline.clips {
 
 ---
 
-## Build an Excel report
+## Build a report (Excel and PDF)
 
 ```swift
 import OpenFCPXMLKit
@@ -253,14 +253,31 @@ let report = try await fcpxml.buildReport(options: options) { phase in
     print("Building \(phase.rawValue)…")
 }
 
-let outputURL = URL(fileURLWithPath: "/path/to/Report.xlsx")
-try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: outputURL)
+let xlsxURL = URL(fileURLWithPath: "/path/to/Report.xlsx")
+try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: xlsxURL)
+
+let pdfURL = URL(fileURLWithPath: "/path/to/Report.pdf")
+try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
+
 print("Wrote \(report.roleInventory?.roleSheets.count ?? 0) role sheet(s)")
 print("Excluded columns: \(report.excludedColumns)")
 print("Timecode format: \(report.timecodeFormat.rawValue)")
 ```
 
-Equivalent CLI:
+Equivalent CLI (Excel + PDF):
+
+```bash
+OpenFCPXMLKit-CLI --report --report-full --create-pdf \
+  --exclude-role Effects \
+  --exclude-disabled-clips \
+  --exclude-column Reel \
+  --exclude-column Metadata \
+  --exclude-column "Source File Path" \
+  --timecode-format Frames \
+  /path/to/project.fcpxmld /path/to/output-dir
+```
+
+Excel-only CLI (omit `--create-pdf`):
 
 ```bash
 OpenFCPXMLKit-CLI --report --report-full \
@@ -273,7 +290,7 @@ OpenFCPXMLKit-CLI --report --report-full \
   /path/to/project.fcpxmld /path/to/output-dir
 ```
 
-See [19 — Reporting & Excel Export](19-Reporting.md) for the full reporting API.
+See [19 — Reporting, Excel & PDF Export](19-Reporting.md) for the full reporting API.
 
 ---
 

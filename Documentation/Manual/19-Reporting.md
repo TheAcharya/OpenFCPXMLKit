@@ -1,4 +1,4 @@
-# 19 — Reporting & Excel Export
+# 19 — Reporting, Excel & PDF Export
 
 [← Manual Index](00-Index.md)
 
@@ -6,20 +6,23 @@
 
 ## Overview
 
-The reporting subsystem builds structured, spreadsheet-style **reports** from a parsed FCPXML document and writes them to an **`.xlsx` workbook** (via XLKit). A report is assembled from independent **sections** (role inventory, markers, keywords, titles & generators, transitions, effects, speed-change effects, summary, media summary), each of which becomes one or more sheets.
+The reporting subsystem builds structured **reports** from a parsed FCPXML document and exports them to an **`.xlsx` workbook** (via XLKit) and/or a **`.pdf` document** (via CoreGraphics). A report is assembled from independent **sections** (role inventory, markers, keywords, titles & generators, transitions, effects, speed-change effects, summary, media summary). In Excel, each section becomes one or more worksheet tabs; in PDF, each section becomes one or more content pages with a cover page and dynamic table of contents.
 
 Everything lives under **`FinalCutPro.FCPXML`**:
 
 - **buildReport(options:scope:onPhaseStarted:)** — convenience entry point on a parsed document.
 - **ReportBuilder** — assembles a **Report** from a document or a single **Project**.
 - **ReportOptions** — selects which sections to include, plus project filter, media base URL, role display preference, cover sheet, role exclusions, disabled-clip filtering, column exclusions, and **timecodeFormat**.
-- **ReportTimecodeFormat** — how timeline time values appear in workbook cells (`HH:MM:SS:FF`, Frames, Feet+Frames, `HH:MM:SS`).
+- **ReportTimecodeFormat** — how timeline time values appear in workbook/PDF cells (`HH:MM:SS:FF`, Frames, Feet+Frames, `HH:MM:SS`).
 - **Report** — the assembled value type (one optional property per section, plus resolved column exclusions and `timecodeFormat`).
 - **ReportBuildPhase** — content phases in product / workbook order; use `enabledPhases(for:)` for GUI progress bars.
-- **ReportColumn** — logical workbook columns that can be omitted globally at export.
+- **ReportColumn** — logical columns that can be omitted globally at export (Excel and PDF).
 - **ReportExcelExport** — turns a `Report` into an XLKit `Workbook` or writes it to disk.
+- **ReportPDFExport** — turns a `Report` into PDF `Data` or writes a multi-page `.pdf` file.
 
-All build APIs are **async**.
+All **build** APIs are **async**. PDF export is **synchronous** once a `Report` exists.
+
+**Configuration parity:** Build the report **once** with `ReportOptions`, then export to Excel, PDF, or both. Section flags, `excludedColumns`, `excludedRoles`, `excludeDisabledClips`, `timecodeFormat`, and `projectName` all apply to both exporters. PDF adds presentation-only features (cover page, table of contents, pagination, truncation) on top of the same `Report` data.
 
 ---
 
@@ -34,8 +37,12 @@ let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
 let report = try await fcpxml.buildReport(options: .full)
 
 // Write it to an .xlsx workbook
-let outputURL = URL(fileURLWithPath: "/path/to/Report.xlsx")
-try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: outputURL)
+let xlsxURL = URL(fileURLWithPath: "/path/to/Report.xlsx")
+try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: xlsxURL)
+
+// Optionally write the same report to PDF (same sections, columns, and timecode format)
+let pdfURL = URL(fileURLWithPath: "/path/to/Report.pdf")
+try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 ```
 
 `buildReport` throws **ReportError** (`noProjectsFound`, `projectNotFound(name)`) when no reportable timeline can be resolved. Resolution uses ``FinalCutPro/FCPXML/allReportTimelineSources()``: normal `<project>` sequences first, then event-level compound clips (`ref-clip` → `media`/`sequence`) when the document has no project (FCP “Export XML” of a compound clip).
@@ -71,8 +78,8 @@ try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: outputURL)
 | `workbookCoverSheet` | `.openFCPXMLKitDefault` | Optional cover sheet; set to `nil` to omit. |
 | `excludedRoles` | `[]` | Role or subrole names to omit from the role inventory. Excluding a main role also excludes its subroles. |
 | `excludeDisabledClips` | `false` | When `true`, clips with `enabled="0"` are omitted from every timeline-based section. Default includes disabled clips (matching Final Cut Pro workbook exports). |
-| `excludedColumns` | `[]` | Column labels to omit from every applicable workbook sheet at export (see [Column exclusion](#column-exclusion)). |
-| `timecodeFormat` | `.smpteFrames` | How timeline time values are formatted in workbook cells (see [Timecode display format](#timecode-display-format)). |
+| `excludedColumns` | `[]` | Column labels to omit from every applicable report sheet at export (Excel and PDF; see [Column exclusion](#column-exclusion)). |
+| `timecodeFormat` | `.smpteFrames` | How timeline time values are formatted in report cells (Excel and PDF; see [Timecode display format](#timecode-display-format)). |
 
 ### Presets
 
@@ -112,7 +119,7 @@ let report = try await fcpxml.buildReport(options: options)
 
 ## Timecode display format
 
-**ReportTimecodeFormat** controls how every timeline / source time column is written in workbook cells. Set it on **`ReportOptions.timecodeFormat`**; the value is stored on **`Report.timecodeFormat`** and used by Excel export for both cell values and (non-default) column header suffixes.
+**ReportTimecodeFormat** controls how every timeline / source time column is written in report cells. Set it on **`ReportOptions.timecodeFormat`**; the value is stored on **`Report.timecodeFormat`** and used by Excel and PDF export for both cell values and (non-default) column header suffixes.
 
 | Case | CLI / `rawValue` | Example cell | Default header suffix |
 |------|------------------|--------------|------------------------|
@@ -150,11 +157,12 @@ let report = try await fcpxml.buildReport(options: options)
 - `speedChangeEffects: SpeedChangeEffectsReportSection?`
 - `summary: SummaryReportSection?`
 - `mediaSummary: MediaSummaryReportSection?`
-- `workbookCoverSheet: ReportWorkbookCoverSheet?`
+- `workbookCoverSheet: ReportWorkbookCoverSheet?` — optional Excel cover worksheet; branding text is also used on the PDF cover page and running footer
 - `excludedColumns: Set<ReportColumn>` — resolved from `ReportOptions.excludedColumns` at build time
-- `timecodeFormat: ReportTimecodeFormat` — copied from options; drives Excel headers and cell formatting
+- `timecodeFormat: ReportTimecodeFormat` — copied from options; drives Excel and PDF headers and cell formatting
+- **`exportBrandingText`** — resolved branding label from `workbookCoverSheet` (or the OpenFCPXMLKit default) for Excel cover cell A1 and PDF cover/footer
 
-A section property is `nil` when that section was not requested. Every section conforms to **ReportSection** and exposes a `defaultSheetName`. Row models expose `columnHeaders` / `columnHeaders(timecodeFormat:)` and `columnValues` in matching order, so sections can be rendered by any backend.
+A section property is `nil` when that section was not requested. Every section conforms to **ReportSection** and exposes a `defaultSheetName`. Row models expose `columnHeaders` / `columnHeaders(timecodeFormat:)` and `columnValues` in matching order, so sections can be rendered by either export backend.
 
 ### Sections and columns
 
@@ -270,7 +278,7 @@ let report = try await fcpxml.buildReport(options: options)
 
 **ReportColumn** identifies logical columns that can be removed from **every applicable workbook sheet** at export time. Set **`excludedColumns`** on `ReportOptions` using header names or common aliases; unknown labels are ignored.
 
-At build time, labels are resolved to `Set<ReportColumn>` and stored on **`Report.excludedColumns`**. Excel export applies filtering to role inventory sheets, markers, keywords, titles, transitions, effects, speed-change effects, summary (including project metric cells), and media summary.
+At build time, labels are resolved to `Set<ReportColumn>` and stored on **`Report.excludedColumns`**. Excel and PDF export apply the same filtering to role inventory sheets, markers, keywords, titles, transitions, effects, speed-change effects, summary (including project metric cells), and media summary.
 
 ### ReportColumn cases
 
@@ -373,7 +381,7 @@ Use the same list in a GUI app for progress total and labels so they match your 
 
 ```swift
 let phases = FinalCutPro.FCPXML.ReportBuildPhase.enabledPhases(for: options)
-// Use `phases.count` (+ 1 for “Saving workbook” if you export) for progress total.
+// Use `phases.count` (+ 1 for “Saving workbook”, + 1 more for “Saving PDF” when exporting both) for progress total.
 
 let report = try await fcpxml.buildReport(options: options) { phase in
     // Fires in product order for each enabled section
@@ -422,7 +430,7 @@ Table headers on tabular sheets use a black fill with white text. Data columns a
 
 ### Cover sheet
 
-**ReportWorkbookCoverSheet** (`title`, `headerText`) adds an intro sheet. Use **`.openFCPXMLKitDefault`** for the built-in "Created by OpenFCPXMLKit" sheet, a custom value, or `nil` to omit it:
+**ReportWorkbookCoverSheet** (`title`, `headerText`) adds an intro worksheet to the Excel workbook. Use **`.openFCPXMLKitDefault`** for the built-in "Created by OpenFCPXMLKit" sheet, a custom value, or `nil` to omit the Excel cover tab. **`headerText`** (via **`Report.exportBrandingText`**) is also shown on the PDF cover page and running footer even when the Excel cover sheet is omitted:
 
 ```swift
 var options = FinalCutPro.FCPXML.ReportOptions.full
@@ -431,6 +439,52 @@ options.workbookCoverSheet = FinalCutPro.FCPXML.ReportWorkbookCoverSheet(
     headerText: "Created by My Studio"
 )
 ```
+
+---
+
+## PDF export
+
+**ReportPDFExport** renders a `Report` into a multi-page **A4 landscape** PDF using CoreGraphics:
+
+```swift
+// Build PDF data in memory
+let pdfData = try FinalCutPro.FCPXML.ReportPDFExport.makePDFData(from: report)
+
+// Write directly to disk
+try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
+```
+
+Throws **ReportPDFExportError** (`couldNotCreateDocument`, `couldNotWriteFile`) on failure.
+
+### Layout and presentation
+
+PDF export mirrors Excel **section order** and **sheet names** (via `FCPXMLReportPDFSheetPlan`):
+
+1. **Cover page** — project name, event name (when present), generated timestamp, experimental-notice info box, and `exportBrandingText`.
+2. **Table of contents** — one or more pages listing every included section with start page numbers (built dynamically in a two-pass render so page numbers are accurate). The TOC is not a workbook sheet in Excel; it is PDF-only.
+3. **Content pages** — each enabled section, in workbook order, with running header (project name + section title) and footer (branding + page number).
+
+Per-section presentation:
+
+- **Per-sheet tint** — pages that belong to the same workbook section share a subtle background tint between the header rule and footer rule.
+- **Row colours** — the same rules as Excel (`FCPXMLReportRowColorPolicy`): role inventory category colours, marker-type colours, keywords/titles/effects/transitions inference, red missing-media paths.
+- **Tables** — black header row with white text; body uses Menlo. Column widths are measured from content (clamped min/max) and wide tables **paginate horizontally** into column sets (running header shows `Columns 2 of 5` when chunked).
+- **Truncation** — cell text that exceeds column width is ellipsized (`…`). For the full untruncated dataset, use the Excel export.
+- **Row traceability** — on multi-page or multi-column-set tables, a **Row** (`#`) column is injected and pinned on the left when not already present.
+
+### Configuration reflected in PDF
+
+| Setting | PDF behaviour |
+|---------|----------------|
+| Section include flags | Only non-`nil` sections on `Report` are rendered |
+| `excludedColumns` | Same `ReportColumnExclusion` filtering as Excel on every applicable section |
+| `timecodeFormat` | Same formatted cell values and suffixed headers as Excel |
+| `excludedRoles` | Applied at build time (fewer role-inventory rows/sheets) |
+| `excludeDisabledClips` | Applied at build time (fewer rows in all timeline sections) |
+| `projectName` | Applied at build time (timeline source and `report.projectName`) |
+| `workbookCoverSheet` | `exportBrandingText` on cover and footer (Excel cover tab is separate) |
+
+Headers such as **Marker Name** or **Type** on the Markers sheet are **not** `ReportColumn` cases; `--exclude-column` cannot remove them in Excel or PDF.
 
 ---
 
@@ -445,6 +499,7 @@ The same reports are available through **OpenFCPXMLKit-CLI**:
 | `--report-markers`, `--report-keywords`, … | Individual optional sheets |
 | `--report-summary` | Summary sheet |
 | `--report-media-summary` | Media Summary sheet |
+| `--create-pdf` | Also write `{project-or-clip-name}.pdf` alongside the `.xlsx` (same report configuration) |
 | `--report-project <name>` | Timeline name filter (project or standalone compound-clip name) |
 | `--exclude-role <name>` | Omit roles from role inventory (repeatable) |
 | `--exclude-disabled-clips` | Omit `enabled="0"` clips from all timeline sections |
@@ -473,6 +528,11 @@ OpenFCPXMLKit-CLI --report --report-full \
 OpenFCPXMLKit-CLI --report --report-summary --report-media-summary \
   --exclude-role Effects \
   --exclude-column "Source File Path" \
+  /path/to/project.fcpxmld /path/to/output-dir
+
+# Excel + PDF (same sections, column exclusions, and timecode format)
+OpenFCPXMLKit-CLI --report --report-full --create-pdf \
+  --exclude-column Metadata \
   /path/to/project.fcpxmld /path/to/output-dir
 ```
 
