@@ -5,8 +5,6 @@ All notable changes to OpenFCPXMLKit are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for each release.
 
-> **Note:** OpenFCPXMLKit was previously released as **Pipeline Neo**. Releases up to and including 2.5.2 were published under the Pipeline Neo name; the rename to OpenFCPXMLKit landed in 3.0.0.
-
 ---
 
 ## [3.0.4](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.4) - 2026-07-13
