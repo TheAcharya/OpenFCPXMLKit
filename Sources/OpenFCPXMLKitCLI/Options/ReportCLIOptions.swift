@@ -5,7 +5,7 @@
 //
 
 //
-//	REPORT option group for Excel workbook exports.
+//	REPORT option group for Excel and PDF report exports.
 //
 
 import ArgumentParser
@@ -81,7 +81,7 @@ struct ReportCLIOptions: ParsableArguments {
     
     @Option(
         name: .customLong("report-project"),
-        help: "Project name filter when the FCPXML contains multiple projects."
+        help: "Timeline name filter: matches a <project> name or a standalone compound-clip / ref-clip name when the document has more than one reportable timeline."
     )
     var reportProject: String?
     
@@ -100,7 +100,7 @@ struct ReportCLIOptions: ParsableArguments {
     @Option(
         name: .customLong("exclude-column"),
         help: """
-        Exclude a workbook column from every applicable report sheet (repeatable; with --report). \
+        Exclude a report column from every applicable Excel/PDF sheet (repeatable; with --report). \
         Case-insensitive names include Row Numbers, Role Subrole, Clip Name, Frame Rate, Reel, \
         Metadata (role inventory dynamic metadata keys), and other shared column headers. \
         Columns are removed wherever the sheet uses a matching header.
@@ -111,7 +111,7 @@ struct ReportCLIOptions: ParsableArguments {
     @Option(
         name: .customLong("timecode-format"),
         help: """
-        Timeline time display format for Excel report cells (with --report). \
+        Timeline time display format for Excel and PDF report cells (with --report). \
         Values: \(FinalCutPro.FCPXML.ReportTimecodeFormat.cliHelpValues). \
         Default: HH:MM:SS:FF (SMPTE with frames; semicolon before frames for drop-frame).
         """

@@ -29,7 +29,7 @@ Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-c
 
 ### REPORT
 
-Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD. Works for normal project timelines and for standalone compound-clip exports (event `ref-clip` with no `<project>`). The workbook is written to `<output-dir>`; its file name is derived from the project or compound-clip name. See [19 — Reporting & Excel Export](19-Reporting.md) for the underlying API.
+Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD, with optional PDF (`.pdf`) export via `--create-pdf`. Works for normal project timelines and for standalone compound-clip exports (event `ref-clip` with no `<project>`). The workbook is written to `<output-dir>`; its file name is derived from the project or compound-clip name. See [19 — Reporting, Excel & PDF Export](19-Reporting.md) for the underlying API.
 
 | Option | Description |
 |--------|-------------|
@@ -43,11 +43,12 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD. Works for normal p
 | **--report-speed-change-effects** | Include the Speed Change Effects sheet (with `--report`). |
 | **--report-summary** | Include the Summary sheet (project metrics and role-duration totals; with `--report`). |
 | **--report-media-summary** | Include the Media Summary sheet (missing media file paths; with `--report`). |
+| **--create-pdf** | Also write a PDF report alongside the Excel workbook (with `--report`). Uses the same built `Report` — sections, column exclusions, timecode format, role/disabled-clip filtering. Writes `{project-or-clip-name}.pdf` to output-dir; prints the PDF path after the `.xlsx` path. |
 | **--report-project &lt;name&gt;** | Timeline name filter: matches a `<project>` name or a standalone compound-clip / `ref-clip` name when the document has more than one reportable timeline. |
 | **--exclude-role &lt;role&gt;** | Exclude a role or subrole from the role inventory (repeatable). Excluding a main role also excludes its subroles. |
 | **--exclude-disabled-clips** | Omit disabled clips (`enabled="0"`) from all timeline-based report sections (with `--report`). |
 | **--exclude-column &lt;column&gt;** | Exclude a workbook column from every applicable report sheet (repeatable; with `--report`). |
-| **--timecode-format &lt;format&gt;** | Timeline time display format for Excel report cells (with `--report`). Values: `HH:MM:SS:FF` (default; SMPTE with frames, `;` before frames for drop-frame), `Frames`, `Feet+Frames`, `HH:MM:SS`. |
+| **--timecode-format &lt;format&gt;** | Timeline time display format for report cells in Excel and PDF (with `--report`). Values: `HH:MM:SS:FF` (default; SMPTE with frames, `;` before frames for drop-frame), `Frames`, `Feet+Frames`, `HH:MM:SS`. |
 
 When `--report` is used without `--report-full` or section flags, the CLI exports role inventory only. Use `--report-full` for every optional sheet, or set individual `--report-*` section flags for a partial export (role inventory is always included). `--report-full` takes precedence when combined with section flags.
 
@@ -96,7 +97,7 @@ Common values:
 | `Source File Path` | Removes Source File Path (and Missing Media on Media Summary) |
 | `Frame Rate` | Removes Frame Rate/Sample Rate (and related summary metric cells) |
 
-Unknown column names are ignored. See [19 — Reporting & Excel Export](19-Reporting.md#column-exclusion) for the full **ReportColumn** list and aliases.
+Unknown column names are ignored. See [19 — Reporting, Excel & PDF Export](19-Reporting.md#column-exclusion) for the full **ReportColumn** list and aliases.
 
 ```bash
 OpenFCPXMLKit-CLI --report \
@@ -108,7 +109,7 @@ OpenFCPXMLKit-CLI --report \
 
 #### Timecode display format
 
-`--timecode-format` controls how timeline and source time columns are written in the workbook (and appends a header suffix when not using default SMPTE frames). See [19 — Reporting & Excel Export](19-Reporting.md#timecode-display-format).
+`--timecode-format` controls how timeline and source time columns are written in Excel and PDF exports (and appends a header suffix when not using default SMPTE frames). See [19 — Reporting, Excel & PDF Export](19-Reporting.md#timecode-display-format).
 
 | Value | Cells | Example headers |
 |-------|-------|-----------------|
@@ -170,6 +171,11 @@ OpenFCPXMLKit-CLI --report --report-full \
   --timecode-format Frames \
   /path/to/project.fcpxmld /path/to/output-dir
 
+# Excel workbook plus PDF (same report configuration)
+OpenFCPXMLKit-CLI --report --report-full --create-pdf \
+  --exclude-column Metadata \
+  /path/to/project.fcpxmld /path/to/output-dir
+
 # Create a new empty project (e.g. 1920×1080 at 25 fps), write to output-dir; project file name is 1920x1080@25p.fcpxml
 OpenFCPXMLKit-CLI --create-project --width 1920 --height 1080 --rate 25 /path/to/output-dir
 OpenFCPXMLKit-CLI --create-project --width 640 --height 480 --rate 29.97 --project-version 1.13 /path/to/output-dir
@@ -188,6 +194,6 @@ For source layout, extending the CLI, and regenerating embedded DTDs, see **[Ope
 ## Next
 
 - [17 — Examples](17-Examples.md) — End-to-end workflows and code examples.
-- [19 — Reporting & Excel Export](19-Reporting.md) — the reporting API behind `--report`.
+- [19 — Reporting, Excel & PDF Export](19-Reporting.md) — the reporting API behind `--report`.
 
 [← Manual Index](00-Index.md)

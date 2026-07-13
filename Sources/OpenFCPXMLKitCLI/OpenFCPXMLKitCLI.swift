@@ -16,7 +16,7 @@ import OpenFCPXMLKit
 struct OpenFCPXMLKitCLI: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "OpenFCPXMLKit-CLI",
-        abstract: "Experimental tool to read, validate and generate Excel report from Final Cut Pro FCPXML/FCPXMLD.",
+        abstract: "Experimental tool to read, validate and generate Excel/PDF reports from Final Cut Pro FCPXML/FCPXMLD.",
         usage: "[<options>] [<fcpxml-path>] [<output-dir>]",
         discussion: "https://github.com/TheAcharya/OpenFCPXMLKit",
         version: packageVersion,

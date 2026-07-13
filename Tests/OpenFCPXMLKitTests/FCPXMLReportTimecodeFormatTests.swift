@@ -218,22 +218,25 @@ final class FCPXMLReportTimecodeFormatTests: XCTestCase, @unchecked Sendable {
             format: .frames
         )
         
-        let lexicographicOrder = timelineIns.sorted { $0.compare($1) == .orderedAscending }
-        let hasLexicographicMismatch = zip(timelineIns, timelineIns.dropFirst()).contains { lhs, rhs in
+        let numericOrder = timelineIns.sorted {
             FinalCutPro.FCPXML.ReportFormatting.compareTimelinePositions(
-                lhs,
-                rhs,
+                $0,
+                $1,
                 format: .frames
-            ) != lhs.compare(rhs)
+            ) == .orderedAscending
         }
+        let lexicographicOrder = timelineIns.sorted { $0.compare($1) == .orderedAscending }
         
-        if hasLexicographicMismatch {
-            XCTAssertNotEqual(
-                timelineIns,
-                lexicographicOrder,
-                "Keyword timeline order must use numeric frame sorting, not lexicographic strings"
-            )
-        }
+        XCTAssertNotEqual(
+            numericOrder,
+            lexicographicOrder,
+            "Keywords sample must include frame values where numeric and lexicographic sort orders differ"
+        )
+        XCTAssertNotEqual(
+            timelineIns,
+            lexicographicOrder,
+            "Keyword timeline order must use numeric frame sorting, not lexicographic strings"
+        )
     }
     
     func testFullReportFromComplexSampleFramesFormatAcrossPopulatedSections() async throws {

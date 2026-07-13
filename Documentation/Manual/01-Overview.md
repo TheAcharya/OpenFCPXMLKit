@@ -22,6 +22,7 @@ OpenFCPXMLKit provides a comprehensive API for parsing, creating, and manipulati
 | **FCPXMLValidator** | Semantic validation (root, resources, ref resolution) |
 | **FCPXMLDTDValidator** | DTD schema validation for a given FCPXML version |
 | **FCPXMLExporter** / **FCPXMLBundleExporter** | Export `Timeline` to FCPXML string or `.fcpxmld` bundle |
+| **ReportExcelExport** / **ReportPDFExport** | Export a built `Report` to `.xlsx` (XLKit) or `.pdf` (CoreGraphics) |
 
 ---
 

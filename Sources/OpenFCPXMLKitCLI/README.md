@@ -117,12 +117,12 @@ OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 | `--report-project <name>` | Timeline name filter: matches a `<project>` name or a standalone compound-clip / `ref-clip` name when the document has more than one reportable timeline. |
 | `--exclude-role <name>` | Exclude a role or subrole from role inventory (repeatable). Excluding a main role also excludes its subroles. Case-insensitive. |
 | `--exclude-disabled-clips` | Omit disabled clips (`enabled="0"`) from all timeline-based report sections (requires `--report`). |
-| `--exclude-column <column>` | Exclude a workbook column from every applicable report sheet (repeatable; requires `--report`). Case-insensitive; see [19 — Reporting](../../Documentation/Manual/19-Reporting.md#column-exclusion) for accepted names. |
-| `--timecode-format <format>` | Timeline time display format for Excel report cells (requires `--report`). Values: `HH:MM:SS:FF` (default; SMPTE with frames; `;` before frames for drop-frame), `Frames`, `Feet+Frames`, `HH:MM:SS`. Non-default formats append a suffix to timecode column headers (e.g. `Timeline In (frames)`). See [19 — Reporting](../../Documentation/Manual/19-Reporting.md#timecode-display-format). |
+| `--exclude-column <column>` | Exclude a report column from every applicable Excel/PDF sheet (repeatable; requires `--report`). Case-insensitive; see [19 — Reporting](../../Documentation/Manual/19-Reporting.md#column-exclusion) for accepted names. |
+| `--timecode-format <format>` | Timeline time display format for Excel and PDF report cells (requires `--report`). Values: `HH:MM:SS:FF` (default; SMPTE with frames; `;` before frames for drop-frame), `Frames`, `Feet+Frames`, `HH:MM:SS`. Non-default formats append a suffix to timecode column headers (e.g. `Timeline In (frames)`). See [19 — Reporting](../../Documentation/Manual/19-Reporting.md#timecode-display-format). |
 
 When `--report` is used without `--report-full` or section flags, the CLI exports role inventory only. Use `--report-full` for every optional sheet, or set individual `--report-*` section flags for a partial export (role inventory is always included). `--report-full` takes precedence when combined with section flags.
 
-Build progress follows **product / workbook order** (Selected Roles Inventory → Markers → Keywords → Titles & Generators → Transitions → Video & Audio Effects → Speed Change Effects → Summary → Media Summary). See [19 — Progress callbacks](../../Documentation/Manual/19-Reporting.md#progress-callbacks).
+Build progress follows **product / workbook order** (Selected Roles Inventory → Markers → Keywords → Titles & Generators → Transitions → Video & Audio Effects → Speed Change Effects → Summary → Media Summary), then **Saving workbook**, and **Saving PDF** when `--create-pdf` is set. See [19 — Progress callbacks](../../Documentation/Manual/19-Reporting.md#progress-callbacks).
 
 ---
 
@@ -149,7 +149,7 @@ Log messages include parsing, version conversion, validation, save, and media ex
 | `Commands/ConvertVersion/` | Implements `--convert-version`: loads FCPXML, converts to target version (1.5–1.14), saves to output-dir as .fcpxmld (default) or .fcpxml per `--extension-type`; 1.5–1.9 always .fcpxml. |
 | `Commands/Validate/` | Implements `--validate`: loads FCPXML/FCPXMLD and runs robust validation (semantic + DTD). |
 | `Commands/ExtractMedia/` | Implements `--media-copy`: loads FCPXML/FCPXMLD and copies all referenced media files to output-dir. |
-| `Commands/ExportReport/` | Implements `--report`: loads FCPXML/FCPXMLD, builds report sections, and writes an `.xlsx` workbook to output-dir. |
+| `Commands/ExportReport/` | Implements `--report`: loads FCPXML/FCPXMLD, builds report sections, writes an `.xlsx` workbook to output-dir, and optionally a `.pdf` when `--create-pdf` is set (same built `Report`; section/column/timecode options apply to both). |
 | `Commands/CreateProject/` | Implements `--create-project`: creates an empty FCPXML project with given width, height, frame rate, and version; runs DTD validation before writing; outputs FCP-style document (DOCTYPE, colorSpace, default smart collections). |
 | `Options/TimelineOptions.swift` | **TIMELINE** option group: `--create-project`, `--width`, `--height`, `--rate`, `--project-version`. |
 | `Generated/` | Generated source; `EmbeddedDTDs.swift` contains hardcoded DTD data (from `GenerateEmbeddedDTDs`). |

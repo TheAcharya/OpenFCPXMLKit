@@ -9,6 +9,28 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.0.4](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.4) - 2026-07-13
+
+### ✨ New Features
+
+- **PDF report export:** `FinalCutPro.FCPXML.ReportPDFExport` (`makePDFData(from:)`, `export(_:to:)`) renders a built `Report` to a multi-page `.pdf` via CoreGraphics. All nine workbook sections are supported (Selected Roles Inventory, per-role sheets, Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, Summary, Media Summary) with dynamic column widths, pagination, and truncation for wide tables.
+- **PDF presentation:** Cover page with workbook branding (`ReportWorkbookCoverSheet` / `exportBrandingText`), dynamic table of contents (section titles and page numbers), per-page header/footer rules, and section background tinting between header and footer bands.
+- **CLI `--create-pdf`:** With `--report`, also writes `{project-or-clip-name}.pdf` beside the `.xlsx` workbook from the same built `Report`. Section flags, `--exclude-column`, `--exclude-role`, `--exclude-disabled-clips`, `--timecode-format`, and `--report-project` apply to both formats. Progress includes a **Saving PDF** step when enabled.
+
+### 🔧 Improvements
+
+- **Shared row colours:** Excel and PDF export now use `FCPXMLReportRowColorPolicy` for inventory, section-sheet, Summary, and Media Summary text colours (refactored from `FCPXMLReportWorkbookExporter`).
+- **Test suite:** Expanded to **944** tests listed in `swift test --list-tests` (**942** in `OpenFCPXMLKitTests`: 939 XCTest + 3 Swift Testing `@Test`; plus **2** optional `ExcelReportTest`), including `FCPXMLReportPDFExportTests` (cover, TOC, section parity, pagination, branding), `testExportDefaultRoleInventoryPDF` integration coverage, and strengthened `FCPXMLCompoundClipReportTests` / `FCPXMLReportTimecodeFormatTests` regression assertions.
+- **CLI help:** `--help` overview and REPORT option strings now describe Excel/PDF report export consistently (`--create-pdf`, `--timecode-format`, `--exclude-column`, `--report-project`).
+- **Dependencies:** SwiftExtensions minimum raised to **2.3.2**.
+- **Documentation:** Manual chapter **19 — Reporting, Excel & PDF Export**; updated **16 — CLI**, **17 — Examples**, and cross-platform notes; CLI README; `AGENT.md`, `ARCHITECTURE.md` (§2.7 / §8), `.cursorrules`; and `Tests/README.md` / `Tests/ExcelReportTest/README.md`.
+
+### 🐛 Bug Fixes
+
+- None in this release.
+
+---
+
 ## [3.0.3](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.3) - 2026-07-10
 
 ### ✨ New Features

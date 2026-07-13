@@ -7,12 +7,14 @@
 
 //
 //	Excel reporting for standalone compound-clip FCPXML (event ref-clip, no project).
+//	Inline fixtures only (no bundled samples or DTD validation), so these tests run on
+//	iOS 26+ as well as macOS and cover compound-clip discovery via the AEXML backend.
 //
 
 import XCTest
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
+@available(macOS 26.0, iOS 26.0, *)
 final class FCPXMLCompoundClipReportTests: XCTestCase {
     
     private static let compoundClipName = "Standalone Compound Clip"
@@ -93,7 +95,13 @@ final class FCPXMLCompoundClipReportTests: XCTestCase {
         FCPXMLReportingReportTestSupport.assertValidTimecode(
             report.summary?.projectSummary?.duration ?? ""
         )
-        XCTAssertFalse(report.summary?.roleDurations.isEmpty ?? true)
+        
+        let roleDurations = report.summary?.roleDurations ?? []
+        XCTAssertFalse(roleDurations.isEmpty)
+        XCTAssertTrue(
+            roleDurations.contains(where: { $0.roleSubrole.localizedCaseInsensitiveContains("dialogue") }),
+            "Expected dialogue role in summary role durations; got \(Set(roleDurations.map(\.roleSubrole)))"
+        )
     }
     
     func testProjectNameFilterMatchesCompoundClipName() async throws {
