@@ -4,7 +4,7 @@ Optional integration tests that build real `.xlsx` workbooks and `.pdf` reports 
 
 **Target:** `ExcelReportTest`  
 **Depends on:** `OpenFCPXMLKit`, `XLKit`  
-**Tests:** 2 (`ExcelReportExportTests`)
+**Tests:** 3 (`ExcelReportExportTests`)
 
 Unit-level reporting behaviour (column layout, column exclusion, disabled-clip filtering, timecode formats / DF·NDF, format-aware headers, build-phase order, workbook cell formatting, PDF cover/TOC/pagination, shared row colours, **standalone compound-clip timeline resolution**) lives in **`OpenFCPXMLKitTests`** — see [Tests/README.md](../README.md#reporting--excelpdf-export) (`FCPXMLCompoundClipReportTests`, `FCPXMLReportPDFExportTests`, and related files).
 
@@ -61,6 +61,7 @@ Running the export tests writes workbooks and a sample PDF to **`Output/`** (als
 | `Output/OFK-Default.xlsx` | `ReportOptions.roleInventoryOnly` | `OpenFCPXMLKit-CLI --report <fixture> <dir>` | **Selected Roles Inventory** + per-role sheets (23 fixed columns + Row + dynamic metadata keys) |
 | `Output/OFK-Full.xlsx` | `ReportOptions.full` | `OpenFCPXMLKit-CLI --report --report-full <fixture> <dir>` | Default sheets plus Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, **Summary** (project title header + black data rows), and **Media Summary** (red missing-media paths) |
 | `Output/OFK-Default.pdf` | `ReportOptions.roleInventoryOnly` | `OpenFCPXMLKit-CLI --report --create-pdf <fixture> <dir>` | Role-inventory PDF with cover page, TOC, and per-sheet tinted content pages |
+| `Output/OFK-ExcludedColumns.pdf` | role inventory + many `excludedColumns` | `--report --create-pdf --exclude-column …` | Same sheets with remaining columns expanded to fill A4 landscape width |
 
 Cell colours, header styling, and section-sheet colour rules are covered by **`FCPXMLReportExcelExportTests`** and **`FCPXMLReportPDFExportTests`** in `OpenFCPXMLKitTests`. This integration target checks that a real fixture produces complete workbooks and a readable PDF; open `OFK-Full.xlsx` or a full `--create-pdf` export locally to compare layout against a reference export if you maintain one.
 
@@ -69,6 +70,8 @@ See [Output/README.md](Output/README.md) for details on that folder.
 `testExportDefaultAndFullWorkbooks` asserts that the default export includes only role inventory, and that the full export includes every optional section (`summary`, `mediaSummary`, markers, keywords, titles, transitions, effects, speed-change effects).
 
 `testExportDefaultRoleInventoryPDF` writes `OFK-Default.pdf` and asserts a valid `%PDF` header and minimum size.
+
+`testExportRoleInventoryPDFWithManyExcludedColumns` writes `OFK-ExcludedColumns.pdf` after excluding many inventory columns (leftover horizontal space must expand remaining columns).
 
 ---
 

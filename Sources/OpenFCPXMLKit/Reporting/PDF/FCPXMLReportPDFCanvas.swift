@@ -59,7 +59,11 @@ enum FCPXMLReportPDFCanvas {
             guard !validEntries.isEmpty else { return }
             
             let pageColumnWidth: CGFloat = 44
-            let indexColumnWidth: CGFloat = 24
+            // Chip + gap + index numeral inside the leading column.
+            let indexColumnWidth: CGFloat = FCPXMLReportPDFStyle.cellPadding
+                + FCPXMLReportPDFStyle.tocColorChipSize
+                + FCPXMLReportPDFStyle.tocColorChipTrailingGap
+                + 18
             let sheetColumnWidth = FCPXMLReportPDFStyle.contentWidth - pageColumnWidth - indexColumnWidth
             let columnWidths = [indexColumnWidth, sheetColumnWidth, pageColumnWidth]
             let headers = ["#", "Sheet", "Page"]
@@ -86,6 +90,7 @@ enum FCPXMLReportPDFCanvas {
                         index: entryOffset + offset + 1,
                         title: entry.title,
                         startPage: entry.startPage,
+                        colorIndex: entry.colorIndex,
                         columnWidths: columnWidths
                     )
                 }
@@ -591,6 +596,7 @@ enum FCPXMLReportPDFCanvas {
             index: Int,
             title: String,
             startPage: Int,
+            colorIndex: Int,
             columnWidths: [CGFloat]
         ) {
             ensureVerticalSpace(FCPXMLReportPDFStyle.rowHeight)
@@ -599,11 +605,45 @@ enum FCPXMLReportPDFCanvas {
             let tableWidth = columnWidths.reduce(0, +)
             let fontSize = FCPXMLReportPDFStyle.bodyFontSize
             let baseline = cursorY + fontSize + 3
+            let rowRect = CGRect(
+                x: originX,
+                y: cursorY,
+                width: tableWidth,
+                height: FCPXMLReportPDFStyle.rowHeight
+            )
+            
+            // Light content-tint wash (same palette index as the sheet's content pages).
+            context.saveGState()
+            context.setFillColor(
+                FCPXMLReportPDFStyle.sheetContentBackgroundColor(forSheetIndex: colorIndex)
+            )
+            context.fill(rowRect)
+            context.restoreGState()
+            
+            // Accent colour chip — stronger, easier to distinguish than the wash alone.
+            let chipSize = FCPXMLReportPDFStyle.tocColorChipSize
+            let chipX = originX + FCPXMLReportPDFStyle.cellPadding
+            let chipY = cursorY + (FCPXMLReportPDFStyle.rowHeight - chipSize) / 2
+            let chipRect = CGRect(x: chipX, y: chipY, width: chipSize, height: chipSize)
+            context.saveGState()
+            context.setFillColor(
+                FCPXMLReportPDFStyle.sheetAccentColor(forSheetIndex: colorIndex)
+            )
+            let chipPath = CGPath(
+                roundedRect: chipRect,
+                cornerWidth: FCPXMLReportPDFStyle.tocColorChipCornerRadius,
+                cornerHeight: FCPXMLReportPDFStyle.tocColorChipCornerRadius,
+                transform: nil
+            )
+            context.addPath(chipPath)
+            context.fillPath()
+            context.restoreGState()
             
             let indexText = "\(index)"
+            let indexTextX = chipX + chipSize + FCPXMLReportPDFStyle.tocColorChipTrailingGap
             drawText(
                 indexText,
-                x: originX + FCPXMLReportPDFStyle.cellPadding,
+                x: indexTextX,
                 y: baseline,
                 fontName: FCPXMLReportPDFStyle.regularFontName,
                 fontSize: fontSize,

@@ -38,6 +38,15 @@ enum FCPXMLReportPDFStyle {
     /// Width of the coloured stripe beside the running header for sheet grouping.
     static let sheetAccentStripeWidth: CGFloat = 4
     
+    /// TOC row colour chip size (accent palette; matches content-page sheet index).
+    static let tocColorChipSize: CGFloat = 8
+    
+    /// Horizontal gap between the TOC colour chip and the row index numeral.
+    static let tocColorChipTrailingGap: CGFloat = 4
+    
+    /// Corner radius for the TOC colour chip (near-square swatch).
+    static let tocColorChipCornerRadius: CGFloat = 1.5
+    
     // MARK: - Typography (Menlo / Menlo-Bold)
     
     /// Cover page — project name (`drawCoverPage`).
@@ -96,7 +105,9 @@ enum FCPXMLReportPDFStyle {
     /// Minimum column width when chunking wide tables horizontally.
     static let minColumnWidth: CGFloat = 36
     
-    /// Maximum column width before truncation or further chunking.
+    /// Maximum packed column width used when deciding horizontal chunk breaks.
+    /// After a chunk's columns are chosen, leftover page width is redistributed
+    /// and columns may grow beyond this value (e.g. when many columns are excluded).
     static let maxColumnWidth: CGFloat = 140
     
     // MARK: - Derived layout

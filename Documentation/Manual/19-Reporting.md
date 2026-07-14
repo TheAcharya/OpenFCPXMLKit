@@ -461,14 +461,14 @@ Throws **ReportPDFExportError** (`couldNotCreateDocument`, `couldNotWriteFile`) 
 PDF export mirrors Excel **section order** and **sheet names** (via `FCPXMLReportPDFSheetPlan`):
 
 1. **Cover page** — project name, event name (when present), generated timestamp, experimental-notice info box, and `exportBrandingText`.
-2. **Table of contents** — one or more pages listing every included section with start page numbers (built dynamically in a two-pass render so page numbers are accurate). The TOC is not a workbook sheet in Excel; it is PDF-only.
+2. **Table of contents** — one or more pages listing every included section with start page numbers (built dynamically in a two-pass render so page numbers are accurate). The TOC is not a workbook sheet in Excel; it is PDF-only. Each TOC row uses the **same colour index** as that sheet’s content pages: a small **accent-palette colour chip** beside the row number, plus a light **content-tint wash** on the row (Menlo text stays high-contrast on the near-white wash).
 3. **Content pages** — each enabled section, in workbook order, with running header (project name + section title) and footer (branding + page number).
 
 Per-section presentation:
 
 - **Per-sheet tint** — pages that belong to the same workbook section share a subtle background tint between the header rule and footer rule.
 - **Row colours** — the same rules as Excel (`FCPXMLReportRowColorPolicy`): role inventory category colours, marker-type colours, keywords/titles/effects/transitions inference, red missing-media paths.
-- **Tables** — black header row with white text; body uses Menlo. Column widths are measured from content (clamped min/max) and wide tables **paginate horizontally** into column sets (running header shows `Columns 2 of 5` when chunked).
+- **Tables** — black header row with white text; body uses Menlo. Column widths are measured from content (clamped for horizontal packing), then **expanded proportionally to fill the A4 landscape content width** when leftover space remains (for example after many `excludedColumns`). Wide tables still **paginate horizontally** into column sets (running header shows `Columns 2 of 5` when chunked); each set also fills the page width. Pinned **Row** columns keep their packed width.
 - **Truncation** — cell text that exceeds column width is ellipsized (`…`). For the full untruncated dataset, use the Excel export.
 - **Row traceability** — on multi-page or multi-column-set tables, a **Row** (`#`) column is injected and pinned on the left when not already present.
 

@@ -2,7 +2,7 @@
 
 This directory contains the test suite for OpenFCPXMLKit, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration. The suite runs on **macOS** (Foundation XML backend). The library also supports **iOS 26+** (AEXML backend); CI builds for iOS Simulator; the same tests are not run on iOS because they rely on Foundation XML.
 
-- **Test count:** **944** tests listed in `swift test --list-tests` — **942** in `OpenFCPXMLKitTests` (939 XCTest `func test` methods + 3 Swift Testing `@Test` in `FCPXMLReportRoleExclusionTests`) and **2** in `ExcelReportTest` (optional integration; skips without a local fixture)  
+- **Test count:** **951** tests listed in `swift test --list-tests` — **948** in `OpenFCPXMLKitTests` (945 XCTest `func test` methods + 3 Swift Testing `@Test` in `FCPXMLReportRoleExclusionTests`) and **3** in `ExcelReportTest` (optional integration; skips without a local fixture)  
 - **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines, audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), Excel and PDF reporting (role inventory columns, Summary and Media Summary sheets, configurable `ReportTimecodeFormat` / DF·NDF notation, format-aware headers, Frames/Feet+Frames sort order, inventory-first `ReportBuildPhase` progress, global column exclusion, disabled-clip filtering, workbook export and cell formatting, PDF cover/TOC/section pagination, shared `FCPXMLReportRowColorPolicy`, standalone compound-clip timelines via `allReportTimelineSources()` / `FCPXMLCompoundClipReportTests`), and all supported FCPXML versions and frame rates  
 - **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure; validation and cross-platform XML tests; optional Excel/PDF report integration tests under `ExcelReportTest/`
 
@@ -118,6 +118,8 @@ Tests/
     ├── FCPXMLReportColumnExclusionTests.swift
     ├── FCPXMLReportExcelExportTests.swift
     ├── FCPXMLReportPDFExportTests.swift
+    ├── FCPXMLReportPDFSheetPlanTests.swift
+    ├── FCPXMLReportPDFTableLayoutTests.swift
     ├── FCPXMLReportExcludeDisabledClipsTests.swift
     ├── FCPXMLReportFormattingTests.swift
     ├── FCPXMLReportRoleExclusionTests.swift
@@ -173,9 +175,9 @@ swift test --filter OpenFCPXMLKitTests             # By pattern
 To verify the documented test counts:
 
 ```bash
-swift test --list-tests 2>/dev/null | grep -c '\.'                        # 944
-swift test --list-tests 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 942
-swift test --list-tests 2>/dev/null | grep -c 'ExcelReportTest\.'       # 2
+swift test --list-tests 2>/dev/null | grep -c '\.'                        # 949
+swift test --list-tests 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 946
+swift test --list-tests 2>/dev/null | grep -c 'ExcelReportTest\.'       # 3
 ```
 
 ### Xcode
@@ -277,6 +279,8 @@ Tests are discovered automatically by Swift PM. Run `swift test` in an environme
 - **FCPXMLEffectsReportTests** / **FCPXMLSpeedChangeEffectsReportTests** — Video & Audio Effects and Speed Change Effects rows.
 - **FCPXMLSummaryReportTests** — Summary sheet: project metrics, per-role duration rows, percentage of total; Media Summary sheet: missing media paths; `.summaryOnly` and `.mediaSummaryOnly` presets.
 - **FCPXMLReportExcelExportTests** — XLKit workbook export: Title Case sheet names, sheet ordering, sheet-name sanitisation, Media Summary sheet (red missing-media paths), Summary sheet (project title header row, black role-duration data, numeric `% of Total` cells), inventory/marker/section-sheet colour rules (role category, marker type, sheet-specific inference for Keywords/Effects/Titles/Transitions), cover sheet styling, black/white table headers.
+- **FCPXMLReportPDFTableLayoutTests** — PDF column sizing: remaining columns expand to fill A4 landscape content width after exclusions / short content; pinned `Row` stays packed-width; wide tables still chunk horizontally with each part filling the page.
+- **FCPXMLReportPDFSheetPlanTests** — ordered sheet titles share sequential `colorIndex` values used by TOC colour chips and content-page tints; TOC entries preserve those indices when page numbers are filled in.
 - **FCPXMLReportPDFExportTests** — CoreGraphics PDF export: `%PDF` header, cover page and custom branding, table of contents for multi-section reports, synthetic section content, wide-table multi-page pagination, full-workbook section parity (all nine sections in TOC/content), markers/media-summary/summary-only exports.
 - **FCPXMLReportFormattingTests** — Timecode string formats (SMPTE DF/NDF, Frames, Feet+Frames, HH:MM:SS); `compareTimelinePositions` numeric order for Frames and Feet+Frames vs lexicographic string order; role ▸ subrole field formatting, `<Blank>` handling, channel-ordered role fields.
 - **FCPXMLReportTimecodeFormatTests** — Integration: DF/NDF sample reports; all four `ReportTimecodeFormat` modes; full-report cell/header shape assertions; workbook header suffixes; Keywords Frames-mode numeric row order.

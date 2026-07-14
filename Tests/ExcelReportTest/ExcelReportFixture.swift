@@ -33,9 +33,13 @@ enum ExcelReportFixture {
         
         let testDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         
+        let outputDirectory = testDirectory.appendingPathComponent(outputDirectoryName, isDirectory: true)
         let preferredURLs = [
             testDirectory.appendingPathComponent(preferredBundleName, isDirectory: true),
-            testDirectory.appendingPathComponent(preferredFileName)
+            testDirectory.appendingPathComponent(preferredFileName),
+            // Local investigation fixtures may live under Output/ beside generated workbooks.
+            outputDirectory.appendingPathComponent(preferredBundleName, isDirectory: true),
+            outputDirectory.appendingPathComponent(preferredFileName),
         ]
         
         for url in preferredURLs where isValidFixture(at: url) {
@@ -43,6 +47,7 @@ enum ExcelReportFixture {
         }
         
         return discoverFixture(in: testDirectory)
+            ?? discoverFixture(in: outputDirectory)
     }
     
     static func requireFixtureURL() throws -> URL {
@@ -87,7 +92,12 @@ enum ExcelReportFixture {
         let candidates = entries
             .filter { url in
                 let name = url.lastPathComponent
-                if name == outputDirectoryName || name.hasSuffix(".swift") || name.hasSuffix(".md") {
+                if name == outputDirectoryName
+                    || name.hasSuffix(".swift")
+                    || name.hasSuffix(".md")
+                    || name.hasSuffix(".xlsx")
+                    || name.hasSuffix(".pdf")
+                {
                     return false
                 }
                 

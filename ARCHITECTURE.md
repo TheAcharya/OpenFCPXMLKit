@@ -16,7 +16,7 @@ OpenFCPXMLKit is a **Swift 6** framework for Final Cut Pro FCPXML: parsing, crea
 - **Repository:** https://github.com/TheAcharya/OpenFCPXMLKit
 - **Dependencies:** SwiftTimecode 3.1.2+, SwiftExtensions 2.2.0+, swift-log 1.14.0+, AEXML 4.7.0+, swift-argument-parser 1.8.2+ (CLI only), Foundation, CoreMedia.
 - **FCPXML:** Versions 1.5–1.14 (DTDs included); Final Cut Pro frame rates (23.976, 24, 25, 29.97, 30, 50, 59.94, 60).
-- **Tests:** **944** tests listed in `swift test --list-tests` — **942** in `OpenFCPXMLKitTests` (939 XCTest `func test` + 3 Swift Testing `@Test`) and **2** optional `ExcelReportTest` integration tests; **58** sample `.fcpxml` files under `Tests/FCPXML Samples/FCPXML/`.
+- **Tests:** **951** tests listed in `swift test --list-tests` — **948** in `OpenFCPXMLKitTests` (945 XCTest `func test` + 3 Swift Testing `@Test`) and **3** optional `ExcelReportTest` integration tests; **58** sample `.fcpxml` files under `Tests/FCPXML Samples/FCPXML/`.
 
 ---
 
@@ -162,8 +162,8 @@ flowchart TB
     SRC --> CLI["OpenFCPXMLKitCLI → OpenFCPXMLKit-CLI"]
     SRC --> GEN["GenerateEmbeddedDTDs"]
 
-    TST --> OKT["OpenFCPXMLKitTests — 942 tests"]
-    TST --> ERT["ExcelReportTest — 2 optional integration tests"]
+    TST --> OKT["OpenFCPXMLKitTests — 948 tests"]
+    TST --> ERT["ExcelReportTest — 3 optional integration tests"]
     TST --> SMP["FCPXML Samples/ — 58 .fcpxml files"]
 ```
 
@@ -362,10 +362,10 @@ Binary name: **`OpenFCPXMLKit-CLI`**. Mutually exclusive modes: `--check-version
 
 ## 8. Tests
 
-- **Count:** **944** listed in `swift test --list-tests` — **942** in `OpenFCPXMLKitTests` (939 XCTest + 3 Swift Testing `@Test` in `FCPXMLReportRoleExclusionTests`) and **2** in optional `ExcelReportTest` (skips without a local `.fcpxml`/`.fcpxmld` fixture).
+- **Count:** **951** listed in `swift test --list-tests` — **948** in `OpenFCPXMLKitTests` (945 XCTest + 3 Swift Testing `@Test` in `FCPXMLReportRoleExclusionTests`) and **3** in optional `ExcelReportTest` (skips without a local `.fcpxml`/`.fcpxmld` fixture).
 - **Location:** `Tests/OpenFCPXMLKitTests/`; samples in `Tests/FCPXML Samples/FCPXML/` (58 files); optional integration under `Tests/ExcelReportTest/`.
 - **Utilities:** `FCPXMLTestResources.swift`, `FCPXMLTestUtilities.swift` (path resolution, sample loading; `XCTSkip` when a sample is missing); `FCPXMLReportingReportFixture.swift` / `FCPXMLReportingReportTestSupport.swift` for optional reporting fixtures.
-- **Reporting tests:** `FCPXMLCompoundClipReportTests` (standalone compound-clip FCPXML / `allReportTimelineSources()`), `FCPXMLReportTimecodeFormatTests` (DF/NDF, all four formats, format-aware headers, full-report shape), `FCPXMLReportBuildPhaseTests` (inventory-first `enabledPhases` / `onPhaseStarted` order), `FCPXMLRoleInventoryColumnLayoutTests`, `FCPXMLReportColumnExclusionTests` (including suffixed Timeline In headers), `FCPXMLReportExcludeDisabledClipsTests`, `FCPXMLReportExcelExportTests` (workbook cell formatting), `FCPXMLReportPDFExportTests` (cover, TOC, section parity, pagination, branding), `FCPXMLReportFormattingTests` (SMPTE / Frames / Feet+Frames / HH:MM:SS formatting and numeric sort guardrails), plus role inventory, section, and related support tests. See **Tests/README.md** §1 for the full file tree.
+- **Reporting tests:** `FCPXMLCompoundClipReportTests` (standalone compound-clip FCPXML / `allReportTimelineSources()`), `FCPXMLReportTimecodeFormatTests` (DF/NDF, all four formats, format-aware headers, full-report shape), `FCPXMLReportBuildPhaseTests` (inventory-first `enabledPhases` / `onPhaseStarted` order), `FCPXMLRoleInventoryColumnLayoutTests`, `FCPXMLReportColumnExclusionTests` (including suffixed Timeline In headers), `FCPXMLReportExcludeDisabledClipsTests`, `FCPXMLReportExcelExportTests` (workbook cell formatting), `FCPXMLReportPDFExportTests` (cover, TOC, section parity, pagination, branding), `FCPXMLReportPDFSheetPlanTests` (TOC accent chips share sequential `colorIndex` with content-page tints), `FCPXMLReportPDFTableLayoutTests` (remaining columns expand to fill page width after exclusions; pinned Row; horizontal chunks still fill `contentWidth`), `FCPXMLReportFormattingTests` (SMPTE / Frames / Feet+Frames / HH:MM:SS formatting and numeric sort guardrails), plus role inventory, section, and related support tests. See **Tests/README.md** §1 for the full file tree.
 - **Coverage:** Unit, integration, and performance tests; sync and async; all supported frame rates and FCPXML versions. See **Tests/README.md** for categories and how to run tests.
 
 ---

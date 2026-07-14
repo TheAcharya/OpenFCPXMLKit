@@ -73,6 +73,49 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
         XCTAssertGreaterThan(data.count, 5_000, "Role inventory PDF should contain readable multi-page output")
     }
     
+    /// Writes `Output/OFK-ExcludedColumns.pdf` — many columns excluded so remaining widths must expand.
+    func testExportRoleInventoryPDFWithManyExcludedColumns() async throws {
+        let fixtureURL = try ExcelReportFixture.requireFixtureURL()
+        let outputDir = ExcelReportFixture.outputDirectoryURL()
+        try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
+        
+        var options = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
+        options.excludedColumns = [
+            "Reel",
+            "Scene",
+            "Take",
+            "Camera Angle",
+            "Camera Name",
+            "Notes",
+            "Source File Name",
+            "Source File Path",
+            "Library Name",
+            "Event Name",
+            "Project Name",
+            "Keywords",
+            "Markers",
+            "Metadata",
+        ]
+        
+        let report = try await loadReport(options: options, fixtureURL: fixtureURL)
+        XCTAssertFalse(report.excludedColumns.isEmpty)
+        
+        let outputURL = outputDir.appendingPathComponent("OFK-ExcludedColumns.pdf")
+        if FileManager.default.fileExists(atPath: outputURL.path) {
+            try FileManager.default.removeItem(at: outputURL)
+        }
+        
+        try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: outputURL)
+        
+        let data = try Data(contentsOf: outputURL)
+        XCTAssertEqual(String(data: data.prefix(4), encoding: .ascii), "%PDF")
+        XCTAssertGreaterThan(
+            data.count,
+            5_000,
+            "Excluded-column PDF should still contain a readable multi-page role inventory"
+        )
+    }
+    
     @MainActor
     private func writeWorkbook(
         _ report: FinalCutPro.FCPXML.Report,
