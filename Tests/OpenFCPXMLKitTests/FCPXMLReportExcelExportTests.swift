@@ -9,7 +9,7 @@
 //
 
 import Foundation
-import OpenFCPXMLKit
+@testable import OpenFCPXMLKit
 import XCTest
 import XLKit
 
@@ -188,13 +188,16 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
             .makeWorkbook(from: report)
             .getSheet(name: FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName)
         
-        XCTAssertEqual(sheet?.getCellWithFormat("A1")?.value.stringValue, "Missing Media")
-        XCTAssertEqual(sheet?.getCellWithFormat("A1")?.format?.backgroundColor, "#000000")
-        XCTAssertEqual(sheet?.getCellWithFormat("A1")?.format?.fontColor, "#FFFFFF")
-        XCTAssertEqual(sheet?.getCellWithFormat("A2")?.value.stringValue, "/missing/clip.mov")
-        XCTAssertEqual(sheet?.getCellWithFormat("A2")?.format?.fontColor, "#FF0000")
-        XCTAssertEqual(sheet?.getCellWithFormat("A3")?.value.stringValue, "/missing/audio.wav")
-        XCTAssertEqual(sheet?.getCellWithFormat("A3")?.format?.fontColor, "#FF0000")
+        XCTAssertEqual(sheet?.getCellWithFormat("A1")?.value.stringValue, "Row")
+        XCTAssertEqual(sheet?.getCellWithFormat("B1")?.value.stringValue, "Missing Media")
+        XCTAssertEqual(sheet?.getCellWithFormat("B1")?.format?.backgroundColor, "#000000")
+        XCTAssertEqual(sheet?.getCellWithFormat("B1")?.format?.fontColor, "#FFFFFF")
+        XCTAssertEqual(sheet?.getCellWithFormat("A2")?.value.stringValue, "1")
+        XCTAssertEqual(sheet?.getCellWithFormat("B2")?.value.stringValue, "/missing/clip.mov")
+        XCTAssertEqual(sheet?.getCellWithFormat("B2")?.format?.fontColor, "#FF0000")
+        XCTAssertEqual(sheet?.getCellWithFormat("A3")?.value.stringValue, "2")
+        XCTAssertEqual(sheet?.getCellWithFormat("B3")?.value.stringValue, "/missing/audio.wav")
+        XCTAssertEqual(sheet?.getCellWithFormat("B3")?.format?.fontColor, "#FF0000")
     }
     
     @MainActor
@@ -220,7 +223,8 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
         let headerCell = sheet?.getCellWithFormat("A1")
         XCTAssertEqual(headerCell?.format?.backgroundColor, "#000000")
         XCTAssertEqual(headerCell?.format?.fontColor, "#FFFFFF")
-        XCTAssertEqual(headerCell?.value.stringValue, "Marker Name")
+        XCTAssertEqual(headerCell?.value.stringValue, "Row")
+        XCTAssertEqual(sheet?.getCellWithFormat("B1")?.value.stringValue, "Marker Name")
     }
     
     @MainActor
@@ -440,6 +444,53 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
     }
     
     @MainActor
+    func testSummaryLongProjectTitleDoesNotWidenRowColumn() throws {
+        let longTitle = String(repeating: "Very Long Project Title Segment ", count: 6)
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: longTitle,
+            summary: FinalCutPro.FCPXML.SummaryReportSection(
+                projectSummary: FinalCutPro.FCPXML.ProjectSummary(
+                    title: longTitle,
+                    duration: "00:01:00:00",
+                    resolution: "1920x1080",
+                    frameRate: "24",
+                    audioSampleRate: "48kHz"
+                ),
+                roleDurations: [
+                    FinalCutPro.FCPXML.SummaryRoleDurationRow(
+                        roleSubrole: "Video",
+                        estimatedTotal: "00:00:30:00",
+                        percentOfTotal: 0.5
+                    )
+                ]
+            )
+        )
+        
+        let sheet = FinalCutPro.FCPXML.ReportExcelExport
+            .makeWorkbook(from: report)
+            .getSheet(name: FinalCutPro.FCPXML.SummaryReportSection.defaultSheetName)
+        
+        XCTAssertEqual(sheet?.getCellWithFormat("B1")?.value.stringValue, longTitle)
+        XCTAssertEqual(sheet?.getCellWithFormat("A3")?.value.stringValue, "Row")
+        let rowColumnWidth = try XCTUnwrap(sheet?.getColumnWidth(1))
+        XCTAssertEqual(
+            rowColumnWidth,
+            8.0,
+            accuracy: 0.01,
+            "Row column must stay narrow when project title is long"
+        )
+        let titleColumnWidth = try XCTUnwrap(sheet?.getColumnWidth(2))
+        let desired = FCPXMLReportWorkbookColumnAutoFit.summaryProjectTitleColumnWidth(for: longTitle)
+        XCTAssertEqual(
+            titleColumnWidth,
+            desired,
+            accuracy: 0.01,
+            "Title column (B) should use the Summary project-title width"
+        )
+        XCTAssertGreaterThanOrEqual(titleColumnWidth, 56.0)
+    }
+    
+    @MainActor
     func testSummaryPercentColumnIsNumericPercentageFormatted() {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test Project",
@@ -470,14 +521,17 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
             .makeWorkbook(from: report)
             .getSheet(name: FinalCutPro.FCPXML.SummaryReportSection.defaultSheetName)
         
-        let titleCell = sheet?.getCellWithFormat("A1")
+        // Project title sits in B1 so a long name does not widen the Row column (A).
+        let titleCell = sheet?.getCellWithFormat("B1")
         XCTAssertEqual(titleCell?.value.stringValue, "Test Project")
         XCTAssertEqual(titleCell?.format?.backgroundColor, "#000000")
         XCTAssertEqual(titleCell?.format?.fontColor, "#FFFFFF")
         XCTAssertEqual(titleCell?.format?.fontWeight, .bold)
+        XCTAssertNil(sheet?.getCellWithFormat("A1")?.value.stringValue)
         
-        // Role table header on row 3, data rows on 4–5; the "% of Total" column is C.
-        let percentCell = sheet?.getCellWithFormat("C4")
+        // Role table header on row 3, data rows on 4–5; columns are Row | Role | Estimated Total | %.
+        XCTAssertEqual(sheet?.getCellWithFormat("A3")?.value.stringValue, "Row")
+        let percentCell = sheet?.getCellWithFormat("D4")
         
         // The value must be stored as the raw fraction in a numeric cell (not a text string),
         // so Excel renders it through the percentage number format as "50.0%".
@@ -489,9 +543,11 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
         // Summary data uses default black text for all columns (no role colour coding).
         XCTAssertNil(sheet?.getCellWithFormat("A4")?.format?.fontColor)
         XCTAssertNil(sheet?.getCellWithFormat("B4")?.format?.fontColor)
+        XCTAssertNil(sheet?.getCellWithFormat("C4")?.format?.fontColor)
         XCTAssertNil(sheet?.getCellWithFormat("A5")?.format?.fontColor)
         XCTAssertNil(sheet?.getCellWithFormat("B5")?.format?.fontColor)
         XCTAssertNil(sheet?.getCellWithFormat("C5")?.format?.fontColor)
+        XCTAssertNil(sheet?.getCellWithFormat("D5")?.format?.fontColor)
     }
     
     @MainActor

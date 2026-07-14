@@ -36,10 +36,15 @@ enum FCPXMLReportPDFTableLayout {
     static let rowColumnHeader = FinalCutPro.FCPXML.RoleInventoryColumnLayout.rowColumnHeader
     
     /// Prepares headers/rows for paginated PDF tables, injecting and pinning ``rowColumnHeader`` when needed.
+    ///
+    /// When a table spans multiple vertical pages or horizontal column sets and the source headers
+    /// do not already include ``rowColumnHeader``, a 1-based Row column is injected for
+    /// traceability — unless ``allowInjectedRowColumn`` is `false` (``ReportColumn/row`` excluded).
     static func preparePaginatedTable(
         headers: [String],
         rows: [[String]],
-        contentWidth: CGFloat
+        contentWidth: CGFloat,
+        allowInjectedRowColumn: Bool = true
     ) -> (headers: [String], rows: [[String]], pinnedColumnIndices: [Int]) {
         guard !headers.isEmpty else { return (headers, rows, []) }
         
@@ -55,7 +60,10 @@ enum FCPXMLReportPDFTableLayout {
         var preparedHeaders = headers
         var preparedRows = rows
         
-        if spansMultiplePages, rowColumnIndex(in: preparedHeaders) == nil {
+        if allowInjectedRowColumn,
+           spansMultiplePages,
+           rowColumnIndex(in: preparedHeaders) == nil
+        {
             preparedHeaders = [rowColumnHeader] + preparedHeaders
             preparedRows = rows.enumerated().map { index, row in
                 [String(index + 1)] + row
@@ -312,6 +320,8 @@ enum FCPXMLReportPDFTableRenderer {
         var recordsSectionStart: Bool
         var columnPart: Int?
         var columnPartCount: Int?
+        /// When `false`, multi-page tables must not inject a Row column (`--exclude-column Row`).
+        var allowInjectedRowColumn: Bool = true
     }
     
     static func drawTable(
@@ -327,7 +337,8 @@ enum FCPXMLReportPDFTableRenderer {
         let prepared = FCPXMLReportPDFTableLayout.preparePaginatedTable(
             headers: headers,
             rows: rows,
-            contentWidth: FCPXMLReportPDFStyle.contentWidth
+            contentWidth: FCPXMLReportPDFStyle.contentWidth,
+            allowInjectedRowColumn: context.allowInjectedRowColumn
         )
         let chunks = FCPXMLReportPDFTableLayout.columnChunks(
             headers: prepared.headers,

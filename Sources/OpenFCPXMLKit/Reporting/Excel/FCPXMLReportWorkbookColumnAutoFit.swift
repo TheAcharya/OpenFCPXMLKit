@@ -15,6 +15,24 @@ enum FCPXMLReportWorkbookColumnAutoFit {
     private static let minimumWidth = 8.0
     private static let maximumWidth = 80.0
     private static let padding = 2.0
+    /// Fixed width for the 1-based ``Row`` index column (short header + digits only).
+    private static let rowColumnWidth = 8.0
+    /// Summary project-title column (B): Excel character units under-measure bold banner text.
+    private static let summaryTitleColumnMinimumWidth = 56.0
+    private static let summaryTitleColumnMaximumWidth = 120.0
+    private static let summaryTitleColumnPadding = 20.0
+    
+    /// Width for Summary sheet column B, sized for the project title in ``B1``.
+    static func summaryProjectTitleColumnWidth(for title: String) -> Double {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return summaryTitleColumnMinimumWidth }
+        
+        let estimated = Double(trimmed.count) + summaryTitleColumnPadding
+        return min(
+            max(estimated, summaryTitleColumnMinimumWidth),
+            summaryTitleColumnMaximumWidth
+        )
+    }
     
     static func apply(to sheet: Sheet, headers: [String]? = nil) {
         var widthsByColumn: [Int: Double] = [:]
@@ -27,8 +45,14 @@ enum FCPXMLReportWorkbookColumnAutoFit {
         
         if let headers {
             for (index, header) in headers.enumerated() {
+                let column = index + 1
+                if header == FinalCutPro.FCPXML.RoleInventoryColumnLayout.rowColumnHeader {
+                    // Keep the Row index column narrow regardless of other cells in the column
+                    // (e.g. legacy Summary titles that once shared column A).
+                    widthsByColumn[column] = rowColumnWidth
+                    continue
+                }
                 if let floor = minimumWidthForHeader(header) {
-                    let column = index + 1
                     widthsByColumn[column] = max(widthsByColumn[column] ?? minimumWidth, floor)
                 }
             }

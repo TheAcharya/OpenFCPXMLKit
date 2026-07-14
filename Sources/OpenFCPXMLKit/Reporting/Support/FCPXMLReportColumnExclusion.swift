@@ -72,21 +72,57 @@ extension FinalCutPro.FCPXML {
             }
         }
         
+        /// Prepends the 1-based ``ReportColumn/row`` index column when it is not excluded
+        /// and not already present. Used by Excel and PDF so all tabular sheets share the
+        /// same Row behaviour as Selected Roles Inventory.
+        static func ensuringRowColumn(
+            headers: [String],
+            rows: [[String]],
+            excluded: Set<ReportColumn>
+        ) -> (headers: [String], rows: [[String]]) {
+            guard !excluded.contains(.row) else { return (headers, rows) }
+            guard !headers.isEmpty else { return (headers, rows) }
+            
+            if headers.contains(where: { headerMatchesColumn($0, column: .row) }) {
+                return (headers, rows)
+            }
+            
+            let rowHeader = ReportColumn.row.exportHeader ?? RoleInventoryColumnLayout.rowColumnHeader
+            return (
+                [rowHeader] + headers,
+                rows.enumerated().map { index, row in
+                    [String(index + 1)] + row
+                }
+            )
+        }
+        
+        /// Whether ``ReportColumn/row`` should be injected for PDF multi-page / multi-column
+        /// traceability when the source headers do not already include it.
+        static func allowsInjectedRowColumn(excluded: Set<ReportColumn>) -> Bool {
+            !excluded.contains(.row)
+        }
+        
         static func filter(
             headers: [String],
             rows: [[String]],
             excluded: Set<ReportColumn>,
             metadataColumnKeys: [String] = []
         ) -> (headers: [String], rows: [[String]]) {
-            guard !excluded.isEmpty else { return (headers, rows) }
+            let prepared = ensuringRowColumn(
+                headers: headers,
+                rows: rows,
+                excluded: excluded
+            )
+            
+            guard !excluded.isEmpty else { return prepared }
             
             let indices = retainedColumnIndices(
-                in: headers,
+                in: prepared.headers,
                 excluded: excluded,
                 metadataColumnKeys: metadataColumnKeys
             )
-            let filteredHeaders = indices.map { headers[$0] }
-            let filteredRows = rows.map { row in
+            let filteredHeaders = indices.map { prepared.headers[$0] }
+            let filteredRows = prepared.rows.map { row in
                 indices.map { index in
                     index < row.count ? row[index] : ""
                 }
