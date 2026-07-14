@@ -330,8 +330,10 @@ enum FCPXMLReportWorkbookExporter {
         var rowIndex = 1
         
         if let projectSummary = summary.projectSummary {
+            // Title lives in column B so autofit does not widen the Row index column (A)
+            // when the project name is long.
             sheet.setCell(
-                "A\(rowIndex)",
+                "B\(rowIndex)",
                 string: projectSummary.title,
                 format: tableHeaderFormat()
             )
@@ -382,10 +384,30 @@ enum FCPXMLReportWorkbookExporter {
             }
             
             FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet, headers: headers)
+            widenSummaryProjectTitleColumn(
+                on: sheet,
+                title: summary.projectSummary?.title
+            )
             return
         }
         
         FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet)
+        widenSummaryProjectTitleColumn(
+            on: sheet,
+            title: summary.projectSummary?.title
+        )
+    }
+    
+    /// Ensures Summary column B is wide enough for the project title in ``B1``.
+    private static func widenSummaryProjectTitleColumn(on sheet: Sheet, title: String?) {
+        guard let title, !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return
+        }
+        
+        let titleColumn = 2 // B1
+        let desired = FCPXMLReportWorkbookColumnAutoFit.summaryProjectTitleColumnWidth(for: title)
+        let current = sheet.getColumnWidth(titleColumn) ?? 0
+        sheet.setColumnWidth(titleColumn, width: max(current, desired))
     }
     
     private static func appendMediaSummary(
@@ -397,7 +419,6 @@ enum FCPXMLReportWorkbookExporter {
             name: sanitizeSheetName(FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName)
         )
         
-        var rowIndex = 1
         let missingMediaTitle = FinalCutPro.FCPXML.MediaSummaryReportSection.missingMediaSectionTitle
         
         if !mediaSummary.missingMediaPaths.isEmpty,
@@ -407,15 +428,36 @@ enum FCPXMLReportWorkbookExporter {
                metadataColumnKeys: []
            )
         {
-            setTableHeaderRow(sheet, row: rowIndex, strings: [missingMediaTitle])
-            rowIndex += 1
+            let filtered = filteredTabularSection(
+                headers: [missingMediaTitle],
+                rows: mediaSummary.missingMediaPaths.map { [$0] },
+                excludedColumns: excludedColumns
+            )
+            let headers = filtered.headers
+            setTableHeaderRow(sheet, row: 1, strings: headers)
             
-            for path in mediaSummary.missingMediaPaths {
-                sheet.setCell("A\(rowIndex)", string: path, format: missingMediaPathFormat())
-                rowIndex += 1
+            let pathColumnIndex = headers.firstIndex(of: missingMediaTitle).map { $0 + 1 }
+            
+            for (index, values) in filtered.rows.enumerated() {
+                let rowIndex = index + 2
+                sheet.setRow(rowIndex, strings: values)
+                
+                if let pathColumnIndex,
+                   values.indices.contains(pathColumnIndex - 1)
+                {
+                    let coordinate = CellCoordinate(
+                        row: rowIndex,
+                        column: pathColumnIndex
+                    ).excelAddress
+                    sheet.setCell(
+                        coordinate,
+                        string: values[pathColumnIndex - 1],
+                        format: missingMediaPathFormat()
+                    )
+                }
             }
             
-            FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet, headers: [missingMediaTitle])
+            FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet, headers: headers)
             return
         }
         

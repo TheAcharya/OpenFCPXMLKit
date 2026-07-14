@@ -280,7 +280,9 @@ final class FCPXMLReportTimecodeFormatTests: XCTestCase, @unchecked Sendable {
         let markersSheet = workbook.getSheet(
             name: FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName
         )
-        XCTAssertEqual(markersSheet?.getCellWithFormat("D1")?.value.stringValue, "Position (frames)")
+        // Markers: Row, Marker Name, Type, Notes, Position (frames), …
+        XCTAssertEqual(markersSheet?.getCellWithFormat("A1")?.value.stringValue, "Row")
+        XCTAssertEqual(markersSheet?.getCellWithFormat("E1")?.value.stringValue, "Position (frames)")
         
         let inventorySheet = workbook.getSheet(
             name: FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName

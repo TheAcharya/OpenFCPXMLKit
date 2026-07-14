@@ -55,19 +55,32 @@ enum FCPXMLReportPDFStyle {
     /// Cover page — event name, generated-on timestamp, and branding line.
     static let coverSubtitleFontSize: CGFloat = 13
     
-    /// Cover info box — “About This PDF Export” heading.
+    /// Cover info box — “About This PDF Export” heading (black header band).
     static let coverInfoTitleFontSize: CGFloat = 10
     
-    /// Cover info box — wrapped guidance paragraph body text.
-    static let coverInfoBodyFontSize: CGFloat = 8.5
+    /// Cover info box — ``info.circle`` drawn slightly larger than the title so it
+    /// matches optically (SF Symbols read smaller than Menlo at the same point size).
+    static let coverInfoSymbolSize: CGFloat = coverInfoTitleFontSize + 2
     
-    /// Inner padding for the cover info box on all sides.
+    /// Gap between the info symbol and the cover info title.
+    static let coverInfoSymbolTitleGap: CGFloat = 5
+    
+    /// Vertical padding inside the black title band (above/below the symbol + title).
+    static let coverInfoHeaderVerticalPadding: CGFloat = 8
+    
+    /// Horizontal padding for the black title band and body text.
     static let coverInfoBoxPadding: CGFloat = 12
     
-    /// Line spacing between wrapped lines inside the cover info box body.
-    static let coverInfoLineSpacing: CGFloat = 4
+    /// Cover info box — wrapped guidance paragraph body text.
+    static let coverInfoBodyFontSize: CGFloat = 7.5
     
-    /// Space between the info box title and body, and between wrapped paragraphs.
+    /// Line spacing between wrapped lines inside the cover info box body.
+    static let coverInfoLineSpacing: CGFloat = 3.5
+    
+    /// Vertical padding above/below the guidance paragraph inside the body area.
+    static let coverInfoBodyVerticalPadding: CGFloat = 12
+    
+    /// Space between wrapped paragraphs in the cover info body (when more than one).
     static let coverInfoParagraphSpacing: CGFloat = 8
     
     /// Running header — project name (bold) and sheet title / column-set label (regular).

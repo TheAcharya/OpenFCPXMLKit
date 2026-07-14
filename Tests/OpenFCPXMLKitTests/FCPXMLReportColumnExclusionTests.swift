@@ -165,9 +165,10 @@ final class FCPXMLReportColumnExclusionTests: XCTestCase {
             .makeWorkbook(from: report)
             .getSheet(name: FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName)
         
-        XCTAssertEqual(sheet?.getCellWithFormat("A1")?.value.stringValue, "Marker Name")
-        XCTAssertEqual(sheet?.getCellWithFormat("B1")?.value.stringValue, "Type")
-        XCTAssertEqual(sheet?.getCellWithFormat("C1")?.value.stringValue, "Position")
+        XCTAssertEqual(sheet?.getCellWithFormat("A1")?.value.stringValue, "Row")
+        XCTAssertEqual(sheet?.getCellWithFormat("B1")?.value.stringValue, "Marker Name")
+        XCTAssertEqual(sheet?.getCellWithFormat("C1")?.value.stringValue, "Type")
+        XCTAssertEqual(sheet?.getCellWithFormat("D1")?.value.stringValue, "Position")
         XCTAssertFalse(
             [
                 sheet?.getCellWithFormat("A1")?.value.stringValue,
@@ -175,8 +176,195 @@ final class FCPXMLReportColumnExclusionTests: XCTestCase {
                 sheet?.getCellWithFormat("C1")?.value.stringValue,
                 sheet?.getCellWithFormat("D1")?.value.stringValue,
                 sheet?.getCellWithFormat("E1")?.value.stringValue,
-                sheet?.getCellWithFormat("F1")?.value.stringValue
+                sheet?.getCellWithFormat("F1")?.value.stringValue,
+                sheet?.getCellWithFormat("G1")?.value.stringValue
             ].contains("Reel")
         )
+    }
+    
+    func testEnsuringRowColumnPrependsOneBasedIndices() {
+        let prepared = FinalCutPro.FCPXML.ReportColumnExclusion.ensuringRowColumn(
+            headers: ["Marker Name", "Type"],
+            rows: [["Marker A", "Standard"], ["Marker B", "Chapter"]],
+            excluded: []
+        )
+        
+        XCTAssertEqual(prepared.headers, ["Row", "Marker Name", "Type"])
+        XCTAssertEqual(prepared.rows, [
+            ["1", "Marker A", "Standard"],
+            ["2", "Marker B", "Chapter"]
+        ])
+    }
+    
+    func testEnsuringRowColumnRespectsRowExclusion() {
+        let prepared = FinalCutPro.FCPXML.ReportColumnExclusion.ensuringRowColumn(
+            headers: ["Marker Name", "Type"],
+            rows: [["Marker A", "Standard"]],
+            excluded: [.row]
+        )
+        
+        XCTAssertEqual(prepared.headers, ["Marker Name", "Type"])
+        XCTAssertEqual(prepared.rows, [["Marker A", "Standard"]])
+    }
+    
+    func testFilterPrependsRowThenAppliesOtherExclusions() {
+        let filtered = FinalCutPro.FCPXML.ReportColumnExclusion.filter(
+            headers: ["Marker Name", "Notes", "Reel"],
+            rows: [["Marker A", "Note", "A001"]],
+            excluded: [.notes]
+        )
+        
+        XCTAssertEqual(filtered.headers, ["Row", "Marker Name", "Reel"])
+        XCTAssertEqual(filtered.rows, [["1", "Marker A", "A001"]])
+    }
+    
+    @MainActor
+    func testWorkbookExportIncludesRowOnSectionSheets() {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test",
+            markers: FinalCutPro.FCPXML.MarkersReportSection(rows: [
+                .init(
+                    markerName: "Marker A",
+                    type: .standard,
+                    position: "00:00:01:00",
+                    clipName: "Clip",
+                    roleSubrole: "Video",
+                    sourcePosition: "01:00:01:00"
+                )
+            ]),
+            keywords: FinalCutPro.FCPXML.KeywordsReportSection(rows: [
+                .init(
+                    keyword: "KW",
+                    timelineIn: "00:00:00:00",
+                    timelineOut: "00:00:01:00",
+                    duration: "00:00:01:00",
+                    clipName: "Clip",
+                    roleSubrole: "Video"
+                )
+            ]),
+            titlesAndGenerators: FinalCutPro.FCPXML.TitlesReportSection(rows: [
+                .init(
+                    clipName: "Title",
+                    enabled: "✓",
+                    isApple: "✓",
+                    roleSubrole: "Titles",
+                    timelineIn: "00:00:00:00",
+                    timelineOut: "00:00:01:00",
+                    duration: "00:00:01:00",
+                    font: "Helvetica",
+                    titleText: "Hello"
+                )
+            ]),
+            transitions: FinalCutPro.FCPXML.TransitionsReportSection(rows: [
+                .init(
+                    transition: "Cross Dissolve",
+                    category: "Dissolve",
+                    isApple: "✓",
+                    timelineIn: "00:00:00:00",
+                    timelineOut: "00:00:01:00",
+                    duration: "00:00:01:00"
+                )
+            ]),
+            effects: FinalCutPro.FCPXML.EffectsReportSection(rows: [
+                .init(
+                    effect: "Gaussian",
+                    settings: "",
+                    enabled: "✓",
+                    isApple: "✓",
+                    clipName: "Clip",
+                    roleSubrole: "Video",
+                    timelineIn: "00:00:00:00",
+                    timelineOut: "00:00:01:00"
+                )
+            ]),
+            speedChangeEffects: FinalCutPro.FCPXML.SpeedChangeEffectsReportSection(rows: [
+                .init(
+                    effect: "50%",
+                    settings: "",
+                    enabled: "✓",
+                    isApple: "",
+                    clipName: "Clip",
+                    roleSubrole: "Video",
+                    timelineIn: "00:00:00:00",
+                    timelineOut: "00:00:02:00"
+                )
+            ]),
+            summary: FinalCutPro.FCPXML.SummaryReportSection(
+                roleDurations: [
+                    .init(roleSubrole: "Video", estimatedTotal: "00:00:10:00", percentOfTotal: 100)
+                ]
+            ),
+            mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection(
+                missingMediaPaths: ["/missing/clip.mov"]
+            )
+        )
+        
+        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
+        
+        let sheetNames = [
+            FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.KeywordsReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.TitlesReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.TransitionsReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.EffectsReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.SpeedChangeEffectsReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName
+        ]
+        
+        for name in sheetNames {
+            let sheet = workbook.getSheet(name: name)
+            XCTAssertEqual(
+                sheet?.getCellWithFormat("A1")?.value.stringValue,
+                "Row",
+                "Expected Row as first column on \(name)"
+            )
+            XCTAssertEqual(
+                sheet?.getCellWithFormat("A2")?.value.stringValue,
+                "1",
+                "Expected 1-based row index on \(name)"
+            )
+        }
+        
+        let summary = workbook.getSheet(
+            name: FinalCutPro.FCPXML.SummaryReportSection.defaultSheetName
+        )
+        XCTAssertEqual(summary?.getCellWithFormat("A1")?.value.stringValue, "Row")
+        XCTAssertEqual(summary?.getCellWithFormat("B1")?.value.stringValue, "Role ▸ Subrole")
+        XCTAssertEqual(summary?.getCellWithFormat("A2")?.value.stringValue, "1")
+    }
+    
+    @MainActor
+    func testWorkbookExportOmitsRowFromSectionSheetsWhenExcluded() {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test",
+            markers: FinalCutPro.FCPXML.MarkersReportSection(rows: [
+                .init(
+                    markerName: "Marker A",
+                    type: .standard,
+                    position: "00:00:01:00",
+                    clipName: "Clip",
+                    roleSubrole: "Video",
+                    sourcePosition: "01:00:01:00"
+                )
+            ]),
+            mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection(
+                missingMediaPaths: ["/missing/clip.mov"]
+            ),
+            excludedColumns: [.row]
+        )
+        
+        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
+        
+        let markers = workbook.getSheet(
+            name: FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName
+        )
+        XCTAssertEqual(markers?.getCellWithFormat("A1")?.value.stringValue, "Marker Name")
+        XCTAssertEqual(markers?.getCellWithFormat("A2")?.value.stringValue, "Marker A")
+        
+        let media = workbook.getSheet(
+            name: FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName
+        )
+        XCTAssertEqual(media?.getCellWithFormat("A1")?.value.stringValue, "Missing Media")
+        XCTAssertEqual(media?.getCellWithFormat("A2")?.value.stringValue, "/missing/clip.mov")
     }
 }

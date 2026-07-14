@@ -206,6 +206,58 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
         #endif
     }
     
+    func testWideMarkersTableOmitsRowWhenExcluded() throws {
+        let rows = (1...40).map { index in
+            FinalCutPro.FCPXML.MarkerReportRow(
+                markerName: "Marker \(index)",
+                type: .standard,
+                notes: "Note for marker \(index) with additional detail",
+                position: "00:00:\(String(format: "%02d", index % 60)):00",
+                clipName: "Clip \(index)",
+                roleSubrole: "Dialogue ▸ Main",
+                reel: "A\(index)",
+                scene: "\(index)",
+                sourcePosition: "00:00:\(String(format: "%02d", index % 60)):00"
+            )
+        }
+        
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Wide Table",
+            markers: FinalCutPro.FCPXML.MarkersReportSection(rows: rows),
+            excludedColumns: [.row]
+        )
+        
+        let data = try FinalCutPro.FCPXML.ReportPDFExport.makePDFData(from: report)
+        
+        #if canImport(PDFKit)
+        guard let document = PDFDocument(data: data) else {
+            XCTFail("Expected valid PDF document")
+            return
+        }
+        
+        // Cover notes may mention "Row"; assert marker continuation pages never include the column.
+        var foundMarkerContinuationWithoutRow = false
+        for pageIndex in 1..<document.pageCount {
+            guard let pageText = document.page(at: pageIndex)?.string else { continue }
+            if pageText.contains("Marker 25") {
+                XCTAssertFalse(
+                    pageText.contains("Row"),
+                    "Excluded Row must not appear on marker continuation pages"
+                )
+                foundMarkerContinuationWithoutRow = true
+                break
+            }
+        }
+        
+        XCTAssertTrue(
+            foundMarkerContinuationWithoutRow,
+            "Expected Marker 25 on a continuation page for exclusion assertion"
+        )
+        #else
+        XCTAssertGreaterThan(data.count, 4_000)
+        #endif
+    }
+    
     func testCoverPageOnlyReportProducesMinimalPDF() throws {
         let report = FinalCutPro.FCPXML.Report(projectName: "Cover Only")
         
@@ -224,7 +276,7 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
         XCTAssertTrue(coverText.contains(FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.brandingText))
         XCTAssertTrue(coverText.contains("About This PDF Export"))
         XCTAssertTrue(coverText.contains("experimental"))
-        XCTAssertTrue(coverText.contains("truncated"))
+        XCTAssertTrue(coverText.contains("truncate"))
         XCTAssertTrue(coverText.contains("Excel (.xlsx)"))
         #endif
     }

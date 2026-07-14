@@ -231,11 +231,14 @@ enum FCPXMLReportPDFExporter {
         
         if !selectedRows.isEmpty {
             canvas.drawTable(
-                context: FCPXMLReportPDFTableRenderer.TableDrawContext(
+                context: tableDrawContext(
                     pageTitle: selectedSheetName,
-                    sheetColorIndex: sheetColorIndex(for: selectedSheetName, colorIndexByTitle: colorIndexByTitle),
-                    contentHeading: nil,
-                    recordsSectionStart: recordsSectionStarts
+                    sheetColorIndex: sheetColorIndex(
+                        for: selectedSheetName,
+                        colorIndexByTitle: colorIndexByTitle
+                    ),
+                    recordsSectionStart: recordsSectionStarts,
+                    excludedColumns: excludedColumns
                 ),
                 headers: headers,
                 rows: selectedRows,
@@ -267,11 +270,14 @@ enum FCPXMLReportPDFExporter {
             )
             
             canvas.drawTable(
-                context: FCPXMLReportPDFTableRenderer.TableDrawContext(
+                context: tableDrawContext(
                     pageTitle: sheetTitle,
-                    sheetColorIndex: sheetColorIndex(for: sheetTitle, colorIndexByTitle: colorIndexByTitle),
-                    contentHeading: nil,
-                    recordsSectionStart: recordsSectionStarts
+                    sheetColorIndex: sheetColorIndex(
+                        for: sheetTitle,
+                        colorIndexByTitle: colorIndexByTitle
+                    ),
+                    recordsSectionStart: recordsSectionStarts,
+                    excludedColumns: excludedColumns
                 ),
                 headers: headers,
                 rows: rows,
@@ -307,11 +313,11 @@ enum FCPXMLReportPDFExporter {
         
         let sheetName = FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName
         canvas.drawTable(
-            context: FCPXMLReportPDFTableRenderer.TableDrawContext(
+            context: tableDrawContext(
                 pageTitle: sheetName,
                 sheetColorIndex: sheetColorIndex(for: sheetName, colorIndexByTitle: colorIndexByTitle),
-                contentHeading: nil,
-                recordsSectionStart: recordsSectionStarts
+                recordsSectionStart: recordsSectionStarts,
+                excludedColumns: excludedColumns
             ),
             headers: filtered.headers,
             rows: filtered.rows,
@@ -441,11 +447,11 @@ enum FCPXMLReportPDFExporter {
         guard !filtered.headers.isEmpty, !filtered.rows.isEmpty else { return }
         
         canvas.drawTable(
-            context: FCPXMLReportPDFTableRenderer.TableDrawContext(
+            context: tableDrawContext(
                 pageTitle: sheetName,
                 sheetColorIndex: sheetColorIndex(for: sheetName, colorIndexByTitle: colorIndexByTitle),
-                contentHeading: nil,
-                recordsSectionStart: recordsSectionStarts
+                recordsSectionStart: recordsSectionStarts,
+                excludedColumns: excludedColumns
             ),
             headers: filtered.headers,
             rows: filtered.rows,
@@ -507,11 +513,12 @@ enum FCPXMLReportPDFExporter {
             
             if !filtered.headers.isEmpty {
                 canvas.drawTable(
-                    context: FCPXMLReportPDFTableRenderer.TableDrawContext(
+                    context: tableDrawContext(
                         pageTitle: sheetName,
                         sheetColorIndex: colorIndex,
                         contentHeading: summary.projectSummary == nil ? nil : "Role Durations",
-                        recordsSectionStart: recordsSectionStarts && summary.projectSummary == nil
+                        recordsSectionStart: recordsSectionStarts && summary.projectSummary == nil,
+                        excludedColumns: excludedColumns
                     ),
                     headers: filtered.headers,
                     rows: filtered.rows
@@ -539,19 +546,44 @@ enum FCPXMLReportPDFExporter {
             return
         }
         
-        let sheetName = FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName
-        canvas.beginContentPage(
-            pageTitle: sheetName,
-            sheetColorIndex: sheetColorIndex(for: sheetName, colorIndexByTitle: colorIndexByTitle),
-            contentHeading: missingMediaTitle,
-            recordsSectionStart: recordsSectionStarts
+        let filtered = filteredTabularSection(
+            headers: [missingMediaTitle],
+            rows: mediaSummary.missingMediaPaths.map { [$0] },
+            excludedColumns: excludedColumns
         )
         
-        for path in mediaSummary.missingMediaPaths {
-            canvas.drawBodyLine(path, color: FCPXMLReportPDFStyle.missingMediaTextColor)
-        }
+        guard !filtered.headers.isEmpty, !filtered.rows.isEmpty else { return }
         
-        canvas.endContentPage()
+        let sheetName = FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName
+        canvas.drawTable(
+            context: tableDrawContext(
+                pageTitle: sheetName,
+                sheetColorIndex: sheetColorIndex(for: sheetName, colorIndexByTitle: colorIndexByTitle),
+                recordsSectionStart: recordsSectionStarts,
+                excludedColumns: excludedColumns
+            ),
+            headers: filtered.headers,
+            rows: filtered.rows,
+            rowTextColor: FCPXMLReportPDFStyle.missingMediaTextColor
+        )
+    }
+    
+    private static func tableDrawContext(
+        pageTitle: String,
+        sheetColorIndex: Int,
+        contentHeading: String? = nil,
+        recordsSectionStart: Bool,
+        excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>
+    ) -> FCPXMLReportPDFTableRenderer.TableDrawContext {
+        FCPXMLReportPDFTableRenderer.TableDrawContext(
+            pageTitle: pageTitle,
+            sheetColorIndex: sheetColorIndex,
+            contentHeading: contentHeading,
+            recordsSectionStart: recordsSectionStart,
+            allowInjectedRowColumn: FinalCutPro.FCPXML.ReportColumnExclusion.allowsInjectedRowColumn(
+                excluded: excludedColumns
+            )
+        )
     }
     
     private static func filteredTabularSection(

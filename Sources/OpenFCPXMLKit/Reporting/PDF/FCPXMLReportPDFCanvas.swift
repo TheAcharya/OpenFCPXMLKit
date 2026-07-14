@@ -12,6 +12,12 @@ import CoreGraphics
 import CoreText
 import Foundation
 
+#if canImport(AppKit)
+import AppKit
+#elseif canImport(UIKit)
+import UIKit
+#endif
+
 enum FCPXMLReportPDFCanvas {
     final class Builder {
         private let context: CGContext
@@ -158,8 +164,14 @@ enum FCPXMLReportPDFCanvas {
             let boxX = FCPXMLReportPDFStyle.margin
             let boxWidth = FCPXMLReportPDFStyle.contentWidth
             let padding = FCPXMLReportPDFStyle.coverInfoBoxPadding
+            let headerVPad = FCPXMLReportPDFStyle.coverInfoHeaderVerticalPadding
+            let bodyVPad = FCPXMLReportPDFStyle.coverInfoBodyVerticalPadding
             let innerWidth = boxWidth - (padding * 2)
             let titleFontSize = FCPXMLReportPDFStyle.coverInfoTitleFontSize
+            let symbolSize = FCPXMLReportPDFStyle.coverInfoSymbolSize
+            let symbolGap = FCPXMLReportPDFStyle.coverInfoSymbolTitleGap
+            let titleContentHeight = max(titleFontSize, symbolSize)
+            let headerHeight = headerVPad * 2 + titleContentHeight
             let bodyFontSize = FCPXMLReportPDFStyle.coverInfoBodyFontSize
             let lineSpacing = FCPXMLReportPDFStyle.coverInfoLineSpacing
             let paragraphSpacing = FCPXMLReportPDFStyle.coverInfoParagraphSpacing
@@ -173,34 +185,59 @@ enum FCPXMLReportPDFCanvas {
                 ).count
             }
             
-            let boxHeight = padding * 2
-                + titleFontSize
-                + paragraphSpacing
-                + CGFloat(bodyLineCount) * (bodyFontSize + lineSpacing)
+            let bodyTextHeight = CGFloat(bodyLineCount) * (bodyFontSize + lineSpacing)
                 + CGFloat(max(0, FCPXMLReportPDFCoverNotes.paragraphs.count - 1)) * paragraphSpacing
+            let bodyHeight = bodyVPad * 2 + bodyTextHeight
+            let boxHeight = headerHeight + bodyHeight
             
             let boxY = FCPXMLReportPDFStyle.pageSize.height
                 - FCPXMLReportPDFStyle.margin
                 - boxHeight
             
             let boxRect = CGRect(x: boxX, y: boxY, width: boxWidth, height: boxHeight)
+            let headerRect = CGRect(x: boxX, y: boxY, width: boxWidth, height: headerHeight)
+            let bodyRect = CGRect(
+                x: boxX,
+                y: boxY + headerHeight,
+                width: boxWidth,
+                height: bodyHeight
+            )
+            
+            context.setFillColor(FCPXMLReportPDFStyle.headerBackgroundColor)
+            context.fill(headerRect)
             context.setFillColor(FCPXMLReportPDFStyle.coverInfoBoxBackgroundColor)
-            context.fill(boxRect)
+            context.fill(bodyRect)
             context.setStrokeColor(FCPXMLReportPDFStyle.coverInfoBoxBorderColor)
             context.setLineWidth(0.75)
             context.stroke(boxRect)
             
-            var cursor = boxY + padding + titleFontSize
+            // Centre the symbol and title on the same optical midline in the header band.
+            let headerMidY = boxY + headerHeight / 2
+            let titleBaseline = headerMidY + titleFontSize * 0.35
+            let symbolTop = headerMidY - symbolSize / 2
+            
+            drawSFSymbol(
+                FCPXMLReportPDFCoverNotes.symbolName,
+                in: CGRect(
+                    x: boxX + padding,
+                    y: symbolTop,
+                    width: symbolSize,
+                    height: symbolSize
+                ),
+                color: FCPXMLReportPDFStyle.headerTextColor,
+                weight: .bold
+            )
             
             drawText(
                 FCPXMLReportPDFCoverNotes.title,
-                x: boxX + padding,
-                y: cursor,
+                x: boxX + padding + symbolSize + symbolGap,
+                y: titleBaseline,
                 fontName: FCPXMLReportPDFStyle.boldFontName,
                 fontSize: titleFontSize,
-                color: FCPXMLReportPDFStyle.textColor
+                color: FCPXMLReportPDFStyle.headerTextColor
             )
-            cursor += titleFontSize + paragraphSpacing
+            
+            var cursor = bodyRect.minY + bodyVPad + bodyFontSize
             
             for (index, paragraph) in FCPXMLReportPDFCoverNotes.paragraphs.enumerated() {
                 let lines = FCPXMLReportPDFTableLayout.wrappedLines(
@@ -225,6 +262,82 @@ enum FCPXMLReportPDFCanvas {
                     cursor += paragraphSpacing
                 }
             }
+        }
+        
+        /// Draws an SF Symbol into the flipped page coordinate space.
+        private func drawSFSymbol(
+            _ name: String,
+            in rect: CGRect,
+            color: CGColor,
+            weight: SFSymbolWeight = .regular
+        ) {
+            guard let image = Self.sfSymbolCGImage(
+                named: name,
+                size: max(rect.width, rect.height),
+                color: color,
+                weight: weight
+            ) else {
+                return
+            }
+            
+            context.saveGState()
+            // Page coordinates are flipped (y grows down); unflip so the glyph is upright.
+            context.translateBy(x: rect.minX, y: rect.maxY)
+            context.scaleBy(x: 1, y: -1)
+            context.draw(image, in: CGRect(origin: .zero, size: rect.size))
+            context.restoreGState()
+        }
+        
+        private enum SFSymbolWeight {
+            case regular
+            case bold
+            
+            #if canImport(AppKit)
+            var appKitWeight: NSFont.Weight {
+                switch self {
+                case .regular: return .regular
+                case .bold: return .bold
+                }
+            }
+            #endif
+            
+            #if canImport(UIKit)
+            var uiKitWeight: UIImage.SymbolWeight {
+                switch self {
+                case .regular: return .regular
+                case .bold: return .bold
+                }
+            }
+            #endif
+        }
+        
+        private static func sfSymbolCGImage(
+            named name: String,
+            size: CGFloat,
+            color: CGColor,
+            weight: SFSymbolWeight
+        ) -> CGImage? {
+            #if canImport(AppKit)
+            guard let base = NSImage(systemSymbolName: name, accessibilityDescription: nil) else {
+                return nil
+            }
+            let nsColor = NSColor(cgColor: color) ?? .secondaryLabelColor
+            let config = NSImage.SymbolConfiguration(pointSize: size, weight: weight.appKitWeight)
+                .applying(NSImage.SymbolConfiguration(paletteColors: [nsColor]))
+            guard let image = base.withSymbolConfiguration(config) else { return nil }
+            var proposed = CGRect(origin: .zero, size: CGSize(width: size, height: size))
+            return image.cgImage(forProposedRect: &proposed, context: nil, hints: nil)
+            #elseif canImport(UIKit)
+            let config = UIImage.SymbolConfiguration(pointSize: size, weight: weight.uiKitWeight)
+            guard let image = UIImage(systemName: name, withConfiguration: config)?
+                .withTintColor(UIColor(cgColor: color), renderingMode: .alwaysOriginal)
+            else {
+                return nil
+            }
+            return image.cgImage
+            #else
+            return nil
+            #endif
         }
         
         func beginContentPage(

@@ -143,4 +143,45 @@ final class FCPXMLReportPDFTableLayoutTests: XCTestCase {
         XCTAssertEqual(chunks.count, 1)
         XCTAssertEqual(chunks[0].totalWidth, contentWidth, accuracy: 0.5)
     }
+    
+    func testPreparePaginatedTableDoesNotInjectRowWhenDisallowed() {
+        let headers = (1...20).map { "Column \($0) With A Fairly Long Header Label" }
+        let rows = [
+            headers.map { header in "Value for \(header) with additional detail text" }
+        ]
+        let contentWidth = FCPXMLReportPDFStyle.contentWidth
+        
+        let prepared = FCPXMLReportPDFTableLayout.preparePaginatedTable(
+            headers: headers,
+            rows: rows,
+            contentWidth: contentWidth,
+            allowInjectedRowColumn: false
+        )
+        
+        XCTAssertFalse(
+            prepared.headers.contains(FCPXMLReportPDFTableLayout.rowColumnHeader),
+            "Excluded Row must not be injected for multi-page PDF tables"
+        )
+        XCTAssertTrue(prepared.pinnedColumnIndices.isEmpty)
+        XCTAssertEqual(prepared.rows.first?.count, headers.count)
+    }
+    
+    func testPreparePaginatedTableInjectsRowWhenAllowedAndMultiPage() {
+        let headers = (1...20).map { "Column \($0) With A Fairly Long Header Label" }
+        let rows = [
+            headers.map { header in "Value for \(header) with additional detail text" }
+        ]
+        let contentWidth = FCPXMLReportPDFStyle.contentWidth
+        
+        let prepared = FCPXMLReportPDFTableLayout.preparePaginatedTable(
+            headers: headers,
+            rows: rows,
+            contentWidth: contentWidth,
+            allowInjectedRowColumn: true
+        )
+        
+        XCTAssertEqual(prepared.headers.first, FCPXMLReportPDFTableLayout.rowColumnHeader)
+        XCTAssertEqual(prepared.pinnedColumnIndices, [0])
+        XCTAssertEqual(prepared.rows.first?.first, "1")
+    }
 }

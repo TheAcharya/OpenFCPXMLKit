@@ -9,8 +9,8 @@ This folder holds **generated** `.xlsx` workbooks and `.pdf` reports from the `E
 | File | Report preset | Description |
 |------|---------------|-------------|
 | **`OFK-Default.xlsx`** | `ReportOptions.roleInventoryOnly` | Selected Roles Inventory sheet and per-role inventory tabs only (same as CLI `--report` without `--report-full`) |
-| **`OFK-Full.xlsx`** | `ReportOptions.full` | Default sheets plus Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, Summary, and Media Summary (default timecode format `HH:MM:SS:FF`; use CLI `--timecode-format` for other modes) |
-| **`OFK-Default.pdf`** | `ReportOptions.roleInventoryOnly` | Role-inventory PDF with cover page, TOC (accent colour chips + content-tint washes keyed to sheet colour index), and section content pages (same as CLI `--report --create-pdf` without `--report-full`) |
+| **`OFK-Full.xlsx`** | `ReportOptions.full` | Default sheets plus Markers … Speed Change Effects (**Row** on each), Summary (project title in **B1**), and Media Summary (**Row** + missing paths; default timecode format `HH:MM:SS:FF`; use CLI `--timecode-format` for other modes) |
+| **`OFK-Default.pdf`** | `ReportOptions.roleInventoryOnly` + `ReportPDFExport` | Role-inventory PDF with cover (black “About This PDF Export” + `info.circle`), TOC colour chips / content-tint washes, and tinted section pages (same as CLI `--report --create-pdf` without `--report-full`) |
 | **`OFK-ExcludedColumns.pdf`** | role inventory + many `excludedColumns` | Same inventory with leftover page width redistributed across remaining columns |
 
 Each test run **overwrites** these files if they already exist.
