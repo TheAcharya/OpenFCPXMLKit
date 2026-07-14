@@ -7,6 +7,25 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.0.5](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.5) - 2026-07-14
+
+### ✨ New Features
+
+- **PDF TOC sheet colour chips:** Table of Contents rows show an accent-palette colour chip and a light content-tint wash keyed to each workbook sheet title’s sequential `colorIndex` (same index as per-sheet content-page tints, including role sheets via `FCPXMLReportPDFSheetPlan`).
+
+### 🔧 Improvements
+
+- **PDF column width fill:** After horizontal packing, remaining columns expand proportionally to fill A4 landscape `contentWidth` when leftover space remains (for example after many `excludedColumns`). Pinned **Row** columns keep their packed width; wide tables still chunk horizontally and each chunk fills the page (`FCPXMLReportPDFTableLayout`).
+- **Test suite:** Expanded to **951** tests listed in `swift test --list-tests` (**948** in `OpenFCPXMLKitTests`: 945 XCTest + 3 Swift Testing `@Test`; plus **3** optional `ExcelReportTest`), including `FCPXMLReportPDFTableLayoutTests`, `FCPXMLReportPDFSheetPlanTests`, and `testExportRoleInventoryPDFWithManyExcludedColumns` (`Output/OFK-ExcludedColumns.pdf`).
+- **ExcelReportTest fixtures:** Preferred `Sample.fcpxmld` / `Sample.fcpxml` resolution also checks under `Output/`; auto-discovery falls back there as well.
+- **Documentation:** Manual **19 — Reporting** / **16 — CLI**, CLI README, `AGENT.md`, `ARCHITECTURE.md` (§2.7 PDF presentation + mermaid), `.cursorrules`, `Tests/README.md`, and `Tests/ExcelReportTest/README.md` updated for TOC colour chips, column-width expansion, and test counts.
+
+### 🐛 Bug Fixes
+
+- **PDF tables after column exclusion:** Tables with few remaining columns no longer left a large empty band on the right of the page; leftover horizontal space is redistributed so columns fill the usable content width.
+
+---
+
 ## [3.0.4](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.4) - 2026-07-13
 
 ### ✨ New Features

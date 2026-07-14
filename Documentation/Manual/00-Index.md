@@ -26,7 +26,7 @@ Complete manual and usage guide for **OpenFCPXMLKit**, a Swift 6 framework for F
 | [16 — CLI](16-CLI.md) | Experimental command-line interface (OpenFCPXMLKit-CLI) |
 | [17 — Examples](17-Examples.md) | End-to-end workflows and code examples |
 | [18 — Cross-Platform & iOS](18-Cross-Platform-iOS.md) | XML abstraction layer, OFKXML protocols, Foundation vs AEXML backends, iOS support |
-| [19 — Reporting, Excel & PDF Export](19-Reporting.md) | Report builder, ReportOptions, ReportTimecodeFormat, ReportBuildPhase progress order, report sections, column/disabled-clip exclusion, RoleDisplayPreference, XLKit workbook export, CoreGraphics PDF export, and shared row colour policy |
+| [19 — Reporting, Excel & PDF Export](19-Reporting.md) | Report builder, ReportOptions, ReportTimecodeFormat, ReportBuildPhase progress order, report sections, column/disabled-clip exclusion, RoleDisplayPreference, XLKit workbook export, CoreGraphics PDF export (TOC colour chips, column expansion after exclusions), and shared row colour policy |
 
 ---
 

@@ -113,7 +113,7 @@ OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 | `--report-speed-change-effects` | Include the Speed Change Effects sheet (requires `--report`). |
 | `--report-summary` | Include the Summary sheet (project metrics and role-duration totals; requires `--report`). |
 | `--report-media-summary` | Include the Media Summary sheet (missing media file paths; requires `--report`). |
-| `--create-pdf` | Also write a PDF report alongside the Excel workbook (requires `--report`). Includes the same workbook sections, column exclusions, and timecode formatting when present in the report. Writes `{project-or-clip-name}.pdf` to output-dir; prints the PDF path to stdout after the `.xlsx` path. |
+| `--create-pdf` | Also write a PDF report alongside the Excel workbook (requires `--report`). Includes the same workbook sections, column exclusions, and timecode formatting when present in the report. PDF presentation includes a cover page, TOC with accent colour chips keyed to each sheet’s colour index, per-sheet content tints, and remaining columns expanded to fill page width when many columns are excluded. Writes `{project-or-clip-name}.pdf` to output-dir; prints the PDF path to stdout after the `.xlsx` path. |
 | `--report-project <name>` | Timeline name filter: matches a `<project>` name or a standalone compound-clip / `ref-clip` name when the document has more than one reportable timeline. |
 | `--exclude-role <name>` | Exclude a role or subrole from role inventory (repeatable). Excluding a main role also excludes its subroles. Case-insensitive. |
 | `--exclude-disabled-clips` | Omit disabled clips (`enabled="0"`) from all timeline-based report sections (requires `--report`). |

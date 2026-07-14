@@ -77,9 +77,8 @@ enum FCPXMLReportPDFTableLayout {
         let naturalWidths = naturalColumnWidths(headers: headers, rows: rows)
         let pinnedSet = Set(pinnedColumnIndices)
         let pinnedIndices = pinnedColumnIndices.filter { headers.indices.contains($0) }
-        let pinnedWidth = pinnedIndices.reduce(CGFloat.zero) { total, index in
-            total + clampedColumnWidth(naturalWidths[index])
-        }
+        let pinnedWidths = pinnedIndices.map { clampedColumnWidth(naturalWidths[$0]) }
+        let pinnedWidth = pinnedWidths.reduce(CGFloat.zero, +)
         let chunkableWidth = max(contentWidth - pinnedWidth, FCPXMLReportPDFStyle.minColumnWidth)
         
         var chunks: [ColumnChunk] = []
@@ -94,9 +93,10 @@ enum FCPXMLReportPDFTableLayout {
                 chunks.append(
                     makeChunk(
                         pinnedIndices: pinnedIndices,
-                        pinnedWidths: pinnedIndices.map { clampedColumnWidth(naturalWidths[$0]) },
+                        pinnedWidths: pinnedWidths,
                         chunkIndices: indices,
-                        chunkWidths: widths
+                        chunkWidths: widths,
+                        targetWidth: contentWidth
                     )
                 )
                 indices = []
@@ -113,9 +113,10 @@ enum FCPXMLReportPDFTableLayout {
             chunks.append(
                 makeChunk(
                     pinnedIndices: pinnedIndices,
-                    pinnedWidths: pinnedIndices.map { clampedColumnWidth(naturalWidths[$0]) },
+                    pinnedWidths: pinnedWidths,
                     chunkIndices: indices,
-                    chunkWidths: widths
+                    chunkWidths: widths,
+                    targetWidth: contentWidth
                 )
             )
         }
@@ -123,16 +124,66 @@ enum FCPXMLReportPDFTableLayout {
         return chunks
     }
     
+    /// Builds a chunk and expands column widths to fill ``targetWidth`` when content-based
+    /// sizes leave unused horizontal space (e.g. after many ``excludedColumns``).
+    ///
+    /// Packing still uses ``clampedColumnWidth`` / ``maxColumnWidth`` so wide tables chunk
+    /// horizontally. Expansion happens after a chunk's column set is fixed, so remaining
+    /// columns grow into leftover page width. Pinned columns (``Row``) keep their packed
+    /// width; slack goes to the other columns proportionally.
     private static func makeChunk(
         pinnedIndices: [Int],
         pinnedWidths: [CGFloat],
         chunkIndices: [Int],
-        chunkWidths: [CGFloat]
+        chunkWidths: [CGFloat],
+        targetWidth: CGFloat
     ) -> ColumnChunk {
-        ColumnChunk(
-            columnIndices: pinnedIndices + chunkIndices,
-            widths: pinnedWidths + chunkWidths
-        )
+        let columnIndices = pinnedIndices + chunkIndices
+        var widths = pinnedWidths + chunkWidths
+        expandWidthsToFill(&widths, pinnedCount: pinnedWidths.count, targetWidth: targetWidth)
+        return ColumnChunk(columnIndices: columnIndices, widths: widths)
+    }
+    
+    /// Distributes leftover space so ``widths`` sum to ``targetWidth`` when underfull.
+    ///
+    /// - Prefer expanding non-pinned columns (``pinnedCount..<end``).
+    /// - If every column is pinned, expand all of them.
+    /// - Shares are proportional to each expandable column's current width; the last
+    ///   expandable column absorbs residual rounding error so the sum matches exactly.
+    private static func expandWidthsToFill(
+        _ widths: inout [CGFloat],
+        pinnedCount: Int,
+        targetWidth: CGFloat
+    ) {
+        guard !widths.isEmpty else { return }
+        
+        let totalWidth = widths.reduce(CGFloat.zero, +)
+        let slack = targetWidth - totalWidth
+        guard slack > 0.5 else { return }
+        
+        let expandableRange: Range<Int>
+        if pinnedCount < widths.count {
+            expandableRange = pinnedCount..<widths.count
+        } else {
+            expandableRange = widths.indices
+        }
+        
+        let expandableTotal = widths[expandableRange].reduce(CGFloat.zero, +)
+        var distributed: CGFloat = 0
+        let expandableIndices = Array(expandableRange)
+        
+        for (offset, index) in expandableIndices.enumerated() {
+            let share: CGFloat
+            if offset == expandableIndices.count - 1 {
+                share = slack - distributed
+            } else if expandableTotal > 0 {
+                share = slack * (widths[index] / expandableTotal)
+            } else {
+                share = slack / CGFloat(expandableIndices.count)
+            }
+            widths[index] += share
+            distributed += share
+        }
     }
     
     private static func clampedColumnWidth(_ naturalWidth: CGFloat) -> CGFloat {

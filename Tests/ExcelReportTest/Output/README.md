@@ -10,7 +10,8 @@ This folder holds **generated** `.xlsx` workbooks and `.pdf` reports from the `E
 |------|---------------|-------------|
 | **`OFK-Default.xlsx`** | `ReportOptions.roleInventoryOnly` | Selected Roles Inventory sheet and per-role inventory tabs only (same as CLI `--report` without `--report-full`) |
 | **`OFK-Full.xlsx`** | `ReportOptions.full` | Default sheets plus Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, Summary, and Media Summary (default timecode format `HH:MM:SS:FF`; use CLI `--timecode-format` for other modes) |
-| **`OFK-Default.pdf`** | `ReportOptions.roleInventoryOnly` | Role-inventory PDF with cover page, table of contents, and section content pages (same as CLI `--report --create-pdf` without `--report-full`) |
+| **`OFK-Default.pdf`** | `ReportOptions.roleInventoryOnly` | Role-inventory PDF with cover page, TOC (accent colour chips + content-tint washes keyed to sheet colour index), and section content pages (same as CLI `--report --create-pdf` without `--report-full`) |
+| **`OFK-ExcludedColumns.pdf`** | role inventory + many `excludedColumns` | Same inventory with leftover page width redistributed across remaining columns |
 
 Each test run **overwrites** these files if they already exist.
 
@@ -49,6 +50,7 @@ OpenFCPXMLKit-CLI --report --report-full --create-pdf /path/to/fixture.fcpxmld /
 
 ## Notes
 
-- Output file names are fixed (`OFK-Default.xlsx`, `OFK-Full.xlsx`, `OFK-Default.pdf`) so paths stay stable for scripts and future parity tests.  
+- Output file names are fixed (`OFK-Default.xlsx`, `OFK-Full.xlsx`, `OFK-Default.pdf`, `OFK-ExcludedColumns.pdf`) so paths stay stable for scripts and future parity tests.  
 - The CLI names files after the **project or compound-clip name** inside the FCPXML; test output uses these constant names instead.  
+- Fixture bundles used for local investigation (e.g. `Sample.fcpxmld`) may also live here; discovery prefers root `Sample.*`, then falls back to `Output/`.  
 - Do not commit large generated workbooks or PDFs unless you intentionally add golden files for regression testing.

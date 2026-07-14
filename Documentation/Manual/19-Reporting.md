@@ -22,7 +22,7 @@ Everything lives under **`FinalCutPro.FCPXML`**:
 
 All **build** APIs are **async**. PDF export is **synchronous** once a `Report` exists.
 
-**Configuration parity:** Build the report **once** with `ReportOptions`, then export to Excel, PDF, or both. Section flags, `excludedColumns`, `excludedRoles`, `excludeDisabledClips`, `timecodeFormat`, and `projectName` all apply to both exporters. PDF adds presentation-only features (cover page, table of contents, pagination, truncation) on top of the same `Report` data.
+**Configuration parity:** Build the report **once** with `ReportOptions`, then export to Excel, PDF, or both. Section flags, `excludedColumns`, `excludedRoles`, `excludeDisabledClips`, `timecodeFormat`, and `projectName` all apply to both exporters. PDF adds presentation-only features (cover page, TOC with sheet colour chips + tint washes, per-sheet content tints, pagination, remaining-column width expansion after exclusions, truncation) on top of the same `Report` data.
 
 ---
 
@@ -456,19 +456,21 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 
 Throws **ReportPDFExportError** (`couldNotCreateDocument`, `couldNotWriteFile`) on failure.
 
+**Public API surface:** build with `FinalCutPro.FCPXML.buildReport(options:)` (or `ReportBuilder`), then call `ReportPDFExport.makePDFData(from:)` / `export(_:to:)`. TOC colour chips, per-sheet tints, and column-width expansion are presentation behaviour of that export path (internal helpers: `FCPXMLReportPDFSheetPlan`, `FCPXMLReportPDFTableLayout`, `FCPXMLReportPDFStyle` / Canvas). No additional public types are required to opt in — excluding columns via `ReportOptions.excludedColumns` is enough for remaining columns to expand; every planned workbook sheet already carries a sequential colour index for TOC + content pages.
+
 ### Layout and presentation
 
 PDF export mirrors Excel **section order** and **sheet names** (via `FCPXMLReportPDFSheetPlan`):
 
 1. **Cover page** — project name, event name (when present), generated timestamp, experimental-notice info box, and `exportBrandingText`.
-2. **Table of contents** — one or more pages listing every included section with start page numbers (built dynamically in a two-pass render so page numbers are accurate). The TOC is not a workbook sheet in Excel; it is PDF-only.
+2. **Table of contents** — one or more pages listing every included section with start page numbers (built dynamically in a two-pass render so page numbers are accurate). The TOC is not a workbook sheet in Excel; it is PDF-only. Each TOC row uses the **same colour index** as that sheet’s content pages: a small **accent-palette colour chip** beside the row number, plus a light **content-tint wash** on the row (Menlo text stays high-contrast on the near-white wash).
 3. **Content pages** — each enabled section, in workbook order, with running header (project name + section title) and footer (branding + page number).
 
 Per-section presentation:
 
 - **Per-sheet tint** — pages that belong to the same workbook section share a subtle background tint between the header rule and footer rule.
 - **Row colours** — the same rules as Excel (`FCPXMLReportRowColorPolicy`): role inventory category colours, marker-type colours, keywords/titles/effects/transitions inference, red missing-media paths.
-- **Tables** — black header row with white text; body uses Menlo. Column widths are measured from content (clamped min/max) and wide tables **paginate horizontally** into column sets (running header shows `Columns 2 of 5` when chunked).
+- **Tables** — black header row with white text; body uses Menlo. Column widths are measured from content (clamped for horizontal packing), then **expanded proportionally to fill the A4 landscape content width** when leftover space remains (for example after many `excludedColumns`). Wide tables still **paginate horizontally** into column sets (running header shows `Columns 2 of 5` when chunked); each set also fills the page width. Pinned **Row** columns keep their packed width.
 - **Truncation** — cell text that exceeds column width is ellipsized (`…`). For the full untruncated dataset, use the Excel export.
 - **Row traceability** — on multi-page or multi-column-set tables, a **Row** (`#`) column is injected and pinned on the left when not already present.
 
