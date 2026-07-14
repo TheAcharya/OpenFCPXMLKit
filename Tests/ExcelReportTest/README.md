@@ -6,7 +6,7 @@ Optional integration tests that build real `.xlsx` workbooks and `.pdf` reports 
 **Depends on:** `OpenFCPXMLKit`, `XLKit`  
 **Tests:** 3 (`ExcelReportExportTests`)
 
-Unit-level reporting behaviour (column layout, column exclusion, disabled-clip filtering, timecode formats / DF·NDF, format-aware headers, build-phase order, workbook cell formatting, PDF cover/TOC/pagination, shared row colours, **standalone compound-clip timeline resolution**) lives in **`OpenFCPXMLKitTests`** — see [Tests/README.md](../README.md#reporting--excelpdf-export) (`FCPXMLCompoundClipReportTests`, `FCPXMLReportPDFExportTests`, and related files).
+Unit-level reporting behaviour (column layout, column exclusion, disabled-clip filtering, timecode formats / DF·NDF, format-aware headers, build-phase order, workbook cell formatting, PDF cover/TOC colour chips, column-width expansion after exclusions, pagination, shared row colours, **standalone compound-clip timeline resolution**) lives in **`OpenFCPXMLKitTests`** — see [Tests/README.md](../README.md#reporting--excelpdf-export) (`FCPXMLCompoundClipReportTests`, `FCPXMLReportPDFExportTests`, `FCPXMLReportPDFSheetPlanTests`, `FCPXMLReportPDFTableLayoutTests`, and related files).
 
 ---
 
@@ -25,7 +25,8 @@ Relative media paths for the **Media Summary** sheet are resolved from the bundl
 
 1. **Environment variable** — `OFK_REPORTING_FCPXML_BUNDLE` set to a `.fcpxml` path or `.fcpxmld` bundle path  
 2. **Preferred local names** — `Sample.fcpxmld` then `Sample.fcpxml` in this directory  
-3. **Auto-discovery** — first valid `.fcpxml` / `.fcpxmld` in this directory (excluding `Output/`, Swift sources, and markdown)
+3. **Preferred under `Output/`** — `Output/Sample.fcpxmld` then `Output/Sample.fcpxml` (convenient when fixtures sit beside generated workbooks)  
+4. **Auto-discovery** — first valid `.fcpxml` / `.fcpxmld` in this directory, then under `Output/` (skips Swift sources, markdown, `.xlsx`, and `.pdf`)
 
 If no fixture is found, tests **skip** (`XCTSkip`) so CI can pass without a local fixture.
 
@@ -60,10 +61,10 @@ Running the export tests writes workbooks and a sample PDF to **`Output/`** (als
 |------|---------------|----------------|----------|
 | `Output/OFK-Default.xlsx` | `ReportOptions.roleInventoryOnly` | `OpenFCPXMLKit-CLI --report <fixture> <dir>` | **Selected Roles Inventory** + per-role sheets (23 fixed columns + Row + dynamic metadata keys) |
 | `Output/OFK-Full.xlsx` | `ReportOptions.full` | `OpenFCPXMLKit-CLI --report --report-full <fixture> <dir>` | Default sheets plus Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, **Summary** (project title header + black data rows), and **Media Summary** (red missing-media paths) |
-| `Output/OFK-Default.pdf` | `ReportOptions.roleInventoryOnly` | `OpenFCPXMLKit-CLI --report --create-pdf <fixture> <dir>` | Role-inventory PDF with cover page, TOC, and per-sheet tinted content pages |
+| `Output/OFK-Default.pdf` | `ReportOptions.roleInventoryOnly` | `OpenFCPXMLKit-CLI --report --create-pdf <fixture> <dir>` | Role-inventory PDF with cover page, TOC (accent colour chips + content-tint washes per sheet `colorIndex`), and per-sheet tinted content pages |
 | `Output/OFK-ExcludedColumns.pdf` | role inventory + many `excludedColumns` | `--report --create-pdf --exclude-column …` | Same sheets with remaining columns expanded to fill A4 landscape width |
 
-Cell colours, header styling, and section-sheet colour rules are covered by **`FCPXMLReportExcelExportTests`** and **`FCPXMLReportPDFExportTests`** in `OpenFCPXMLKitTests`. This integration target checks that a real fixture produces complete workbooks and a readable PDF; open `OFK-Full.xlsx` or a full `--create-pdf` export locally to compare layout against a reference export if you maintain one.
+Cell colours, header styling, section-sheet colour rules, TOC colour chips, and PDF column-width expansion are covered by **`FCPXMLReportExcelExportTests`**, **`FCPXMLReportPDFExportTests`**, **`FCPXMLReportPDFSheetPlanTests`**, and **`FCPXMLReportPDFTableLayoutTests`** in `OpenFCPXMLKitTests`. This integration target checks that a real fixture produces complete workbooks and readable PDFs; open `OFK-Full.xlsx`, `OFK-Default.pdf`, or `OFK-ExcludedColumns.pdf` locally to compare layout against a reference export if you maintain one.
 
 See [Output/README.md](Output/README.md) for details on that folder.
 
@@ -110,7 +111,7 @@ See [Documentation/Manual/19-Reporting.md](../../Documentation/Manual/19-Reporti
 ## Running tests
 
 ```bash
-# Export Default + Full workbooks and Default PDF (requires a local fixture)
+# Export Default + Full workbooks, Default PDF, and Excluded-columns PDF (requires a local fixture)
 swift test --filter ExcelReportExportTests
 
 # Entire Excel report target
@@ -125,9 +126,9 @@ First run on a large fixture can take ~1–2 minutes (report build + XLKit save;
 
 | File | Purpose |
 |------|---------|
-| `ExcelReportFixture.swift` | Resolves fixture URL, `mediaBaseURL`, and `Output/` path; defines output file names |
-| `ExcelReportExportTests.swift` | Builds and writes `OFK-Default.xlsx`, `OFK-Full.xlsx`, and `OFK-Default.pdf` |
-| `Output/` | Generated workbooks and PDFs (created by tests; gitignored) |
+| `ExcelReportFixture.swift` | Resolves fixture URL (including under `Output/`), `mediaBaseURL`, and `Output/` path; defines output file names |
+| `ExcelReportExportTests.swift` | Builds and writes `OFK-Default.xlsx`, `OFK-Full.xlsx`, `OFK-Default.pdf`, and `OFK-ExcludedColumns.pdf` |
+| `Output/` | Generated workbooks and PDFs (created by tests; gitignored); may also hold local investigation fixtures such as `Sample.fcpxmld` |
 
 ---
 

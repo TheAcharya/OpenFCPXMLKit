@@ -22,7 +22,7 @@ Everything lives under **`FinalCutPro.FCPXML`**:
 
 All **build** APIs are **async**. PDF export is **synchronous** once a `Report` exists.
 
-**Configuration parity:** Build the report **once** with `ReportOptions`, then export to Excel, PDF, or both. Section flags, `excludedColumns`, `excludedRoles`, `excludeDisabledClips`, `timecodeFormat`, and `projectName` all apply to both exporters. PDF adds presentation-only features (cover page, table of contents, pagination, truncation) on top of the same `Report` data.
+**Configuration parity:** Build the report **once** with `ReportOptions`, then export to Excel, PDF, or both. Section flags, `excludedColumns`, `excludedRoles`, `excludeDisabledClips`, `timecodeFormat`, and `projectName` all apply to both exporters. PDF adds presentation-only features (cover page, TOC with sheet colour chips + tint washes, per-sheet content tints, pagination, remaining-column width expansion after exclusions, truncation) on top of the same `Report` data.
 
 ---
 
@@ -455,6 +455,8 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 ```
 
 Throws **ReportPDFExportError** (`couldNotCreateDocument`, `couldNotWriteFile`) on failure.
+
+**Public API surface:** build with `FinalCutPro.FCPXML.buildReport(options:)` (or `ReportBuilder`), then call `ReportPDFExport.makePDFData(from:)` / `export(_:to:)`. TOC colour chips, per-sheet tints, and column-width expansion are presentation behaviour of that export path (internal helpers: `FCPXMLReportPDFSheetPlan`, `FCPXMLReportPDFTableLayout`, `FCPXMLReportPDFStyle` / Canvas). No additional public types are required to opt in — excluding columns via `ReportOptions.excludedColumns` is enough for remaining columns to expand; every planned workbook sheet already carries a sequential colour index for TOC + content pages.
 
 ### Layout and presentation
 
