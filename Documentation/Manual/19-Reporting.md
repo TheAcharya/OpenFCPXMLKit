@@ -166,6 +166,8 @@ A section property is `nil` when that section was not requested. Every section c
 
 ### Sections and columns
 
+**Row column (all tabular sheets):** Excel and PDF export prepend a 1-based **Row** column to every tabular sheet — Selected Roles Inventory and per-role sheets, Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, the Summary role-duration table, and Media Summary — unless `ReportColumn.row` is excluded. Inventory sheets include Row in their layout; other sheets receive it at export via **`ReportColumnExclusion.ensuringRowColumn`**. PDF pagination pins or injects the same column for multi-page / multi-column-set tables (see [PDF export](#pdf-export)).
+
 #### Role inventory
 
 **RoleInventoryReportSection** contains:
@@ -210,38 +212,38 @@ Use **RoleInventoryColumnLayout** (internal layout helper) or `RoleClipReportRow
 
 #### Markers
 
-**MarkersReportSection** of **MarkerReportRow**: Marker Name, Type, Notes, Position, Clip Name, Role ▸ Subrole, Reel, Scene, Source Position.
+**MarkersReportSection** of **MarkerReportRow**: **Row**, Marker Name, Type, Notes, Position, Clip Name, Role ▸ Subrole, Reel, Scene, Source Position. (**Row** is added at export unless excluded.)
 
 **MarkerReportType**: `.standard`, `.incompleteToDo`, `.completedToDo`, `.chapter`.
 
 #### Keywords
 
-**KeywordsReportSection** of **KeywordReportRow**: Keyword, Notes, Timeline In/Out, Duration, Clip Name, Role ▸ Subrole, Reel, Scene.
+**KeywordsReportSection** of **KeywordReportRow**: **Row**, Keyword, Notes, Timeline In/Out, Duration, Clip Name, Role ▸ Subrole, Reel, Scene.
 
 #### Titles & Generators
 
-**TitlesReportSection** of **TitleReportRow**: Clip Name, Enabled, Apple, Role ▸ Subrole, Timeline In/Out, Duration, Font, Title Text.
+**TitlesReportSection** of **TitleReportRow**: **Row**, Clip Name, Enabled, Apple, Role ▸ Subrole, Timeline In/Out, Duration, Font, Title Text.
 
 #### Transitions
 
-**TransitionsReportSection** of **TransitionReportRow**: Transition, Category, Apple, Timeline In/Out, Duration.
+**TransitionsReportSection** of **TransitionReportRow**: **Row**, Transition, Category, Apple, Timeline In/Out, Duration.
 
 #### Video & Audio Effects
 
-**EffectsReportSection** of **EffectReportRow**: Effect, Settings, Enabled, Apple, Clip Name, Role ▸ Subrole, Timeline In/Out.
+**EffectsReportSection** of **EffectReportRow**: **Row**, Effect, Settings, Enabled, Apple, Clip Name, Role ▸ Subrole, Timeline In/Out.
 
 #### Speed Change Effects
 
-**SpeedChangeEffectsReportSection** (reuses **EffectReportRow**).
+**SpeedChangeEffectsReportSection** (reuses **EffectReportRow**, including leading **Row** at export).
 
 #### Summary
 
 **SummaryReportSection** (`defaultSheetName`: **Summary**):
 
 - `projectSummary: ProjectSummary?` — title, duration, resolution, frame rate, audio sample rate.
-- `roleDurations: [SummaryRoleDurationRow]` — Role ▸ Subrole, Estimated Total, % of Total.
+- `roleDurations: [SummaryRoleDurationRow]` — **Row**, Role ▸ Subrole, Estimated Total, % of Total (Row prepended at export).
 
-In Excel export, the **project title** uses the table header style (bold white text on a black fill). Project metrics and role-duration rows use default **black** text (no role colour coding). The **% of Total** value is stored as a fraction (for example `0.42`) and written as a numeric cell with percentage number format (`0.0%`).
+In Excel export, the **project title** is written in **B1** (not A1) with table-header style (bold white text on a black fill) so column **A** stays a narrow **Row** index. Column **B** is auto-fit with a generous title-based minimum width. Project metrics and role-duration body cells use default **black** text (no role colour coding). The **% of Total** value is stored as a fraction (for example `0.42`) and written as a numeric cell with percentage number format (`0.0%`).
 
 See [Sheet order and formatting](#sheet-order-and-formatting) for colours on other sheets.
 
@@ -251,7 +253,7 @@ See [Sheet order and formatting](#sheet-order-and-formatting) for colours on oth
 
 - `missingMediaPaths: [String]` — file paths that could not be resolved on disk.
 
-The sheet renders a **Missing Media** section with a black header row (matching other report sheets). Each missing file path is written in **red** text (`#FF0000`). Relative paths are resolved against `mediaBaseURL` when provided.
+The sheet renders **Row** | **Missing Media** (black header row). Each missing file path is written in **red** text (`#FF0000`). Relative paths are resolved against `mediaBaseURL` when provided.
 
 ---
 
@@ -280,11 +282,13 @@ let report = try await fcpxml.buildReport(options: options)
 
 At build time, labels are resolved to `Set<ReportColumn>` and stored on **`Report.excludedColumns`**. Excel and PDF export apply the same filtering to role inventory sheets, markers, keywords, titles, transitions, effects, speed-change effects, summary (including project metric cells), and media summary.
 
+**`ReportColumnExclusion.filter`** calls **`ensuringRowColumn`** first (prepends the 1-based **Row** column unless `.row` is excluded), then removes other excluded columns. PDF table pagination uses **`allowsInjectedRowColumn(excluded:)`** so excluding `.row` also suppresses multi-page / multi-column-set Row injection (`preparePaginatedTable(allowInjectedRowColumn:)`).
+
 ### ReportColumn cases
 
 | Case | Primary header | Notes |
 |------|----------------|-------|
-| `.row` | Row | Row index on inventory sheets |
+| `.row` | Row | 1-based row index on **all** Excel/PDF tabular sheets (inventory, Markers … Media Summary, Summary role-duration table). Also suppresses PDF multi-page / multi-column-set Row injection. Aliases: Row Numbers, Row Number. |
 | `.roleSubrole` | Role ▸ Subrole | |
 | `.clipName` | Clip Name | |
 | `.category` | Category | |
@@ -420,9 +424,9 @@ Role/subrole cells are colour-coded by category on inventory sheets (video/capti
 
 Section sheets without a Category column use sheet-specific colour rules: **Keywords** rows are always blue; **Titles & Generators** infer purple for title roles; **Video & Audio Effects** and **Speed Change Effects** infer blue for video/VFX/title-host rows and green for audio roles; **Transitions** use gray text.
 
-The **Summary** sheet uses default black text for project metrics and role-duration data. The **project title** (row 1) and column header rows use the standard table header style: bold white text on a black fill.
+The **Summary** sheet uses default black text for project metrics and role-duration data. The **project title** is in **B1** (table header style: bold white on black) so column **A** remains a narrow **Row** index; column **B** uses a generous title-based width. Role-duration column headers (including **Row**) and body cells follow the same black/white header convention as other sheets.
 
-The **Media Summary** sheet lists missing file paths in **red** (`#FF0000`).
+The **Media Summary** sheet lists missing file paths in **red** (`#FF0000`), with a leading **Row** column unless excluded.
 
 **Markers** use marker-type colours for the whole row: standard blue, incomplete to-do red, completed to-do green, chapter orange.
 
@@ -462,7 +466,7 @@ Throws **ReportPDFExportError** (`couldNotCreateDocument`, `couldNotWriteFile`) 
 
 PDF export mirrors Excel **section order** and **sheet names** (via `FCPXMLReportPDFSheetPlan`):
 
-1. **Cover page** — project name, event name (when present), generated timestamp, experimental-notice info box, and `exportBrandingText`.
+1. **Cover page** — project name, event name (when present), generated timestamp, `exportBrandingText`, and an info box with a **black header band** (white **`info.circle`** SF Symbol + title **“About This PDF Export”**) and a smaller body paragraph describing experimental A4-landscape export, pagination/truncation, the default **Row** column (excludable like Excel), tinted matching pages, and a pointer to the companion `.xlsx` for the full dataset.
 2. **Table of contents** — one or more pages listing every included section with start page numbers (built dynamically in a two-pass render so page numbers are accurate). The TOC is not a workbook sheet in Excel; it is PDF-only. Each TOC row uses the **same colour index** as that sheet’s content pages: a small **accent-palette colour chip** beside the row number, plus a light **content-tint wash** on the row (Menlo text stays high-contrast on the near-white wash).
 3. **Content pages** — each enabled section, in workbook order, with running header (project name + section title) and footer (branding + page number).
 
@@ -472,7 +476,7 @@ Per-section presentation:
 - **Row colours** — the same rules as Excel (`FCPXMLReportRowColorPolicy`): role inventory category colours, marker-type colours, keywords/titles/effects/transitions inference, red missing-media paths.
 - **Tables** — black header row with white text; body uses Menlo. Column widths are measured from content (clamped for horizontal packing), then **expanded proportionally to fill the A4 landscape content width** when leftover space remains (for example after many `excludedColumns`). Wide tables still **paginate horizontally** into column sets (running header shows `Columns 2 of 5` when chunked); each set also fills the page width. Pinned **Row** columns keep their packed width.
 - **Truncation** — cell text that exceeds column width is ellipsized (`…`). For the full untruncated dataset, use the Excel export.
-- **Row traceability** — on multi-page or multi-column-set tables, a **Row** (`#`) column is injected and pinned on the left when not already present.
+- **Row column** — included by default on all tabular content (same as Excel) via **`ensuringRowColumn`**. On multi-page or multi-column-set tables, Row is **pinned** on the left; if headers lack Row and injection is allowed, PDF injects it via **`preparePaginatedTable(allowInjectedRowColumn:)`**. Exclude `ReportColumn.row` (CLI `--exclude-column Row`) to omit Row everywhere, including continuation pages.
 
 ### Configuration reflected in PDF
 

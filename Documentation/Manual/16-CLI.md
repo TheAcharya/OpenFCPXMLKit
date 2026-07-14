@@ -90,7 +90,7 @@ Common values:
 
 | CLI value | Effect |
 |-----------|--------|
-| `Row Numbers` | Removes the Row index column on inventory sheets |
+| `Row` / `Row Numbers` | Removes the Row index column from **every** Excel and PDF tabular sheet, including PDF multi-page Row injection |
 | `Role Subrole` | Removes Role ▸ Subrole |
 | `Reel`, `Scene`, `Take` | Removes the named fixed column |
 | `Metadata` | Removes all dynamic metadata key columns on role inventory sheets |

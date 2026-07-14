@@ -6,7 +6,7 @@ Optional integration tests that build real `.xlsx` workbooks and `.pdf` reports 
 **Depends on:** `OpenFCPXMLKit`, `XLKit`  
 **Tests:** 3 (`ExcelReportExportTests`)
 
-Unit-level reporting behaviour (column layout, column exclusion, disabled-clip filtering, timecode formats / DF·NDF, format-aware headers, build-phase order, workbook cell formatting, PDF cover/TOC colour chips, column-width expansion after exclusions, pagination, shared row colours, **standalone compound-clip timeline resolution**) lives in **`OpenFCPXMLKitTests`** — see [Tests/README.md](../README.md#reporting--excelpdf-export) (`FCPXMLCompoundClipReportTests`, `FCPXMLReportPDFExportTests`, `FCPXMLReportPDFSheetPlanTests`, `FCPXMLReportPDFTableLayoutTests`, and related files).
+Unit-level reporting behaviour (universal **Row** on all tabular sheets, Summary title in **B1**, column layout, column exclusion including `ReportColumn.row`, disabled-clip filtering, timecode formats / DF·NDF, format-aware headers, build-phase order, workbook cell formatting, PDF cover notes / black header + `info.circle`, TOC colour chips, column-width expansion after exclusions, pagination, shared row colours, **standalone compound-clip timeline resolution**) lives in **`OpenFCPXMLKitTests`** — see [Tests/README.md](../README.md#reporting--excelpdf-export) (`FCPXMLCompoundClipReportTests`, `FCPXMLReportPDFExportTests`, `FCPXMLReportPDFSheetPlanTests`, `FCPXMLReportPDFTableLayoutTests`, `FCPXMLReportColumnExclusionTests`, and related files).
 
 ---
 
@@ -59,9 +59,9 @@ Running the export tests writes workbooks and a sample PDF to **`Output/`** (als
 
 | File | Report preset | CLI equivalent | Contents |
 |------|---------------|----------------|----------|
-| `Output/OFK-Default.xlsx` | `ReportOptions.roleInventoryOnly` | `OpenFCPXMLKit-CLI --report <fixture> <dir>` | **Selected Roles Inventory** + per-role sheets (23 fixed columns + Row + dynamic metadata keys) |
-| `Output/OFK-Full.xlsx` | `ReportOptions.full` | `OpenFCPXMLKit-CLI --report --report-full <fixture> <dir>` | Default sheets plus Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, **Summary** (project title header + black data rows), and **Media Summary** (red missing-media paths) |
-| `Output/OFK-Default.pdf` | `ReportOptions.roleInventoryOnly` | `OpenFCPXMLKit-CLI --report --create-pdf <fixture> <dir>` | Role-inventory PDF with cover page, TOC (accent colour chips + content-tint washes per sheet `colorIndex`), and per-sheet tinted content pages |
+| `Output/OFK-Default.xlsx` | `ReportOptions.roleInventoryOnly` | `OpenFCPXMLKit-CLI --report <fixture> <dir>` | **Selected Roles Inventory** + per-role sheets (**Row** + 23 fixed columns + dynamic metadata keys) |
+| `Output/OFK-Full.xlsx` | `ReportOptions.full` | `OpenFCPXMLKit-CLI --report --report-full <fixture> <dir>` | Default sheets plus Markers … Speed Change Effects (**Row** on each), **Summary** (project title in **B1**, narrow Row column A, black data rows), and **Media Summary** (**Row** + red missing-media paths) |
+| `Output/OFK-Default.pdf` | `ReportOptions.roleInventoryOnly` | `OpenFCPXMLKit-CLI --report --create-pdf <fixture> <dir>` | Role-inventory PDF with cover page (black “About This PDF Export” + `info.circle`), TOC (accent colour chips + content-tint washes per sheet `colorIndex`), and per-sheet tinted content pages |
 | `Output/OFK-ExcludedColumns.pdf` | role inventory + many `excludedColumns` | `--report --create-pdf --exclude-column …` | Same sheets with remaining columns expanded to fill A4 landscape width |
 
 Cell colours, header styling, section-sheet colour rules, TOC colour chips, and PDF column-width expansion are covered by **`FCPXMLReportExcelExportTests`**, **`FCPXMLReportPDFExportTests`**, **`FCPXMLReportPDFSheetPlanTests`**, and **`FCPXMLReportPDFTableLayoutTests`** in `OpenFCPXMLKitTests`. This integration target checks that a real fixture produces complete workbooks and readable PDFs; open `OFK-Full.xlsx`, `OFK-Default.pdf`, or `OFK-ExcludedColumns.pdf` locally to compare layout against a reference export if you maintain one.

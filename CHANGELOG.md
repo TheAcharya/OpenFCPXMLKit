@@ -7,6 +7,25 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.0.6](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.6) - 2026-07-15
+
+### ✨ New Features
+
+- **Universal report Row column:** Excel and PDF tabular sheets (Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, Summary role-duration table, Media Summary, plus role inventory) include a 1-based **Row** column by default via `ReportColumnExclusion.ensuringRowColumn`. PDF multi-page / multi-column-set injection uses `allowsInjectedRowColumn` / `preparePaginatedTable(allowInjectedRowColumn:)`. CLI `--exclude-column Row` (aliases: Row Numbers, Row Number) omits Row everywhere.
+
+### 🔧 Improvements
+
+- **Summary Excel layout:** Project title moves to **B1** so column A stays a narrow **Row** column; title column width uses a generous autofit range (`summaryProjectTitleColumnWidth`).
+- **PDF cover notes:** Black “About This PDF Export” header band with white `info.circle` SF Symbol; tightened cover body copy (default Row; exclude via `--exclude-column Row`).
+- **Test suite:** Expanded to **960** tests listed in `swift test --list-tests` (**957** in `OpenFCPXMLKitTests`: 954 XCTest + 3 Swift Testing `@Test`; plus **3** optional `ExcelReportTest`).
+- **Documentation:** Manual **19 — Reporting** / **16 — CLI**, CLI README, `AGENT.md`, `.cursorrules`, `ARCHITECTURE.md` (§2.7 + mermaid test counts), `Tests/README.md`, and `Tests/ExcelReportTest/README.md` updated for universal Row, Summary **B1**, PDF cover polish, and test counts.
+
+### 🐛 Bug Fixes
+
+- **Summary Row column width:** Long project titles no longer inflate the Excel **Row** column when the title shared column A.
+
+---
+
 ## [3.0.5](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.5) - 2026-07-14
 
 ### ✨ New Features

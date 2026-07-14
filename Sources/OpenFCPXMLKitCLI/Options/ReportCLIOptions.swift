@@ -101,9 +101,9 @@ struct ReportCLIOptions: ParsableArguments {
         name: .customLong("exclude-column"),
         help: """
         Exclude a report column from every applicable Excel/PDF sheet (repeatable; with --report). \
-        Case-insensitive names include Row Numbers, Role Subrole, Clip Name, Frame Rate, Reel, \
-        Metadata (role inventory dynamic metadata keys), and other shared column headers. \
-        Columns are removed wherever the sheet uses a matching header.
+        Case-insensitive names include Row / Row Numbers (all tabular sheets + PDF Row injection), \
+        Role Subrole, Clip Name, Frame Rate, Reel, Metadata (role inventory dynamic metadata keys), \
+        and other shared column headers. Columns are removed wherever the sheet uses a matching header.
         """
     )
     var excludeColumn: [String] = []
