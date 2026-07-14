@@ -92,7 +92,7 @@ let package = Package(
         .iOS(.v26)
     ],
     dependencies: [
-        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.0.4")
+        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "5")
     ],
     targets: [
         .target(
@@ -155,7 +155,7 @@ sudo rm /usr/local/bin/OpenFCPXMLKit-CLI
 ### Compiled From Source
 
 ```shell
-VERSION=3.0.4 # replace this with the git tag of the version you need
+VERSION=3.0.5 # replace this with the git tag of the version you need
 git clone https://github.com/TheAcharya/OpenFCPXMLKit.git
 cd OpenFCPXMLKit
 git checkout "tags/$VERSION"
