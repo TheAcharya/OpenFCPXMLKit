@@ -247,6 +247,31 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
         XCTAssertEqual(headerCell?.value.stringValue, "Created by XYZ")
         XCTAssertEqual(headerCell?.format?.backgroundColor, "#000000")
         XCTAssertEqual(headerCell?.format?.fontColor, "#FFFFFF")
+        XCTAssertNil(coverSheet?.getCellWithFormat("A2")?.value.stringValue)
+    }
+    
+    @MainActor
+    func testWorkbookCoverSheetIncludesCopyrightLabelOnRowTwo() {
+        let copyright = "© 2026 Example Studios"
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test Project",
+            markers: FinalCutPro.FCPXML.MarkersReportSection(rows: []),
+            workbookCoverSheet: .openFCPXMLKitDefault,
+            copyrightLabel: copyright
+        )
+        
+        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
+        let coverSheet = workbook.getSheet(
+            name: FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.title
+        )
+        XCTAssertEqual(
+            coverSheet?.getCellWithFormat("A1")?.value.stringValue,
+            FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.headerText
+        )
+        let copyrightCell = coverSheet?.getCellWithFormat("A2")
+        XCTAssertEqual(copyrightCell?.value.stringValue, copyright)
+        XCTAssertEqual(copyrightCell?.format?.backgroundColor, "#000000")
+        XCTAssertEqual(copyrightCell?.format?.fontColor, "#FFFFFF")
     }
     
     @MainActor

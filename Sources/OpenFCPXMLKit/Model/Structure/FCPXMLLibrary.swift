@@ -9,7 +9,6 @@
 //
 
 import Foundation
-import SwiftExtensions
 
 extension FinalCutPro.FCPXML {
     /// Represents a library location on disk.

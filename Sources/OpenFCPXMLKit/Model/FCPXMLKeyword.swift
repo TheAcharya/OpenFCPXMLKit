@@ -10,7 +10,7 @@
 
 import Foundation
 import SwiftTimecode
-import SwiftExtensions
+internal import SwiftExtensions
 
 extension FinalCutPro.FCPXML {
     /// Represents a keyword.

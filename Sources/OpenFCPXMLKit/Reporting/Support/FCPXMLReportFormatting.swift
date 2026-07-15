@@ -10,7 +10,7 @@
 
 import Foundation
 import SwiftTimecode
-import SwiftExtensions
+internal import SwiftExtensions
 
 extension FinalCutPro.FCPXML {
     /// Formats extracted values into workbook report column strings.
@@ -802,11 +802,8 @@ extension FinalCutPro.FCPXML {
 }
 
 private extension String {
-    var titleCased: String {
-        guard !isEmpty else { return self }
-        return prefix(1).uppercased() + dropFirst()
-    }
-    
+    /// Capitalizes every whitespace-delimited word (report display names).
+    /// Distinct from SwiftExtensions ``StringProtocol/titleCased``, which is particle-aware title case.
     var wordTitleCased: String {
         split(separator: " ").map { word in
             word.prefix(1).uppercased() + word.dropFirst().lowercased()

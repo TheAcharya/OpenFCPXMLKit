@@ -7,6 +7,24 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.0.7](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.7) - 2026-07-15
+
+### ✨ New Features
+
+- **Report copyright label:** Optional ``ReportOptions/copyrightLabel`` / ``Report/copyrightLabel`` (CLI `--label-copyright`) writes Excel cover sheet cell **A2** below the Created-by brand row (same black/white banner style), shows the same line on the PDF cover below Created-by (subtitle font/size), and centres it in the PDF running footer (footer font/size). Optional `ExcelReportTest` writes `OFK-Copyright.xlsx` / `OFK-Copyright.pdf` for visual review (4 integration tests).
+
+### 🔧 Improvements
+
+- **Dependencies:** [SwiftExtensions](https://github.com/orchetect/swift-extensions) minimum raised to **3.0.0**. Adds [SwiftSemanticVersion](https://github.com/orchetect/swift-semantic-version) **1.0.0** for `FinalCutPro.FCPXML.Version` (`SemanticVersion` was extracted from SwiftExtensions in 3.0.0). Report formatting now uses SwiftExtensions `titleCased` instead of a local first-character-only helper. Unused `import SwiftExtensions` cleaned up; remaining imports use `internal import` (or `public import` where SE types appear in public API).
+- **Test suite:** Expanded to **963** tests listed in `swift test --list-tests` (**959** in `OpenFCPXMLKitTests`: 956 XCTest + 3 Swift Testing `@Test`; plus **4** optional `ExcelReportTest`).
+- **Documentation:** Manual **19 — Reporting** / **16 — CLI** / **17 — Examples** / **18 — Cross-Platform**, CLI README, project README, `AGENT.md`, `.cursorrules`, `ARCHITECTURE.md` (§2.7 + mermaid), `Tests/README.md`, and `Tests/ExcelReportTest` READMEs updated for `--label-copyright`, dependency notes, and test counts.
+
+### 🐛 Bug Fixes
+
+- None in this release.
+
+---
+
 ## [3.0.6](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.6) - 2026-07-15
 
 ### ✨ New Features

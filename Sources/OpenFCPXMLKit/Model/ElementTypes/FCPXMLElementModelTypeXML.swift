@@ -9,7 +9,8 @@
 //
 
 import Foundation
-import SwiftExtensions
+// LazyCompactMapSequence appears in public API (return types / LazyFCPXMLChildrenSequence).
+public import SwiftExtensions
 
 // MARK: - Typealiases
 

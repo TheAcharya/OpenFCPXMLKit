@@ -45,6 +45,7 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD, with optional PDF 
 | **--report-media-summary** | Include the Media Summary sheet (missing media file paths; with `--report`). |
 | **--create-pdf** | Also write a PDF report alongside the Excel workbook (with `--report`). Uses the same built `Report` — sections, column exclusions, timecode format, role/disabled-clip filtering. PDF adds cover/TOC (sheet colour chips), per-sheet tints, and column-width expansion after exclusions. Writes `{project-or-clip-name}.pdf` to output-dir; prints the PDF path after the `.xlsx` path. |
 | **--report-project &lt;name&gt;** | Timeline name filter: matches a `<project>` name or a standalone compound-clip / `ref-clip` name when the document has more than one reportable timeline. |
+| **--label-copyright &lt;text&gt;** | Optional copyright / attribution line (with `--report`). Excel cover sheet **A2** below Created-by; PDF cover below Created-by (same subtitle font/size); PDF running footer centre (same footer font/size). |
 | **--exclude-role &lt;role&gt;** | Exclude a role or subrole from the role inventory (repeatable). Excluding a main role also excludes its subroles. |
 | **--exclude-disabled-clips** | Omit disabled clips (`enabled="0"`) from all timeline-based report sections (with `--report`). |
 | **--exclude-column &lt;column&gt;** | Exclude a workbook column from every applicable report sheet (repeatable; with `--report`). |

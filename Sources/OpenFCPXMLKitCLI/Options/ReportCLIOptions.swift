@@ -86,6 +86,17 @@ struct ReportCLIOptions: ParsableArguments {
     var reportProject: String?
     
     @Option(
+        name: .customLong("label-copyright"),
+        help: """
+        Optional copyright / attribution line for Excel and PDF reports (with --report). \
+        Excel: cover sheet cell A2 below the Created-by brand row. \
+        PDF: same subtitle style below Created-by on the cover, and centred in the running footer \
+        (same footer font/size as the Created-by branding).
+        """
+    )
+    var labelCopyright: String?
+    
+    @Option(
         name: .customLong("exclude-role"),
         help: "Exclude a role or subrole from role inventory (repeatable). Excluding a main role also excludes its subroles."
     )
@@ -152,6 +163,7 @@ struct ReportCLIOptions: ParsableArguments {
         
         options.projectName = reportProject
         options.mediaBaseURL = mediaBaseURL
+        options.copyrightLabel = labelCopyright
         options.excludedRoles = excludeRole
         options.excludeDisabledClips = excludeDisabledClips
         options.excludedColumns = excludeColumn

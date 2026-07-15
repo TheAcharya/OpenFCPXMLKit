@@ -19,6 +19,8 @@ enum ExcelReportFixture {
     
     static let defaultOutputFileName = "OFK-Default.xlsx"
     static let fullOutputFileName = "OFK-Full.xlsx"
+    static let copyrightOutputXLSXFileName = "OFK-Copyright.xlsx"
+    static let copyrightOutputPDFFileName = "OFK-Copyright.pdf"
     
     /// URL to a `.fcpxml` file or `.fcpxmld` bundle directory.
     static func fixtureURL() -> URL? {

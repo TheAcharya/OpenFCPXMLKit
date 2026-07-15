@@ -10,7 +10,6 @@
 
 import Foundation
 import SwiftTimecode
-import SwiftExtensions
 
 public protocol FCPXMLElementTextStyleDefinitionChildren: FCPXMLElement {
     /// Child `text-style-def` elements.

@@ -10,7 +10,6 @@
 
 import Foundation
 import CoreMedia
-import SwiftExtensions
 
 #if canImport(AppKit)
 import AppKit

@@ -11,7 +11,6 @@
 import Foundation
 import CoreMedia
 import SwiftTimecode
-import SwiftExtensions
 
 /// Default implementation of `TimecodeConversion`, `FCPXMLTimeStringConversion`, and `TimeConforming`.
 ///

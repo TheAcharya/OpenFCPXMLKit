@@ -11,6 +11,9 @@
 import Foundation
 import OpenFCPXMLKit
 import XCTest
+#if canImport(PDFKit)
+import PDFKit
+#endif
 
 @available(macOS 26.0, *)
 final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
@@ -116,6 +119,62 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
         )
     }
     
+    /// Writes `Output/OFK-Copyright.xlsx` and `Output/OFK-Copyright.pdf` with `--label-copyright` parity.
+    @MainActor
+    func testExportRoleInventoryWithCopyrightLabel() async throws {
+        let fixtureURL = try ExcelReportFixture.requireFixtureURL()
+        let outputDir = ExcelReportFixture.outputDirectoryURL()
+        try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
+        
+        let copyright = "© 2026 Example Studios"
+        var options = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
+        options.copyrightLabel = copyright
+        
+        let report = try await loadReport(options: options, fixtureURL: fixtureURL)
+        XCTAssertEqual(report.copyrightLabel, copyright)
+        
+        let xlsxURL = try await writeWorkbook(
+            report,
+            named: ExcelReportFixture.copyrightOutputXLSXFileName,
+            to: outputDir
+        )
+        try assertWorkbookExists(at: xlsxURL)
+        
+        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
+        let coverName = FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.title
+        let coverSheet = workbook.getSheet(name: coverName)
+        XCTAssertEqual(
+            coverSheet?.getCellWithFormat("A1")?.value.stringValue,
+            FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.headerText
+        )
+        XCTAssertEqual(coverSheet?.getCellWithFormat("A2")?.value.stringValue, copyright)
+        
+        let pdfURL = outputDir.appendingPathComponent(ExcelReportFixture.copyrightOutputPDFFileName)
+        if FileManager.default.fileExists(atPath: pdfURL.path) {
+            try FileManager.default.removeItem(at: pdfURL)
+        }
+        try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
+        
+        let pdfData = try Data(contentsOf: pdfURL)
+        XCTAssertEqual(String(data: pdfData.prefix(4), encoding: .ascii), "%PDF")
+        XCTAssertGreaterThan(pdfData.count, 5_000)
+        
+        #if canImport(PDFKit)
+        guard let document = PDFDocument(data: pdfData) else {
+            XCTFail("Expected valid copyright-labelled PDF")
+            return
+        }
+        let coverText = document.page(at: 0)?.string ?? ""
+        XCTAssertTrue(coverText.contains(copyright), "Cover should include copyright label")
+        let footerPageIndex = min(2, max(0, document.pageCount - 1))
+        let footerPageText = document.page(at: footerPageIndex)?.string ?? ""
+        XCTAssertTrue(
+            footerPageText.contains(copyright),
+            "Content/footer page should include copyright label"
+        )
+        #endif
+    }
+    
     @MainActor
     private func writeWorkbook(
         _ report: FinalCutPro.FCPXML.Report,
@@ -144,6 +203,7 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
         reportOptions.mediaBaseURL = ExcelReportFixture.mediaBaseURL(for: fixtureURL)
         if reportOptions.projectName == nil {
             reportOptions.projectName = fcpxml.allProjects().first?.name
+                ?? fcpxml.allReportTimelineSources().first?.displayName
         }
         
         return try await fcpxml.buildReport(options: reportOptions)

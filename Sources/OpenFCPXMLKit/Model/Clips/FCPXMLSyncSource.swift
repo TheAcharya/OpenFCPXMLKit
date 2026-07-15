@@ -10,7 +10,6 @@
 
 import Foundation
 import SwiftTimecode
-import SwiftExtensions
 
 extension FinalCutPro.FCPXML.SyncClip {
     /// Describes an the audio component of a synchronized clip.

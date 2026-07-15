@@ -9,7 +9,6 @@
 //
 
 import Foundation
-import SwiftExtensions
 
 // MARK: - Structure Elements
 

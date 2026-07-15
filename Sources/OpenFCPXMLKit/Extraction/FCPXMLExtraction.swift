@@ -9,7 +9,6 @@
 //
 
 import Foundation
-import SwiftExtensions
 import SwiftTimecode
 
 // MARK: - FCPXMLElement Public Methods

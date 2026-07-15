@@ -12,7 +12,6 @@
 
 import Foundation
 import CoreMedia
-import SwiftExtensions
 
 #if canImport(Logging)
 import Logging
