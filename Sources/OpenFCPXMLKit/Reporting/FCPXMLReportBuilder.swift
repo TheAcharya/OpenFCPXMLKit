@@ -76,6 +76,7 @@ extension FinalCutPro.FCPXML {
                 projectName: source.displayName,
                 eventName: source.eventName,
                 workbookCoverSheet: options.workbookCoverSheet,
+                copyrightLabel: options.copyrightLabel,
                 excludedColumns: ReportColumnExclusion.resolve(options.excludedColumns),
                 timecodeFormat: options.timecodeFormat
             )

@@ -80,6 +80,7 @@ enum FCPXMLReportPDFExporter {
             projectName: report.projectName,
             eventName: report.eventName,
             exportBrandingText: report.exportBrandingText,
+            copyrightLabel: report.copyrightLabel,
             sectionStartRecorder: recordsSectionStarts ? sectionStartSink : nil
         )
         canvas.drawCoverPage(projectName: report.projectName, eventName: report.eventName)

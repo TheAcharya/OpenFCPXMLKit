@@ -24,6 +24,7 @@ enum FCPXMLReportPDFCanvas {
         private var projectName = ""
         private var eventName: String?
         private var exportBrandingText = FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.brandingText
+        private var copyrightLabel: String?
         private var pageNumber = 0
         private var cursorY = FCPXMLReportPDFStyle.contentTop
         private var hasOpenPage = false
@@ -44,11 +45,13 @@ enum FCPXMLReportPDFCanvas {
             projectName: String,
             eventName: String?,
             exportBrandingText: String,
+            copyrightLabel: String? = nil,
             sectionStartRecorder: ((String, Int) -> Void)? = nil
         ) {
             self.projectName = projectName
             self.eventName = eventName
             self.exportBrandingText = exportBrandingText
+            self.copyrightLabel = FinalCutPro.FCPXML.ReportOptions.normalizedCopyrightLabel(copyrightLabel)
             self.sectionStartRecorder = sectionStartRecorder
         }
         
@@ -154,6 +157,18 @@ enum FCPXMLReportPDFCanvas {
                 fontSize: FCPXMLReportPDFStyle.coverSubtitleFontSize,
                 color: FCPXMLReportPDFStyle.mutedTextColor
             )
+            y += FCPXMLReportPDFStyle.coverSubtitleFontSize + 14
+            
+            if let copyrightLabel {
+                drawText(
+                    copyrightLabel,
+                    x: FCPXMLReportPDFStyle.margin,
+                    y: y + FCPXMLReportPDFStyle.coverSubtitleFontSize,
+                    fontName: FCPXMLReportPDFStyle.regularFontName,
+                    fontSize: FCPXMLReportPDFStyle.coverSubtitleFontSize,
+                    color: FCPXMLReportPDFStyle.mutedTextColor
+                )
+            }
             
             drawCoverInformationBox()
             
@@ -664,9 +679,11 @@ enum FCPXMLReportPDFCanvas {
                 + FCPXMLReportPDFStyle.footerRuleToTextSpacing
                 + FCPXMLReportPDFStyle.runningFooterFontSize
             
+            let usableWidth = FCPXMLReportPDFStyle.pageSize.width - (FCPXMLReportPDFStyle.margin * 2)
+            let brandingFraction: CGFloat = copyrightLabel == nil ? 0.55 : 0.32
             let brandingLabel = FCPXMLReportPDFTableLayout.truncated(
                 exportBrandingText,
-                maxWidth: (FCPXMLReportPDFStyle.pageSize.width - (FCPXMLReportPDFStyle.margin * 2)) * 0.55,
+                maxWidth: usableWidth * brandingFraction,
                 fontSize: FCPXMLReportPDFStyle.runningFooterFontSize
             )
             drawText(
@@ -677,6 +694,27 @@ enum FCPXMLReportPDFCanvas {
                 fontSize: FCPXMLReportPDFStyle.runningFooterFontSize,
                 color: FCPXMLReportPDFStyle.mutedTextColor
             )
+            
+            if let copyrightLabel {
+                let centerLabel = FCPXMLReportPDFTableLayout.truncated(
+                    copyrightLabel,
+                    maxWidth: usableWidth * 0.36,
+                    fontSize: FCPXMLReportPDFStyle.runningFooterFontSize
+                )
+                let centerWidth = FCPXMLReportPDFTableLayout.measuredWidth(
+                    centerLabel,
+                    bold: false,
+                    fontSize: FCPXMLReportPDFStyle.runningFooterFontSize
+                )
+                drawText(
+                    centerLabel,
+                    x: FCPXMLReportPDFStyle.margin + (usableWidth - centerWidth) / 2,
+                    y: baseline,
+                    fontName: FCPXMLReportPDFStyle.regularFontName,
+                    fontSize: FCPXMLReportPDFStyle.runningFooterFontSize,
+                    color: FCPXMLReportPDFStyle.mutedTextColor
+                )
+            }
             
             let pageLabel = "Page \(pageNumber)"
             let pageLabelWidth = FCPXMLReportPDFTableLayout.measuredWidth(

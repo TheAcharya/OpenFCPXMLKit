@@ -63,6 +63,11 @@ extension FinalCutPro.FCPXML {
         /// Set to `nil` to omit this sheet.
         public var workbookCoverSheet: ReportWorkbookCoverSheet?
         
+        /// Optional copyright / attribution label for Excel cover (`A2`) and PDF cover/footer centre.
+        ///
+        /// Whitespace-only values are treated as omitted. Mapped onto ``Report/copyrightLabel``.
+        public var copyrightLabel: String?
+        
         /// Role or subrole names to omit from role inventory sheets.
         ///
         /// Matching is case-insensitive. Excluding a main role (for example `Dialogue`) also
@@ -103,6 +108,7 @@ extension FinalCutPro.FCPXML {
             mediaBaseURL: URL? = nil,
             roleDisplayPreference: RoleDisplayPreference = .builtIn,
             workbookCoverSheet: ReportWorkbookCoverSheet? = .openFCPXMLKitDefault,
+            copyrightLabel: String? = nil,
             excludedRoles: [String] = [],
             excludeDisabledClips: Bool = false,
             excludedColumns: [String] = [],
@@ -122,10 +128,18 @@ extension FinalCutPro.FCPXML {
             self.mediaBaseURL = mediaBaseURL
             self.roleDisplayPreference = roleDisplayPreference
             self.workbookCoverSheet = workbookCoverSheet
+            self.copyrightLabel = Self.normalizedCopyrightLabel(copyrightLabel)
             self.excludedRoles = excludedRoles
             self.excludeDisabledClips = excludeDisabledClips
             self.excludedColumns = excludedColumns
             self.timecodeFormat = timecodeFormat
+        }
+        
+        /// Trims and drops empty copyright labels so exporters can treat “unset” uniformly.
+        public static func normalizedCopyrightLabel(_ value: String?) -> String? {
+            guard let value else { return nil }
+            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? nil : trimmed
         }
         
         /// Role inventory only (Selected Roles and per-role sheets; no optional report sheets).

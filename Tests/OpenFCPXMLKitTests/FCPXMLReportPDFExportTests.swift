@@ -320,6 +320,49 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
         #endif
     }
     
+    func testCopyrightLabelAppearsOnPDFCoverAndCenteredFooter() throws {
+        let branding = FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.brandingText
+        let copyright = "© 2026 Example Studios"
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Copyright Project",
+            markers: FinalCutPro.FCPXML.MarkersReportSection(rows: [
+                FinalCutPro.FCPXML.MarkerReportRow(
+                    markerName: "Marker 1",
+                    type: .standard,
+                    notes: "Note",
+                    position: "00:00:10:00",
+                    clipName: "Clip A",
+                    roleSubrole: "Video",
+                    reel: "A001",
+                    scene: "1",
+                    sourcePosition: "00:00:05:00"
+                )
+            ]),
+            workbookCoverSheet: .openFCPXMLKitDefault,
+            copyrightLabel: copyright
+        )
+        
+        XCTAssertEqual(report.copyrightLabel, copyright)
+        
+        let data = try FinalCutPro.FCPXML.ReportPDFExport.makePDFData(from: report)
+        
+        #if canImport(PDFKit)
+        guard let document = PDFDocument(data: data) else {
+            XCTFail("Expected valid PDF document")
+            return
+        }
+        
+        let coverText = document.page(at: 0)?.string ?? ""
+        XCTAssertTrue(coverText.contains(branding))
+        XCTAssertTrue(coverText.contains(copyright))
+        
+        let contentPageIndex = document.pageCount > 2 ? 2 : 1
+        let contentText = document.page(at: contentPageIndex)?.string ?? ""
+        XCTAssertTrue(contentText.contains(branding))
+        XCTAssertTrue(contentText.contains(copyright))
+        #endif
+    }
+    
     func testRoleInventoryReportIncludesTableOfContentsWithoutLinks() throws {
         let clipRow = FinalCutPro.FCPXML.RoleClipReportRow(
             roleSubrole: "Dialogue",

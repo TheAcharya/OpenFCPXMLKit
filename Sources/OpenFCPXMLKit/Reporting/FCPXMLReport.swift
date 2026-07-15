@@ -74,6 +74,12 @@ extension FinalCutPro.FCPXML {
         /// Optional cover sheet prepended by Excel export; branding text is also used on PDF cover/footer.
         public var workbookCoverSheet: ReportWorkbookCoverSheet?
         
+        /// Optional copyright / label line shown below export branding.
+        ///
+        /// Excel: cover sheet cell `A2` (when a cover sheet is written). PDF: cover page below
+        /// branding (same subtitle font/size) and running footer centre (same footer font/size).
+        public var copyrightLabel: String?
+        
         /// Columns omitted from every applicable workbook sheet at export.
         public var excludedColumns: Set<ReportColumn>
         
@@ -93,6 +99,7 @@ extension FinalCutPro.FCPXML {
             mediaSummary: MediaSummaryReportSection? = nil,
             roleInventory: RoleInventoryReportSection? = nil,
             workbookCoverSheet: ReportWorkbookCoverSheet? = nil,
+            copyrightLabel: String? = nil,
             excludedColumns: Set<ReportColumn> = [],
             timecodeFormat: ReportTimecodeFormat = .smpteFrames
         ) {
@@ -108,6 +115,7 @@ extension FinalCutPro.FCPXML {
             self.mediaSummary = mediaSummary
             self.roleInventory = roleInventory
             self.workbookCoverSheet = workbookCoverSheet
+            self.copyrightLabel = ReportOptions.normalizedCopyrightLabel(copyrightLabel)
             self.excludedColumns = excludedColumns
             self.timecodeFormat = timecodeFormat
         }

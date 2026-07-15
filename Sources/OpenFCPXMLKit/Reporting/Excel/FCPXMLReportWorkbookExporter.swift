@@ -45,7 +45,11 @@ enum FCPXMLReportWorkbookExporter {
         let timecodeFormat = report.timecodeFormat
         
         if let workbookCoverSheet = report.workbookCoverSheet {
-            appendWorkbookCoverSheet(workbookCoverSheet, to: workbook)
+            appendWorkbookCoverSheet(
+                workbookCoverSheet,
+                copyrightLabel: report.copyrightLabel,
+                to: workbook
+            )
         }
         
         if let roleInventory = report.roleInventory {
@@ -173,14 +177,22 @@ enum FCPXMLReportWorkbookExporter {
     
     private static func appendWorkbookCoverSheet(
         _ workbookCoverSheet: FinalCutPro.FCPXML.ReportWorkbookCoverSheet,
+        copyrightLabel: String?,
         to workbook: Workbook
     ) {
         let sheet = workbook.addSheet(name: sanitizeSheetName(workbookCoverSheet.title))
         sheet.setCell("A1", string: workbookCoverSheet.headerText, format: tableHeaderFormat())
         
+        var longestCoverLine = workbookCoverSheet.headerText.count
+        if let copyrightLabel {
+            // Same black/white banner style as the Created-by brand row, on the next row.
+            sheet.setCell("A2", string: copyrightLabel, format: tableHeaderFormat())
+            longestCoverLine = max(longestCoverLine, copyrightLabel.count)
+        }
+        
         // Use an explicit, generous width instead of the tight text-based auto-fit; grow further
-        // when a custom header text is longer than the default banner width.
-        let width = max(coverSheetColumnWidth, Double(workbookCoverSheet.headerText.count) + 4.0)
+        // when cover branding or copyright text is longer than the default banner width.
+        let width = max(coverSheetColumnWidth, Double(longestCoverLine) + 4.0)
         sheet.setColumnWidth(1, width: width)
     }
     

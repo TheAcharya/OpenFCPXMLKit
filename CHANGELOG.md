@@ -11,7 +11,7 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ### ✨ New Features
 
-- None in this release.
+- **Report copyright label:** Optional ``ReportOptions/copyrightLabel`` / ``Report/copyrightLabel`` (CLI `--label-copyright`) writes Excel cover sheet cell **A2** below the Created-by brand row (same black/white banner style), shows the same line on the PDF cover below Created-by (subtitle font/size), and centres it in the PDF running footer (footer font/size). Optional `ExcelReportTest` writes `OFK-Copyright.xlsx` / `OFK-Copyright.pdf` for visual review (4 integration tests).
 
 ### 🔧 Improvements
 

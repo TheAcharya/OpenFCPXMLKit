@@ -58,7 +58,7 @@ This codebase is developed using AI agents.
 - **Animation**: KeyframeAnimation, Keyframe with interpolation, FadeIn/FadeOut; integrated with FilterParameter; auxValue support (FCPXML 1.11+).
 - **Extensions**: CMTime Codable (FCPXML time string encoding/decoding); CollectionFolder and KeywordCollection for organization; Live Drawing (FCPXML 1.11+); HiddenClipMarker (FCPXML 1.13+); Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps).
 - **Excel & PDF Reporting**: Build a `Report` once from an FCPXML/FCPXMLD via `FinalCutPro.FCPXML.buildReport(options:)`, then export to a multi-sheet `.xlsx` workbook (`ReportExcelExport`, XLKit-backed) and/or a multi-page `.pdf` (`ReportPDFExport`, CoreGraphics). Sheets/sections for Role Inventory (Selected Roles Inventory + per-role), Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, Summary (project metrics and role durations; Excel title in **B1**), and Media Summary (missing media paths); a 1-based **Row** column on all tabular sheets by default (`ensuringRowColumn` / `allowsInjectedRowColumn`; omit with `ReportColumn.row` / `--exclude-column Row`); configurable `ReportTimecodeFormat` (SMPTE frames with DF/NDF, Frames, Feet+Frames, HH:MM:SS; format-aware column headers); role exclusions, global column exclusion, disabled-clip filtering, project-name filtering; inventory-first `ReportBuildPhase` progress callbacks shared by API and CLI. PDF adds a cover page (black “About This PDF Export” + `info.circle`), dynamic table of contents with accent colour chips and content-tint washes keyed to each sheet’s colour index, remaining columns expanded to fill page width after exclusions, pagination, and shared row-colour rules with Excel.
-- **CLI**: `OpenFCPXMLKit-CLI` with `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--create-project` (new empty FCPXML project with width/height/rate/version), `--report` (Excel report; `--report-full`, per-section flags, `--exclude-role`, `--exclude-column`, `--exclude-disabled-clips`, `--timecode-format`, `--create-pdf`), logging options (see CLI README).
+- **CLI**: `OpenFCPXMLKit-CLI` with `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--create-project` (new empty FCPXML project with width/height/rate/version), `--report` (Excel report; `--report-full`, per-section flags, `--exclude-role`, `--exclude-column`, `--exclude-disabled-clips`, `--timecode-format`, `--label-copyright`, `--create-pdf`), logging options (see CLI README).
 - **Architecture**: Protocol-oriented, dependency-injected; sync/async APIs; Swift 6 concurrency-safe design; comprehensive test suite with file-based and logic tests.
 
 ## Requirements
@@ -222,6 +222,10 @@ REPORT:
   --report-project <report-project>
                           Timeline name filter: matches a <project> name or a standalone compound-clip / ref-clip name
                           when the document has more than one reportable timeline.
+  --label-copyright <label-copyright>
+                          Optional copyright / attribution line for Excel and PDF reports (with --report). Excel: cover
+                          sheet cell A2 below the Created-by brand row. PDF: same subtitle style below Created-by on the
+                          cover, and centred in the running footer (same footer font/size as the Created-by branding).
   --exclude-role <exclude-role>
                           Exclude a role or subrole from role inventory (repeatable). Excluding a main role also
                           excludes its subroles.

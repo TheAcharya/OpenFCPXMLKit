@@ -30,6 +30,7 @@ extension FinalCutPro.FCPXML {
     ///
     /// PDF cover/footer branding uses ``Report/exportBrandingText``, which reads
     /// ``Report/workbookCoverSheet`` — the same ``ReportWorkbookCoverSheet`` settings as Excel.
+    /// Optional ``Report/copyrightLabel`` appears below branding on the cover and centred in the running footer.
     public enum ReportPDFExport {
         /// Builds PDF data from a structured FCPXML report.
         public static func makePDFData(from report: Report) throws -> Data {
