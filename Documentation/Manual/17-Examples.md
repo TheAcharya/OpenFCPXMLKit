@@ -268,6 +268,7 @@ Equivalent CLI (Excel + PDF):
 
 ```bash
 OpenFCPXMLKit-CLI --report --report-full --create-pdf \
+  --label-copyright "© 2026 Example Studios" \
   --exclude-role Effects \
   --exclude-disabled-clips \
   --exclude-column Reel \
@@ -275,6 +276,15 @@ OpenFCPXMLKit-CLI --report --report-full --create-pdf \
   --exclude-column "Source File Path" \
   --timecode-format Frames \
   /path/to/project.fcpxmld /path/to/output-dir
+```
+
+Library equivalent for the copyright line:
+
+```swift
+var options = FinalCutPro.FCPXML.ReportOptions.full
+options.copyrightLabel = "© 2026 Example Studios"
+let report = try await fcpxml.buildReport(options: options)
+// Excel cover A2 + PDF cover/footer centre
 ```
 
 Excel-only CLI (omit `--create-pdf`):

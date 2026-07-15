@@ -45,13 +45,13 @@ let version = root?.stringValue(forAttributeNamed: "version")
 ## Package and dependencies
 
 - **Package.swift** declares `.iOS(.v26)` and adds the **AEXML** dependency for the OpenFCPXMLKit target.
-- **SwiftTimecode**, **SwiftExtensions**, **swift-log**, **Foundation**, **CoreMedia** are used on both platforms. **OpenFCPXMLKitCLI** and **GenerateEmbeddedDTDs** remain macOS-only (or as currently configured).
+- **SwiftTimecode**, **SwiftExtensions** 3.0+, **SwiftSemanticVersion** 1.0+, **swift-log**, **Foundation**, **CoreMedia** are used on both platforms. **OpenFCPXMLKitCLI** and **GenerateEmbeddedDTDs** remain macOS-only (or as currently configured).
 
 ---
 
 ## Testing
 
-- The `OpenFCPXMLKitTests` suite (**957 tests** listed under that target: 954 XCTest + 3 Swift Testing `@Test`) runs on **macOS** and uses the Foundation backend. `swift test --list-tests` also lists **3** optional `ExcelReportTest` integration tests (**960** total).
+- The `OpenFCPXMLKitTests` suite (**959 tests** listed under that target: 956 XCTest + 3 Swift Testing `@Test`) runs on **macOS** and uses the Foundation backend. `swift test --list-tests` also lists **4** optional `ExcelReportTest` integration tests (**963** total).
 - **iOS** is supported for building the library (e.g. iOS Simulator); running the same tests on iOS is not required for CI because they depend on Foundation XML. AEXML parity and structural validation are covered by tests that run on macOS.
 
 ---

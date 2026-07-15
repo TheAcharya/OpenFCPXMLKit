@@ -39,12 +39,14 @@ From the repository root:
 swift test --filter ExcelReportExportTests
 ```
 
-Then open `OFK-Default.xlsx`, `OFK-Full.xlsx`, or `OFK-Default.pdf` in Excel, Preview, or your diff tool and compare against a reference export.
+Then open `OFK-Default.xlsx`, `OFK-Full.xlsx`, `OFK-Default.pdf`, `OFK-ExcludedColumns.pdf`, or `OFK-Copyright.xlsx` / `OFK-Copyright.pdf` in Excel, Preview, or your diff tool and compare against a reference export.
 
 For a full PDF on a real fixture (named after the project), use the CLI:
 
 ```bash
-OpenFCPXMLKit-CLI --report --report-full --create-pdf /path/to/fixture.fcpxmld /path/to/output-dir
+OpenFCPXMLKit-CLI --report --report-full --create-pdf \
+  --label-copyright "© 2026 Example Studios" \
+  /path/to/fixture.fcpxmld /path/to/output-dir
 ```
 
 ---
