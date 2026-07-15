@@ -8,7 +8,8 @@
 //	FCPXML format version struct with semantic versioning and comparison.
 //
 
-import SwiftExtensions
+// SemanticVersion is part of public API (`Version.semanticVersion`, `init(_:)`).
+public import SwiftSemanticVersion
 
 extension FinalCutPro.FCPXML {
     /// FCPXML format version.

@@ -9,7 +9,6 @@
 //
 
 import Foundation
-import SwiftExtensions
 
 extension FinalCutPro.FCPXML {
     /// Represent a single event in a library.

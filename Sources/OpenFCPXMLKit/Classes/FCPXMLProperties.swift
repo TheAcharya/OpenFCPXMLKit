@@ -10,7 +10,6 @@
 
 import Foundation
 import SwiftTimecode
-import SwiftExtensions
 
 // MARK: - Main Public Model Getters
 

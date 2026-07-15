@@ -9,7 +9,7 @@
 //
 
 import Foundation
-import SwiftExtensions
+internal import SwiftExtensions
 
 extension FinalCutPro.FCPXML {
     /// FCPXML extraction preset that extracts roles within a specified scope.

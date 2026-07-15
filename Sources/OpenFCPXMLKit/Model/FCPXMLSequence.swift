@@ -11,7 +11,6 @@
 import Foundation
 import SwiftTimecode
 import CoreMedia
-import SwiftExtensions
 
 extension FinalCutPro.FCPXML {
     /// A container that represents the top-level sequence for a Final Cut Pro project or compound

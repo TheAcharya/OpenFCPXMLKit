@@ -9,6 +9,7 @@
 //
 
 import Foundation
+internal import SwiftExtensions
 
 extension FinalCutPro.FCPXML {
     /// One component row used for Selected Roles–style aggregation.

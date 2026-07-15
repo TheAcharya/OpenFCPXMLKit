@@ -10,7 +10,6 @@
 
 import Foundation
 import SwiftTimecode
-import SwiftExtensions
 
 extension OFKXMLElement {
     /// FCPXML: Returns keywords applied to the element if the element is a clip,

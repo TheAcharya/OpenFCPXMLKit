@@ -10,7 +10,6 @@
 
 import Foundation
 import SwiftTimecode
-import SwiftExtensions
 
 extension FinalCutPro.FCPXML {
     /// References a multicam media.

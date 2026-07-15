@@ -9,7 +9,6 @@
 //
 
 import Foundation
-import SwiftExtensions
 import SwiftTimecode
 
 public protocol FCPXMLElementAudioRoleSourceChildren: FCPXMLElement {

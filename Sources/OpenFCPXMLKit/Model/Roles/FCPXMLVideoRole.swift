@@ -9,6 +9,7 @@
 //
 
 import Foundation
+internal import SwiftExtensions
 
 extension FinalCutPro.FCPXML {
     /// Video role.

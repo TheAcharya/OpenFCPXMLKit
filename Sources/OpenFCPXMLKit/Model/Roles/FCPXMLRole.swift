@@ -9,7 +9,7 @@
 //
 
 import Foundation
-import SwiftExtensions
+internal import SwiftExtensions
 
 public protocol FCPXMLRole where Self: RawRepresentable, RawValue == String, Self: Sendable {
     /// Returns the role type enum case.

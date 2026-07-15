@@ -14,7 +14,7 @@ OpenFCPXMLKit is a **Swift 6** framework for Final Cut Pro FCPXML: parsing, crea
 - **Products:** `OpenFCPXMLKit` (library, includes XLKit Excel export), `OpenFCPXMLKit-CLI` (executable), `GenerateEmbeddedDTDs` (internal build tool)
 - **Targets:** macOS 26+, iOS 26+, Xcode 26+, Swift 6.3+
 - **Repository:** https://github.com/TheAcharya/OpenFCPXMLKit
-- **Dependencies:** SwiftTimecode 3.1.2+, SwiftExtensions 2.2.0+, swift-log 1.14.0+, AEXML 4.7.0+, swift-argument-parser 1.8.2+ (CLI only), Foundation, CoreMedia.
+- **Dependencies:** SwiftTimecode 3.1.2+, SwiftExtensions 3.0.0+, SwiftSemanticVersion 1.0.0+, swift-log 1.14.0+, AEXML 4.7.0+, swift-argument-parser 1.8.2+ (CLI only), Foundation, CoreMedia.
 - **FCPXML:** Versions 1.5–1.14 (DTDs included); Final Cut Pro frame rates (23.976, 24, 25, 29.97, 30, 50, 59.94, 60).
 - **Tests:** **960** tests listed in `swift test --list-tests` — **957** in `OpenFCPXMLKitTests` (954 XCTest `func test` + 3 Swift Testing `@Test`) and **3** optional `ExcelReportTest` integration tests; **58** sample `.fcpxml` files under `Tests/FCPXML Samples/FCPXML/`.
 

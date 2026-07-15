@@ -10,7 +10,6 @@
 
 import Foundation
 import SwiftTimecode
-import SwiftExtensions
 
 extension FinalCutPro.FCPXML.Media {
     /// A multi-camera element contains one or more `mc-angle` elements that each manage a series of

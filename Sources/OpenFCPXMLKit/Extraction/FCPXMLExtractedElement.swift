@@ -10,7 +10,6 @@
 
 import Foundation
 import SwiftTimecode
-import SwiftExtensions
 
 /// Protocol for extracted elements that adds contextual properties.
 public protocol FCPXMLExtractedElement where Self: Sendable {

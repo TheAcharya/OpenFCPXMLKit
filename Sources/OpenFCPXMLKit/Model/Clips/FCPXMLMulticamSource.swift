@@ -9,7 +9,6 @@
 //
 
 import Foundation
-import SwiftExtensions
 
 extension FinalCutPro.FCPXML {
     /// Multicam source used in a `mc-clip`.

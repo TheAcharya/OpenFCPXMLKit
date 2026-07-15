@@ -10,7 +10,6 @@
 
 import Foundation
 import SwiftTimecode
-import SwiftExtensions
 
 extension FinalCutPro.FCPXML {
     // Note: OFKXMLElement is not Sendable; cannot use Task-based concurrency here.

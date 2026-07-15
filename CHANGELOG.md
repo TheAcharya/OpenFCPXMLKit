@@ -7,6 +7,22 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [Unreleased]
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Dependencies:** [SwiftExtensions](https://github.com/orchetect/swift-extensions) minimum raised to **3.0.0**. Adds [SwiftSemanticVersion](https://github.com/orchetect/swift-semantic-version) **1.0.0** for `FinalCutPro.FCPXML.Version` (`SemanticVersion` was extracted from SwiftExtensions in 3.0.0). Report formatting now uses SwiftExtensions `titleCased` instead of a local first-character-only helper. Unused `import SwiftExtensions` cleaned up; remaining imports use `internal import` (or `public import` where SE types appear in public API).
+
+### 🐛 Bug Fixes
+
+- None in this release.
+
+---
+
 ## [3.0.6](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.0.6) - 2026-07-15
 
 ### ✨ New Features

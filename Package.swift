@@ -27,8 +27,10 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.8.2"),
         // Timecode operations
         .package(url: "https://github.com/orchetect/swift-timecode", from: "3.1.2"),
-        // Utility extensions
-        .package(url: "https://github.com/orchetect/swift-extensions", from: "2.3.2"),
+        // Utility extensions (String, Collection, Optional helpers)
+        .package(url: "https://github.com/orchetect/swift-extensions", from: "3.0.0"),
+        // Semantic versioning (extracted from swift-extensions 3.0.0)
+        .package(url: "https://github.com/orchetect/swift-semantic-version", from: "1.0.0"),
         // Explicit logging dependency (Xcode 26 dynamic linking compatibility)
         .package(url: "https://github.com/apple/swift-log", from: "1.14.0"),
         // Cross-platform XML parsing (AEXML backend for iOS and other non-macOS platforms)
@@ -44,6 +46,7 @@ let package = Package(
             dependencies: [
                 .product(name: "SwiftTimecode", package: "swift-timecode"),
                 .product(name: "SwiftExtensions", package: "swift-extensions"),
+                .product(name: "SwiftSemanticVersion", package: "swift-semantic-version"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "AEXML", package: "AEXML"),
                 .product(name: "XLKit", package: "XLKit"),
