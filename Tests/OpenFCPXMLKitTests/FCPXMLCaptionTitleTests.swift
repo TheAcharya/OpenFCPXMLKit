@@ -206,6 +206,43 @@ final class FCPXMLCaptionTitleTests: XCTestCase {
         let styleDefElements = title.element.childElements.filter { $0.name == "text-style-def" }
         XCTAssertEqual(styleDefElements.count, 1)
     }
+
+    // MARK: - Text textStyles Children
+
+    func testTextTextStylesInitAndSetterReplaceTextStyleChildren() {
+        let first = FinalCutPro.FCPXML.TextStyle.makeElement(
+            from: FinalCutPro.FCPXML.TextStyle(referenceID: "ts1", value: "One")
+        )
+        let second = FinalCutPro.FCPXML.TextStyle.makeElement(
+            from: FinalCutPro.FCPXML.TextStyle(referenceID: "ts2", value: "Two")
+        )
+        let third = FinalCutPro.FCPXML.TextStyle.makeElement(
+            from: FinalCutPro.FCPXML.TextStyle(referenceID: "ts3", value: "Three")
+        )
+
+        let text = FinalCutPro.FCPXML.Text(
+            alignment: .center,
+            textStyles: [first, second]
+        )
+
+        XCTAssertEqual(text.alignment, .center)
+        XCTAssertEqual(text.textStyles.count, 2)
+        XCTAssertEqual(
+            text.element.childElements.filter { $0.fcpElementType == .textStyle }.count,
+            2
+        )
+        XCTAssertEqual(text.textStyles.first?.fcpRef, "ts1")
+
+        text.textStyles = [third]
+
+        XCTAssertEqual(text.textStyles.count, 1)
+        XCTAssertEqual(text.textStyles.first?.fcpRef, "ts3")
+        XCTAssertEqual(
+            text.element.childElements.filter { $0.fcpElementType == .textStyle }.count,
+            1,
+            "Setter must replace existing text-style children, not append"
+        )
+    }
     
     // MARK: - File Tests
     

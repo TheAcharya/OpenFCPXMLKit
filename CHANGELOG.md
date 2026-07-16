@@ -29,7 +29,7 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 - **Parsing/Model coverage:** Audio channel/role sources expose DTD playback children (volume/loudness/EQ/voice isolation, `filter-audio`, `mute`); `AnalysisMarker` + Markers extraction/report type; shared `TextStyle` XML parse/build + typed `text-style-def` accessors; `tracking-shape` attributes; Sendable `CollectionFolder.smartCollections` via `SmartCollectionValue`.
 - **Report export performance / progress:** Progress pipeline includes `Projecting Timeline`, content phases, then `Saving Workbook` / `Saving PDF` (ticks after saves complete). Excel cell writes are single-pass (no setRow + recolor), column autofit uses row text instead of rescanning `sheet.cells`, projection window matching is indexed, inventory extract is shared with Summary, PDF TOC measure pass skips text drawing, and Excel+PDF export can overlap on Sendable `Report` data.
 
-- **Test suite:** Expanded to **1075** tests listed in `swift test --list-tests` (**1071** in `OpenFCPXMLKitTests`; plus **4** optional `ExcelReportTest`), including `GeneralDemo.fcpxml` / `FCPXMLFileTest_GeneralDemo`, private `Submitted FCPXML` inbox smoke test, `FCPXMLParsingCoverageTests`, extraction fidelity, `FCPXMLProjectionCoverageTests`, `FCPXMLReportObligationCorpusTests`, `FCPXMLEngineHygieneTests`.
+- **Test suite:** Expanded to **1076** tests listed in `swift test --list-tests` (**1072** in `OpenFCPXMLKitTests`; plus **4** optional `ExcelReportTest`), including `GeneralDemo.fcpxml` / `FCPXMLFileTest_GeneralDemo`, private `Submitted FCPXML` inbox smoke test, `FCPXMLParsingCoverageTests`, extraction fidelity, `FCPXMLProjectionCoverageTests`, `FCPXMLReportObligationCorpusTests`, `FCPXMLEngineHygieneTests`, and `Text.textStyles` setter coverage.
 - **Submitted FCPXML inbox:** `Tests/Submitted FCPXML/` for local private user exports (gitignored `Inbox/` / `Notes/`); workflow: anonymise → reproduce → fix → promote minimal public fixture. See `Tests/Submitted FCPXML/README.md`.
 - **Documentation:** `ARCHITECTURE.md` §2.7, `AGENT.md`, `.cursorrules`, Manual chapters, and `Tests/README.md` updated for Timeline Projection and reporting contracts.
 - **Conform scaling:** Shared `fcpConformRateScalingFactor(timelineFrameRate:mediaFrameRate:)` used by parsing and Projection.
@@ -37,7 +37,7 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ### 🐛 Bug Fixes
 
-- None in this release.
+- **`Text.textStyles` setter:** Updates child `text-style` elements (was incorrectly using `.text`); convenience init now applies the `textStyles` parameter. Test: `testTextTextStylesInitAndSetterReplaceTextStyleChildren`.
 
 ---
 

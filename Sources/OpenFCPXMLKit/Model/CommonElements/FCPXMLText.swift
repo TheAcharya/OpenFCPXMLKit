@@ -48,6 +48,7 @@ extension FinalCutPro.FCPXML.Text {
         self.position = position
         self.placement = placement
         self.alignment = alignment
+        self.textStyles = textStyles
     }
 }
 
@@ -138,7 +139,7 @@ extension FinalCutPro.FCPXML.Text {
             element.fcpTextStyles
         }
         nonmutating set {
-            element._updateChildElements(ofType: elementType, with: newValue)
+            element._updateChildElements(ofType: .textStyle, with: newValue)
         }
     }
 }

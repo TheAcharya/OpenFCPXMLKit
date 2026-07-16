@@ -35,7 +35,7 @@ The manual is split into **chapters** for easier navigation and maintenance:
 
 The manual covers the **entire public API** with examples: core operations, async/await, file I/O, validation, timeline creation and manipulation, metadata, media processing, typed models, version conversion, **Timeline Projection**, reporting and Excel/PDF export, CLI, and utilities. **Chapter 18** describes the cross-platform XML abstraction. **Chapter 19** covers reporting. **Chapter 20** covers Projection (`MediaUsageWindow`, project-once for reports). Architecture philosophy: [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7.
 
-**Test count (keep in sync):** **1075** listed in `swift test --list-tests` — **1071** in `OpenFCPXMLKitTests` (1068 XCTest + 3 `@Test`) + **4** optional `ExcelReportTest`; **59** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML/](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
+**Test count (keep in sync):** **1076** listed in `swift test --list-tests` — **1072** in `OpenFCPXMLKitTests` (1069 XCTest + 3 `@Test`) + **4** optional `ExcelReportTest`; **59** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML/](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
 
 ---
 
