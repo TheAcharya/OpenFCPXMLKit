@@ -7,7 +7,7 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
-## [Unreleased]
+## [3.1.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.1.0) - 2026-07-16
 
 ### ✨ New Features
 
