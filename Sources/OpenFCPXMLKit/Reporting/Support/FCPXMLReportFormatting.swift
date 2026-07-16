@@ -103,6 +103,8 @@ extension FinalCutPro.FCPXML {
                 return completed ? .completedToDo : .incompleteToDo
             case .chapter:
                 return .chapter
+            case .analysis:
+                return .analysis
             }
         }
         
@@ -662,7 +664,7 @@ extension FinalCutPro.FCPXML {
             return [videoDisplay, audioDisplay]
         }
         
-        private static func firstMainRoleDisplay(
+        static func firstMainRoleDisplay(
             in roles: [AnyInterpolatedRole],
             ofType roleType: RoleType
         ) -> String? {
@@ -712,7 +714,36 @@ extension FinalCutPro.FCPXML {
                 return mainRoleDisplay(from: preferred.collapsingSubRole())
             }
         }
-        
+
+        static func effectRoleSubrole(
+            kind: ExtractedEffect.Kind,
+            hostElementType: String,
+            roles: [AnyInterpolatedRole],
+            roleDisplayPreference: RoleDisplayPreference = .builtIn
+        ) -> String {
+            switch kind {
+            case .filterAudio, .volume, .implicitVolume:
+                if let preferred = roleDisplayPreference.preferredRole(
+                    from: roles,
+                    context: .audioEffects
+                ) ?? roles.first(where: { $0.isAudio }) {
+                    return mainRoleDisplay(from: preferred.collapsingSubRole())
+                }
+                return firstMainRoleDisplay(in: roles, ofType: .audio) ?? ""
+            case .filterVideo, .transform, .compositing, .spatialConform:
+                if hostElementType == ElementType.title.rawValue {
+                    return "Titles"
+                }
+                if let preferred = roleDisplayPreference.preferredRole(
+                    from: roles,
+                    context: .videoEffects
+                ) ?? roles.first(where: { $0.isVideo }) {
+                    return mainRoleDisplay(from: preferred.collapsingSubRole())
+                }
+                return firstMainRoleDisplay(in: roles, ofType: .video) ?? ""
+            }
+        }
+
         static func keywordRoleDisplays(
             for extracted: some FCPXMLExtractedElement,
             roleDisplayPreference: RoleDisplayPreference = .builtIn
@@ -770,11 +801,17 @@ extension FinalCutPro.FCPXML {
                 return completed
                     ? "\(name) (Completed to-do)"
                     : "\(name) (Incomplete to-do)"
+            case .analysis:
+                return "\(name) (Analysis)"
             }
         }
         
         static func effectSettingsDisplay(for effect: ExtractedEffect) -> String {
-            switch effect.settings {
+            effectSettingsDisplay(for: effect.settings)
+        }
+
+        static func effectSettingsDisplay(for settings: ExtractedEffect.Settings) -> String {
+            switch settings {
             case .empty:
                 return ""
             case .text(let value):

@@ -62,7 +62,7 @@ let package = Package(
                 .product(name: "XLKit", package: "XLKit"),
             ],
             path: "Tests",
-            exclude: ["README.md"],
+            exclude: ["README.md", "ExcelReportTest", "Submitted FCPXML"],
             sources: ["OpenFCPXMLKitTests"],
             resources: [.process("FCPXML Samples/FCPXML")]),
         .testTarget(

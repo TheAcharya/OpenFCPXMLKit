@@ -17,15 +17,21 @@ extension FinalCutPro.FCPXML.ElementContext {
         var element: any OFKXMLElement
         var breadcrumbs: [any OFKXMLElement]
         var resources: (any OFKXMLElement)? // `resources` container element
+        var auditions: FinalCutPro.FCPXML.Audition.AuditionMask
+        var mcClipAngles: FinalCutPro.FCPXML.MCClip.AngleMask
 
         init(
             element: any OFKXMLElement,
             breadcrumbs: [any OFKXMLElement],
-            resources: (any OFKXMLElement)? // `resources` container element
+            resources: (any OFKXMLElement)?, // `resources` container element
+            auditions: FinalCutPro.FCPXML.Audition.AuditionMask = .active,
+            mcClipAngles: FinalCutPro.FCPXML.MCClip.AngleMask = .active
         ) {
             self.element = element
             self.breadcrumbs = breadcrumbs
             self.resources = resources
+            self.auditions = auditions
+            self.mcClipAngles = mcClipAngles
         }
         
         // MARK: - Properties
@@ -210,8 +216,8 @@ extension FinalCutPro.FCPXML.ElementContext {
         public func localRoles(includeDefaultRoles: Bool) -> [FinalCutPro.FCPXML.AnyRole] {
             var elementRoles = element._fcpLocalRoles(
                 resources: resources,
-                auditions: .active, 
-                mcClipAngles: .active
+                auditions: auditions,
+                mcClipAngles: mcClipAngles
             )
             
             if includeDefaultRoles, let elementType = elementType {
@@ -226,8 +232,8 @@ extension FinalCutPro.FCPXML.ElementContext {
             element._fcpInheritedRoles(
                 ancestors: breadcrumbs,
                 resources: resources,
-                auditions: .active,
-                mcClipAngles: .active
+                auditions: auditions,
+                mcClipAngles: mcClipAngles
             )
             .flattenedInterpolatedRoles()
         }

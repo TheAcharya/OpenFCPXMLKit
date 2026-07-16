@@ -298,12 +298,17 @@ extension FinalCutPro.FCPXML.ReportColumn {
         case .sourceFileName:
             return ["Source File Name"]
         case .sourceFilePath:
-            return ["Source File Path", "Missing Media"]
+            return [
+                "Source File Path",
+                "Missing Media",
+                "Missing Original",
+                "Missing Proxy"
+            ]
         case .metadata:
             return []
         }
     }
-    
+
     /// User-facing aliases accepted by ``ReportColumnExclusion``.
     fileprivate var aliases: [String] {
         switch self {
@@ -360,7 +365,12 @@ extension FinalCutPro.FCPXML.ReportColumn {
         case .sourceFileName:
             return ["Source File Name"]
         case .sourceFilePath:
-            return ["Source File Path"]
+            return [
+                "Source File Path",
+                "Missing Media",
+                "Missing Original",
+                "Missing Proxy"
+            ]
         case .metadata:
             return ["Metadata"]
         }

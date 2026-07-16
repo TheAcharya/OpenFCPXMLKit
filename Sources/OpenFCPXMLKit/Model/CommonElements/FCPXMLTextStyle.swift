@@ -262,5 +262,132 @@ extension FinalCutPro.FCPXML {
             }
             try container.encodeIfPresent(parameters.isEmpty ? nil : parameters, forKey: .parameters)
         }
+
+        /// Parses a `text-style` element into a typed model (all DTD attributes).
+        public static func parse(from element: any OFKXMLElement) -> FinalCutPro.FCPXML.TextStyle? {
+            let ref = element.fcpRef
+            let value = element.stringValue
+            let font = element.stringValue(forAttributeNamed: "font")
+            let fontSize = element.stringValue(forAttributeNamed: "fontSize").flatMap { Int($0) }
+            let fontFace = element.stringValue(forAttributeNamed: "fontFace")
+            let fontColor = element.stringValue(forAttributeNamed: "fontColor")
+            let backgroundColor = element.stringValue(forAttributeNamed: "backgroundColor")
+            let isBold = element.stringValue(forAttributeNamed: "bold").map { $0 == "1" }
+            let isItalic = element.stringValue(forAttributeNamed: "italic").map { $0 == "1" }
+            let strokeColor = element.stringValue(forAttributeNamed: "strokeColor")
+            let strokeWidth = element.stringValue(forAttributeNamed: "strokeWidth").flatMap { Double($0) }
+            let baseline = element.stringValue(forAttributeNamed: "baseline").flatMap { Double($0) }
+            let shadowColor = element.stringValue(forAttributeNamed: "shadowColor")
+            let shadowOffset = element.stringValue(forAttributeNamed: "shadowOffset")
+            let shadowBlurRadius = element.stringValue(forAttributeNamed: "shadowBlurRadius").flatMap { Double($0) }
+            let kerning = element.stringValue(forAttributeNamed: "kerning").flatMap { Double($0) }
+            let alignment = element.stringValue(forAttributeNamed: "alignment")
+                .flatMap { FinalCutPro.FCPXML.TextAlignment(rawValue: $0) }
+            let lineSpacing = element.stringValue(forAttributeNamed: "lineSpacing").flatMap { Double($0) }
+            let tabStops = element.stringValue(forAttributeNamed: "tabStops").flatMap { Double($0) }
+            let baselineOffset = element.stringValue(forAttributeNamed: "baselineOffset").flatMap { Double($0) }
+            let isUnderlined = element.stringValue(forAttributeNamed: "underline").map { $0 == "1" }
+            let parameters = Array(element.childElements
+                .filter { $0.name == "param" }
+                .compactMap { FinalCutPro.FCPXML.FilterParameter(paramElement: $0) })
+
+            var textStyle = FinalCutPro.FCPXML.TextStyle(referenceID: ref, value: value, parameters: parameters)
+            textStyle.font = font
+            textStyle.fontSize = fontSize
+            textStyle.fontFace = fontFace
+            textStyle.fontColor = fontColor
+            textStyle.backgroundColor = backgroundColor
+            textStyle.isBold = isBold
+            textStyle.isItalic = isItalic
+            textStyle.strokeColor = strokeColor
+            textStyle.strokeWidth = strokeWidth
+            textStyle.baseline = baseline
+            textStyle.shadowColor = shadowColor
+            textStyle.shadowOffset = shadowOffset
+            textStyle.shadowBlurRadius = shadowBlurRadius
+            textStyle.kerning = kerning
+            textStyle.alignment = alignment
+            textStyle.lineSpacing = lineSpacing
+            textStyle.tabStops = tabStops
+            textStyle.baselineOffset = baselineOffset
+            textStyle.isUnderlined = isUnderlined
+            return textStyle
+        }
+
+        /// Builds a `text-style` XML element from a typed model.
+        public static func makeElement(from textStyle: FinalCutPro.FCPXML.TextStyle) -> any OFKXMLElement {
+            let element = OFKXMLDefaultFactory().makeElement(name: "text-style")
+            if let ref = textStyle.referenceID { element.fcpRef = ref }
+            if let value = textStyle.value { element.stringValue = value }
+            if let font = textStyle.font { element.addAttribute(name: "font", value: font) }
+            if let fontSize = textStyle.fontSize {
+                element.addAttribute(name: "fontSize", value: String(fontSize))
+            }
+            if let fontFace = textStyle.fontFace {
+                element.addAttribute(name: "fontFace", value: fontFace)
+            }
+            if let fontColor = textStyle.fontColor {
+                element.addAttribute(name: "fontColor", value: fontColor)
+            }
+            if let backgroundColor = textStyle.backgroundColor {
+                element.addAttribute(name: "backgroundColor", value: backgroundColor)
+            }
+            if let isBold = textStyle.isBold {
+                element.addAttribute(name: "bold", value: isBold ? "1" : "0")
+            }
+            if let isItalic = textStyle.isItalic {
+                element.addAttribute(name: "italic", value: isItalic ? "1" : "0")
+            }
+            if let strokeColor = textStyle.strokeColor {
+                element.addAttribute(name: "strokeColor", value: strokeColor)
+            }
+            if let strokeWidth = textStyle.strokeWidth {
+                element.addAttribute(name: "strokeWidth", value: String(strokeWidth))
+            }
+            if let baseline = textStyle.baseline {
+                element.addAttribute(name: "baseline", value: String(baseline))
+            }
+            if let shadowColor = textStyle.shadowColor {
+                element.addAttribute(name: "shadowColor", value: shadowColor)
+            }
+            if let shadowOffset = textStyle.shadowOffset {
+                element.addAttribute(name: "shadowOffset", value: shadowOffset)
+            }
+            if let shadowBlurRadius = textStyle.shadowBlurRadius {
+                element.addAttribute(name: "shadowBlurRadius", value: String(shadowBlurRadius))
+            }
+            if let kerning = textStyle.kerning {
+                element.addAttribute(name: "kerning", value: String(kerning))
+            }
+            if let alignment = textStyle.alignment {
+                element.addAttribute(name: "alignment", value: alignment.rawValue)
+            }
+            if let lineSpacing = textStyle.lineSpacing {
+                element.addAttribute(name: "lineSpacing", value: String(lineSpacing))
+            }
+            if let tabStops = textStyle.tabStops {
+                element.addAttribute(name: "tabStops", value: String(tabStops))
+            }
+            if let baselineOffset = textStyle.baselineOffset {
+                element.addAttribute(name: "baselineOffset", value: String(baselineOffset))
+            }
+            if let isUnderlined = textStyle.isUnderlined {
+                element.addAttribute(name: "underline", value: isUnderlined ? "1" : "0")
+            }
+            for param in textStyle.parameters {
+                let paramElement = OFKXMLDefaultFactory().makeElement(name: "param")
+                paramElement.addAttribute(name: "name", value: param.name)
+                if let key = param.key { paramElement.addAttribute(name: "key", value: key) }
+                if let value = param.value { paramElement.addAttribute(name: "value", value: value) }
+                if let auxValue = param.auxValue {
+                    paramElement.addAttribute(name: "auxValue", value: auxValue)
+                }
+                if !param.isEnabled {
+                    paramElement.addAttribute(name: "enabled", value: "0")
+                }
+                element.addChild(paramElement)
+            }
+            return element
+        }
     }
 }

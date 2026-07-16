@@ -55,6 +55,9 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
         if ServiceLogLevel.from(string: logOptions.logLevel) == nil {
             throw ValidationError("Invalid log level: '\(logOptions.logLevel)'. Use one of: trace, debug, info, notice, warning, error, critical.")
         }
+        if general.extensionType != nil, general.convertVersion == nil {
+            throw ValidationError("--extension-type requires --convert-version.")
+        }
         if timeline.createProject {
             guard timeline.width != nil, timeline.height != nil, timeline.rate != nil else {
                 throw ValidationError("--create-project requires --width, --height, and --rate (e.g. --create-project --width 1920 --height 1080 --rate 24 <output-dir>).")
@@ -78,32 +81,12 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
         if fcpxmlPath == nil {
             throw ValidationError("fcpxml-path is required when not using --create-project.")
         }
-        if reportOptions.reportFull && !reportOptions.report {
-            throw ValidationError("--report-full requires --report.")
-        }
-        if reportOptions.hasSectionSelection && !reportOptions.report {
-            throw ValidationError("REPORT section flags require --report.")
-        }
-        if !reportOptions.excludeRole.isEmpty && !reportOptions.report {
-            throw ValidationError("--exclude-role requires --report.")
-        }
-        if reportOptions.excludeDisabledClips && !reportOptions.report {
-            throw ValidationError("--exclude-disabled-clips requires --report.")
-        }
-        if !reportOptions.excludeColumn.isEmpty && !reportOptions.report {
-            throw ValidationError("--exclude-column requires --report.")
-        }
-        if reportOptions.reportProject != nil && !reportOptions.report {
-            throw ValidationError("--report-project requires --report.")
-        }
-        if reportOptions.labelCopyright != nil && !reportOptions.report {
-            throw ValidationError("--label-copyright requires --report.")
+        if reportOptions.hasAnyReportModifier && !reportOptions.report {
+            throw ValidationError("REPORT options require --report.")
         }
         if reportOptions.report {
             _ = try reportOptions.resolvedTimecodeFormat()
-        }
-        if reportOptions.createPDF && !reportOptions.report {
-            throw ValidationError("--create-pdf requires --report.")
+            _ = try reportOptions.resolvedMediaResolutionPolicy()
         }
         if general.checkVersion || general.validate {
             return
@@ -134,6 +117,7 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
             guard h > 0 else { throw CreateProjectError.invalidHeight("\(h)") }
             let rate = try guardRate(rateStr, error: CreateProjectError.invalidRate)
             let version = timeline.projectVersion.flatMap { FCPXMLVersion(string: $0) } ?? .default
+            try CLIOutputDirectory.ensureExists(outDir)
             try CreateProject.run(width: w, height: h, rate: rate, outputDir: outDir, version: version, logger: logger)
             return
         }
@@ -151,8 +135,15 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
         guard let outDir = outputDir else {
             throw ValidationError("output-dir is required.")
         }
+        try CLIOutputDirectory.ensureExists(outDir)
         if let targetVersion = general.convertVersion {
-            try ConvertVersion.run(fcpxmlPath: fcpxmlPath, targetVersionString: targetVersion, outputDir: outDir, extensionType: general.extensionType, logger: logger)
+            try ConvertVersion.run(
+                fcpxmlPath: fcpxmlPath,
+                targetVersionString: targetVersion,
+                outputDir: outDir,
+                extensionType: general.extensionType ?? .fcpxmld,
+                logger: logger
+            )
             return
         }
         if extraction.mediaCopy {
@@ -160,7 +151,7 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
             return
         }
         if reportOptions.report {
-            let options = reportOptions.makeLibraryReportOptions(mediaBaseURL: nil)
+            let options = try reportOptions.makeLibraryReportOptions(mediaBaseURL: nil)
             try ExportReport.runSynchronously(
                 fcpxmlPath: fcpxmlPath,
                 outputDir: outDir,

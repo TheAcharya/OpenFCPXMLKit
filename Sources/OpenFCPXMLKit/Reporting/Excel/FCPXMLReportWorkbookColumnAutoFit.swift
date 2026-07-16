@@ -35,17 +35,43 @@ enum FCPXMLReportWorkbookColumnAutoFit {
     }
     
     static func apply(to sheet: Sheet, headers: [String]? = nil) {
+        apply(to: sheet, headers: headers, rows: nil)
+    }
+
+    /// Applies column widths from header + row string lengths (avoids scanning ``sheet.cells``).
+    static func apply(
+        to sheet: Sheet,
+        headers: [String]?,
+        rows: [[String]]?
+    ) {
         var widthsByColumn: [Int: Double] = [:]
-        
-        for (address, value) in sheet.cells {
-            guard let coordinate = CellCoordinate(excelAddress: address) else { continue }
-            let width = estimatedWidth(for: value.stringValue)
-            widthsByColumn[coordinate.column] = max(widthsByColumn[coordinate.column] ?? minimumWidth, width)
+
+        if let rows {
+            for values in rows {
+                for (index, value) in values.enumerated() {
+                    let column = index + 1
+                    let width = estimatedWidth(for: value)
+                    widthsByColumn[column] = max(widthsByColumn[column] ?? minimumWidth, width)
+                }
+            }
+        } else {
+            for (address, value) in sheet.cells {
+                guard let coordinate = CellCoordinate(excelAddress: address) else { continue }
+                let width = estimatedWidth(for: value.stringValue)
+                widthsByColumn[coordinate.column] = max(
+                    widthsByColumn[coordinate.column] ?? minimumWidth,
+                    width
+                )
+            }
         }
-        
+
         if let headers {
             for (index, header) in headers.enumerated() {
                 let column = index + 1
+                widthsByColumn[column] = max(
+                    widthsByColumn[column] ?? minimumWidth,
+                    estimatedWidth(for: header)
+                )
                 if header == FinalCutPro.FCPXML.RoleInventoryColumnLayout.rowColumnHeader {
                     // Keep the Row index column narrow regardless of other cells in the column
                     // (e.g. legacy Summary titles that once shared column A).
@@ -57,7 +83,7 @@ enum FCPXMLReportWorkbookColumnAutoFit {
                 }
             }
         }
-        
+
         for (column, width) in widthsByColumn {
             sheet.setColumnWidth(column, width: width)
         }

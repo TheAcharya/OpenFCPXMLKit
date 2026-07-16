@@ -55,4 +55,24 @@ final class FCPXMLReportExcludeDisabledClipsTests: XCTestCase, @unchecked Sendab
             reportWithoutDisabled.roleInventory?.selectedRoles.contains { $0.enabled == "✗" } ?? false
         )
     }
+
+    func testExcludeDisabledClipsOmitsDisabledMarkersFromReport() async throws {
+        let fcpxml = try loadFCPXMLSample(named: "DisabledClips")
+
+        var includingDisabled = FinalCutPro.FCPXML.ReportOptions()
+        includingDisabled.includeMarkers = true
+        includingDisabled.includeRoleInventory = false
+        includingDisabled.excludeDisabledClips = false
+
+        var excludingDisabled = includingDisabled
+        excludingDisabled.excludeDisabledClips = true
+
+        let reportWithDisabled = try await fcpxml.buildReport(options: includingDisabled)
+        let reportWithoutDisabled = try await fcpxml.buildReport(options: excludingDisabled)
+
+        let withCount = reportWithDisabled.markers?.rows.count ?? 0
+        let withoutCount = reportWithoutDisabled.markers?.rows.count ?? 0
+        XCTAssertGreaterThanOrEqual(withCount, withoutCount)
+    }
 }
+

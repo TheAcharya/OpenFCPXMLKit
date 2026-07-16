@@ -218,16 +218,18 @@ enum FCPXMLReportWorkbookExporter {
         for (index, marker) in markers.rows.enumerated() {
             let rowIndex = index + 2
             let values = filtered.rows[index]
-            sheet.setRow(rowIndex, strings: values)
-            applyMarkerColorToRow(
-                sheet,
-                row: rowIndex,
-                values: values,
-                markerType: marker.type
-            )
+            let rowFormat = markerFontFormat(for: marker.type)
+            for (columnIndex, value) in values.enumerated() {
+                let coordinate = CellCoordinate(row: rowIndex, column: columnIndex + 1).excelAddress
+                sheet.setCell(coordinate, string: value, format: rowFormat)
+            }
         }
         
-        FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet, headers: headers)
+        FCPXMLReportWorkbookColumnAutoFit.apply(
+            to: sheet,
+            headers: headers,
+            rows: filtered.rows
+        )
     }
     
     private static func applyMarkerColorToRow(
@@ -271,17 +273,49 @@ enum FCPXMLReportWorkbookExporter {
         let categoryColumnIndex = headers.firstIndex(of: FCPXMLReportRowColorPolicy.categoryColumnHeader).map { $0 + 1 }
         for (index, values) in rows.enumerated() {
             let rowIndex = index + 2
-            sheet.setRow(rowIndex, strings: values)
-            applyRoleColorToRow(
-                sheet,
-                row: rowIndex,
+            let roleFormat = roleFontFormatIfNeeded(
                 values: values,
                 roleColumnIndex: roleColumnIndex,
                 categoryColumnIndex: categoryColumnIndex,
                 colorContext: colorContext
             )
+            for (columnIndex, value) in values.enumerated() {
+                let coordinate = CellCoordinate(row: rowIndex, column: columnIndex + 1).excelAddress
+                if let roleFormat {
+                    sheet.setCell(coordinate, string: value, format: roleFormat)
+                } else {
+                    sheet.setCell(coordinate, string: value)
+                }
+            }
         }
-        FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet, headers: headers)
+        FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet, headers: headers, rows: rows)
+    }
+
+    private static func roleFontFormatIfNeeded(
+        values: [String],
+        roleColumnIndex: Int?,
+        categoryColumnIndex: Int?,
+        colorContext: RoleRowColorContext
+    ) -> CellFormat? {
+        guard let roleColumnIndex,
+              values.indices.contains(roleColumnIndex - 1)
+        else {
+            return nil
+        }
+
+        let roleValue = values[roleColumnIndex - 1]
+        var categoryValue: String?
+        if let categoryColumnIndex,
+           values.indices.contains(categoryColumnIndex - 1)
+        {
+            categoryValue = values[categoryColumnIndex - 1]
+        }
+
+        return roleFontFormat(
+            for: roleValue,
+            categoryLabel: categoryValue,
+            context: colorContext
+        )
     }
     
     private static func applyRoleColorToRow(
@@ -292,25 +326,14 @@ enum FCPXMLReportWorkbookExporter {
         categoryColumnIndex: Int?,
         colorContext: RoleRowColorContext = .roleInventory
     ) {
-        guard let roleColumnIndex,
-              values.indices.contains(roleColumnIndex - 1)
-        else {
+        guard let roleFormat = roleFontFormatIfNeeded(
+            values: values,
+            roleColumnIndex: roleColumnIndex,
+            categoryColumnIndex: categoryColumnIndex,
+            colorContext: colorContext
+        ) else {
             return
         }
-        
-        let roleValue = values[roleColumnIndex - 1]
-        var categoryValue: String?
-        if let categoryColumnIndex,
-           values.indices.contains(categoryColumnIndex - 1)
-        {
-            categoryValue = values[categoryColumnIndex - 1]
-        }
-        
-        let roleFormat = roleFontFormat(
-            for: roleValue,
-            categoryLabel: categoryValue,
-            context: colorContext
-        )
         
         for (columnIndex, value) in values.enumerated() {
             let coordinate = CellCoordinate(row: row, column: columnIndex + 1).excelAddress
@@ -430,50 +453,84 @@ enum FCPXMLReportWorkbookExporter {
         let sheet = workbook.addSheet(
             name: sanitizeSheetName(FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName)
         )
-        
-        let missingMediaTitle = FinalCutPro.FCPXML.MediaSummaryReportSection.missingMediaSectionTitle
-        
-        if !mediaSummary.missingMediaPaths.isEmpty,
-           !FinalCutPro.FCPXML.ReportColumnExclusion.isHeaderExcluded(
-               missingMediaTitle,
-               excluded: excludedColumns,
-               metadataColumnKeys: []
-           )
-        {
-            let filtered = filteredTabularSection(
-                headers: [missingMediaTitle],
-                rows: mediaSummary.missingMediaPaths.map { [$0] },
-                excludedColumns: excludedColumns
-            )
-            let headers = filtered.headers
-            setTableHeaderRow(sheet, row: 1, strings: headers)
-            
-            let pathColumnIndex = headers.firstIndex(of: missingMediaTitle).map { $0 + 1 }
-            
-            for (index, values) in filtered.rows.enumerated() {
-                let rowIndex = index + 2
-                sheet.setRow(rowIndex, strings: values)
-                
-                if let pathColumnIndex,
-                   values.indices.contains(pathColumnIndex - 1)
-                {
-                    let coordinate = CellCoordinate(
-                        row: rowIndex,
-                        column: pathColumnIndex
-                    ).excelAddress
-                    sheet.setCell(
-                        coordinate,
-                        string: values[pathColumnIndex - 1],
-                        format: missingMediaPathFormat()
-                    )
-                }
-            }
-            
-            FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet, headers: headers)
+
+        let table = mediaSummaryTable(mediaSummary)
+        guard !table.headers.isEmpty, !table.rows.isEmpty else {
+            FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet)
             return
         }
-        
-        FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet)
+
+        let filtered = filteredTabularSection(
+            headers: table.headers,
+            rows: table.rows,
+            excludedColumns: excludedColumns
+        )
+        guard !filtered.headers.isEmpty, !filtered.rows.isEmpty else {
+            FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet)
+            return
+        }
+
+        let headers = filtered.headers
+        setTableHeaderRow(sheet, row: 1, strings: headers)
+
+        let pathColumnIndices: [Int] = headers.indices.compactMap { index in
+            let header = headers[index]
+            if header == FinalCutPro.FCPXML.MediaSummaryReportSection.missingMediaSectionTitle
+                || header == FinalCutPro.FCPXML.MediaSummaryReportSection.missingOriginalMediaSectionTitle
+                || header == FinalCutPro.FCPXML.MediaSummaryReportSection.missingProxyMediaSectionTitle
+            {
+                return index + 1
+            }
+            return nil
+        }
+
+        for (index, values) in filtered.rows.enumerated() {
+            let rowIndex = index + 2
+            sheet.setRow(rowIndex, strings: values)
+
+            for pathColumnIndex in pathColumnIndices where values.indices.contains(pathColumnIndex - 1) {
+                let coordinate = CellCoordinate(
+                    row: rowIndex,
+                    column: pathColumnIndex
+                ).excelAddress
+                sheet.setCell(
+                    coordinate,
+                    string: values[pathColumnIndex - 1],
+                    format: missingMediaPathFormat()
+                )
+            }
+        }
+
+        FCPXMLReportWorkbookColumnAutoFit.apply(
+            to: sheet,
+            headers: headers,
+            rows: filtered.rows
+        )
+    }
+
+    private static func mediaSummaryTable(
+        _ mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection
+    ) -> (headers: [String], rows: [[String]]) {
+        if mediaSummary.distinguishProxyAndOriginal {
+            let originalTitle = FinalCutPro.FCPXML.MediaSummaryReportSection.missingOriginalMediaSectionTitle
+            let proxyTitle = FinalCutPro.FCPXML.MediaSummaryReportSection.missingProxyMediaSectionTitle
+            let originals = mediaSummary.missingOriginalMediaPaths
+            let proxies = mediaSummary.missingProxyMediaPaths
+            let rowCount = max(originals.count, proxies.count)
+            guard rowCount > 0 else { return ([], []) }
+            var rows: [[String]] = []
+            rows.reserveCapacity(rowCount)
+            for index in 0 ..< rowCount {
+                let original = index < originals.count ? originals[index] : ""
+                let proxy = index < proxies.count ? proxies[index] : ""
+                rows.append([original, proxy])
+            }
+            return ([originalTitle, proxyTitle], rows)
+        }
+
+        let title = FinalCutPro.FCPXML.MediaSummaryReportSection.missingMediaSectionTitle
+        guard !mediaSummary.missingMediaPaths.isEmpty else { return ([], []) }
+        return ( [title], mediaSummary.missingMediaPaths.map { [$0] } )
     }
     
     private static func appendRoleInventory(

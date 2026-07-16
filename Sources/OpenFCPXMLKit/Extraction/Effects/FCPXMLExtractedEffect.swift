@@ -39,7 +39,7 @@ extension FinalCutPro.FCPXML {
         /// Built-in adjustments default to `true`.
         public let isAppleSupplied: Bool
         
-        public enum Kind: Sendable, Equatable {
+        public enum Kind: Sendable, Equatable, Hashable {
             case filterVideo
             case filterAudio
             case volume
@@ -49,7 +49,7 @@ extension FinalCutPro.FCPXML {
             case spatialConform
         }
         
-        public enum Settings: Sendable, Equatable {
+        public enum Settings: Sendable, Equatable, Hashable {
             case empty
             case text(String)
             case decibels(Double)

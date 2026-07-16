@@ -90,6 +90,7 @@ enum FCPXMLSampleName: String, CaseIterable {
     case frameRate50 = "50"
     case frameRate59_94 = "59.94"
     case frameRate60 = "60"
+    case generalDemo = "GeneralDemo"
     case annotations = "Annotations"
     case audioOnly = "AudioOnly"
     case auditionMarkers = "AuditionMarkers"

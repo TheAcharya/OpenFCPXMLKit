@@ -188,11 +188,13 @@ extension FinalCutPro.FCPXML.ElementContext {
     public static var visibleKeywordRangeOnMainTimeline: FinalCutPro.FCPXML.ElementContext<
         (timelineIn: Timecode, timelineOut: Timecode, duration: Timecode)?
     > {
-        FinalCutPro.FCPXML.ElementContext { element, breadcrumbs, resources, _ in
+        FinalCutPro.FCPXML.ElementContext { element, breadcrumbs, resources, tools in
             FinalCutPro.FCPXML.ExtractedElement(
                 element: element,
                 breadcrumbs: breadcrumbs,
-                resources: resources
+                resources: resources,
+                auditions: tools.auditions,
+                mcClipAngles: tools.mcClipAngles
             ).visibleKeywordRangeOnMainTimeline()
         }
     }

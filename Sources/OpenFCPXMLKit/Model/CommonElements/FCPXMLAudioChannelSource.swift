@@ -119,6 +119,8 @@ extension FinalCutPro.FCPXML.AudioChannelSource: FCPXMLElementOptionalDuration {
 
 // MARK: - Children
 
+extension FinalCutPro.FCPXML.AudioChannelSource: FCPXMLElementAudioPlaybackChildren { }
+
 extension FinalCutPro.FCPXML.AudioChannelSource {
     /// Get or set child elements.
     public var contents: [any OFKXMLElement] {
@@ -128,10 +130,6 @@ extension FinalCutPro.FCPXML.AudioChannelSource {
             element.addChildren(newValue)
         }
     }
-    
-    // Note: adjusts property not yet implemented.
-    // Note: filters property not yet implemented.
-    // Note: mutes property not yet implemented.
 }
 
 // MARK: - Typing

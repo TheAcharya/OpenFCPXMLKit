@@ -17,23 +17,40 @@ extension FinalCutPro.FCPXML {
             from timeline: any OFKXMLElement,
             scope: ExtractionScope,
             roleDisplayPreference: RoleDisplayPreference = .builtIn,
-            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames,
+            projection: ReportProjectionContext? = nil,
+            entries: [RoleInventoryClipEntry]? = nil
         ) async -> RoleInventoryReportSection {
-            let entries = await RoleInventoryClipCollector.collectEntries(
-                from: timeline,
-                scope: scope,
-                roleDisplayPreference: roleDisplayPreference
-            )
-            
-            let selectedRoles = entries
+            let resolvedEntries: [RoleInventoryClipEntry]
+            if let entries {
+                resolvedEntries = entries
+            } else {
+                resolvedEntries = await RoleInventoryClipCollector.collectEntries(
+                    from: timeline,
+                    scope: scope,
+                    roleDisplayPreference: roleDisplayPreference
+                )
+            }
+
+            let windows = projection?.windows
+            let windowIndex = windows.map { ProjectionWindowIndex(windows: $0) }
+
+            let selectedRoles = resolvedEntries
                 .sortedByTimelinePosition()
-                .compactMap { RoleInventoryRowBuilder.row(from: $0, timecodeFormat: timecodeFormat) }
-            
+                .compactMap {
+                    RoleInventoryRowBuilder.row(
+                        from: $0,
+                        timecodeFormat: timecodeFormat,
+                        projectionWindows: windows,
+                        windowIndex: windowIndex
+                    )
+                }
+
             let roleSheets = RoleInventoryRoleSheetOrdering.roleSheets(from: selectedRoles)
             let metadataColumnKeys = RoleInventoryColumnLayout.metadataColumnKeys(
                 from: selectedRoles
             )
-            
+
             return RoleInventoryReportSection(
                 selectedRoles: selectedRoles,
                 roleSheets: roleSheets,

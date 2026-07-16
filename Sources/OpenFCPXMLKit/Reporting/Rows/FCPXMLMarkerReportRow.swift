@@ -89,6 +89,7 @@ extension FinalCutPro.FCPXML {
         case incompleteToDo = "Incomplete To-Do"
         case completedToDo = "Completed To-Do"
         case chapter = "Chapter"
+        case analysis = "Analysis"
         
         public var displayName: String { rawValue }
     }

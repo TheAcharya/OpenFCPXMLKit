@@ -286,76 +286,89 @@ extension OFKXMLElement {
         timelineFrameRate: TimecodeFrameRate,
         mediaFrameRate: TimecodeFrameRate
     ) -> Double? {
-        let t = timelineFrameRate.frameDuration.doubleValue
-        let m = mediaFrameRate.frameDuration.doubleValue
-        
-        // Note: some values may need verification with additional frame rates.
-        
-        switch mediaFrameRate.compatibleGroup {
-        case .ntscColor: // 23.976, 29.97, etc.
-            switch timelineFrameRate.compatibleGroup {
-            case .ntscColor:
-                switch mediaFrameRate {
-                case .fps23_976, .fps47_952:
-                    switch timelineFrameRate {
-                    case .fps23_976, .fps47_952: return nil
-                    case .fps29_97, .fps59_94, .fps119_88: return 1 / 1.001
-                    default: break
-                    }
-                case .fps29_97, .fps59_94, .fps119_88:
-                    switch timelineFrameRate {
-                    case .fps23_976, .fps47_952: return 1.001
-                    case .fps29_97, .fps59_94, .fps119_88: return nil
-                    default: break
-                    }
-                default: return nil
-                }
-                return nil
-            case .ntscColorWallTime:
-                return nil // not used by FCP
-            case .ntscDrop:
-                return nil
-            case .whole:
-                return 1 / 1.001 // works for 60fps timeline -> 23.98 media
-            }
-            
-        case .ntscColorWallTime: // 30d, 60d - not used by FCP
-            return nil
-            
-        case .ntscDrop: // 29.97d, 59.94d
-            switch timelineFrameRate.compatibleGroup {
-            case .ntscColor: 
-                return t / m
-            case .ntscColorWallTime:
-                return nil // not used by FCP
-            case .ntscDrop:
-                return nil
-            case .whole:
-                return t / m
-            }
-            
-        case .whole: // 24, 25, 30, 60
-            switch timelineFrameRate.compatibleGroup {
-            case .ntscColor: 
-                return t / m // works for 23.98 timeline -> 25 media
-            case .ntscColorWallTime:
-                return nil // not used by FCP
-            case .ntscDrop:
-                return m / t
-            case .whole:
+        fcpConformRateScalingFactor(
+            timelineFrameRate: timelineFrameRate,
+            mediaFrameRate: mediaFrameRate
+        )
+    }
+}
+
+/// Shared conform-rate scaling factor table (sequence ↔ media frame rates).
+///
+/// See [`conform-rate` documentation.](https://developer.apple.com/documentation/professional_video_applications/fcpxml_reference/story_elements/conform-rate)
+func fcpConformRateScalingFactor(
+    timelineFrameRate: TimecodeFrameRate,
+    mediaFrameRate: TimecodeFrameRate
+) -> Double? {
+    let t = timelineFrameRate.frameDuration.doubleValue
+    let m = mediaFrameRate.frameDuration.doubleValue
+
+    // Note: some values may need verification with additional frame rates.
+
+    switch mediaFrameRate.compatibleGroup {
+    case .ntscColor: // 23.976, 29.97, etc.
+        switch timelineFrameRate.compatibleGroup {
+        case .ntscColor:
+            switch mediaFrameRate {
+            case .fps23_976, .fps47_952:
                 switch timelineFrameRate {
-                case .fps24:
-                    switch mediaFrameRate {
-                    case .fps25: return t / m
-                    default: return nil
-                    }
-                case .fps25:
-                    switch mediaFrameRate {
-                    case .fps24: return m / t // Note: experimental, needs further testing.
-                    default: return nil
-                    }
+                case .fps23_976, .fps47_952: return nil
+                case .fps29_97, .fps59_94, .fps119_88: return 1 / 1.001
+                default: break
+                }
+            case .fps29_97, .fps59_94, .fps119_88:
+                switch timelineFrameRate {
+                case .fps23_976, .fps47_952: return 1.001
+                case .fps29_97, .fps59_94, .fps119_88: return nil
+                default: break
+                }
+            default: return nil
+            }
+            return nil
+        case .ntscColorWallTime:
+            return nil // not used by FCP
+        case .ntscDrop:
+            return nil
+        case .whole:
+            return 1 / 1.001 // works for 60fps timeline -> 23.98 media
+        }
+
+    case .ntscColorWallTime: // 30d, 60d - not used by FCP
+        return nil
+
+    case .ntscDrop: // 29.97d, 59.94d
+        switch timelineFrameRate.compatibleGroup {
+        case .ntscColor:
+            return t / m
+        case .ntscColorWallTime:
+            return nil // not used by FCP
+        case .ntscDrop:
+            return nil
+        case .whole:
+            return t / m
+        }
+
+    case .whole: // 24, 25, 30, 60
+        switch timelineFrameRate.compatibleGroup {
+        case .ntscColor:
+            return t / m // works for 23.98 timeline -> 25 media
+        case .ntscColorWallTime:
+            return nil // not used by FCP
+        case .ntscDrop:
+            return m / t
+        case .whole:
+            switch timelineFrameRate {
+            case .fps24:
+                switch mediaFrameRate {
+                case .fps25: return t / m
                 default: return nil
                 }
+            case .fps25:
+                switch mediaFrameRate {
+                case .fps24: return m / t // Note: experimental, needs further testing.
+                default: return nil
+                }
+            default: return nil
             }
         }
     }

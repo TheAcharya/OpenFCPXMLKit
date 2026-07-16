@@ -149,6 +149,15 @@ final class FCPXMLReportFormattingTests: XCTestCase {
             ReportFormatting.markerReportType(for: .chapter(posterOffset: Fraction(1, 24))),
             .chapter
         )
+        XCTAssertEqual(
+            ReportFormatting.markerReportType(
+                for: .analysis(
+                    shotTypes: [FinalCutPro.FCPXML.ShotType(value: .closeUp)],
+                    stabilizationTypes: []
+                )
+            ),
+            .analysis
+        )
     }
     
     func testRoleSubroleDisplayIncludesSubroleSeparator() {

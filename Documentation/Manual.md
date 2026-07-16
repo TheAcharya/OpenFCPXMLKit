@@ -22,6 +22,7 @@ From the index you can reach all chapters:
 - **08** — Timeline Manipulation (ripple insert, auto lane, clip queries)
 - **09** — Timeline Metadata (markers, keywords, ratings, timestamps)
 - **10** — Extraction & Media (scope, presets, media copy)
+- **20** — Timeline Projection (`TimelineProjector`, `MediaUsageWindow`, report project-once)
 - **11** — Media Processing (MIME, asset validation, silence, duration, parallel I/O)
 - **12** — Typed Models (adjustments, filters, captions, keyframes, Live Drawing, collections)
 - **13** — XML Extensions (XMLDocument, XMLElement)
@@ -30,7 +31,7 @@ From the index you can reach all chapters:
 - **16** — CLI (OpenFCPXMLKit-CLI)
 - **17** — Examples (workflows and code)
 - **18** — Cross-Platform & iOS (OFKXML abstraction, Foundation vs AEXML)
-- **19** — Reporting, Excel & PDF Export (ReportTimecodeFormat, ReportBuildPhase progress, sections, column/disabled-clip exclusion, XLKit workbook, CoreGraphics PDF with TOC colour chips and column-width expansion, shared row colours)
+- **19** — Reporting, Excel & PDF Export (Projection-first sections, ReportTimecodeFormat, ReportBuildPhase, `mediaResolutionPolicy`, XLKit workbook, CoreGraphics PDF)
 
 ---
 

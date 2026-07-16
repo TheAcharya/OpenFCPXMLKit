@@ -30,28 +30,32 @@ extension FinalCutPro.FCPXML {
         public var options: ReportOptions
         public var scope: ExtractionScope
         public var onPhaseStarted: ReportBuildPhaseHandler?
+        /// Projector used when sections consume timeline windows. Defaults to ``TimelineProjector``.
+        public var timelineProjector: any TimelineProjecting
         
         public init(
             options: ReportOptions = .markersOnly,
             scope: ExtractionScope = .mainTimeline,
-            onPhaseStarted: ReportBuildPhaseHandler? = nil
+            onPhaseStarted: ReportBuildPhaseHandler? = nil,
+            timelineProjector: any TimelineProjecting = TimelineProjector()
         ) {
             self.options = options
             self.scope = scope
             self.onPhaseStarted = onPhaseStarted
+            self.timelineProjector = timelineProjector
         }
         
         /// Build a report from a parsed FCPXML document.
         public func build(from fcpxml: FinalCutPro.FCPXML) async throws -> Report {
             let source = try resolveTimelineSource(in: fcpxml)
-            return await build(from: source, fcpxml: fcpxml)
+            return try await build(from: source, fcpxml: fcpxml)
         }
         
         /// Build a report from a single project.
         public func build(
             from project: Project,
             fcpxml: FinalCutPro.FCPXML
-        ) async -> Report {
+        ) async throws -> Report {
             let eventName = project.element
                 .ancestorElements(includingSelf: false)
                 .first(whereFCPElementType: .event)?
@@ -62,16 +66,34 @@ extension FinalCutPro.FCPXML {
                 sequence: project.sequence,
                 project: project
             )
-            return await build(from: source, fcpxml: fcpxml)
+            return try await build(from: source, fcpxml: fcpxml)
         }
         
         /// Build a report from a resolved timeline source (project or compound clip).
         public func build(
             from source: ReportTimelineSource,
             fcpxml: FinalCutPro.FCPXML
-        ) async -> Report {
+        ) async throws -> Report {
             let extractionScope = reportExtractionScope()
-            
+            let timelineElement = source.sequence.element
+
+            if options.consumesTimelineProjection {
+                onPhaseStarted?(.projecting)
+            }
+            let projection = try await projectIfNeeded(from: source, fcpxml: fcpxml)
+
+            // One extract for inventory + Summary when either section is enabled.
+            let inventoryEntries: [RoleInventoryClipEntry]?
+            if options.includeRoleInventory || options.includeSummary {
+                inventoryEntries = await RoleInventoryClipCollector.collectEntries(
+                    from: timelineElement,
+                    scope: extractionScope,
+                    roleDisplayPreference: options.roleDisplayPreference
+                )
+            } else {
+                inventoryEntries = nil
+            }
+
             var report = Report(
                 projectName: source.displayName,
                 eventName: source.eventName,
@@ -80,31 +102,87 @@ extension FinalCutPro.FCPXML {
                 excludedColumns: ReportColumnExclusion.resolve(options.excludedColumns),
                 timecodeFormat: options.timecodeFormat
             )
-            
+
             for phase in ReportBuildPhase.enabledPhases(for: options) {
                 onPhaseStarted?(phase)
-                await build(phase, into: &report, source: source, fcpxml: fcpxml, scope: extractionScope)
+                await build(
+                    phase,
+                    into: &report,
+                    source: source,
+                    fcpxml: fcpxml,
+                    scope: extractionScope,
+                    projection: projection,
+                    inventoryEntries: inventoryEntries
+                )
             }
-            
+
             return report
         }
-        
+
+        private func projectIfNeeded(
+            from source: ReportTimelineSource,
+            fcpxml: FinalCutPro.FCPXML
+        ) async throws -> ReportProjectionContext? {
+            guard options.consumesTimelineProjection else { return nil }
+
+            let projectionOptions = TimelineProjectionOptions.forReport(
+                excludeDisabledClips: options.excludeDisabledClips,
+                auditions: (options.includeRoleInventory || options.includeSummary)
+                    ? FinalCutPro.FCPXML.Audition.AuditionMask.all
+                    : .active,
+                mcClipAngles: (options.includeRoleInventory || options.includeSummary)
+                    ? FinalCutPro.FCPXML.MCClip.AngleMask.all
+                    : .active,
+                includeAnnotations: options.summaryOverlapAwareDurations
+                    || options.emitPerSourceInventoryRows
+                    || options.includeMarkers
+                    || options.includeKeywords
+                    || options.includeTitlesAndGenerators
+                    || options.includeTransitions
+                    || options.includeEffects
+            )
+
+            do {
+                let detailed = try await timelineProjector.projectDetailed(
+                    from: source,
+                    fcpxml: fcpxml,
+                    options: projectionOptions
+                )
+                return ReportProjectionContext(
+                    windows: detailed.windows,
+                    clipAnnotations: detailed.clipAnnotations
+                )
+            } catch {
+                if options.mediaResolutionPolicy == .failLoud {
+                    throw ReportError.projectionFailed(String(describing: error))
+                }
+                return ReportProjectionContext(windows: [], clipAnnotations: [])
+            }
+        }
+
         private func build(
             _ phase: ReportBuildPhase,
             into report: inout Report,
             source: ReportTimelineSource,
             fcpxml: FinalCutPro.FCPXML,
-            scope extractionScope: ExtractionScope
+            scope extractionScope: ExtractionScope,
+            projection: ReportProjectionContext?,
+            inventoryEntries: [RoleInventoryClipEntry]?
         ) async {
             let timelineElement = source.sequence.element
-            
+
             switch phase {
+            case .projecting, .savingWorkbook, .savingPDF:
+                return
+
             case .roleInventory:
                 var roleInventory = await RoleInventoryReportBuilder.build(
                     from: timelineElement,
                     scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference,
-                    timecodeFormat: options.timecodeFormat
+                    timecodeFormat: options.timecodeFormat,
+                    projection: projection,
+                    entries: inventoryEntries
                 )
                 if !options.excludedRoles.isEmpty {
                     roleInventory = ReportRoleExclusion.applying(
@@ -113,68 +191,101 @@ extension FinalCutPro.FCPXML {
                     )
                 }
                 report.roleInventory = roleInventory
-                
+
             case .markers:
                 report.markers = await MarkersReportBuilder.build(
                     from: timelineElement,
                     scope: extractionScope,
                     includeChapterMarkers: options.includeChapterMarkersInMarkersReport,
                     roleDisplayPreference: options.roleDisplayPreference,
-                    timecodeFormat: options.timecodeFormat
+                    timecodeFormat: options.timecodeFormat,
+                    projection: projection,
+                    resources: fcpxml.root.resources
                 )
-                
+
             case .keywords:
                 report.keywords = await KeywordsReportBuilder.build(
                     from: timelineElement,
                     scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference,
-                    timecodeFormat: options.timecodeFormat
+                    timecodeFormat: options.timecodeFormat,
+                    projection: projection,
+                    resources: fcpxml.root.resources
                 )
-                
+
             case .titlesAndGenerators:
                 report.titlesAndGenerators = await TitlesReportBuilder.build(
                     from: timelineElement,
                     scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference,
-                    timecodeFormat: options.timecodeFormat
+                    timecodeFormat: options.timecodeFormat,
+                    projection: projection,
+                    resources: fcpxml.root.resources
                 )
-                
+
             case .transitions:
                 report.transitions = await TransitionsReportBuilder.build(
                     from: timelineElement,
                     scope: extractionScope,
-                    timecodeFormat: options.timecodeFormat
+                    timecodeFormat: options.timecodeFormat,
+                    projection: projection,
+                    resources: fcpxml.root.resources
                 )
-                
+
             case .effects:
                 report.effects = await EffectsReportBuilder.build(
                     from: timelineElement,
                     scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference,
-                    timecodeFormat: options.timecodeFormat
+                    timecodeFormat: options.timecodeFormat,
+                    projection: projection,
+                    sequence: source.sequence,
+                    resources: fcpxml.root.resources
                 )
-                
+
             case .speedChangeEffects:
                 report.speedChangeEffects = await SpeedChangeEffectsReportBuilder.build(
                     from: timelineElement,
                     scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference,
-                    timecodeFormat: options.timecodeFormat
+                    timecodeFormat: options.timecodeFormat,
+                    projection: projection,
+                    sequence: source.sequence
                 )
-                
+
             case .summary:
+                let components: [RoleInventoryClipComponent]?
+                if let inventoryEntries {
+                    let windowIndex = projection.map {
+                        ProjectionWindowIndex(windows: $0.windows)
+                    }
+                    components = inventoryEntries.compactMap { entry in
+                        RoleInventoryClipCollector.component(
+                            from: entry,
+                            projectionWindows: projection?.windows,
+                            windowIndex: windowIndex
+                        )
+                    }
+                } else {
+                    components = nil
+                }
                 report.summary = await SummaryReportBuilder.build(
                     from: source,
                     document: fcpxml.xml,
                     scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference,
-                    timecodeFormat: options.timecodeFormat
+                    timecodeFormat: options.timecodeFormat,
+                    projection: projection,
+                    inventoryComponents: components,
+                    overlapAwareDurations: options.summaryOverlapAwareDurations
                 )
-                
+
             case .mediaSummary:
                 report.mediaSummary = MediaSummaryReportBuilder.build(
                     document: fcpxml.xml,
-                    baseURL: options.mediaBaseURL
+                    baseURL: options.mediaBaseURL,
+                    projection: projection,
+                    distinguishProxyAndOriginal: options.mediaSummaryDistinguishProxyAndOriginal
                 )
             }
         }
@@ -214,6 +325,8 @@ extension FinalCutPro.FCPXML {
     public enum ReportError: Error, LocalizedError, Sendable {
         case noProjectsFound
         case projectNotFound(String)
+        /// Timeline projection failed under ``ReportMediaResolutionPolicy/failLoud``.
+        case projectionFailed(String)
         
         public var errorDescription: String? {
             switch self {
@@ -221,6 +334,8 @@ extension FinalCutPro.FCPXML {
                 return "No projects or compound-clip timelines were found in the FCPXML document."
             case let .projectNotFound(name):
                 return "No project or compound clip named \"\(name)\" was found in the FCPXML document."
+            case let .projectionFailed(detail):
+                return "Timeline projection failed while building the report: \(detail)"
             }
         }
     }

@@ -92,6 +92,23 @@ extension FinalCutPro.FCPXML {
         ///
         /// Default is ``ReportTimecodeFormat/smpteFrames`` (`HH:MM:SS:FF` or `HH:MM:SS;FF`).
         public var timecodeFormat: ReportTimecodeFormat
+
+        /// When `true`, Summary role durations merge overlapping timeline spans
+        /// (via ``TimelineOccupancyIndex``) instead of summing component durations.
+        /// Default `false` preserves historical optimistic totals.
+        public var summaryOverlapAwareDurations: Bool
+
+        /// When `true`, Role Inventory may emit distinct rows per media `src` index when
+        /// projection windows distinguish sources. Default `false` keeps one host row.
+        public var emitPerSourceInventoryRows: Bool
+
+        /// Fail-soft (default) vs fail-loud when timeline projection cannot complete.
+        /// Missing files on disk still appear on Media Summary under either mode.
+        public var mediaResolutionPolicy: ReportMediaResolutionPolicy
+
+        /// When `true`, Media Summary export prefers separate Missing Original / Missing Proxy columns.
+        /// Default `false` keeps a single Missing Media column (combined paths).
+        public var mediaSummaryDistinguishProxyAndOriginal: Bool
         
         public init(
             includeMarkers: Bool = true,
@@ -112,7 +129,11 @@ extension FinalCutPro.FCPXML {
             excludedRoles: [String] = [],
             excludeDisabledClips: Bool = false,
             excludedColumns: [String] = [],
-            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames,
+            summaryOverlapAwareDurations: Bool = false,
+            emitPerSourceInventoryRows: Bool = false,
+            mediaResolutionPolicy: ReportMediaResolutionPolicy = .failSoft,
+            mediaSummaryDistinguishProxyAndOriginal: Bool = false
         ) {
             self.includeMarkers = includeMarkers
             self.includeKeywords = includeKeywords
@@ -133,6 +154,10 @@ extension FinalCutPro.FCPXML {
             self.excludeDisabledClips = excludeDisabledClips
             self.excludedColumns = excludedColumns
             self.timecodeFormat = timecodeFormat
+            self.summaryOverlapAwareDurations = summaryOverlapAwareDurations
+            self.emitPerSourceInventoryRows = emitPerSourceInventoryRows
+            self.mediaResolutionPolicy = mediaResolutionPolicy
+            self.mediaSummaryDistinguishProxyAndOriginal = mediaSummaryDistinguishProxyAndOriginal
         }
         
         /// Trims and drops empty copyright labels so exporters can treat “unset” uniformly.

@@ -22,6 +22,12 @@ guard validation.isValid else { /* handle errors */ }
 
 Allowlists are derived at runtime from the target DTD (**EmbeddedDTDProvider** in CLI, bundle in library). Fallback to hand-maintained lists when DTD data is unavailable.
 
+### Write honesty vs report reads
+
+**Writers** (`convertToVersion`, exporters, create-project) must not invent or re-emit facts that the **target** DTD cannot express (for example Format `heroEye` / Asset `heroEyeOverride` / `hidden-clip-marker` when targeting &lt; 1.13).
+
+**Readers** (parse → Extraction → Projection → `buildReport`) may still describe every fact present in the **as-loaded** document. Building a report from a 1.14 file is allowed to surface 1.13+ fields; building a report from a document already converted to 1.5 must not claim those fields were retained.
+
 ---
 
 ## Save as .fcpxml or .fcpxmld

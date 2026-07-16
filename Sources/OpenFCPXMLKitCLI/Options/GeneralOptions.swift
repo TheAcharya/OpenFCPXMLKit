@@ -24,8 +24,8 @@ struct GeneralOptions: ParsableArguments {
     @Option(name: .long, help: ArgumentHelp("Convert FCPXML to the given version (e.g. 1.10, 1.14) and write to output-dir.", valueName: "version"))
     var convertVersion: String?
 
-    @Option(name: .long, help: "Output format for --convert-version: fcpxmld (bundle) or fcpxml (single file). Default: fcpxmld. For target versions 1.5–1.9, .fcpxml is used regardless.")
-    var extensionType: OutputExtensionType = .fcpxmld
+    @Option(name: .long, help: "Output format for --convert-version: fcpxmld (bundle) or fcpxml (single file). Default: fcpxmld when converting. For target versions 1.5–1.9, .fcpxml is used regardless.")
+    var extensionType: OutputExtensionType?
 
     @Flag(name: .long, help: "Perform robust check and validation of FCPXML/FCPXMLD (semantic + DTD).")
     var validate: Bool = false

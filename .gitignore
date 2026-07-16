@@ -26,3 +26,12 @@ xcuserdata/
 Tests/ExcelReportTest/Sample.fcpxmld/
 Tests/ExcelReportTest/Sample.fcpxml
 Tests/ExcelReportTest/Output/*.xlsx
+Tests/ExcelReportTest/Output/*.pdf
+
+# Private user-submitted FCPXML inbox (never commit contents — only README / .gitkeep).
+Tests/Submitted FCPXML/Inbox/**
+!Tests/Submitted FCPXML/Inbox/.gitkeep
+Tests/Submitted FCPXML/Notes/**
+!Tests/Submitted FCPXML/Notes/.gitkeep
+Tests/Submitted FCPXML/**/*.fcpxml
+Tests/Submitted FCPXML/**/*.fcpxmld/

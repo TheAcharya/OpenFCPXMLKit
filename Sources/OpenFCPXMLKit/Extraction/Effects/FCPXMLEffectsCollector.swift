@@ -152,7 +152,9 @@ extension FinalCutPro.FCPXML {
                     let timelineContext = ExtractedElement(
                         element: element,
                         breadcrumbs: breadcrumbs,
-                        resources: host.resources
+                        resources: host.resources,
+                        auditions: host.auditions,
+                        mcClipAngles: host.mcClipAngles
                     )
                     
                     for volume in element.childElements where volume.name == "adjust-volume" {
@@ -176,7 +178,9 @@ extension FinalCutPro.FCPXML {
             let timelineContext = ExtractedElement(
                 element: element,
                 breadcrumbs: breadcrumbs,
-                resources: host.resources
+                resources: host.resources,
+                auditions: host.auditions,
+                mcClipAngles: host.mcClipAngles
             )
             
             for volume in element.childElements where volume.name == "adjust-volume" {

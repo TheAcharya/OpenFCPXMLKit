@@ -15,7 +15,7 @@ The package includes an experimental command-line tool **OpenFCPXMLKit-CLI**. It
 
 ## Commands and options
 
-Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--report`, or `--create-project`. For `--convert-version`, `--media-copy`, `--report` (and default process), `<output-dir>` is required. For `--create-project`, the single positional argument is `<output-dir>` (where the new project file is written).
+Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--report`, or `--create-project`. For `--convert-version`, `--media-copy`, `--report` (and default process), `<output-dir>` is required and is **created if missing**. For `--create-project`, the single positional argument is `<output-dir>` (also created if missing). `--extension-type` requires `--convert-version`. REPORT modifiers (`--report-full`, section flags, `--timecode-format`, `--media-resolution`, etc.) require `--report`.
 
 ### GENERAL
 
@@ -23,7 +23,7 @@ Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-c
 |--------|-------------|
 | **--check-version** | Load FCPXML at path and print document version. No output-dir required. |
 | **--convert-version &lt;VERSION&gt;** | Load, convert to target version (1.5–1.14) with element stripping and DTD validation, save to output-dir. Output format: **--extension-type** (default .fcpxmld for 1.10+; 1.5–1.9 always .fcpxml). |
-| **--extension-type &lt;fcpxml\|fcpxmld&gt;** | Output format for convert: `fcpxmld` (bundle, default) or `fcpxml` (single file). |
+| **--extension-type &lt;fcpxml\|fcpxmld&gt;** | Output format for convert only (requires `--convert-version`): `fcpxmld` (bundle, default when omitted) or `fcpxml` (single file). |
 | **--validate** | Robust validation: semantic + DTD against declared version. Progress indicator unless `--quiet`. No output-dir required. |
 | **--media-copy** | Extract media refs and copy files to output-dir. Progress bar unless `--quiet`. Paths to stdout; summary to stderr. |
 
@@ -43,6 +43,8 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD, with optional PDF 
 | **--report-speed-change-effects** | Include the Speed Change Effects sheet (with `--report`). |
 | **--report-summary** | Include the Summary sheet (project metrics and role-duration totals; with `--report`). |
 | **--report-media-summary** | Include the Media Summary sheet (missing media file paths; with `--report`). |
+| **--media-resolution &lt;mode&gt;** | Projection failure policy (`fail-soft` default, `fail-loud`; with `--report`). Missing files on disk still appear on Media Summary. |
+| **--media-summary-distinguish-proxy** | Separate Missing Original / Missing Proxy columns on Media Summary (with `--report`). |
 | **--create-pdf** | Also write a PDF report alongside the Excel workbook (with `--report`). Uses the same built `Report` — sections, column exclusions, timecode format, role/disabled-clip filtering. PDF adds cover/TOC (sheet colour chips), per-sheet tints, and column-width expansion after exclusions. Writes `{project-or-clip-name}.pdf` to output-dir; prints the PDF path after the `.xlsx` path. |
 | **--report-project &lt;name&gt;** | Timeline name filter: matches a `<project>` name or a standalone compound-clip / `ref-clip` name when the document has more than one reportable timeline. |
 | **--label-copyright &lt;text&gt;** | Optional copyright / attribution line (with `--report`). Excel cover sheet **A2** below Created-by; PDF cover below Created-by (same subtitle font/size); PDF running footer centre (same footer font/size). |

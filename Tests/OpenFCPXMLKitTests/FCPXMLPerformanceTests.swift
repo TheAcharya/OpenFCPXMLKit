@@ -56,4 +56,20 @@ final class FCPXMLPerformanceTests: XCTestCase {
             }
         }
     }
+
+    func testPerformanceProjectComplexSampleWhenAvailable() throws {
+        let fcpxml: FinalCutPro.FCPXML
+        do {
+            fcpxml = try loadFCPXMLSample(named: "Complex")
+        } catch {
+            throw XCTSkip("Complex.fcpxml not found")
+        }
+        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let projector = FinalCutPro.FCPXML.TimelineProjector()
+        // Warm once so measure focuses on steady-state projection cost.
+        try projector.projectSync(from: source, fcpxml: fcpxml, options: .init()) { _ in }
+        measure(metrics: [XCTClockMetric()]) {
+            try? projector.projectSync(from: source, fcpxml: fcpxml, options: .init()) { _ in }
+        }
+    }
 }

@@ -5,7 +5,7 @@
 //
 
 //
-//	Builds the Keywords report section from FCPXML.
+//	Builds the Keywords report section from Projection (preferred) or Extraction.
 //
 
 import Foundation
@@ -18,16 +18,42 @@ extension FinalCutPro.FCPXML {
             from timeline: any OFKXMLElement,
             scope: ExtractionScope,
             roleDisplayPreference: RoleDisplayPreference = .builtIn,
-            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames,
+            projection: ReportProjectionContext? = nil,
+            resources: (any OFKXMLElement)? = nil
         ) async -> KeywordsReportSection {
-            var keywordScope = scope
-            keywordScope.occlusions = .allCases
-            
+            if let projection,
+               projection.clipAnnotations.contains(where: { !$0.keywords.isEmpty })
+            {
+                let rows = rowsFromProjection(
+                    projection,
+                    timeline: timeline,
+                    resources: resources,
+                    roleDisplayPreference: roleDisplayPreference,
+                    timecodeFormat: timecodeFormat
+                )
+                return KeywordsReportSection(rows: rows)
+            }
+
+            return await buildFromExtraction(
+                from: timeline,
+                scope: scope,
+                roleDisplayPreference: roleDisplayPreference,
+                timecodeFormat: timecodeFormat
+            )
+        }
+
+        private static func buildFromExtraction(
+            from timeline: any OFKXMLElement,
+            scope: ExtractionScope,
+            roleDisplayPreference: RoleDisplayPreference,
+            timecodeFormat: ReportTimecodeFormat
+        ) async -> KeywordsReportSection {
             let extracted = await timeline.fcpExtract(
                 types: [.keyword],
-                scope: keywordScope
+                scope: .reportMainTimelineVisible(modifying: scope)
             )
-            
+
             let rows = extracted
                 .flatMap {
                     keywordRows(
@@ -43,10 +69,116 @@ extension FinalCutPro.FCPXML {
                         format: timecodeFormat
                     ) == .orderedAscending
                 }
-            
+
             return KeywordsReportSection(rows: rows)
         }
-        
+
+        private static func rowsFromProjection(
+            _ projection: ReportProjectionContext,
+            timeline: any OFKXMLElement,
+            resources: (any OFKXMLElement)?,
+            roleDisplayPreference: RoleDisplayPreference,
+            timecodeFormat: ReportTimecodeFormat
+        ) -> [KeywordReportRow] {
+            var rows: [KeywordReportRow] = []
+            for host in projection.clipAnnotations {
+                let roleDisplays = keywordRoleDisplays(
+                    for: host,
+                    roleDisplayPreference: roleDisplayPreference
+                )
+
+                for keyword in host.keywords {
+                    // Match Extraction: keywords without a duration attribute are omitted.
+                    guard keyword.duration != .zero else { continue }
+
+                    let timelineIn = formatFraction(
+                        keyword.timelineIn,
+                        on: timeline,
+                        resources: resources,
+                        timecodeFormat: timecodeFormat
+                    )
+                    let timelineOut = formatFraction(
+                        keyword.timelineOut,
+                        on: timeline,
+                        resources: resources,
+                        timecodeFormat: timecodeFormat
+                    )
+                    let duration = formatFraction(
+                        keyword.duration,
+                        on: timeline,
+                        resources: resources,
+                        timecodeFormat: timecodeFormat
+                    )
+                    guard !timelineIn.isEmpty, !timelineOut.isEmpty, !duration.isEmpty else {
+                        continue
+                    }
+
+                    for roleDisplay in roleDisplays {
+                        rows.append(
+                            KeywordReportRow(
+                                keyword: keyword.keyword,
+                                notes: keyword.notes,
+                                timelineIn: timelineIn,
+                                timelineOut: timelineOut,
+                                duration: duration,
+                                clipName: host.clipDisplayName,
+                                roleSubrole: roleDisplay,
+                                reel: keyword.reel,
+                                scene: keyword.scene
+                            )
+                        )
+                    }
+                }
+            }
+
+            return rows.sorted {
+                ReportFormatting.compareTimelinePositions(
+                    $0.timelineIn,
+                    $1.timelineIn,
+                    format: timecodeFormat
+                ) == .orderedAscending
+            }
+        }
+
+        private static func keywordRoleDisplays(
+            for host: ProjectedClipAnnotations,
+            roleDisplayPreference: RoleDisplayPreference
+        ) -> [String] {
+            _ = roleDisplayPreference
+            let displays = host.roles
+                .map { ReportFormatting.mainRoleDisplay(from: $0.collapsingSubRole()) }
+                .filter { !$0.isEmpty }
+                .removingDuplicates()
+
+            guard !displays.isEmpty else { return [""] }
+
+            return displays.sorted { lhs, rhs in
+                let lhsRank = RoleDisplayPreference.keywordSortRank(for: lhs)
+                let rhsRank = RoleDisplayPreference.keywordSortRank(for: rhs)
+                if lhsRank != rhsRank { return lhsRank < rhsRank }
+                return lhs.localizedStandardCompare(rhs) == .orderedAscending
+            }
+        }
+
+        private static func formatFraction(
+            _ fraction: Fraction,
+            on timeline: any OFKXMLElement,
+            resources: (any OFKXMLElement)?,
+            timecodeFormat: ReportTimecodeFormat
+        ) -> String {
+            // Projection timeline math uses Double intermediates; format via real-time
+            // seconds and sequence breadcrumbs (same pattern as Effects report timing).
+            guard let timecode = try? timeline._fcpTimecode(
+                fromRealTime: fraction.doubleValue,
+                frameRateSource: .mainTimeline,
+                breadcrumbs: [timeline],
+                resources: resources
+            ) else {
+                return ""
+            }
+            return ReportFormatting.timecodeString(timecode, format: timecodeFormat)
+        }
+
         private static func keywordRows(
             from extracted: ExtractedElement,
             roleDisplayPreference: RoleDisplayPreference,
@@ -54,7 +186,7 @@ extension FinalCutPro.FCPXML {
         ) -> [KeywordReportRow] {
             guard let timelineRange = extracted.visibleKeywordRangeOnMainTimeline()
             else { return [] }
-            
+
             let keyword = extracted.element.fcpValue ?? ""
             let notes = extracted.element.fcpAsKeyword?.note ?? ""
             let metadata = extracted.ancestorClipContext()?.value(forContext: .metadata) ?? []
@@ -63,7 +195,7 @@ extension FinalCutPro.FCPXML {
                 for: extracted,
                 roleDisplayPreference: roleDisplayPreference
             )
-            
+
             let timelineInString = ReportFormatting.timecodeString(
                 timelineRange.timelineIn,
                 format: timecodeFormat
@@ -78,7 +210,7 @@ extension FinalCutPro.FCPXML {
             )
             let reel = ReportFormatting.metadataString(from: metadata, key: .reel)
             let scene = ReportFormatting.metadataString(from: metadata, key: .scene)
-            
+
             return roleDisplays.map { roleDisplay in
                 KeywordReportRow(
                     keyword: keyword,

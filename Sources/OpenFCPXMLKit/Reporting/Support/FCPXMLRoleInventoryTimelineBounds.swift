@@ -44,12 +44,23 @@ extension FinalCutPro.FCPXML {
         
         static func mainTimelineSpan(
             for extracted: ExtractedElement,
-            usesAudioTimelineBounds: Bool
+            usesAudioTimelineBounds: Bool,
+            projectionWindows: [MediaUsageWindow]? = nil,
+            windowIndex: ProjectionWindowIndex? = nil
         ) -> (start: TimeInterval, end: TimeInterval)? {
+            if let projected = projectedSpan(
+                for: extracted,
+                usesAudioTimelineBounds: usesAudioTimelineBounds,
+                windows: projectionWindows,
+                windowIndex: windowIndex
+            ) {
+                return projected
+            }
+
             guard let absoluteStart = extracted.value(forContext: .absoluteStart) else {
                 return nil
             }
-            
+
             if usesAudioTimelineBounds {
                 if let audioDuration = extracted.element.fcpAudioDuration?.doubleValue {
                     let clipStart = extracted.element.fcpStart?.doubleValue ?? 0
@@ -57,23 +68,66 @@ extension FinalCutPro.FCPXML {
                     let audioTimelineStart = absoluteStart + (audioStart - clipStart)
                     return (audioTimelineStart, audioTimelineStart + audioDuration)
                 }
-                
+
                 if extracted.element.fcpIsAudioOnlyMulticamInventoryHost(),
                    let duration = extracted.element.fcpDuration?.doubleValue
                 {
                     return (absoluteStart, absoluteStart + duration)
                 }
             }
-            
+
             guard let duration = extracted.element.fcpDuration?.doubleValue else {
                 return nil
             }
-            
+
             if let absoluteEnd = extracted.value(forContext: .absoluteEnd) {
                 return (absoluteStart, absoluteEnd)
             }
-            
+
             return (absoluteStart, absoluteStart + duration)
+        }
+
+        /// Matches a projected window to an inventory entry for timing overlay.
+        private static func projectedSpan(
+            for extracted: ExtractedElement,
+            usesAudioTimelineBounds: Bool,
+            windows: [MediaUsageWindow]?,
+            windowIndex: ProjectionWindowIndex?
+        ) -> (start: TimeInterval, end: TimeInterval)? {
+            let index: ProjectionWindowIndex?
+            if let windowIndex {
+                index = windowIndex
+            } else if let windows, !windows.isEmpty {
+                index = ProjectionWindowIndex(windows: windows)
+            } else {
+                index = nil
+            }
+            guard let index else { return nil }
+            guard let absoluteStart = extracted.value(forContext: .absoluteStart) else {
+                return nil
+            }
+
+            let clipName = extracted.displayClipName()
+            let preferAudio = usesAudioTimelineBounds
+            let expectedStart: TimeInterval
+            if preferAudio, let audioDuration = extracted.element.fcpAudioDuration?.doubleValue {
+                let clipStart = extracted.element.fcpStart?.doubleValue ?? 0
+                let audioStart = extracted.element.fcpAudioStart?.doubleValue ?? clipStart
+                expectedStart = absoluteStart + (audioStart - clipStart)
+                _ = audioDuration
+            } else {
+                expectedStart = absoluteStart
+            }
+
+            guard let best = index.match(
+                clipName: clipName,
+                expectedStart: expectedStart,
+                preferAudio: preferAudio
+            ) else {
+                return nil
+            }
+
+            return (best.timelineIn.doubleValue, best.timelineOut.doubleValue)
         }
         
         /// Caption inventory rows floor fractional timeline in/out to frame boundaries.
