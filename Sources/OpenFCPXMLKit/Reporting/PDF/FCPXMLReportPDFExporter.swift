@@ -37,6 +37,7 @@ enum FCPXMLReportPDFExporter {
             tableOfContents: nil,
             reservedTOCPages: reservedTOCPages,
             recordsSectionStarts: true,
+            layoutOnly: true,
             sectionStartSink: { title, startPage in
                 recordedStarts.append((title, startPage))
             }
@@ -52,7 +53,8 @@ enum FCPXMLReportPDFExporter {
             colorIndexByTitle: colorIndexByTitle,
             tableOfContents: tableOfContents,
             reservedTOCPages: 0,
-            recordsSectionStarts: false
+            recordsSectionStarts: false,
+            layoutOnly: false
         )
     }
     
@@ -62,6 +64,7 @@ enum FCPXMLReportPDFExporter {
         tableOfContents: [FCPXMLReportPDFSheetPlan.SheetEntry]?,
         reservedTOCPages: Int,
         recordsSectionStarts: Bool,
+        layoutOnly: Bool = false,
         sectionStartSink: ((String, Int) -> Void)? = nil
     ) throws -> Data {
         let data = NSMutableData()
@@ -81,7 +84,8 @@ enum FCPXMLReportPDFExporter {
             eventName: report.eventName,
             exportBrandingText: report.exportBrandingText,
             copyrightLabel: report.copyrightLabel,
-            sectionStartRecorder: recordsSectionStarts ? sectionStartSink : nil
+            sectionStartRecorder: recordsSectionStarts ? sectionStartSink : nil,
+            layoutOnly: layoutOnly
         )
         canvas.drawCoverPage(projectName: report.projectName, eventName: report.eventName)
         
@@ -535,26 +539,42 @@ enum FCPXMLReportPDFExporter {
         recordsSectionStarts: Bool,
         to canvas: FCPXMLReportPDFCanvas.Builder
     ) {
-        let missingMediaTitle = FinalCutPro.FCPXML.MediaSummaryReportSection.missingMediaSectionTitle
-        
-        guard !mediaSummary.missingMediaPaths.isEmpty,
-              !FinalCutPro.FCPXML.ReportColumnExclusion.isHeaderExcluded(
-                  missingMediaTitle,
-                  excluded: excludedColumns,
-                  metadataColumnKeys: []
-              )
-        else {
-            return
+        let table: (headers: [String], rows: [[String]])
+        if mediaSummary.distinguishProxyAndOriginal {
+            let originals = mediaSummary.missingOriginalMediaPaths
+            let proxies = mediaSummary.missingProxyMediaPaths
+            let rowCount = max(originals.count, proxies.count)
+            guard rowCount > 0 else { return }
+            var rows: [[String]] = []
+            for index in 0 ..< rowCount {
+                rows.append([
+                    index < originals.count ? originals[index] : "",
+                    index < proxies.count ? proxies[index] : ""
+                ])
+            }
+            table = (
+                [
+                    FinalCutPro.FCPXML.MediaSummaryReportSection.missingOriginalMediaSectionTitle,
+                    FinalCutPro.FCPXML.MediaSummaryReportSection.missingProxyMediaSectionTitle
+                ],
+                rows
+            )
+        } else {
+            guard !mediaSummary.missingMediaPaths.isEmpty else { return }
+            table = (
+                [FinalCutPro.FCPXML.MediaSummaryReportSection.missingMediaSectionTitle],
+                mediaSummary.missingMediaPaths.map { [$0] }
+            )
         }
-        
+
         let filtered = filteredTabularSection(
-            headers: [missingMediaTitle],
-            rows: mediaSummary.missingMediaPaths.map { [$0] },
+            headers: table.headers,
+            rows: table.rows,
             excludedColumns: excludedColumns
         )
-        
+
         guard !filtered.headers.isEmpty, !filtered.rows.isEmpty else { return }
-        
+
         let sheetName = FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName
         canvas.drawTable(
             context: tableDrawContext(

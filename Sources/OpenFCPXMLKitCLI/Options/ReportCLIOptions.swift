@@ -124,10 +124,30 @@ struct ReportCLIOptions: ParsableArguments {
         help: """
         Timeline time display format for Excel and PDF report cells (with --report). \
         Values: \(FinalCutPro.FCPXML.ReportTimecodeFormat.cliHelpValues). \
-        Default: HH:MM:SS:FF (SMPTE with frames; semicolon before frames for drop-frame).
+        Default when omitted: HH:MM:SS:FF (SMPTE with frames; semicolon before frames for drop-frame).
         """
     )
-    var timecodeFormat: String = FinalCutPro.FCPXML.ReportTimecodeFormat.smpteFrames.rawValue
+    var timecodeFormat: String?
+
+    @Option(
+        name: .customLong("media-resolution"),
+        help: """
+        How report building treats timeline projection failures (with --report). \
+        Values: \(FinalCutPro.FCPXML.ReportMediaResolutionPolicy.cliHelpValues). \
+        Default when omitted: fail-soft (continue with empty projection windows). \
+        fail-loud aborts with an error. Missing files on disk still appear on Media Summary.
+        """
+    )
+    var mediaResolution: String?
+
+    @Flag(
+        name: .customLong("media-summary-distinguish-proxy"),
+        help: """
+        On Media Summary, emit separate Missing Original and Missing Proxy columns \
+        instead of a single Missing Media column (with --report / --report-media-summary).
+        """
+    )
+    var mediaSummaryDistinguishProxy: Bool = false
     
     var hasSectionSelection: Bool {
         reportMarkers
@@ -139,8 +159,23 @@ struct ReportCLIOptions: ParsableArguments {
             || reportSummary
             || reportMediaSummary
     }
+
+    /// True when any REPORT option other than `--report` itself was supplied.
+    var hasAnyReportModifier: Bool {
+        reportFull
+            || hasSectionSelection
+            || createPDF
+            || reportProject != nil
+            || labelCopyright != nil
+            || !excludeRole.isEmpty
+            || excludeDisabledClips
+            || !excludeColumn.isEmpty
+            || timecodeFormat != nil
+            || mediaResolution != nil
+            || mediaSummaryDistinguishProxy
+    }
     
-    func makeLibraryReportOptions(mediaBaseURL: URL?) -> FinalCutPro.FCPXML.ReportOptions {
+    func makeLibraryReportOptions(mediaBaseURL: URL?) throws -> FinalCutPro.FCPXML.ReportOptions {
         var options: FinalCutPro.FCPXML.ReportOptions
         
         if reportFull {
@@ -167,13 +202,25 @@ struct ReportCLIOptions: ParsableArguments {
         options.excludedRoles = excludeRole
         options.excludeDisabledClips = excludeDisabledClips
         options.excludedColumns = excludeColumn
-        if let format = FinalCutPro.FCPXML.ReportTimecodeFormat(cliValue: timecodeFormat) {
-            options.timecodeFormat = format
-        }
+        options.timecodeFormat = try resolvedTimecodeFormat()
+        options.mediaResolutionPolicy = try resolvedMediaResolutionPolicy()
+        options.mediaSummaryDistinguishProxyAndOriginal = mediaSummaryDistinguishProxy
         return options
+    }
+
+    func resolvedMediaResolutionPolicy() throws -> FinalCutPro.FCPXML.ReportMediaResolutionPolicy {
+        guard let mediaResolution else { return .failSoft }
+        guard let policy = FinalCutPro.FCPXML.ReportMediaResolutionPolicy(cliValue: mediaResolution)
+        else {
+            throw ValidationError(
+                "Invalid --media-resolution: '\(mediaResolution)'. Use one of: \(FinalCutPro.FCPXML.ReportMediaResolutionPolicy.cliHelpValues)."
+            )
+        }
+        return policy
     }
     
     func resolvedTimecodeFormat() throws -> FinalCutPro.FCPXML.ReportTimecodeFormat {
+        guard let timecodeFormat else { return .smpteFrames }
         guard let format = FinalCutPro.FCPXML.ReportTimecodeFormat(cliValue: timecodeFormat) else {
             throw ValidationError(
                 "Invalid --timecode-format: '\(timecodeFormat)'. Use one of: \(FinalCutPro.FCPXML.ReportTimecodeFormat.cliHelpValues)."

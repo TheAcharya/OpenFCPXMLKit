@@ -262,6 +262,14 @@ where Self == FinalCutPro.FCPXML.ElementModelType<FinalCutPro.FCPXML.AudioChanne
     }
 }
 
+extension FCPXMLElementModelTypeProtocol
+where Self == FinalCutPro.FCPXML.ElementModelType<FinalCutPro.FCPXML.Mute>
+{
+    public static var mute: FinalCutPro.FCPXML.ElementModelType<FinalCutPro.FCPXML.Mute> {
+        .init()
+    }
+}
+
 // mc-clip sub-elements
 
 extension FCPXMLElementModelTypeProtocol

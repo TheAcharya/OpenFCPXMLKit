@@ -367,4 +367,160 @@ final class FCPXMLReportColumnExclusionTests: XCTestCase {
         XCTAssertEqual(media?.getCellWithFormat("A1")?.value.stringValue, "Missing Media")
         XCTAssertEqual(media?.getCellWithFormat("A2")?.value.stringValue, "/missing/clip.mov")
     }
+    
+    /// Selected Roles uses a global 1-based Row sequence; each role sheet renumbers from 1.
+    @MainActor
+    func testWorkbookInventoryRowRenumbersIndependentlyOnSelectedRolesAndRoleSheets() throws {
+        let videoA = inventoryRow(roleSubrole: "Video", clipName: "Clip A")
+        let dialogue = inventoryRow(roleSubrole: "Dialogue", clipName: "Clip B")
+        let videoC = inventoryRow(roleSubrole: "Video", clipName: "Clip C")
+        
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test",
+            roleInventory: FinalCutPro.FCPXML.RoleInventoryReportSection(
+                selectedRoles: [videoA, dialogue, videoC],
+                roleSheets: [
+                    .init(sheetName: "Video", rows: [videoA, videoC]),
+                    .init(sheetName: "Dialogue", rows: [dialogue])
+                ]
+            )
+        )
+        
+        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
+        let selected = try XCTUnwrap(
+            workbook.getSheet(name: FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName)
+        )
+        let videoSheet = try XCTUnwrap(workbook.getSheet(name: "Video"))
+        let dialogueSheet = try XCTUnwrap(workbook.getSheet(name: "Dialogue"))
+        
+        XCTAssertEqual(selected.getCellWithFormat("A1")?.value.stringValue, "Row")
+        XCTAssertEqual(selected.getCellWithFormat("A2")?.value.stringValue, "1")
+        XCTAssertEqual(selected.getCellWithFormat("A3")?.value.stringValue, "2")
+        XCTAssertEqual(selected.getCellWithFormat("A4")?.value.stringValue, "3")
+        XCTAssertEqual(selected.getCellWithFormat("C2")?.value.stringValue, "Clip A")
+        XCTAssertEqual(selected.getCellWithFormat("C3")?.value.stringValue, "Clip B")
+        XCTAssertEqual(selected.getCellWithFormat("C4")?.value.stringValue, "Clip C")
+        
+        // Video sheet: Clip A and Clip C are rows 1 and 2 — not the Selected Roles indices 1 and 3.
+        XCTAssertEqual(videoSheet.getCellWithFormat("A1")?.value.stringValue, "Row")
+        XCTAssertEqual(videoSheet.getCellWithFormat("A2")?.value.stringValue, "1")
+        XCTAssertEqual(videoSheet.getCellWithFormat("A3")?.value.stringValue, "2")
+        XCTAssertEqual(videoSheet.getCellWithFormat("C2")?.value.stringValue, "Clip A")
+        XCTAssertEqual(videoSheet.getCellWithFormat("C3")?.value.stringValue, "Clip C")
+        
+        XCTAssertEqual(dialogueSheet.getCellWithFormat("A2")?.value.stringValue, "1")
+        XCTAssertEqual(dialogueSheet.getCellWithFormat("C2")?.value.stringValue, "Clip B")
+    }
+    
+    /// Selected Roles and per-role sheets share header layout, exclusions, and metadata cells.
+    @MainActor
+    func testWorkbookInventorySelectedRolesAndRoleSheetsShareExclusionsAndMetadata() throws {
+        let ingestKey = FinalCutPro.FCPXML.Metadata.Key.ingestDate.rawValue
+        let video = inventoryRow(
+            roleSubrole: "Video",
+            clipName: "Clip A",
+            metadataValues: [ingestKey: "2024-01-01"]
+        )
+        let dialogue = inventoryRow(
+            roleSubrole: "Dialogue",
+            clipName: "Clip B",
+            metadataValues: [ingestKey: "2024-06-15"]
+        )
+        let excluded: Set<Column> = [.enabled, .notes]
+        
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test",
+            roleInventory: FinalCutPro.FCPXML.RoleInventoryReportSection(
+                selectedRoles: [video, dialogue],
+                roleSheets: [
+                    .init(sheetName: "Video", rows: [video]),
+                    .init(sheetName: "Dialogue", rows: [dialogue])
+                ],
+                metadataColumnKeys: [ingestKey]
+            ),
+            excludedColumns: excluded
+        )
+        
+        let expectedHeaders = Layout.columnHeaders(
+            metadataColumnKeys: [ingestKey],
+            excludedColumns: excluded
+        )
+        XCTAssertFalse(expectedHeaders.contains("Enabled"))
+        XCTAssertFalse(expectedHeaders.contains("Notes"))
+        XCTAssertTrue(expectedHeaders.contains(ingestKey))
+        
+        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
+        let selected = try XCTUnwrap(
+            workbook.getSheet(name: FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName)
+        )
+        let videoSheet = try XCTUnwrap(workbook.getSheet(name: "Video"))
+        let dialogueSheet = try XCTUnwrap(workbook.getSheet(name: "Dialogue"))
+        
+        let selectedHeaders = headerRow(from: selected, columnCount: expectedHeaders.count)
+        let videoHeaders = headerRow(from: videoSheet, columnCount: expectedHeaders.count)
+        let dialogueHeaders = headerRow(from: dialogueSheet, columnCount: expectedHeaders.count)
+        
+        XCTAssertEqual(selectedHeaders, expectedHeaders)
+        XCTAssertEqual(videoHeaders, expectedHeaders)
+        XCTAssertEqual(dialogueHeaders, expectedHeaders)
+        
+        let metadataColumn = try XCTUnwrap(expectedHeaders.firstIndex(of: ingestKey))
+        let metadataAddress = excelAddress(columnZeroBased: metadataColumn, row: 2)
+        XCTAssertEqual(
+            selected.getCellWithFormat(metadataAddress)?.value.stringValue,
+            "2024-01-01"
+        )
+        XCTAssertEqual(
+            videoSheet.getCellWithFormat(metadataAddress)?.value.stringValue,
+            "2024-01-01"
+        )
+        XCTAssertEqual(
+            dialogueSheet.getCellWithFormat(metadataAddress)?.value.stringValue,
+            "2024-06-15"
+        )
+        
+        // With Enabled excluded, Clip Name is column C (Row, Role ▸ Subrole, Clip Name…).
+        XCTAssertEqual(selected.getCellWithFormat("C2")?.value.stringValue, "Clip A")
+        XCTAssertEqual(videoSheet.getCellWithFormat("C2")?.value.stringValue, "Clip A")
+        XCTAssertEqual(dialogueSheet.getCellWithFormat("C2")?.value.stringValue, "Clip B")
+    }
+    
+    private func inventoryRow(
+        roleSubrole: String,
+        clipName: String,
+        metadataValues: [String: String] = [:]
+    ) -> FinalCutPro.FCPXML.RoleClipReportRow {
+        FinalCutPro.FCPXML.RoleClipReportRow(
+            roleSubrole: roleSubrole,
+            clipName: clipName,
+            category: roleSubrole == "Video" ? "Primary video" : "Connected audio",
+            enabled: "✓",
+            timelineIn: "00:00:00:00",
+            timelineOut: "00:00:01:00",
+            clipDuration: "00:00:01:00",
+            sourceIn: "",
+            sourceOut: "",
+            sourceDuration: "",
+            notes: "keep-me-out",
+            metadataValues: metadataValues
+        )
+    }
+    
+    private func headerRow(from sheet: Sheet, columnCount: Int) -> [String] {
+        (0..<columnCount).map { column in
+            sheet.getCellWithFormat(excelAddress(columnZeroBased: column, row: 1))?
+                .value.stringValue ?? ""
+        }
+    }
+    
+    /// 0-based column index → Excel column letters (0 → A, 25 → Z, 26 → AA).
+    private func excelAddress(columnZeroBased: Int, row: Int) -> String {
+        var index = columnZeroBased
+        var letters = ""
+        repeat {
+            letters = String(UnicodeScalar(65 + index % 26)!) + letters
+            index = index / 26 - 1
+        } while index >= 0
+        return "\(letters)\(row)"
+    }
 }

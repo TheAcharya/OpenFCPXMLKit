@@ -48,18 +48,28 @@ extension FinalCutPro.FCPXML {
         public let element: any OFKXMLElement
         public let breadcrumbs: [any OFKXMLElement]
         public let resources: (any OFKXMLElement)?
+        public let auditions: FinalCutPro.FCPXML.Audition.AuditionMask
+        public let mcClipAngles: FinalCutPro.FCPXML.MCClip.AngleMask
         
         init(_ extractedElement: ExtractedElement) {
             element = extractedElement.element
             breadcrumbs = extractedElement.breadcrumbs
             resources = extractedElement.resources
+            auditions = extractedElement.auditions
+            mcClipAngles = extractedElement.mcClipAngles
         }
         
         /// Return the a context value for the element.
         public func value<Value>(
             forContext contextKey: FinalCutPro.FCPXML.ElementContext<Value>
         ) -> Value {
-            contextKey.value(from: element, breadcrumbs: breadcrumbs, resources: resources)
+            contextKey.value(
+                from: element,
+                breadcrumbs: breadcrumbs,
+                resources: resources,
+                auditions: auditions,
+                mcClipAngles: mcClipAngles
+            )
         }
         
         // Convenience getters

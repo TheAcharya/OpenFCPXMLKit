@@ -24,11 +24,24 @@ public protocol FCPXMLExtractedElement where Self: Sendable {
 
     /// Resources. If `nil`, resources will be acquired from the XML document.
     var resources: (any OFKXMLElement)? { get }
+
+    /// Audition mask used when resolving inherited / local roles.
+    var auditions: FinalCutPro.FCPXML.Audition.AuditionMask { get }
+
+    /// Multicam angle mask used when resolving inherited / local roles.
+    var mcClipAngles: FinalCutPro.FCPXML.MCClip.AngleMask { get }
     
     /// Return the a context value for the element.
     func value<Value>(
         forContext contextKey: FinalCutPro.FCPXML.ElementContext<Value>
     ) -> Value
+}
+
+// MARK: - Default role masks
+
+extension FCPXMLExtractedElement {
+    public var auditions: FinalCutPro.FCPXML.Audition.AuditionMask { .active }
+    public var mcClipAngles: FinalCutPro.FCPXML.MCClip.AngleMask { .active }
 }
 
 // MARK: - Convenience Properties
@@ -74,7 +87,9 @@ extension FCPXMLExtractedElement {
         return FinalCutPro.FCPXML.ExtractedElement(
             element: clip,
             breadcrumbs: clipBreadcrumbs,
-            resources: resources
+            resources: resources,
+            auditions: auditions,
+            mcClipAngles: mcClipAngles
         )
     }
     

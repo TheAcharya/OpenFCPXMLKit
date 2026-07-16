@@ -12,7 +12,7 @@ Everything lives under **`FinalCutPro.FCPXML`**:
 
 - **buildReport(options:scope:onPhaseStarted:)** — convenience entry point on a parsed document.
 - **ReportBuilder** — assembles a **Report** from a document or a single **Project**.
-- **ReportOptions** — selects which sections to include, plus project filter, media base URL, role display preference, cover sheet, role exclusions, disabled-clip filtering, column exclusions, **timecodeFormat**, and optional **copyrightLabel**.
+- **ReportOptions** — selects which sections to include, plus project filter, media base URL, role display preference, cover sheet, role exclusions, disabled-clip filtering, column exclusions, **timecodeFormat**, **mediaResolutionPolicy**, **mediaSummaryDistinguishProxyAndOriginal**, and optional **copyrightLabel**.
 - **ReportTimecodeFormat** — how timeline time values appear in workbook/PDF cells (`HH:MM:SS:FF`, Frames, Feet+Frames, `HH:MM:SS`).
 - **Report** — the assembled value type (one optional property per section, plus resolved column exclusions, `timecodeFormat`, and `copyrightLabel`).
 - **ReportBuildPhase** — content phases in product / workbook order; use `enabledPhases(for:)` for GUI progress bars.
@@ -21,6 +21,8 @@ Everything lives under **`FinalCutPro.FCPXML`**:
 - **ReportPDFExport** — turns a `Report` into PDF `Data` or writes a multi-page `.pdf` file.
 
 All **build** APIs are **async**. PDF export is **synchronous** once a `Report` exists.
+
+**Project-once Projection:** When Role Inventory, Markers, Keywords, Titles & Generators, Transitions, Effects, Speed Change Effects, Media Summary, or Summary is enabled, `ReportBuilder` projects the timeline **once** (progress phase `.projecting`) and shares `ReportProjectionContext` across those sections. Markers / Keywords / Titles / Transitions / Effects are Projection-first with Extraction fallback. See [20 — Timeline Projection](20-Timeline-Projection.md).
 
 **Configuration parity:** Build the report **once** with `ReportOptions`, then export to Excel, PDF, or both. Section flags, `excludedColumns`, `excludedRoles`, `excludeDisabledClips`, `timecodeFormat`, `copyrightLabel`, and `projectName` all apply to both exporters. PDF adds presentation-only features (cover page, TOC with sheet colour chips + tint washes, per-sheet content tints, pagination, remaining-column width expansion after exclusions, truncation) on top of the same `Report` data.
 
@@ -78,9 +80,13 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 | `workbookCoverSheet` | `.openFCPXMLKitDefault` | Optional cover sheet; set to `nil` to omit. |
 | `copyrightLabel` | `nil` | Optional copyright / attribution line: Excel cover **A2**, PDF cover below Created-by, PDF footer centre. |
 | `excludedRoles` | `[]` | Role or subrole names to omit from the role inventory. Excluding a main role also excludes its subroles. |
-| `excludeDisabledClips` | `false` | When `true`, clips with `enabled="0"` are omitted from every timeline-based section. Default includes disabled clips (matching Final Cut Pro workbook exports). |
-| `excludedColumns` | `[]` | Column labels to omit from every applicable report sheet at export (Excel and PDF; see [Column exclusion](#column-exclusion)). |
-| `timecodeFormat` | `.smpteFrames` | How timeline time values are formatted in report cells (Excel and PDF; see [Timecode display format](#timecode-display-format)). |
+| `excludeDisabledClips` | `false` | Omit clips with `enabled="0"` from every timeline-based section. |
+| `excludedColumns` | `[]` | Header names / aliases removed at Excel and PDF export (see [Column exclusion](#column-exclusion)). |
+| `timecodeFormat` | `.smpteFrames` | Timeline cell display format (see [Timecode display format](#timecode-display-format)). |
+| `mediaResolutionPolicy` | `.failSoft` | How projection failures are handled (see [Media resolution policy](#media-resolution-policy)). |
+| `mediaSummaryDistinguishProxyAndOriginal` | `false` | When `true`, Media Summary uses separate Missing Original / Missing Proxy columns. |
+| `summaryOverlapAwareDurations` | `false` | When `true`, Summary role durations use occupied-union via Projection occupancy. |
+| `emitPerSourceInventoryRows` | `false` | When `true`, Role Inventory may emit distinct rows per media `src` index. |
 
 ### Presets
 
@@ -165,6 +171,34 @@ let report = try await fcpxml.buildReport(options: options)
 - **`exportBrandingText`** — resolved branding label from `workbookCoverSheet` (or the OpenFCPXMLKit default) for Excel cover cell A1 and PDF cover/footer
 
 A section property is `nil` when that section was not requested. Every section conforms to **ReportSection** and exposes a `defaultSheetName`. Row models expose `columnHeaders` / `columnHeaders(timecodeFormat:)` and `columnValues` in matching order, so sections can be rendered by either export backend.
+
+### Sheet obligation contracts
+
+These contracts define what a “near-zero miss” report must not omit when the corresponding FCPXML facts exist. Empty sheets are allowed only when the document truly has no matching content (or filters such as `excludeDisabledClips` / `excludedRoles` remove everything).
+
+| Sheet | Obligation (FCPXML-derived) |
+|-------|-----------------------------|
+| Selected Roles Inventory / per-role | One row per visible host clip × role (Projection windows when inventory is enabled); fixed columns after **Row** as listed below; dynamic metadata keys discovered on those clips |
+| Markers | Every non-filtered marker on the report timeline (standard / to-do / chapter when enabled); host clip name and timeline position |
+| Keywords | Every keyword range attached to timeline hosts in scope |
+| Titles & Generators | Every title / generator clip in scope with clip name and timeline bounds |
+| Transitions | Every transition element on the report spine(s) in scope |
+| Video & Audio Effects | Every reportable filter / adjustment effect with clip association |
+| Speed Change Effects | Every non-identity retiming (Projection `RetimingSegment` preferred) |
+| Summary | Project title + duration/resolution/frame-rate metrics when available; role-duration rows for inventory roles |
+| Media Summary | Every unresolved original (and, when distinguished, proxy) file URL referenced by projected channels or document media-rep / locator fallback |
+
+**Not an obligation miss:** missing media files on disk (they belong on Media Summary), vendor-broken XML outside DTD, or creative intent not encoded in FCPXML.
+
+### Projection migration checklist (Markers / Keywords / Titles / Transitions)
+
+| Sheet | Status |
+|-------|--------|
+| **Markers** | **Projection-first** via ``ProjectedClipAnnotations`` (title + clip hosts). Extraction fallback when Projection has no marker annotations. |
+| **Keywords** | **Projection-first** via ``ProjectedClipAnnotations``. Extraction fallback when Projection has no keyword annotations. |
+| **Titles & Generators** | **Projection-first** via ``WindowTitleAnnotation`` on ``ProjectedClipAnnotations``. Extraction fallback when Projection has no title annotations. |
+| **Transitions** | **Projection-first** via ``WindowTransitionAnnotation`` on ``ProjectedClipAnnotations``. Extraction fallback when Projection has no transition annotations. |
+| **Effects** | **Projection-first** via ``WindowReportEffectAnnotation`` (shared ``EffectsCollector`` semantics + occlusion filter for video filters). Extraction fallback when Projection has no effect annotations. |
 
 ### Sections and columns
 
@@ -253,9 +287,34 @@ See [Sheet order and formatting](#sheet-order-and-formatting) for colours on oth
 
 **MediaSummaryReportSection** (`defaultSheetName`: **Media Summary**):
 
-- `missingMediaPaths: [String]` — file paths that could not be resolved on disk.
+- `missingMediaPaths: [String]` — combined missing file paths (default export column **Missing Media**).
+- `missingOriginalMediaPaths` / `missingProxyMediaPaths` — classified when Projection windows expose `original-media` / `proxy-media` URLs.
+- `distinguishProxyAndOriginal` — mirrors `ReportOptions.mediaSummaryDistinguishProxyAndOriginal`.
 
-The sheet renders **Row** | **Missing Media** (black header row). Each missing file path is written in **red** text (`#FF0000`). Relative paths are resolved against `mediaBaseURL` when provided.
+Default export: **Row** | **Missing Media** (black header). Paths render in **red** (`#FF0000`).
+
+When `mediaSummaryDistinguishProxyAndOriginal` is `true`: **Row** | **Missing Original** | **Missing Proxy** (same red body styling). Document-only fallback (no projection windows) cannot distinguish kinds and places paths in the original bucket.
+
+Relative paths resolve against `mediaBaseURL` when provided.
+
+---
+
+## Media resolution policy
+
+**`ReportMediaResolutionPolicy`** controls Projection / geometry failures during `buildReport` — not whether missing files appear on Media Summary.
+
+| Mode | Behaviour |
+|------|-----------|
+| `.failSoft` (default) | Projection errors yield empty windows; sections continue best-effort (Media Summary falls back to document media-rep / locator scan). |
+| `.failLoud` | Throws **`ReportError.projectionFailed`** and aborts the build. |
+
+Missing files on disk remain Media Summary **content** under either mode. CLI: `--media-resolution fail-soft|fail-loud`.
+
+```swift
+var options = FinalCutPro.FCPXML.ReportOptions.full
+options.mediaResolutionPolicy = .failLoud
+let report = try await fcpxml.buildReport(options: options)
+```
 
 ---
 
@@ -316,7 +375,7 @@ At build time, labels are resolved to `Set<ReportColumn>` and stored on **`Repor
 | `.frameRateSampleRate` | Frame Rate/Sample Rate | Also matches Frame Rate, Sample Rate |
 | `.frameSize` | Frame Size | |
 | `.sourceFileName` | Source File Name | |
-| `.sourceFilePath` | Source File Path | Also matches Missing Media on Media Summary |
+| `.sourceFilePath` | Source File Path | Also matches Missing Media, Missing Original, Missing Proxy on Media Summary |
 | `.metadata` | *(dynamic keys)* | Removes all dynamic metadata key columns on role inventory sheets |
 
 ### Accepted aliases
@@ -387,7 +446,7 @@ Use the same list in a GUI app for progress total and labels so they match your 
 
 ```swift
 let phases = FinalCutPro.FCPXML.ReportBuildPhase.enabledPhases(for: options)
-// Use `phases.count` (+ 1 for “Saving workbook”, + 1 more for “Saving PDF” when exporting both) for progress total.
+// Use `phases.count` (+ 1 for “Saving Workbook”, + 1 more for “Saving PDF” when exporting both) for progress total.
 
 let report = try await fcpxml.buildReport(options: options) { phase in
     // Fires in product order for each enabled section
@@ -511,6 +570,8 @@ The same reports are available through **OpenFCPXMLKit-CLI**:
 | `--report-markers`, `--report-keywords`, … | Individual optional sheets |
 | `--report-summary` | Summary sheet |
 | `--report-media-summary` | Media Summary sheet |
+| `--media-resolution <mode>` | `fail-soft` (default) or `fail-loud` for Projection failures |
+| `--media-summary-distinguish-proxy` | Separate Missing Original / Missing Proxy columns on Media Summary |
 | `--create-pdf` | Also write `{project-or-clip-name}.pdf` alongside the `.xlsx` (same report configuration) |
 | `--label-copyright <text>` | Optional copyright / attribution line (Excel cover A2; PDF cover + footer centre) |
 | `--report-project <name>` | Timeline name filter (project or standalone compound-clip name) |
@@ -551,9 +612,16 @@ OpenFCPXMLKit-CLI --report --report-full --create-pdf \
 
 ---
 
+## Investigating private / complex FCPXML
+
+For real-world exports that must stay off GitHub, drop them in [Tests/Submitted FCPXML/Inbox/](../../Tests/Submitted%20FCPXML/README.md) (gitignored). Reproduce with `FCPXMLSubmittedFCPXMLSmokeTests`, CLI `--report`, or `ExcelReportTest` via `OFK_REPORTING_FCPXML_BUNDLE`. Anonymise before promoting a minimal fixture into `Tests/FCPXML Samples/FCPXML/`.
+
+---
+
 ## Next
 
-- [10 — Extraction & Media](10-Extraction-Media.md) — the extraction layer the report builders consume.
+- [20 — Timeline Projection](20-Timeline-Projection.md) — windows, options, occupancy, and how report builders consume Projection.
+- [10 — Extraction & Media](10-Extraction-Media.md) — Extraction presets and media copy (fallback / discovery).
 - [16 — CLI](16-CLI.md) — building reports from the command line.
 
 [← Manual Index](00-Index.md)

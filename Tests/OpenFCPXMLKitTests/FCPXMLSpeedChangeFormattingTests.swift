@@ -9,6 +9,7 @@
 //
 
 import XCTest
+import SwiftTimecode
 @testable import OpenFCPXMLKit
 
 final class FCPXMLSpeedChangeFormattingTests: XCTestCase {
@@ -36,6 +37,30 @@ final class FCPXMLSpeedChangeFormattingTests: XCTestCase {
         """)
         
         XCTAssertNil(SpeedChangeFormatting.retimeDisplay(from: timeMap))
+    }
+
+    func testRetimeDisplayFormatsFromRetimingSegment() {
+        let segment = FinalCutPro.FCPXML.RetimingSegment(
+            timelineStart: .zero,
+            timelineEnd: Fraction(2, 1),
+            mediaStart: .zero,
+            mediaEnd: Fraction(1, 1),
+            scale: 0.5,
+            isReversed: false
+        )
+        let display = SpeedChangeFormatting.retimeDisplay(from: segment)
+        XCTAssertEqual(display?.effect, "Retime 50.0%")
+        XCTAssertEqual(display?.settings, "50.0%")
+        XCTAssertTrue(SpeedChangeFormatting.isSpeedChange(segment))
+    }
+
+    func testIsSpeedChange_IdentityFalse() {
+        let identity = FinalCutPro.FCPXML.RetimingSegment.identity(
+            timelineStart: .zero,
+            duration: Fraction(1, 1),
+            mediaStart: .zero
+        )
+        XCTAssertFalse(SpeedChangeFormatting.isSpeedChange(identity))
     }
     
     private func timeMap(from xml: String) throws -> FinalCutPro.FCPXML.TimeMap {

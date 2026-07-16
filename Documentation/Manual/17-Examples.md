@@ -287,6 +287,35 @@ let report = try await fcpxml.buildReport(options: options)
 // Excel cover A2 + PDF cover/footer centre
 ```
 
+---
+
+## Project a timeline (MediaUsageWindow)
+
+```swift
+import OpenFCPXMLKit
+
+let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
+guard let source = fcpxml.allReportTimelineSources().first else { return }
+
+let projector = FinalCutPro.FCPXML.TimelineProjector()
+var projectionOptions = FinalCutPro.FCPXML.TimelineProjectionOptions.mainTimeline
+projectionOptions.includeAnnotations = true
+
+let windows = try await projector.project(
+    from: source,
+    fcpxml: fcpxml,
+    options: projectionOptions
+)
+
+let videoSeconds = FinalCutPro.FCPXML.TimelineOccupancyIndex(windows: windows)
+    .occupiedDuration(kind: .video)
+print("Union video occupancy:", videoSeconds, "s across", windows.count, "windows")
+```
+
+Full Projection API: [20 — Timeline Projection](20-Timeline-Projection.md). Reporting project-once is automatic inside `buildReport` when sections need windows.
+
+---
+
 Excel-only CLI (omit `--create-pdf`):
 
 ```bash
@@ -300,7 +329,7 @@ OpenFCPXMLKit-CLI --report --report-full \
   /path/to/project.fcpxmld /path/to/output-dir
 ```
 
-See [19 — Reporting, Excel & PDF Export](19-Reporting.md) for the full reporting API.
+See [19 — Reporting, Excel & PDF Export](19-Reporting.md) and [20 — Timeline Projection](20-Timeline-Projection.md) for the full reporting and Projection APIs.
 
 ---
 

@@ -30,15 +30,21 @@ extension FinalCutPro.FCPXML {
         ///     Ordered nearest to furthest ancestor.
         ///   - resources: The document's `resources` container element.
         ///     If `nil`, the `resources` found in the document will be used if present.
+        ///   - auditions: Audition mask for role resolution (defaults to active).
+        ///   - mcClipAngles: Multicam angle mask for role resolution (defaults to active).
         public func value(
             from element: any OFKXMLElement,
             breadcrumbs: [any OFKXMLElement],
-            resources: (any OFKXMLElement)? // `resources` container element
+            resources: (any OFKXMLElement)?, // `resources` container element
+            auditions: FinalCutPro.FCPXML.Audition.AuditionMask = .active,
+            mcClipAngles: FinalCutPro.FCPXML.MCClip.AngleMask = .active
         ) -> Value {
             let tools = Tools(
                 element: element,
                 breadcrumbs: breadcrumbs,
-                resources: resources
+                resources: resources,
+                auditions: auditions,
+                mcClipAngles: mcClipAngles
             )
 
             let resources = resources

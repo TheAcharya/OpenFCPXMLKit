@@ -74,6 +74,8 @@ let filtered = service.filterElements(elements, ofTypes: types)
 let elementType = someElement.fcpxType  // OFKXMLElement extension
 ```
 
+Public test samples live under `Tests/FCPXML Samples/FCPXML/` (e.g. `GeneralDemo.fcpxml`). For private user exports used only locally while fixing parsing or reporting edge cases, see [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) — contents are gitignored and must never be committed to GitHub.
+
 ---
 
 ## Basic modular operations

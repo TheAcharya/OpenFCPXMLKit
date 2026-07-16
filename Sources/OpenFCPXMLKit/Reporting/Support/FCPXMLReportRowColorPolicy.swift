@@ -93,6 +93,8 @@ enum FCPXMLReportRowColorPolicy {
             return Bucket.audio.fontColorHex
         case .chapter:
             return "#FF8800"
+        case .analysis:
+            return Bucket.videoOrSRT.fontColorHex
         }
     }
     

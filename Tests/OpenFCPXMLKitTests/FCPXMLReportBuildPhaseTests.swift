@@ -4,6 +4,7 @@
 //  © 2026 • Licensed under MIT License
 //
 
+
 //
 //	Canonical report build-phase order and progress callback tests.
 //
@@ -14,9 +15,9 @@ import XCTest
 @available(macOS 26.0, *)
 final class FCPXMLReportBuildPhaseTests: XCTestCase, @unchecked Sendable {
     
-    func testAllCasesMatchProductSectionOrder() {
+    func testContentCasesMatchProductSectionOrder() {
         XCTAssertEqual(
-            FinalCutPro.FCPXML.ReportBuildPhase.allCases.map(\.rawValue),
+            FinalCutPro.FCPXML.ReportBuildPhase.contentCases.map(\.rawValue),
             [
                 "Selected Roles Inventory",
                 "Markers",
@@ -38,7 +39,7 @@ final class FCPXMLReportBuildPhaseTests: XCTestCase, @unchecked Sendable {
         
         XCTAssertEqual(
             phases,
-            FinalCutPro.FCPXML.ReportBuildPhase.allCases
+            FinalCutPro.FCPXML.ReportBuildPhase.contentCases
         )
     }
     
@@ -66,14 +67,29 @@ final class FCPXMLReportBuildPhaseTests: XCTestCase, @unchecked Sendable {
             [.roleInventory]
         )
     }
+
+    func testExportPipelinePhasesIncludesProjectingAndSaves() {
+        let phases = FinalCutPro.FCPXML.ReportBuildPhase.exportPipelinePhases(
+            for: .roleInventoryOnly,
+            includeWorkbookSave: true,
+            includePDFSave: true
+        )
+        XCTAssertEqual(phases.first, .projecting)
+        XCTAssertEqual(phases, [
+            .projecting,
+            .roleInventory,
+            .savingWorkbook,
+            .savingPDF
+        ])
+    }
     
-    func testBuildReportOnPhaseStartedUsesProductOrder() async throws {
+    func testBuildReportOnPhaseStartedIncludesProjectingThenContent() async throws {
         let fcpxml = try loadFCPXMLSample(named: "24")
         var options = FinalCutPro.FCPXML.ReportOptions.full
         options.workbookCoverSheet = nil
         options.projectName = "24_V1"
         
-        let expected = FinalCutPro.FCPXML.ReportBuildPhase.enabledPhases(for: options)
+        let expectedContent = FinalCutPro.FCPXML.ReportBuildPhase.enabledPhases(for: options)
         let observed = PhaseCollector()
         
         _ = try await fcpxml.buildReport(options: options) { phase in
@@ -81,8 +97,8 @@ final class FCPXMLReportBuildPhaseTests: XCTestCase, @unchecked Sendable {
         }
         
         let phases = observed.phases
-        XCTAssertEqual(phases, expected)
-        XCTAssertEqual(phases.first, .roleInventory)
+        XCTAssertEqual(phases.first, .projecting)
+        XCTAssertEqual(Array(phases.dropFirst()), expectedContent)
         XCTAssertEqual(phases.last, .mediaSummary)
     }
 }

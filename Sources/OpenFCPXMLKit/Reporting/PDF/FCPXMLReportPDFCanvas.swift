@@ -36,6 +36,8 @@ enum FCPXMLReportPDFCanvas {
         private var runningSheetContentColor = FCPXMLReportPDFStyle.pageBackgroundColor
         private var runningSheetAccentColor = FCPXMLReportPDFStyle.pageBackgroundColor
         private var sectionStartRecorder: ((String, Int) -> Void)?
+        /// When true, pagination still runs but text/glyphs are skipped (TOC measure pass).
+        private var layoutOnly = false
         
         init(context: CGContext) {
             self.context = context
@@ -46,13 +48,15 @@ enum FCPXMLReportPDFCanvas {
             eventName: String?,
             exportBrandingText: String,
             copyrightLabel: String? = nil,
-            sectionStartRecorder: ((String, Int) -> Void)? = nil
+            sectionStartRecorder: ((String, Int) -> Void)? = nil,
+            layoutOnly: Bool = false
         ) {
             self.projectName = projectName
             self.eventName = eventName
             self.exportBrandingText = exportBrandingText
             self.copyrightLabel = FinalCutPro.FCPXML.ReportOptions.normalizedCopyrightLabel(copyrightLabel)
             self.sectionStartRecorder = sectionStartRecorder
+            self.layoutOnly = layoutOnly
         }
         
         func reserveBlankPages(_ count: Int) {
@@ -851,6 +855,7 @@ enum FCPXMLReportPDFCanvas {
             fontSize: CGFloat,
             color: CGColor
         ) {
+            guard !layoutOnly else { return }
             guard !text.isEmpty else { return }
             
             let font = CTFontCreateWithName(fontName as CFString, fontSize, nil)

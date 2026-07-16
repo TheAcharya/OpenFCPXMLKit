@@ -177,7 +177,9 @@ extension OFKXMLElement {
         let selfExtractedElement = FinalCutPro.FCPXML.ExtractedElement(
             element: self,
             breadcrumbs: Array(ancestors),
-            resources: resources
+            resources: resources,
+            auditions: scope.auditions,
+            mcClipAngles: scope.mcClipAngles
         )
         
         let keepForExtraction = Self._fcpShouldKeepForExtraction(

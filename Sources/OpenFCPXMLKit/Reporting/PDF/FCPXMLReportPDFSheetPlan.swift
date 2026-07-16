@@ -73,9 +73,11 @@ enum FCPXMLReportPDFSheetPlan {
         }
         
         if let mediaSummary = report.mediaSummary,
-           !mediaSummary.missingMediaPaths.isEmpty,
+           mediaSummaryHasExportableRows(mediaSummary),
            !FinalCutPro.FCPXML.ReportColumnExclusion.isHeaderExcluded(
-               FinalCutPro.FCPXML.MediaSummaryReportSection.missingMediaSectionTitle,
+               mediaSummary.distinguishProxyAndOriginal
+                   ? FinalCutPro.FCPXML.MediaSummaryReportSection.missingOriginalMediaSectionTitle
+                   : FinalCutPro.FCPXML.MediaSummaryReportSection.missingMediaSectionTitle,
                excluded: report.excludedColumns,
                metadataColumnKeys: []
            )
@@ -86,6 +88,16 @@ enum FCPXMLReportPDFSheetPlan {
         return titles.enumerated().map { index, title in
             SheetEntry(title: title, colorIndex: index)
         }
+    }
+
+    private static func mediaSummaryHasExportableRows(
+        _ mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection
+    ) -> Bool {
+        if mediaSummary.distinguishProxyAndOriginal {
+            return !mediaSummary.missingOriginalMediaPaths.isEmpty
+                || !mediaSummary.missingProxyMediaPaths.isEmpty
+        }
+        return !mediaSummary.missingMediaPaths.isEmpty
     }
     
     static func colorIndexLookup(for sheets: [SheetEntry]) -> [String: Int] {

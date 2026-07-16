@@ -24,7 +24,9 @@ extension FinalCutPro.FCPXML {
             projectDurationSeconds: Double,
             timeline: any OFKXMLElement,
             resources: (any OFKXMLElement)?,
-            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames,
+            overlapAware: Bool = false,
+            projectionWindows: [MediaUsageWindow]? = nil
         ) -> [SummaryRoleDurationRow] {
             let subroleIndex = RoleInventoryRoleSheetOrdering.subroleRoleIndex(from: components)
             let roleNames = uniqueRoleNames(from: components, subroleIndex: subroleIndex)
@@ -32,6 +34,7 @@ extension FinalCutPro.FCPXML {
                 from: components,
                 subroleIndex: subroleIndex
             )
+            let occupancy = projectionWindows.map { TimelineOccupancyIndex(windows: $0) }
             
             let rowData = roleNames
                 .compactMap { roleName -> (SummaryRoleDurationRow, SummarySection, Double)? in
@@ -40,7 +43,9 @@ extension FinalCutPro.FCPXML {
                         for: roleName,
                         in: components,
                         categories: categories,
-                        subroleIndex: subroleIndex
+                        subroleIndex: subroleIndex,
+                        overlapAware: overlapAware,
+                        occupancy: occupancy
                     )
                     guard totalSeconds > 0 else { return nil }
                     
@@ -84,7 +89,10 @@ extension FinalCutPro.FCPXML {
                 projectDurationSeconds: projectDurationSeconds,
                 timeline: timeline,
                 resources: resources,
-                timecodeFormat: timecodeFormat
+                timecodeFormat: timecodeFormat,
+                overlapAware: overlapAware,
+                occupancy: occupancy,
+                components: components
             )
         }
         
@@ -93,20 +101,35 @@ extension FinalCutPro.FCPXML {
             projectDurationSeconds: Double,
             timeline: any OFKXMLElement,
             resources: (any OFKXMLElement)?,
-            timecodeFormat: ReportTimecodeFormat
+            timecodeFormat: ReportTimecodeFormat,
+            overlapAware: Bool = false,
+            occupancy: TimelineOccupancyIndex? = nil,
+            components: [RoleInventoryClipComponent] = []
         ) -> [SummaryRoleDurationRow] {
             guard !rows.isEmpty else { return [] }
             
             var result: [SummaryRoleDurationRow] = []
             var visualSeconds = 0.0
             var insertedVisualSubtotal = false
+            let visualComponents = components.filter {
+                summarySection(
+                    for: mainRoleName(in: $0.roleSubroleField),
+                    categories: [$0.category]
+                ) == .visual
+            }
             
             for entry in rows {
                 if entry.section == .audio, !insertedVisualSubtotal {
-                    if visualSeconds > 0 {
+                    let subtotalSeconds: Double
+                    if overlapAware {
+                        subtotalSeconds = unionSeconds(for: visualComponents)
+                    } else {
+                        subtotalSeconds = visualSeconds
+                    }
+                    if subtotalSeconds > 0 {
                         result.append(
                             subtotalRow(
-                                seconds: visualSeconds,
+                                seconds: subtotalSeconds,
                                 projectDurationSeconds: projectDurationSeconds,
                                 timeline: timeline,
                                 resources: resources,
@@ -230,7 +253,9 @@ extension FinalCutPro.FCPXML {
             for roleName: String,
             in components: [RoleInventoryClipComponent],
             categories: Set<ReportClipCategory>,
-            subroleIndex: [String: Set<String>]
+            subroleIndex: [String: Set<String>],
+            overlapAware: Bool = false,
+            occupancy: TimelineOccupancyIndex? = nil
         ) -> Double {
             let matching = components.filter { component in
                 RoleInventoryRoleSheetOrdering.sheetRoleTargets(
@@ -238,34 +263,70 @@ extension FinalCutPro.FCPXML {
                     subroleIndex: subroleIndex
                 ).contains(roleName)
             }
-            
+
+            let policyFiltered: [RoleInventoryClipComponent]
             switch aggregationPolicy(
                 for: roleName,
                 matching: matching,
                 categories: categories
             ) {
             case .exactRoleField:
-                return matching
-                    .filter { $0.roleSubroleField == roleName }
-                    .reduce(0) { $0 + $1.durationSeconds }
-                
+                policyFiltered = matching.filter { $0.roleSubroleField == roleName }
             case .videoCategories:
-                return matching
-                    .filter { $0.category.isVideoCategory }
-                    .reduce(0) { $0 + $1.durationSeconds }
-                
+                policyFiltered = matching.filter { $0.category.isVideoCategory }
             case .audioCategories:
-                return matching
-                    .filter { $0.category.isAudioCategory }
-                    .reduce(0) { $0 + $1.durationSeconds }
-                
+                policyFiltered = matching.filter { $0.category.isAudioCategory }
             case .captionCategories:
-                return matching
-                    .filter { $0.category.isCaptionCategory }
-                    .reduce(0) { $0 + $1.durationSeconds }
-                
+                policyFiltered = matching.filter { $0.category.isCaptionCategory }
             case .allMatchingComponents:
-                return matching.reduce(0) { $0 + $1.durationSeconds }
+                policyFiltered = matching
+            }
+
+            if overlapAware {
+                // Prefer projection occupancy when windows carry matching role annotations.
+                if let occupancy,
+                   let fromWindows = occupiedSecondsFromWindows(
+                    occupancy: occupancy,
+                    roleName: roleName
+                   ),
+                   fromWindows > 0
+                {
+                    return fromWindows
+                }
+                return unionSeconds(for: policyFiltered)
+            }
+
+            return policyFiltered.reduce(0) { $0 + $1.durationSeconds }
+        }
+
+        private static func unionSeconds(for components: [RoleInventoryClipComponent]) -> Double {
+            let intervals: [TimelineOccupancyIndex.Interval] = components.compactMap { component in
+                guard let start = component.timelineStartSeconds,
+                      let end = component.timelineEndSeconds,
+                      end > start
+                else { return nil }
+                return TimelineOccupancyIndex.Interval(start: start, end: end)
+            }
+            if intervals.isEmpty {
+                return components.reduce(0) { $0 + $1.durationSeconds }
+            }
+            return TimelineOccupancyIndex.unionDuration(intervals)
+        }
+
+        private static func occupiedSecondsFromWindows(
+            occupancy: TimelineOccupancyIndex,
+            roleName: String
+        ) -> Double? {
+            let hasAnnotatedRoles = occupancy.windows.contains { !$0.roles.isEmpty }
+            guard hasAnnotatedRoles else { return nil }
+            let main = mainRoleName(in: roleName).lowercased()
+            return occupancy.occupiedDuration { window in
+                window.roles.contains { role in
+                    let raw = role.wrapped.rawValue.lowercased()
+                    return raw == main
+                        || raw.hasPrefix(main + ".")
+                        || roleName.lowercased().contains(raw)
+                }
             }
         }
         

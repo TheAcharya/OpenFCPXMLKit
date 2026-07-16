@@ -17,6 +17,10 @@ extension FinalCutPro.FCPXML {
         var roleSubroleField: String
         var category: ReportClipCategory
         var durationSeconds: Double
+        /// Absolute timeline start in seconds when known (for overlap-aware Summary).
+        var timelineStartSeconds: Double?
+        /// Absolute timeline end in seconds when known (for overlap-aware Summary).
+        var timelineEndSeconds: Double?
     }
     
     /// A collected clip component with extraction context for inventory row building.
@@ -48,7 +52,8 @@ extension FinalCutPro.FCPXML {
         static func collect(
             from timeline: any OFKXMLElement,
             scope: ExtractionScope,
-            roleDisplayPreference: RoleDisplayPreference = .builtIn
+            roleDisplayPreference: RoleDisplayPreference = .builtIn,
+            projectionWindows: [MediaUsageWindow]? = nil
         ) async -> [RoleInventoryClipComponent] {
             await collectEntries(
                 from: timeline,
@@ -56,16 +61,36 @@ extension FinalCutPro.FCPXML {
                 roleDisplayPreference: roleDisplayPreference
             )
             .compactMap { entry in
-                guard let durationSeconds = clipDurationSeconds(from: entry) else {
-                    return nil
-                }
-                
-                return RoleInventoryClipComponent(
-                    roleSubroleField: entry.roleSubroleField,
-                    category: entry.category,
-                    durationSeconds: durationSeconds
-                )
+                component(from: entry, projectionWindows: projectionWindows)
             }
+        }
+
+        /// Builds a Summary / aggregation component from a collected inventory entry.
+        static func component(
+            from entry: RoleInventoryClipEntry,
+            projectionWindows: [MediaUsageWindow]? = nil,
+            windowIndex: ProjectionWindowIndex? = nil
+        ) -> RoleInventoryClipComponent? {
+            guard let durationSeconds = clipDurationSeconds(
+                from: entry,
+                projectionWindows: projectionWindows,
+                windowIndex: windowIndex
+            ) else {
+                return nil
+            }
+
+            let startSeconds = absoluteStartSeconds(from: entry)
+            return RoleInventoryClipComponent(
+                roleSubroleField: entry.roleSubroleField,
+                category: entry.category,
+                durationSeconds: durationSeconds,
+                timelineStartSeconds: startSeconds,
+                timelineEndSeconds: startSeconds.map { $0 + durationSeconds }
+            )
+        }
+
+        private static func absoluteStartSeconds(from entry: RoleInventoryClipEntry) -> Double? {
+            entry.extracted.value(forContext: .absoluteStart)
         }
         
         static func collectEntries(
@@ -1421,29 +1446,37 @@ extension FinalCutPro.FCPXML {
         }
         
         private static func clipDurationSeconds(
-            from entry: RoleInventoryClipEntry
+            from entry: RoleInventoryClipEntry,
+            projectionWindows: [MediaUsageWindow]? = nil,
+            windowIndex: ProjectionWindowIndex? = nil
         ) -> Double? {
             clipDurationSeconds(
                 from: entry.extracted,
-                usesAudioTimelineBounds: entry.usesAudioTimelineBounds
+                usesAudioTimelineBounds: entry.usesAudioTimelineBounds,
+                projectionWindows: projectionWindows,
+                windowIndex: windowIndex
             )
         }
-        
+
         private static func clipDurationSeconds(
             from extracted: ExtractedElement,
-            usesAudioTimelineBounds: Bool
+            usesAudioTimelineBounds: Bool,
+            projectionWindows: [MediaUsageWindow]? = nil,
+            windowIndex: ProjectionWindowIndex? = nil
         ) -> Double? {
             if let span = RoleInventoryTimelineBounds.mainTimelineSpan(
                 for: extracted,
-                usesAudioTimelineBounds: usesAudioTimelineBounds
+                usesAudioTimelineBounds: usesAudioTimelineBounds,
+                projectionWindows: projectionWindows,
+                windowIndex: windowIndex
             ) {
                 return max(0, span.end - span.start)
             }
-            
+
             guard let timecode = extracted.duration(frameRateSource: .mainTimeline) else {
                 return extracted.element.fcpDuration?.doubleValue
             }
-            
+
             return timecode.realTimeValue
         }
     }

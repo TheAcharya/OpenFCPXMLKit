@@ -22,6 +22,7 @@ OpenFCPXMLKit provides a comprehensive API for parsing, creating, and manipulati
 | **FCPXMLValidator** | Semantic validation (root, resources, ref resolution) |
 | **FCPXMLDTDValidator** | DTD schema validation for a given FCPXML version |
 | **FCPXMLExporter** / **FCPXMLBundleExporter** | Export `Timeline` to FCPXML string or `.fcpxmld` bundle |
+| **TimelineProjector** | Project a report timeline into `MediaUsageWindow` values (playable occupancy) |
 | **ReportExcelExport** / **ReportPDFExport** | Export a built `Report` to `.xlsx` (XLKit) or `.pdf` (CoreGraphics) |
 
 ---
@@ -45,8 +46,11 @@ All core behaviour is defined by **protocols** with both sync and async APIs. De
 | `CutDetection` | `CutDetector` | Detect edit points on spine |
 | `FCPXMLVersionConverting` | `FCPXMLVersionConverter` | Convert document to target version (strip by DTD) |
 | `MediaExtraction` | `MediaExtractor` | Extract media refs, copy referenced files |
+| `TimelineProjecting` | `TimelineProjector` | Project timelines into `MediaUsageWindow` occupancy |
 
----
+Semantic validators (`FCPXMLValidator`, `FCPXMLDTDValidator`, `FCPXMLStructuralValidator`) are injectable concrete types, not protocol-backed.
+
+**Layer stack (bottom → top):** XML → Parsing → Model → Extraction → **Projection** → Reporting. Extend lower layers before adding report-only XML walks. See [20 — Timeline Projection](20-Timeline-Projection.md) and [ARCHITECTURE.md](../../ARCHITECTURE.md) §2.7.
 
 ## Logging
 

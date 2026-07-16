@@ -6,7 +6,7 @@ Optional integration tests that build real `.xlsx` workbooks and `.pdf` reports 
 **Depends on:** `OpenFCPXMLKit`, `XLKit`  
 **Tests:** 4 (`ExcelReportExportTests`)
 
-Unit-level reporting behaviour (universal **Row** on all tabular sheets, Summary title in **B1**, column layout, column exclusion including `ReportColumn.row`, disabled-clip filtering, timecode formats / DF·NDF, format-aware headers, build-phase order, workbook cell formatting, optional `copyrightLabel` cover/footer branding, PDF cover notes / black header + `info.circle`, TOC colour chips, column-width expansion after exclusions, pagination, shared row colours, **standalone compound-clip timeline resolution**) lives in **`OpenFCPXMLKitTests`** — see [Tests/README.md](../README.md#reporting--excelpdf-export) (`FCPXMLCompoundClipReportTests`, `FCPXMLReportPDFExportTests`, `FCPXMLReportPDFSheetPlanTests`, `FCPXMLReportPDFTableLayoutTests`, `FCPXMLReportColumnExclusionTests`, and related files).
+Unit-level reporting behaviour (universal **Row** on all tabular sheets, Summary title in **B1**, column layout, column exclusion including `ReportColumn.row`, disabled-clip filtering, timecode formats / DF·NDF, format-aware headers, build-phase order including `.projecting`, workbook cell formatting, optional `copyrightLabel` cover/footer branding, `ReportMediaResolutionPolicy` / Media Summary proxy-original distinction, PDF cover notes / black header + `info.circle`, TOC colour chips, column-width expansion after exclusions, pagination, shared row colours, **standalone compound-clip timeline resolution**, **Projection-first** Markers/Keywords/Titles/Transitions/Effects) lives in **`OpenFCPXMLKitTests`** — see [Tests/README.md](../README.md#reporting--excelpdf-export) (`FCPXMLCompoundClipReportTests`, `FCPXMLTimelineProjectionTests`, `FCPXMLReportObligationCorpusTests`, `FCPXMLReportPDFExportTests`, `FCPXMLReportPDFSheetPlanTests`, `FCPXMLReportPDFTableLayoutTests`, `FCPXMLReportColumnExclusionTests`, and related files).
 
 ---
 
@@ -87,6 +87,8 @@ The integration target mirrors common CLI flows. For filtered or full PDF export
 # Excel + PDF with the same report configuration
 OpenFCPXMLKit-CLI --report --report-full --create-pdf \
   --label-copyright "© 2026 Example Studios" \
+  --media-resolution fail-soft \
+  --media-summary-distinguish-proxy \
   --exclude-disabled-clips \
   --exclude-column Reel \
   --exclude-column Metadata \
@@ -100,16 +102,18 @@ options.excludeDisabledClips = true
 options.excludedColumns = ["Reel", "Metadata"]
 options.timecodeFormat = .frames
 options.copyrightLabel = "© 2026 Example Studios"
+options.mediaResolutionPolicy = .failSoft
+options.mediaSummaryDistinguishProxyAndOriginal = true
 let phases = FinalCutPro.FCPXML.ReportBuildPhase.enabledPhases(for: options)
 let report = try await fcpxml.buildReport(options: options) { phase in
-    // phase order matches GUI / workbook: inventory first
+    // phase order matches GUI / workbook: projecting (when needed), then inventory first
     _ = phases
 }
 try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: xlsxURL)
 try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 ```
 
-See [Documentation/Manual/19-Reporting.md](../../Documentation/Manual/19-Reporting.md) for the full API (`ReportPDFExport`, `ReportTimecodeFormat`, progress phases, column exclusion).
+See [Documentation/Manual/19-Reporting.md](../../Documentation/Manual/19-Reporting.md) and [20 — Timeline Projection](../../Documentation/Manual/20-Timeline-Projection.md) for the full API (`ReportPDFExport`, `ReportTimecodeFormat`, progress phases, column exclusion, Projection).
 
 ---
 
@@ -161,4 +165,4 @@ Good candidates for this target:
 - Filtered exports (`excludeDisabledClips`, `excludedColumns`, `excludedRoles`) written to additional `Output/` files
 - Full `--create-pdf` smoke checks on a known fixture
 
-Prefer **`OpenFCPXMLKitTests`** for logic that does not need a full local fixture (column resolution, layout, `ReportTimecodeFormat`, `ReportBuildPhase` order, synthetic workbook/PDF structure, Summary/Media Summary/Keywords/Effects colour rules, compound-clip-only timeline discovery).
+Prefer **`OpenFCPXMLKitTests`** for logic that does not need a full local fixture (column resolution, layout, `ReportTimecodeFormat`, `ReportBuildPhase` order including `.projecting`, Projection window / annotation tests, synthetic workbook/PDF structure, Summary/Media Summary/Keywords/Effects colour rules, compound-clip-only timeline discovery, `ReportMediaResolutionPolicy`).

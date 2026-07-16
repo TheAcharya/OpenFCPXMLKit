@@ -46,7 +46,10 @@ extension FinalCutPro.FCPXML {
             document: any OFKXMLDocument,
             scope: ExtractionScope,
             roleDisplayPreference: RoleDisplayPreference = .builtIn,
-            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames,
+            projection: ReportProjectionContext? = nil,
+            inventoryComponents: [RoleInventoryClipComponent]? = nil,
+            overlapAwareDurations: Bool = false
         ) async -> SummaryReportSection {
             let resources = resourcesElement(in: document)
             let sequence = source.sequence
@@ -63,18 +66,26 @@ extension FinalCutPro.FCPXML {
                 resources: resources
             )
             
-            let inventoryComponents = await RoleInventoryClipCollector.collect(
-                from: timelineElement,
-                scope: scope,
-                roleDisplayPreference: roleDisplayPreference
-            )
+            let resolvedComponents: [RoleInventoryClipComponent]
+            if let inventoryComponents {
+                resolvedComponents = inventoryComponents
+            } else {
+                resolvedComponents = await RoleInventoryClipCollector.collect(
+                    from: timelineElement,
+                    scope: scope,
+                    roleDisplayPreference: roleDisplayPreference,
+                    projectionWindows: projection?.windows
+                )
+            }
             
             let roleDurations = SummaryRoleDurationAggregator.roleDurationRows(
-                from: inventoryComponents,
+                from: resolvedComponents,
                 projectDurationSeconds: projectDurationSeconds,
                 timeline: timelineElement,
                 resources: resources,
-                timecodeFormat: timecodeFormat
+                timecodeFormat: timecodeFormat,
+                overlapAware: overlapAwareDurations,
+                projectionWindows: projection?.windows
             )
             
             return SummaryReportSection(

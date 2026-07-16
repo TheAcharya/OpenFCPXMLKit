@@ -53,12 +53,14 @@ extension FinalCutPro.FCPXML.AudioRoleSource {
     public enum Attributes: String {
         /// Role the audio component is associated with.
         case role
+        case start
+        case duration
+        case enabled
         /// Active state of the audio role source.
         case active // default true
     }
     
-    // can contain adjusts
-    // can contain filters
+    // contains adjusts / filters / mutes (see FCPXMLElementAudioPlaybackChildren)
 }
 
 // MARK: - Attributes
@@ -72,6 +74,11 @@ extension FinalCutPro.FCPXML.AudioRoleSource {
         }
         nonmutating set { element.fcpSet(role: newValue) }
     }
+
+    public var enabled: Bool {
+        get { element.fcpGetEnabled(default: true) }
+        nonmutating set { element.fcpSet(enabled: newValue, default: true) }
+    }
     
     /// Active state of the audio role source.
     public var active: Bool {
@@ -80,7 +87,13 @@ extension FinalCutPro.FCPXML.AudioRoleSource {
     }
 }
 
+extension FinalCutPro.FCPXML.AudioRoleSource: FCPXMLElementOptionalStart { }
+
+extension FinalCutPro.FCPXML.AudioRoleSource: FCPXMLElementOptionalDuration { }
+
 // MARK: - Children
+
+extension FinalCutPro.FCPXML.AudioRoleSource: FCPXMLElementAudioPlaybackChildren { }
 
 extension FinalCutPro.FCPXML.AudioRoleSource {
     /// Get or set child elements.

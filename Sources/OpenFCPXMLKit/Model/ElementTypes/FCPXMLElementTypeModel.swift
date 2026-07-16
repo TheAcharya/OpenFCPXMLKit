@@ -70,7 +70,9 @@ extension FinalCutPro.FCPXML {
         case keyword
         case marker
         case chapterMarker = "chapter-marker"
+        case analysisMarker = "analysis-marker"
         case hiddenClipMarker = "hidden-clip-marker"
+        case mute
         
         // textual
         case note

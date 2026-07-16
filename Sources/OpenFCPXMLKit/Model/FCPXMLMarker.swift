@@ -20,7 +20,7 @@ extension FinalCutPro.FCPXML {
         public let element: any OFKXMLElement
 
         public static let supportedElementTypes: Set<ElementType> = [
-            .marker, .chapterMarker
+            .marker, .chapterMarker, .analysisMarker
         ]
         
         public var elementType: ElementType {
@@ -61,11 +61,19 @@ extension FinalCutPro.FCPXML.Marker {
             self.init(markerElementNamed: name)
         case .chapterMarker:
             self.init(chapterMarkerElementNamed: name)
+        case .analysisMarker:
+            self.init(analysisMarkerElement: ())
         }
         
         self.configuration = configuration
+        // Analysis markers use optional start; still store when provided.
         self.start = start
         self.duration = duration
+        if case .analysis = configuration {
+            // Analysis markers have no `value` name attribute; keep name empty.
+        } else {
+            self.name = name
+        }
         self.note = note
     }
     
@@ -80,6 +88,13 @@ extension FinalCutPro.FCPXML.Marker {
     init(chapterMarkerElementNamed markerName: String) {
         element = OFKXMLDefaultFactory().makeElement(name: FinalCutPro.FCPXML.ElementType.chapterMarker.rawValue)
         name = markerName
+    }
+
+    /// Initialize a new empty `analysis-marker` element.
+    init(analysisMarkerElement _: Void) {
+        element = OFKXMLDefaultFactory().makeElement(
+            name: FinalCutPro.FCPXML.ElementType.analysisMarker.rawValue
+        )
     }
 }
 
@@ -119,10 +134,21 @@ extension FinalCutPro.FCPXML.Marker {
 // MARK: - Attributes
 
 extension FinalCutPro.FCPXML.Marker {
-    /// Name. (Required)
+    /// Name. (Required for standard/chapter/to-do; synthesised for analysis markers.)
     public var name: String {
-        get { element.fcpValue ?? "" }
-        nonmutating set { element.fcpValue = newValue }
+        get {
+            if case let .analysis(shotTypes, stabilizationTypes) = configuration {
+                let shots = shotTypes.map(\.value.rawValue)
+                let stabs = stabilizationTypes.map(\.value.rawValue)
+                let parts = shots + stabs
+                return parts.isEmpty ? "Analysis" : parts.joined(separator: ", ")
+            }
+            return element.fcpValue ?? ""
+        }
+        nonmutating set {
+            if case .analysis = configuration { return }
+            element.fcpValue = newValue
+        }
     }
     
     /// Optional note.
@@ -213,6 +239,15 @@ extension OFKXMLElement {
                 }
                 
                 return .chapter(posterOffset: posterOffset)
+
+            case .analysisMarker:
+                guard let analysis = fcpAsAnalysisMarker else {
+                    return .analysis(shotTypes: [], stabilizationTypes: [])
+                }
+                return .analysis(
+                    shotTypes: analysis.shotTypes,
+                    stabilizationTypes: analysis.stabilizationTypes
+                )
             }
         }
         set {
@@ -227,8 +262,14 @@ extension OFKXMLElement {
                 switch newValue.markerElementType {
                 case .marker:
                     removeAttribute(forName: FinalCutPro.FCPXML.Marker.Attributes.posterOffset.rawValue)
+                    removeChildren { $0.name == "shot-type" || $0.name == "stabilization-type" }
                 case .chapterMarker:
                     removeAttribute(forName: FinalCutPro.FCPXML.Marker.Attributes.completed.rawValue)
+                    removeChildren { $0.name == "shot-type" || $0.name == "stabilization-type" }
+                case .analysisMarker:
+                    removeAttribute(forName: FinalCutPro.FCPXML.Marker.Attributes.completed.rawValue)
+                    removeAttribute(forName: FinalCutPro.FCPXML.Marker.Attributes.posterOffset.rawValue)
+                    removeAttribute(forName: FinalCutPro.FCPXML.Marker.Attributes.value.rawValue)
                 }
             }
             
@@ -255,6 +296,12 @@ extension OFKXMLElement {
                     forAttribute: FinalCutPro.FCPXML.Marker.Attributes.posterOffset.rawValue,
                     scaled: true
                 )
+
+            case let .analysis(shotTypes, stabilizationTypes):
+                if let analysis = fcpAsAnalysisMarker {
+                    analysis.shotTypes = shotTypes
+                    analysis.stabilizationTypes = stabilizationTypes
+                }
             }
         }
     }
@@ -295,11 +342,13 @@ extension FinalCutPro.FCPXML.Marker {
     internal enum MarkerElementType: Equatable, Hashable, CaseIterable, Sendable {
         case marker
         case chapterMarker
+        case analysisMarker
         
         var elementType: FinalCutPro.FCPXML.ElementType {
             switch self {
             case .marker: return .marker
             case .chapterMarker: return .chapterMarker
+            case .analysisMarker: return .analysisMarker
             }
         }
         
@@ -307,6 +356,7 @@ extension FinalCutPro.FCPXML.Marker {
             switch element.fcpElementType {
             case .marker: self = .marker
             case .chapterMarker: self = .chapterMarker
+            case .analysisMarker: self = .analysisMarker
             default: return nil
             }
         }
@@ -342,6 +392,12 @@ extension FinalCutPro.FCPXML.Marker {
         
         /// To Do Marker.
         case toDo(completed: Bool)
+        
+        /// Analysis Marker (`analysis-marker` with shot/stabilization types).
+        case analysis(
+            shotTypes: [FinalCutPro.FCPXML.ShotType],
+            stabilizationTypes: [FinalCutPro.FCPXML.StabilizationType]
+        )
     }
 }
 
@@ -351,6 +407,7 @@ extension FinalCutPro.FCPXML.Marker.Configuration {
         switch self {
         case .standard, .toDo: return .marker
         case .chapter: return .chapterMarker
+        case .analysis: return .analysisMarker
         }
     }
 }
@@ -358,17 +415,18 @@ extension FinalCutPro.FCPXML.Marker.Configuration {
 // MARK: - MarkerKind
 
 extension FinalCutPro.FCPXML.Marker {
-    // Note: analysisMarker type not yet implemented.
     public enum MarkerKind: Equatable, Hashable, CaseIterable, Sendable {
         case standard
         case chapter
         case toDo
+        case analysis
         
         public var name: String {
             switch self {
             case .standard: return "Standard"
             case .chapter: return "Chapter"
             case .toDo: return "To Do"
+            case .analysis: return "Analysis"
             }
         }
     }
@@ -376,7 +434,7 @@ extension FinalCutPro.FCPXML.Marker {
 
 extension OFKXMLElement { // Any Marker
     /// FCPXML: Returns the marker kind.
-    /// Call on `marker` or `chapter-marker` elements.
+    /// Call on `marker`, `chapter-marker`, or `analysis-marker` elements.
     public var fcpMarkerKind: FinalCutPro.FCPXML.Marker.MarkerKind? {
         guard let markerConfiguration = fcpMarkerConfiguration else { return nil }
         
@@ -384,6 +442,7 @@ extension OFKXMLElement { // Any Marker
         case .standard: return .standard
         case .chapter: return .chapter
         case .toDo: return .toDo
+        case .analysis: return .analysis
         }
     }
 }

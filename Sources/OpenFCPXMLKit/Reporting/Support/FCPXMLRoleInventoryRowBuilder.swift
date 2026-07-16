@@ -15,7 +15,9 @@ extension FinalCutPro.FCPXML {
     enum RoleInventoryRowBuilder {
         static func row(
             from entry: RoleInventoryClipEntry,
-            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames,
+            projectionWindows: [MediaUsageWindow]? = nil,
+            windowIndex: ProjectionWindowIndex? = nil
         ) -> RoleClipReportRow? {
             let extracted = entry.extracted
             let element = extracted.element
@@ -24,7 +26,9 @@ extension FinalCutPro.FCPXML {
             
             guard let span = RoleInventoryTimelineBounds.mainTimelineSpan(
                 for: extracted,
-                usesAudioTimelineBounds: entry.usesAudioTimelineBounds
+                usesAudioTimelineBounds: entry.usesAudioTimelineBounds,
+                projectionWindows: projectionWindows,
+                windowIndex: windowIndex
             ) else { return nil }
             
             let adjustedSpan = span

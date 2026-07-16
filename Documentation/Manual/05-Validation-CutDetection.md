@@ -45,6 +45,8 @@ else {
 
 **FCPXMLStructuralValidator** works on all platforms (including iOS). It checks: root element name `fcpxml`, required `version` attribute, required `resources` child, at least one content element (library/event/project), and an element-name allowlist for FCPXML 1.5–1.14. Use it when full DTD validation is not available (e.g. on iOS).
 
+**Parity:** Structural success is **not** equivalent to macOS DTD success. On iOS, `FCPXMLDTDValidator` always runs structural checks and may report `.structuralValidationOnly`. See [18 — Cross-Platform & iOS](18-Cross-Platform-iOS.md).
+
 ---
 
 ### Per-version validation via FCPXMLService

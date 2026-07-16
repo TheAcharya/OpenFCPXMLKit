@@ -106,6 +106,12 @@ let conformed = await service.conform(time: time, toFrameDuration: frameDuration
 
 ---
 
+## Projection and Double-safe composition
+
+Timeline **Projection** (and any code that adds conform-scaled attribute fractions to literal FCPXML rationals) must compose via `ProjectionTiming.adding` / `subtracting` (Double intermediates → `Fraction` at 12 decimal places). Do not use SwiftTimecode `Fraction` operators for absolute timeline placement — they can trap on Int overflow when mixing conform-scaled values with literal rationals.
+
+---
+
 ## Next
 
 - [04 — Service & Logging](04-Service-Logging.md) — FCPXMLService, ModularUtilities, logging.

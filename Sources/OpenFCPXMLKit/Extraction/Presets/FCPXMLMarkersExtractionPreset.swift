@@ -19,9 +19,28 @@ extension FinalCutPro.FCPXML {
             on extractable: any OFKXMLElement,
             scope: FinalCutPro.FCPXML.ExtractionScope
         ) async -> [FinalCutPro.FCPXML.ExtractedMarker] {
+            // Align depth / occlusion set with report visibility, but filter by *host clip*
+            // occlusion — not the marker element. Marker local starts on titles often trip
+            // ``effectiveOcclusion`` while remaining visible in FCP (e.g. BasicMarkers).
+            var markerScope = scope
+            markerScope.occlusions = .allCases
+            markerScope.maxContainerDepth = nil
+            let basePredicate = scope.extractionPredicate
+            markerScope.extractionPredicate = { extracted in
+                if let host = extracted.ancestorClipElement() {
+                    let hostContext = extracted.extractedContext(forClip: host)
+                    if hostContext.value(forContext: .effectiveOcclusion) == .fullyOccluded {
+                        return false
+                    }
+                } else if extracted.value(forContext: .effectiveOcclusion) == .fullyOccluded {
+                    return false
+                }
+                return basePredicate?(extracted) ?? true
+            }
+
             let extracted = await extractable.fcpExtract(
-                types: [.marker, .chapterMarker],
-                scope: scope
+                types: [.marker, .chapterMarker, .analysisMarker],
+                scope: markerScope
             )
             
             let wrapped = extracted
@@ -48,18 +67,28 @@ extension FinalCutPro.FCPXML {
         public let element: any OFKXMLElement
         public let breadcrumbs: [any OFKXMLElement]
         public let resources: (any OFKXMLElement)?
+        public let auditions: FinalCutPro.FCPXML.Audition.AuditionMask
+        public let mcClipAngles: FinalCutPro.FCPXML.MCClip.AngleMask
         
         init(_ extractedElement: ExtractedElement) {
             element = extractedElement.element
             breadcrumbs = extractedElement.breadcrumbs
             resources = extractedElement.resources
+            auditions = extractedElement.auditions
+            mcClipAngles = extractedElement.mcClipAngles
         }
         
         /// Return the a context value for the element.
         public func value<Value>(
             forContext contextKey: FinalCutPro.FCPXML.ElementContext<Value>
         ) -> Value {
-            contextKey.value(from: element, breadcrumbs: breadcrumbs, resources: resources)
+            contextKey.value(
+                from: element,
+                breadcrumbs: breadcrumbs,
+                resources: resources,
+                auditions: auditions,
+                mcClipAngles: mcClipAngles
+            )
         }
         
         // Convenience getters

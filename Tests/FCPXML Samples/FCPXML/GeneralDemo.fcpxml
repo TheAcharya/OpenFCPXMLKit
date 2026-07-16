@@ -1,0 +1,1350 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE fcpxml>
+
+<fcpxml version="1.14">
+    <resources>
+        <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080" colorSpace="1-1-1 (Rec. 709)"/>
+        <asset id="r2" name="Busking Broll-02- HEVC-1080" uid="502723C8A26BFA0BF988B28C5881916F" start="0s" duration="30s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="502723C8A26BFA0BF988B28C5881916F" src="file:///Users/user/Movies/GeneralDemo/Media/Busking%20Broll-02-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:42:25 +0800"/>
+            </metadata>
+        </asset>
+        <asset id="r3" name="Busking Broll-10- HEVC-1080" uid="E6EA2824AB42471344DA855F7054BEDD" start="0s" duration="402000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="E6EA2824AB42471344DA855F7054BEDD" src="file:///Users/user/Movies/GeneralDemo/Media/Busking%20Broll-10-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:42:25 +0800"/>
+            </metadata>
+        </asset>
+        <effect id="r4" name="Color Adjustments" uid="FxPlug:7E2022A5-202B-4EEB-A311-AC2B585D01B0"/>
+        <effect id="r5" name="Basic Title" uid=".../Titles.localized/Bumper:Opener.localized/Basic Title.localized/Basic Title.moti"/>
+        <asset id="r6" name="Busking Broll-08- HEVC-1080" uid="A2587BF63DD2B376E01CEB4FDA6FBF9C" start="0s" duration="260000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="A2587BF63DD2B376E01CEB4FDA6FBF9C" src="file:///Users/user/Movies/GeneralDemo/Media/Busking%20Broll-08-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:42:25 +0800"/>
+            </metadata>
+        </asset>
+        <asset id="r7" name="Busking Broll-09- HEVC-1080" uid="EE735FA2D43F751500C3D59E5131472B" start="0s" duration="551000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="EE735FA2D43F751500C3D59E5131472B" src="file:///Users/user/Movies/GeneralDemo/Media/Busking%20Broll-09-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:42:25 +0800"/>
+            </metadata>
+        </asset>
+        <asset id="r8" name="Busking Broll-12- HEVC-1080" uid="5BB31885491FB9932C53C55D4C533F76" start="0s" duration="251000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="5BB31885491FB9932C53C55D4C533F76" src="file:///Users/user/Movies/GeneralDemo/Media/Busking%20Broll-12-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:42:25 +0800"/>
+            </metadata>
+        </asset>
+        <asset id="r9" name="Busking Broll-07- HEVC-1080" uid="7BBA47327B55EC635B613A811C9454BD" start="0s" duration="208000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="7BBA47327B55EC635B613A811C9454BD" src="file:///Users/user/Movies/GeneralDemo/Media/Busking%20Broll-07-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:42:26 +0800"/>
+            </metadata>
+        </asset>
+        <media id="r10" name="Interview Multicam" uid="02M/Fj1AQZqaGbnJN9q3tQ" modDate="2025-09-25 22:56:39 +0800">
+            <multicam format="r1" tcStart="0s">
+                <mc-angle name="Angle 1" angleID="JvgNk9ekSQuY1/Tf0cECsA">
+                    <asset-clip ref="r11" offset="0s" name="STUDIO INTV-CAM-A" duration="8890000/24000s" tcFormat="NDF" audioRole="dialogue"/>
+                </mc-angle>
+                <mc-angle name="Angle 2" angleID="aYhfm/eURsCs5O2IF1Erpw">
+                    <asset-clip ref="r12" offset="0s" name="STUDIO INTV-CAM-B" duration="8890000/24000s" tcFormat="NDF" audioRole="dialogue"/>
+                </mc-angle>
+                <mc-angle name="Angle 3" angleID="kgJzHx1iS2aTT23ryFwaUg">
+                    <asset-clip ref="r13" offset="0s" name="STUDIO INTV-CAM-C" duration="8890000/24000s" tcFormat="NDF" audioRole="dialogue"/>
+                </mc-angle>
+            </multicam>
+        </media>
+        <asset id="r11" name="STUDIO INTV-CAM-A- HEVC-1080" uid="488EC7CD9BCCEE48A9C59C2754C9C664" start="0s" duration="8890000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="488EC7CD9BCCEE48A9C59C2754C9C664" src="file:///Users/user/Movies/GeneralDemo/Media/STUDIO%20INTV-CAM-A-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:48:34 +0800"/>
+            </metadata>
+        </asset>
+        <asset id="r12" name="STUDIO INTV-CAM-B- HEVC-1080" uid="7F2FF57A8928A40E5DE755193AD88311" start="0s" duration="8890000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="7F2FF57A8928A40E5DE755193AD88311" src="file:///Users/user/Movies/GeneralDemo/Media/STUDIO%20INTV-CAM-B-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:48:34 +0800"/>
+            </metadata>
+        </asset>
+        <asset id="r13" name="STUDIO INTV-CAM-C- HEVC-1080" uid="92492E4A165175889DF13A98E2FDA367" start="0s" duration="8890000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="92492E4A165175889DF13A98E2FDA367" src="file:///Users/user/Movies/GeneralDemo/Media/STUDIO%20INTV-CAM-C-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:48:34 +0800"/>
+            </metadata>
+        </asset>
+        <media id="r14" name="Busking Performance - Multicam" uid="BSOzwhjRRPyQi4q2dmV9XA" modDate="2025-09-25 22:57:02 +0800">
+            <multicam format="r1" tcStart="0s">
+                <mc-angle name="Angle 1" angleID="ilMeggtTRPyol7OCqKH0Pg">
+                    <asset-clip ref="r15" offset="0s" name="BUSKING PERFORMANCE-CAM A" duration="4212000/24000s" tcFormat="NDF" audioRole="dialogue">
+                        <keyword start="0s" duration="4212000/24000s" value="busking, Busking Performance"/>
+                        <audio-channel-source srcCh="1, 2" role="music.music-1"/>
+                    </asset-clip>
+                </mc-angle>
+                <mc-angle name="Angle 2" angleID="AJe/bohFR7WeHfKdLI0+Bg">
+                    <asset-clip ref="r16" offset="0s" name="BUSKING PERFORMANCE-CAM B" duration="4212000/24000s" tcFormat="NDF" audioRole="dialogue">
+                        <keyword start="0s" duration="4212000/24000s" value="busking, Busking Performance"/>
+                        <audio-channel-source srcCh="1, 2" role="music.music-1"/>
+                    </asset-clip>
+                </mc-angle>
+                <mc-angle name="Angle 3" angleID="VitL52TjTXGNhfbgr8nUzw">
+                    <asset-clip ref="r17" offset="0s" name="BUSKING PERFORMANCE-CAM C" duration="4212000/24000s" tcFormat="NDF" audioRole="dialogue">
+                        <keyword start="0s" duration="4212000/24000s" value="busking, Busking Performance"/>
+                        <audio-channel-source srcCh="1, 2" role="music.music-1"/>
+                    </asset-clip>
+                </mc-angle>
+            </multicam>
+        </media>
+        <asset id="r15" name="BUSKING PERFORMANCE-CAM A- HEVC-1080" uid="2A7FB144E1C762F8036376D7AC483AE9" start="0s" duration="4212000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="2A7FB144E1C762F8036376D7AC483AE9" src="file:///Users/user/Movies/GeneralDemo/Media/BUSKING%20PERFORMANCE-CAM%20A-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:42:25 +0800"/>
+            </metadata>
+        </asset>
+        <asset id="r16" name="BUSKING PERFORMANCE-CAM B- HEVC-1080" uid="F3A6DB96F22C661D56B089FB4B16D529" start="0s" duration="4212000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="F3A6DB96F22C661D56B089FB4B16D529" src="file:///Users/user/Movies/GeneralDemo/Media/BUSKING%20PERFORMANCE-CAM%20B-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2026-02-13 07:22:02 +0800"/>
+            </metadata>
+        </asset>
+        <asset id="r17" name="BUSKING PERFORMANCE-CAM C- HEVC-1080" uid="B46BACA8605190F2BD6B42BA1B3E4D01" start="0s" duration="4212000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="B46BACA8605190F2BD6B42BA1B3E4D01" src="file:///Users/user/Movies/GeneralDemo/Media/BUSKING%20PERFORMANCE-CAM%20C-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:42:26 +0800"/>
+            </metadata>
+        </asset>
+        <media id="r18" name="Studio Guitar 02 Performance" uid="3ORftjLXT5ykRxK8+SWxpA" modDate="2025-09-25 22:57:40 +0800">
+            <multicam format="r1" tcStart="0s">
+                <mc-angle name="Angle 1" angleID="Jd2ZgEhHQlO4+AOKDSq3OA">
+                    <asset-clip ref="r19" offset="0s" name="STUDIO GUITAR 02 PERFORMANCE A" duration="2668000/24000s" tcFormat="NDF" audioRole="dialogue">
+                        <keyword start="0s" duration="2668000/24000s" value="studio"/>
+                        <audio-channel-source srcCh="1, 2" role="music.music-1"/>
+                    </asset-clip>
+                </mc-angle>
+                <mc-angle name="Angle 2" angleID="FYoEM0HhR7GWdBWuk6bxxw">
+                    <asset-clip ref="r20" offset="0s" name="STUDIO GUITAR 02 PERFORMANCE B" duration="2668000/24000s" tcFormat="NDF" audioRole="dialogue">
+                        <keyword start="0s" duration="2668000/24000s" value="studio"/>
+                        <audio-channel-source srcCh="1, 2" role="music.music-1"/>
+                    </asset-clip>
+                </mc-angle>
+                <mc-angle name="Angle 3" angleID="RQbjtdeyQ3u/vVfOCMzgpg">
+                    <asset-clip ref="r21" offset="0s" name="STUDIO GUITAR 02 PERFORMANCE C" duration="2668000/24000s" tcFormat="NDF" audioRole="dialogue">
+                        <keyword start="0s" duration="2668000/24000s" value="studio"/>
+                        <audio-channel-source srcCh="1, 2" role="music.music-1"/>
+                    </asset-clip>
+                </mc-angle>
+            </multicam>
+        </media>
+        <asset id="r19" name="STUDIO GUITAR 02 PERFORMANCE A- HEVC-1080" uid="183EE5A945EC9F0AD5972C2DC3FE415D" start="0s" duration="2668000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="183EE5A945EC9F0AD5972C2DC3FE415D" src="file:///Users/user/Movies/GeneralDemo/Media/STUDIO%20GUITAR%2002%20PERFORMANCE%20A-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:50:31 +0800"/>
+            </metadata>
+        </asset>
+        <asset id="r20" name="STUDIO GUITAR 02 PERFORMANCE B- HEVC-1080" uid="821CF550E523C1E2C7892767026E2FBA" start="0s" duration="2668000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="821CF550E523C1E2C7892767026E2FBA" src="file:///Users/user/Movies/GeneralDemo/Media/STUDIO%20GUITAR%2002%20PERFORMANCE%20B-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:50:31 +0800"/>
+            </metadata>
+        </asset>
+        <asset id="r21" name="STUDIO GUITAR 02 PERFORMANCE C- HEVC-1080" uid="BDABCC07C86D90707D5A52CB6E3456DE" start="0s" duration="2668000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="BDABCC07C86D90707D5A52CB6E3456DE" src="file:///Users/user/Movies/GeneralDemo/Media/STUDIO%20GUITAR%2002%20PERFORMANCE%20C-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:50:31 +0800"/>
+            </metadata>
+        </asset>
+        <media id="r22" name="Studio Guitar 01 Performance" uid="Rq9RRss0SYCiiRqEsPuBZw" modDate="2025-09-25 22:57:21 +0800">
+            <multicam format="r1" tcStart="0s">
+                <mc-angle name="Angle 1" angleID="ww+0EsAHTG2TAikt4XljpQ">
+                    <asset-clip ref="r23" offset="0s" name="STUDIO GUITAR 01 PERFORMANCE A" duration="2753000/24000s" tcFormat="NDF" audioRole="dialogue">
+                        <keyword start="0s" duration="2753000/24000s" value="studio"/>
+                        <audio-channel-source srcCh="1, 2" role="music.music-1"/>
+                    </asset-clip>
+                </mc-angle>
+                <mc-angle name="Angle 2" angleID="MqV3o2s3SuSCuV+UTy09HA">
+                    <asset-clip ref="r24" offset="0s" name="STUDIO GUITAR 01 PERFORMANCE B" duration="2753000/24000s" tcFormat="NDF" audioRole="dialogue">
+                        <keyword start="0s" duration="2753000/24000s" value="studio"/>
+                        <audio-channel-source srcCh="1, 2" role="music.music-1"/>
+                    </asset-clip>
+                </mc-angle>
+                <mc-angle name="Angle 3" angleID="8NG51vTQRAaYu/nsdyR9NQ">
+                    <asset-clip ref="r25" offset="0s" name="STUDIO GUITAR 01 PERFORMANCE C" duration="2753000/24000s" tcFormat="NDF" audioRole="dialogue">
+                        <keyword start="0s" duration="2753000/24000s" value="studio"/>
+                        <audio-channel-source srcCh="1, 2" role="music.music-1"/>
+                    </asset-clip>
+                </mc-angle>
+            </multicam>
+        </media>
+        <asset id="r23" name="STUDIO GUITAR 01 PERFORMANCE A- HEVC-1080" uid="75231246E6CFB44B7C3E6D4DFFF47081" start="0s" duration="2753000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="75231246E6CFB44B7C3E6D4DFFF47081" src="file:///Users/user/Movies/GeneralDemo/Media/STUDIO%20GUITAR%2001%20PERFORMANCE%20A-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:50:31 +0800"/>
+            </metadata>
+        </asset>
+        <asset id="r24" name="STUDIO GUITAR 01 PERFORMANCE B- HEVC-1080" uid="1DE738667A44675E8D24573607BE92CC" start="0s" duration="2753000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="1DE738667A44675E8D24573607BE92CC" src="file:///Users/user/Movies/GeneralDemo/Media/STUDIO%20GUITAR%2001%20PERFORMANCE%20B-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:50:31 +0800"/>
+            </metadata>
+        </asset>
+        <asset id="r25" name="STUDIO GUITAR 01 PERFORMANCE C- HEVC-1080" uid="7D4171D595A7D8F004DC0D0A141D1C21" start="0s" duration="2753000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="7D4171D595A7D8F004DC0D0A141D1C21" src="file:///Users/user/Movies/GeneralDemo/Media/STUDIO%20GUITAR%2001%20PERFORMANCE%20C-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:50:31 +0800"/>
+            </metadata>
+        </asset>
+        <media id="r26" name="Studio Piano Performance" uid="7lu44qsySA26o8E8BFTJ7w" modDate="2025-09-25 22:58:01 +0800">
+            <multicam format="r1" tcStart="0s">
+                <mc-angle name="Angle 1" angleID="7ICnThI4SHuHjAtVbAUgAQ">
+                    <asset-clip ref="r27" offset="0s" name="STUDIO PIANO PERFORMANCE-CAM A" duration="5167000/24000s" tcFormat="NDF" audioRole="dialogue">
+                        <keyword start="0s" duration="5167000/24000s" value="studio"/>
+                        <audio-channel-source srcCh="1, 2" role="music.music-1"/>
+                    </asset-clip>
+                </mc-angle>
+                <mc-angle name="Angle 2" angleID="91b/wMg4SUyhvCTO4NRpaA">
+                    <asset-clip ref="r28" offset="0s" name="STUDIO PIANO PERFORMANCE-CAM B" duration="5167000/24000s" tcFormat="NDF" audioRole="dialogue">
+                        <keyword start="0s" duration="5167000/24000s" value="studio"/>
+                        <audio-channel-source srcCh="1, 2" role="music.music-1"/>
+                    </asset-clip>
+                </mc-angle>
+                <mc-angle name="Angle 3" angleID="L3fX3Cc1TBiCeWMQcsmE/g">
+                    <asset-clip ref="r29" offset="0s" name="STUDIO PIANO PERFORMANCE-CAM C" duration="5167000/24000s" tcFormat="NDF" audioRole="dialogue">
+                        <keyword start="0s" duration="5167000/24000s" value="studio"/>
+                        <audio-channel-source srcCh="1, 2" role="music.music-1"/>
+                    </asset-clip>
+                </mc-angle>
+                <mc-angle name="Untitled Angle" angleID="Ywp0TmaaRGyLsKI/RsdycA">
+                    <asset-clip ref="r30" offset="0s" name="STUDIO PIANO PERFORMANCE-PianoMic" duration="10336896/48000s" format="r31" audioRole="dialogue">
+                        <audio-channel-source srcCh="1, 2" role="music.music-1"/>
+                    </asset-clip>
+                </mc-angle>
+            </multicam>
+        </media>
+        <asset id="r27" name="STUDIO PIANO PERFORMANCE-CAM A- HEVC-1080" uid="74B0B2422422E996E1E13A86BF85395D" start="0s" duration="5167000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="74B0B2422422E996E1E13A86BF85395D" src="file:///Users/user/Movies/GeneralDemo/Media/STUDIO%20PIANO%20PERFORMANCE-CAM%20A-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:50:31 +0800"/>
+            </metadata>
+        </asset>
+        <asset id="r28" name="STUDIO PIANO PERFORMANCE-CAM B- HEVC-1080" uid="A616B6D671A6E2BA77AEEB9E607B0EFA" start="0s" duration="5167000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="A616B6D671A6E2BA77AEEB9E607B0EFA" src="file:///Users/user/Movies/GeneralDemo/Media/STUDIO%20PIANO%20PERFORMANCE-CAM%20B-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:50:31 +0800"/>
+            </metadata>
+        </asset>
+        <asset id="r29" name="STUDIO PIANO PERFORMANCE-CAM C- HEVC-1080" uid="E041D3765560ADB337286370D264F418" start="0s" duration="5167000/24000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="E041D3765560ADB337286370D264F418" src="file:///Users/user/Movies/GeneralDemo/Media/STUDIO%20PIANO%20PERFORMANCE-CAM%20C-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:50:31 +0800"/>
+            </metadata>
+        </asset>
+        <asset id="r30" name="STUDIO PIANO PERFORMANCE-PianoMic" uid="FD132915CC838F9A5CE5ED8FF1A926E9" start="0s" duration="10336896/48000s" hasAudio="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="FD132915CC838F9A5CE5ED8FF1A926E9" src="file:///Users/user/Movies/GeneralDemo/Media/STUDIO%20PIANO%20PERFORMANCE-PianoMic.wav">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-10-15 12:08:58 +0800"/>
+            </metadata>
+        </asset>
+        <format id="r31" name="FFVideoFormatRateUndefined"/>
+        <asset id="r32" name="Studio Broll-07- HEVC-1080" uid="795702419E145AD3E71803EDC49D5CCF" start="0s" duration="65000/24000s" hasVideo="1" format="r1" videoSources="1">
+            <media-rep kind="original-media" sig="795702419E145AD3E71803EDC49D5CCF" src="file:///Users/user/Movies/GeneralDemo/Media/Studio%20Broll-07-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:50:31 +0800"/>
+            </metadata>
+        </asset>
+        <asset id="r33" name="Studio Broll-08- HEVC-1080" uid="6DCC64C7A67141E2C563EB05B09E4D27" start="0s" duration="140000/24000s" hasVideo="1" format="r1" videoSources="1">
+            <media-rep kind="original-media" sig="6DCC64C7A67141E2C563EB05B09E4D27" src="file:///Users/user/Movies/GeneralDemo/Media/Studio%20Broll-08-%20HEVC-1080.m4v">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>HEVC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2025-09-24 08:50:31 +0800"/>
+            </metadata>
+        </asset>
+    </resources>
+    <library location="file:///Users/user/Movies/GeneralDemo.fcpbundle/" colorProcessing="wide-hdr">
+        <event name="General Demo" uid="C8512530-242E-425F-ABC9-D6C19DB23D17">
+            <project name="General Demo" uid="3E0E1E12-D342-43E1-95A0-ECC4286519C8" modDate="2026-07-16 17:35:48 +0800">
+                <sequence format="r1" duration="2143000/24000s" tcStart="0s" audioLayout="stereo" audioRate="48k" keywords=" timelines">
+                    <note>This project is provided to Final Cut Pro users for personal and noncommercial purposes.</note>
+                    <spine>
+                        <asset-clip ref="r2" offset="0s" name="Busking Broll-02" start="40400/2400s" duration="261000/24000s" audioStart="40400/2400s" audioDuration="31600/2400s" tcFormat="NDF" audioRole="dialogue">
+                            <adjust-transform>
+                                <param name="anchor">
+                                    <keyframeAnimation>
+                                        <keyframe time="43600/2400s" value="0 0"/>
+                                        <keyframe time="47100/2400s" value="0 0"/>
+                                    </keyframeAnimation>
+                                </param>
+                                <param name="position">
+                                    <keyframeAnimation>
+                                        <keyframe time="43600/2400s" value="0 0"/>
+                                        <keyframe time="47100/2400s" value="0 0"/>
+                                    </keyframeAnimation>
+                                </param>
+                                <param name="rotation">
+                                    <keyframeAnimation>
+                                        <keyframe time="43600/2400s" value="0"/>
+                                        <keyframe time="47100/2400s" value="0"/>
+                                    </keyframeAnimation>
+                                </param>
+                                <param name="scale">
+                                    <keyframeAnimation>
+                                        <keyframe time="43600/2400s" value="1.26788 1.26788"/>
+                                        <keyframe time="47100/2400s" value="1.10559 1.10559"/>
+                                    </keyframeAnimation>
+                                </param>
+                            </adjust-transform>
+                            <clip lane="1" offset="101/6s" name="Busking Broll-10" duration="33000/24000s" tcFormat="NDF">
+                                <adjust-transform>
+                                    <param name="anchor">
+                                        <keyframeAnimation>
+                                            <keyframe time="0s" value="0 0"/>
+                                            <keyframe time="3200/2400s" value="0 0"/>
+                                        </keyframeAnimation>
+                                    </param>
+                                    <param name="position">
+                                        <keyframeAnimation>
+                                            <keyframe time="0s" value="0 0"/>
+                                            <keyframe time="3200/2400s" value="0 0"/>
+                                        </keyframeAnimation>
+                                    </param>
+                                    <param name="rotation">
+                                        <keyframeAnimation>
+                                            <keyframe time="0s" value="0"/>
+                                            <keyframe time="3200/2400s" value="0"/>
+                                        </keyframeAnimation>
+                                    </param>
+                                    <param name="scale">
+                                        <keyframeAnimation>
+                                            <keyframe time="0s" value="1.08 1.08"/>
+                                            <keyframe time="3200/2400s" value="0.999907 0.999907"/>
+                                        </keyframeAnimation>
+                                    </param>
+                                </adjust-transform>
+                                <video ref="r3" offset="0s" duration="402000/24000s"/>
+                                <keyword start="0s" duration="402000/24000s" value="busking, busking broll"/>
+                                <filter-video ref="r4" name="Color Adjustments">
+                                    <data key="effectConfig">YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGlCwwVFhdVJG51bGzTDQ4PEBIUV05TLmtleXNaTlMub2JqZWN0c1YkY2xhc3OhEYACoROAA4AEXXBsdWdpblZlcnNpb24QAtIYGRobWiRjbGFzc25hbWVYJGNsYXNzZXNfEBNOU011dGFibGVEaWN0aW9uYXJ5oxocHVxOU0RpY3Rpb25hcnlYTlNPYmplY3QIERokKTI3SUxRU1lfZm55gIKEhoiKmJqfqrPJzdoAAAAAAAABAQAAAAAAAAAeAAAAAAAAAAAAAAAAAAAA4w==</data>
+                                    <param name="Control Range" key="19" value="0 (SDR)"/>
+                                    <param name="" key="20" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjE0NTA0OTJkODU0NTQ5Mzk4YzA3M2MxOGM2NDRhYWUxIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9IiIgaWQ9IjIwIiBmbGFncz0iNDI5NTAzMjg0OCI+Cgk8ZmxhZ3M+NDI5NTAzMjg0ODwvZmxhZ3M+Cgk8bnVtYmVyT2ZLZXlwb2ludHM+MDwvbnVtYmVyT2ZLZXlwb2ludHM+Cgk8ZGVmYXVsdFZhbD4qKioqKioqKio2SWVNYi1nT0xCb0ExMUkqRTYxLSpJNC1rZE03NU5aUWJCZFBxdE43NDNtTXFWZFJhSm1KMEZvUHItTTc0eFdPYUpYUjVBRyoqNDRjM3dFMW90SEdxSnROS0YtUWFCY09MTlpRaDI2MEo2WUE2KipjRWhKNzR0cFA0azYyRmNZOEg2ckdJbERJSkEqKioqKioqKi0qRSoqKioqKioqKkEqKioqKioqKioqKioqKioqKioqKktFKio8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKjZJZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqKmNFaEo3NHRwUDRrNjJGY1k4SDZyR0lsRElKQSoqKioqKioqLSpFKioqKioqKioqQSoqKioqKioqKioqKioqKioqKioqS0UqKjwvZGF0YVZhbHVlPgo8L3BhcmFtZXRlcj4KCjwvb3ptbD4K"/>
+                                    <param name="Neutralization Data" key="23" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjRkMGU0OGQ4NGZjYTQyNGQ4MmFhOThhMDI3YzZlYzVjIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9Ik5ldXRyYWxpemF0aW9uIERhdGEiIGlkPSIyMyIgZmxhZ3M9IjQyOTkyMjcxODQiPgoJPGZsYWdzPjQyOTkyMjcxODQ8L2ZsYWdzPgoJPG51bWJlck9mS2V5cG9pbnRzPjA8L251bWJlck9mS2V5cG9pbnRzPgoJPGRlZmF1bHRWYWw+KioqKioqKioqUjJlTWItZ09MQm9BMTFJKkU2MS0qSTQta2RNNzVOWlFiQmRQcXRONzQzbU1xVmRSYUptSjBGb1ByLU03NHhXT2FKWFI1QUcqKjQ0YzN3RTFvdEhHcUp0TktGLVFhQmNPTE5aUWgyNjBKNllBNiotY2tnQTVKSVlQYkpnUEJzQjFVd0UyRjZIMy1JSzNsVU40VmdQNGxnUDRsa1A0bGdQNGxnUEs0QmpQYkZtTUxCb0xMQmNNS0ZqUnJCTE1MN2hSNFZPTWFsVk1xaEVQcVppUjNOck1MN2hSNFZJUjRaaVIzbGhPS0ZvUHF0WlFwRmRQYkZLNzRCZ01MQm5LckJjTUtGalJyQklPS3RvS2FWZE5xVmdPS1JjUjVCT1FxM29STDdWUjRaalBaZFdRYVpiTzVGaU5MQm5LNEpzUTR4blJMN1pMYXBkTjVGalBhSm5KcTNtUExGY0pyQmNNS0ZqUnJBV0dsV0tVNiowb1ZzVDYwM083NEJnTUxCblBhM2hOSlVZTXFsVlFyQlpRcHdFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRdTZXNnB3RTQzLS1GSVYySVlCalA0eG1FcXhtUWFKWFIzTlZQNUpaUXBWQ0lveFdPYUpYUioqNiotMio0VSpZKjBZKkFVKnIqMlkqSCotRCozMipKRS1QKjVVKlVFMEQqN2MqY0UwYSo5QSppVTE0KkIyKnIqMWIqRCoqemsyNSpFay0xVTJIKkZzLTdrMzAqSUktTSoqKioqKioqKjYtKioqKioqKioqMEUqKioqKioqKioqKioqKioqKioqM2Q8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKldJZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqLWNrZ0E4SklZUGJKZ1BCc0IxVXdFMkY2SDMtSUszbFVONFZnUTVGc1Q2MDJXNm1FWjdXUWNLNEJqUGJGbU1MQm9MTEJjTUtGalJyQkxNTDdoUjRWT01hbFZNcWhFUHFaaVIzTnJNTDdoUjRWSVI0WmlSM2xoT0tGb1BxdFpRcEZkUGJGSzc0QmdNTEJuS3JCY01LRmpSckJJT0t0b0thVmROcVZnT0tSY1I1Qk9RcTNvUkw3VlI0WmpQWmRXUWFaYk81RmlOTEJuSzRKc1E0eG5STDdaTGFwZE41RmpQYUpuSnEzbVBMRmNKckJjTUtGalJyQVcqKioqKjA4elUzbms2ZzB5MmFFV2tFeXVpVzh5U3ZXVTZZME5ERmUqKlc2elBlQmM2ZzQyWENBV0VObnRRbTctYjExWDZZMDZXZ2dXRTZHTWZHNy1pbUhxb1djZjkwcE83NEJnTUxCblBhM2hOSlVZTXFsVlFyQlpRcHdFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRdTZpOXB3RTQzLS1GSVYySVlCalA0eG1FcXhtUWFKWFIzTlZQNUpaUXBWQ0lveFdPYUpYUioqNiotMio0VSpZKjBZKkFVKnIqMlkqSCotRCozMipKRS1QKjVVKlVFMEQqN2MqY0UwYSo5QSppVTE0KkIyKnIqMWIqRCoqemsyNSpFay0yRTJLKkZnLTYqMloqR1EtOSoybCpITS1DazMqKklJLUdVM0QqSmMtTWszeSpNMi1iKioqKioqKioqNi0qKioqKioqKioxKioqKioqKioqKioqKioqKioqKio0WjwvZGF0YVZhbHVlPgo8L3BhcmFtZXRlcj4KCjwvb3ptbD4K"/>
+                                    <param name="trigger Enhance" key="18" value="6"/>
+                                    <param name="Exposure" key="3" value="4.26694"/>
+                                    <param name="Contrast" key="17" value="0"/>
+                                    <param name="Brightness" key="2" value="19.5239"/>
+                                    <param name="Highlights" key="7" value="-16.5688"/>
+                                    <param name="Black Point" key="1" value="-5.93974"/>
+                                    <param name="Shadows" key="4" value="23.393"/>
+                                    <param name="Super Highlights" key="25" value="0"/>
+                                    <param name="Saturation" key="16" value="0"/>
+                                    <param name="Highlights Warmth" key="10" value="0"/>
+                                    <param name="Highlights Tint" key="11" value="0"/>
+                                    <param name="Midtones Warmth" key="12" value="0"/>
+                                    <param name="Midtones Tint" key="13" value="0"/>
+                                    <param name="Shadows Warmth" key="14" value="0"/>
+                                    <param name="Shadows Tint" key="15" value="0"/>
+                                </filter-video>
+                            </clip>
+                            <title ref="r5" lane="2" offset="40400/2400s" name="This project is provided to Final Cut Pro users for personal and noncommercial purposes. - Basic Title" start="3600s" duration="6600/2400s">
+                                <param name="Position" key="9999/999166631/999166633/1/100/101" value="0 -495.912"/>
+                                <param name="Flatten" key="9999/999166631/999166633/2/351" value="1"/>
+                                <param name="Alignment" key="9999/999166631/999166633/2/354/999169573/401" value="1 (Center)"/>
+                                <text>
+                                    <text-style ref="ts1">This project is provided to Final Cut Pro users for personal and noncommercial purposes.</text-style>
+                                </text>
+                                <text-style-def id="ts1">
+                                    <text-style font="Helvetica" fontSize="28" fontFace="Regular" fontColor="1 1 1 1" alignment="center"/>
+                                </text-style-def>
+                            </title>
+                            <clip lane="2" offset="470000/24000s" name="Busking Broll-08" start="132000/24000s" duration="66000/24000s" tcFormat="NDF">
+                                <video ref="r6" offset="0s" duration="260000/24000s"/>
+                                <keyword start="0s" duration="260000/24000s" value="busking, busking broll"/>
+                                <filter-video ref="r4" name="Color Adjustments">
+                                    <data key="effectConfig">YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGlCwwVFhdVJG51bGzTDQ4PEBIUV05TLmtleXNaTlMub2JqZWN0c1YkY2xhc3OhEYACoROAA4AEXXBsdWdpblZlcnNpb24QAtIYGRobWiRjbGFzc25hbWVYJGNsYXNzZXNfEBNOU011dGFibGVEaWN0aW9uYXJ5oxocHVxOU0RpY3Rpb25hcnlYTlNPYmplY3QIERokKTI3SUxRU1lfZm55gIKEhoiKmJqfqrPJzdoAAAAAAAABAQAAAAAAAAAeAAAAAAAAAAAAAAAAAAAA4w==</data>
+                                    <param name="Control Range" key="19" value="0 (SDR)"/>
+                                    <param name="" key="20" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjE0NTA0OTJkODU0NTQ5Mzk4YzA3M2MxOGM2NDRhYWUxIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9IiIgaWQ9IjIwIiBmbGFncz0iNDI5NTAzMjg0OCI+Cgk8ZmxhZ3M+NDI5NTAzMjg0ODwvZmxhZ3M+Cgk8bnVtYmVyT2ZLZXlwb2ludHM+MDwvbnVtYmVyT2ZLZXlwb2ludHM+Cgk8ZGVmYXVsdFZhbD4qKioqKioqKio2SWVNYi1nT0xCb0ExMUkqRTYxLSpJNC1rZE03NU5aUWJCZFBxdE43NDNtTXFWZFJhSm1KMEZvUHItTTc0eFdPYUpYUjVBRyoqNDRjM3dFMW90SEdxSnROS0YtUWFCY09MTlpRaDI2MEo2WUE2KipjRWhKNzR0cFA0azYyRmNZOEg2ckdJbERJSkEqKioqKioqKi0qRSoqKioqKioqKkEqKioqKioqKioqKioqKioqKioqKktFKio8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKjZJZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqKmNFaEo3NHRwUDRrNjJGY1k4SDZyR0lsRElKQSoqKioqKioqLSpFKioqKioqKioqQSoqKioqKioqKioqKioqKioqKioqS0UqKjwvZGF0YVZhbHVlPgo8L3BhcmFtZXRlcj4KCjwvb3ptbD4K"/>
+                                    <param name="Neutralization Data" key="23" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjRkMGU0OGQ4NGZjYTQyNGQ4MmFhOThhMDI3YzZlYzVjIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9Ik5ldXRyYWxpemF0aW9uIERhdGEiIGlkPSIyMyIgZmxhZ3M9IjQyOTkyMjcxODQiPgoJPGZsYWdzPjQyOTkyMjcxODQ8L2ZsYWdzPgoJPG51bWJlck9mS2V5cG9pbnRzPjA8L251bWJlck9mS2V5cG9pbnRzPgoJPGRlZmF1bHRWYWw+KioqKioqKioqUjJlTWItZ09MQm9BMTFJKkU2MS0qSTQta2RNNzVOWlFiQmRQcXRONzQzbU1xVmRSYUptSjBGb1ByLU03NHhXT2FKWFI1QUcqKjQ0YzN3RTFvdEhHcUp0TktGLVFhQmNPTE5aUWgyNjBKNllBNiotY2tnQTVKSVlQYkpnUEJzQjFVd0UyRjZIMy1JSzNsVU40VmdQNGxnUDRsa1A0bGdQNGxnUEs0QmpQYkZtTUxCb0xMQmNNS0ZqUnJCTE1MN2hSNFZPTWFsVk1xaEVQcVppUjNOck1MN2hSNFZJUjRaaVIzbGhPS0ZvUHF0WlFwRmRQYkZLNzRCZ01MQm5LckJjTUtGalJyQklPS3RvS2FWZE5xVmdPS1JjUjVCT1FxM29STDdWUjRaalBaZFdRYVpiTzVGaU5MQm5LNEpzUTR4blJMN1pMYXBkTjVGalBhSm5KcTNtUExGY0pyQmNNS0ZqUnJBV0dsV0tVNiowb1ZzVDYwM083NEJnTUxCblBhM2hOSlVZTXFsVlFyQlpRcHdFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRdTZXNnB3RTQzLS1GSVYySVlCalA0eG1FcXhtUWFKWFIzTlZQNUpaUXBWQ0lveFdPYUpYUioqNiotMio0VSpZKjBZKkFVKnIqMlkqSCotRCozMipKRS1QKjVVKlVFMEQqN2MqY0UwYSo5QSppVTE0KkIyKnIqMWIqRCoqemsyNSpFay0xVTJIKkZzLTdrMzAqSUktTSoqKioqKioqKjYtKioqKioqKioqMEUqKioqKioqKioqKioqKioqKioqM2Q8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKldJZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqLWNrZ0E4SklZUGJKZ1BCc0IxVXdFMkY2SDMtSUszbFVONFZnUTVGc1Q2MDJXNm1FWjdXUWNLNEJqUGJGbU1MQm9MTEJjTUtGalJyQkxNTDdoUjRWT01hbFZNcWhFUHFaaVIzTnJNTDdoUjRWSVI0WmlSM2xoT0tGb1BxdFpRcEZkUGJGSzc0QmdNTEJuS3JCY01LRmpSckJJT0t0b0thVmROcVZnT0tSY1I1Qk9RcTNvUkw3VlI0WmpQWmRXUWFaYk81RmlOTEJuSzRKc1E0eG5STDdaTGFwZE41RmpQYUpuSnEzbVBMRmNKckJjTUtGalJyQVcqKioqKjA5KkJBWFE2ZnlrbGh3V2s0R1BEVzcqSXVwMDZZNDQ4eTAqKlc3KmY2c3M2ZzFlVXZzV0U4UklpMDctS2xFSjZZM2RxblVXazhmN01tNy1CUEJKb1djZjkwcE83NEJnTUxCblBhM2hOSlVZTXFsVlFyQlpRcHdFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRdTZpOXB3RTQzLS1GSVYySVlCalA0eG1FcXhtUWFKWFIzTlZQNUpaUXBWQ0lveFdPYUpYUioqNiotMio0VSpZKjBZKkFVKnIqMlkqSCotRCozMipKRS1QKjVVKlVFMEQqN2MqY0UwYSo5QSppVTE0KkIyKnIqMWIqRCoqemsyNSpFay0yRTJLKkZnLTYqMloqR1EtOSoybCpITS1DazMqKklJLUdVM0QqSmMtTWszeSpNMi1iKioqKioqKioqNi0qKioqKioqKioxKioqKioqKioqKioqKioqKioqKio0WjwvZGF0YVZhbHVlPgo8L3BhcmFtZXRlcj4KCjwvb3ptbD4K"/>
+                                    <param name="trigger Enhance" key="18" value="6"/>
+                                    <param name="Exposure" key="3" value="14.616"/>
+                                    <param name="Contrast" key="17" value="0"/>
+                                    <param name="Brightness" key="2" value="13.6924"/>
+                                    <param name="Highlights" key="7" value="-7.32858"/>
+                                    <param name="Black Point" key="1" value="-1.38107"/>
+                                    <param name="Shadows" key="4" value="11.3563"/>
+                                    <param name="Super Highlights" key="25" value="0"/>
+                                    <param name="Saturation" key="16" value="0"/>
+                                    <param name="Highlights Warmth" key="10" value="0"/>
+                                    <param name="Highlights Tint" key="11" value="0"/>
+                                    <param name="Midtones Warmth" key="12" value="0"/>
+                                    <param name="Midtones Tint" key="13" value="0"/>
+                                    <param name="Shadows Warmth" key="14" value="0"/>
+                                    <param name="Shadows Tint" key="15" value="0"/>
+                                </filter-video>
+                            </clip>
+                            <asset-clip ref="r7" lane="1" offset="21s" name="Busking Broll-09" start="178000/24000s" duration="134000/24000s" audioStart="6s" audioDuration="22800/2400s" tcFormat="NDF" audioRole="dialogue">
+                                <keyword start="0s" duration="551000/24000s" value="busking, busking broll"/>
+                                <audio-channel-source srcCh="1, 2" role="Nat Sound.Nat Sound-1">
+                                    <adjust-volume amount="-3.63439dB">
+                                        <param name="amount">
+                                            <fadeIn type="easeInOut" duration="2992/1000s"/>
+                                            <fadeOut type="easeInOut" duration="2553/1000s"/>
+                                        </param>
+                                    </adjust-volume>
+                                </audio-channel-source>
+                                <filter-video ref="r4" name="Color Adjustments">
+                                    <data key="effectConfig">YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGlCwwVFhdVJG51bGzTDQ4PEBIUV05TLmtleXNaTlMub2JqZWN0c1YkY2xhc3OhEYACoROAA4AEXXBsdWdpblZlcnNpb24QAtIYGRobWiRjbGFzc25hbWVYJGNsYXNzZXNfEBNOU011dGFibGVEaWN0aW9uYXJ5oxocHVxOU0RpY3Rpb25hcnlYTlNPYmplY3QIERokKTI3SUxRU1lfZm55gIKEhoiKmJqfqrPJzdoAAAAAAAABAQAAAAAAAAAeAAAAAAAAAAAAAAAAAAAA4w==</data>
+                                    <param name="Control Range" key="19" value="0 (SDR)"/>
+                                    <param name="" key="20" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjE0NTA0OTJkODU0NTQ5Mzk4YzA3M2MxOGM2NDRhYWUxIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9IiIgaWQ9IjIwIiBmbGFncz0iNDI5NTAzMjg0OCI+Cgk8ZmxhZ3M+NDI5NTAzMjg0ODwvZmxhZ3M+Cgk8bnVtYmVyT2ZLZXlwb2ludHM+MDwvbnVtYmVyT2ZLZXlwb2ludHM+Cgk8ZGVmYXVsdFZhbD4qKioqKioqKio2SWVNYi1nT0xCb0ExMUkqRTYxLSpJNC1rZE03NU5aUWJCZFBxdE43NDNtTXFWZFJhSm1KMEZvUHItTTc0eFdPYUpYUjVBRyoqNDRjM3dFMW90SEdxSnROS0YtUWFCY09MTlpRaDI2MEo2WUE2KipjRWhKNzR0cFA0azYyRmNZOEg2ckdJbERJSkEqKioqKioqKi0qRSoqKioqKioqKkEqKioqKioqKioqKioqKioqKioqKktFKio8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKjZJZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqKmNFaEo3NHRwUDRrNjJGY1k4SDZyR0lsRElKQSoqKioqKioqLSpFKioqKioqKioqQSoqKioqKioqKioqKioqKioqKioqS0UqKjwvZGF0YVZhbHVlPgo8L3BhcmFtZXRlcj4KCjwvb3ptbD4K"/>
+                                    <param name="Neutralization Data" key="23" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjRkMGU0OGQ4NGZjYTQyNGQ4MmFhOThhMDI3YzZlYzVjIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9Ik5ldXRyYWxpemF0aW9uIERhdGEiIGlkPSIyMyIgZmxhZ3M9IjQyOTkyMjcxODQiPgoJPGZsYWdzPjQyOTkyMjcxODQ8L2ZsYWdzPgoJPG51bWJlck9mS2V5cG9pbnRzPjA8L251bWJlck9mS2V5cG9pbnRzPgoJPGRlZmF1bHRWYWw+KioqKioqKioqUjJlTWItZ09MQm9BMTFJKkU2MS0qSTQta2RNNzVOWlFiQmRQcXRONzQzbU1xVmRSYUptSjBGb1ByLU03NHhXT2FKWFI1QUcqKjQ0YzN3RTFvdEhHcUp0TktGLVFhQmNPTE5aUWgyNjBKNllBNiotY2tnQTVKSVlQYkpnUEJzQjFVd0UyRjZIMy1JSzNsVU40VmdQNGxnUDRsa1A0bGdQNGxnUEs0QmpQYkZtTUxCb0xMQmNNS0ZqUnJCTE1MN2hSNFZPTWFsVk1xaEVQcVppUjNOck1MN2hSNFZJUjRaaVIzbGhPS0ZvUHF0WlFwRmRQYkZLNzRCZ01MQm5LckJjTUtGalJyQklPS3RvS2FWZE5xVmdPS1JjUjVCT1FxM29STDdWUjRaalBaZFdRYVpiTzVGaU5MQm5LNEpzUTR4blJMN1pMYXBkTjVGalBhSm5KcTNtUExGY0pyQmNNS0ZqUnJBV0dsV0tVNiowb1ZzVDYwM083NEJnTUxCblBhM2hOSlVZTXFsVlFyQlpRcHdFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRdTZXNnB3RTQzLS1GSVYySVlCalA0eG1FcXhtUWFKWFIzTlZQNUpaUXBWQ0lveFdPYUpYUioqNiotMio0VSpZKjBZKkFVKnIqMlkqSCotRCozMipKRS1QKjVVKlVFMEQqN2MqY0UwYSo5QSppVTE0KkIyKnIqMWIqRCoqemsyNSpFay0xVTJIKkZzLTdrMzAqSUktTSoqKioqKioqKjYtKioqKioqKioqMEUqKioqKioqKioqKioqKioqKioqM2Q8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKlZzZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqLWNrZ0E4M0lZUGJKZ1BCc0IxVXdFMkY2SDMtSUszbFVONFZnUTRsb1M1bSpWNldBWTdHTWJLNEJqUGJGbU1MQm9MTEJjTUtGalJyQkxNTDdoUjRWT01hbFZNcWhFUHFaaVIzTnJNTDdoUjRWSVI0WmlSM2xoT0tGb1BxdFpRcEZkUGJGSzc0QmdNTEJuS3JCY01LRmpSckJJT0t0b0thVmROcVZnT0tSY1I1Qk9RcTNvUkw3VlI0WmpQWmRXUWFaYk81RmlOTEJuSzRKc1E0eG5STDdaTGFwZE41RmpQYUpuSnEzbVBMRmNKckJjTUtGalJyQVcqKioqKjA5Kk9JS0k2ZnpQM2xrV2sycXlJMDcqb1ZrS1UqNldEeGg5UjA5LUpxV2g2WTJYTFY2V0VRUmRwRzctaWpuMzZYeWJyemNXRVJ2TDB4NmQ4V2dnS1dGWFA0M25RcXRWUEtKTTc0QmdNTEJuTkxCVDItVkVFSUo2RjM3MVBxbGpRWUJqUWI3Wk1yRktNS2xwTkxDVzlHdFQyLVZFRUlKNkYzNzFQcWxqUVlCalFiN1pNckZLTUtscE5MQk1IWkJETWFkWk1yRSowKipGKi1jKjcqKmQqMTYqQmstNyoyaypIay1GKjNJKktrLXMqNjIqWGswTyo4MipkVTBuKjljKmxVMUYqQmsqdGsxaypEdy0tazJBKkYyLTNVMlAqRyotNlUyYipHay1BRTJxKkhnLUUqMzMqSWMtSkUzUypMWS1UKjRMKioqKioqKioqVTIqKioqKioqKio5ayoqKioqKioqKioqKioqKioqKipPKio8L2RhdGFWYWx1ZT4KPC9wYXJhbWV0ZXI+Cgo8L296bWw+Cg=="/>
+                                    <param name="trigger Enhance" key="18" value="6"/>
+                                    <param name="Exposure" key="3" value="23.3734"/>
+                                    <param name="Contrast" key="17" value="0"/>
+                                    <param name="Brightness" key="2" value="24.9267"/>
+                                    <param name="Highlights" key="7" value="-13.4631"/>
+                                    <param name="Black Point" key="1" value="0"/>
+                                    <param name="Shadows" key="4" value="27.855"/>
+                                    <param name="Super Highlights" key="25" value="0"/>
+                                    <param name="Saturation" key="16" value="0"/>
+                                    <param name="Highlights Warmth" key="10" value="0"/>
+                                    <param name="Highlights Tint" key="11" value="0"/>
+                                    <param name="Midtones Warmth" key="12" value="0"/>
+                                    <param name="Midtones Tint" key="13" value="0"/>
+                                    <param name="Shadows Warmth" key="14" value="0"/>
+                                    <param name="Shadows Tint" key="15" value="0"/>
+                                </filter-video>
+                            </asset-clip>
+                            <asset-clip ref="r8" lane="2" offset="587000/24000s" name="Busking Broll-12" start="49000/24000s" duration="102000/24000s" audioStart="49000/24000s" audioDuration="73000/24000s" tcFormat="NDF" audioRole="dialogue">
+                                <keyword start="0s" duration="251000/24000s" value="busking, busking broll"/>
+                                <audio-channel-source srcCh="1, 2" role="dialogue.dialogue-1">
+                                    <adjust-loudness amount="59" uniformity="3"/>
+                                    <adjust-noiseReduction amount="50"/>
+                                    <adjust-voiceIsolation amount="72"/>
+                                </audio-channel-source>
+                                <filter-video ref="r4" name="Color Adjustments">
+                                    <data key="effectConfig">YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGlCwwVFhdVJG51bGzTDQ4PEBIUV05TLmtleXNaTlMub2JqZWN0c1YkY2xhc3OhEYACoROAA4AEXXBsdWdpblZlcnNpb24QAtIYGRobWiRjbGFzc25hbWVYJGNsYXNzZXNfEBNOU011dGFibGVEaWN0aW9uYXJ5oxocHVxOU0RpY3Rpb25hcnlYTlNPYmplY3QIERokKTI3SUxRU1lfZm55gIKEhoiKmJqfqrPJzdoAAAAAAAABAQAAAAAAAAAeAAAAAAAAAAAAAAAAAAAA4w==</data>
+                                    <param name="Control Range" key="19" value="0 (SDR)"/>
+                                    <param name="" key="20" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjE0NTA0OTJkODU0NTQ5Mzk4YzA3M2MxOGM2NDRhYWUxIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9IiIgaWQ9IjIwIiBmbGFncz0iNDI5NTAzMjg0OCI+Cgk8ZmxhZ3M+NDI5NTAzMjg0ODwvZmxhZ3M+Cgk8bnVtYmVyT2ZLZXlwb2ludHM+MDwvbnVtYmVyT2ZLZXlwb2ludHM+Cgk8ZGVmYXVsdFZhbD4qKioqKioqKio2SWVNYi1nT0xCb0ExMUkqRTYxLSpJNC1rZE03NU5aUWJCZFBxdE43NDNtTXFWZFJhSm1KMEZvUHItTTc0eFdPYUpYUjVBRyoqNDRjM3dFMW90SEdxSnROS0YtUWFCY09MTlpRaDI2MEo2WUE2KipjRWhKNzR0cFA0azYyRmNZOEg2ckdJbERJSkEqKioqKioqKi0qRSoqKioqKioqKkEqKioqKioqKioqKioqKioqKioqKktFKio8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKjZJZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqKmNFaEo3NHRwUDRrNjJGY1k4SDZyR0lsRElKQSoqKioqKioqLSpFKioqKioqKioqQSoqKioqKioqKioqKioqKioqKioqS0UqKjwvZGF0YVZhbHVlPgo8L3BhcmFtZXRlcj4KCjwvb3ptbD4K"/>
+                                    <param name="Neutralization Data" key="23" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjRkMGU0OGQ4NGZjYTQyNGQ4MmFhOThhMDI3YzZlYzVjIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9Ik5ldXRyYWxpemF0aW9uIERhdGEiIGlkPSIyMyIgZmxhZ3M9IjQyOTkyMjcxODQiPgoJPGZsYWdzPjQyOTkyMjcxODQ8L2ZsYWdzPgoJPG51bWJlck9mS2V5cG9pbnRzPjA8L251bWJlck9mS2V5cG9pbnRzPgoJPGRlZmF1bHRWYWw+KioqKioqKioqUjJlTWItZ09MQm9BMTFJKkU2MS0qSTQta2RNNzVOWlFiQmRQcXRONzQzbU1xVmRSYUptSjBGb1ByLU03NHhXT2FKWFI1QUcqKjQ0YzN3RTFvdEhHcUp0TktGLVFhQmNPTE5aUWgyNjBKNllBNiotY2tnQTVKSVlQYkpnUEJzQjFVd0UyRjZIMy1JSzNsVU40VmdQNGxnUDRsa1A0bGdQNGxnUEs0QmpQYkZtTUxCb0xMQmNNS0ZqUnJCTE1MN2hSNFZPTWFsVk1xaEVQcVppUjNOck1MN2hSNFZJUjRaaVIzbGhPS0ZvUHF0WlFwRmRQYkZLNzRCZ01MQm5LckJjTUtGalJyQklPS3RvS2FWZE5xVmdPS1JjUjVCT1FxM29STDdWUjRaalBaZFdRYVpiTzVGaU5MQm5LNEpzUTR4blJMN1pMYXBkTjVGalBhSm5KcTNtUExGY0pyQmNNS0ZqUnJBV0dsV0tVNiowb1ZzVDYwM083NEJnTUxCblBhM2hOSlVZTXFsVlFyQlpRcHdFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRdTZXNnB3RTQzLS1GSVYySVlCalA0eG1FcXhtUWFKWFIzTlZQNUpaUXBWQ0lveFdPYUpYUioqNiotMio0VSpZKjBZKkFVKnIqMlkqSCotRCozMipKRS1QKjVVKlVFMEQqN2MqY0UwYSo5QSppVTE0KkIyKnIqMWIqRCoqemsyNSpFay0xVTJIKkZzLTdrMzAqSUktTSoqKioqKioqKjYtKioqKioqKioqMEUqKioqKioqKioqKioqKioqKioqM2Q8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKlRnZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqLWNrZ0E2cElZUGJKZ1BCc0IxVXdFMkY2SDMtSUszbFVONFZnUTVGa1E1LXNRNWxrVTZGa1dLNEJqUGJGbU1MQm9MTEJjTUtGalJyQkxNTDdoUjRWT01hbFZNcWhFUHFaaVIzTnJNTDdoUjRWSVI0WmlSM2xoT0tGb1BxdFpRcEZkUGJGSzc0QmdNTEJuS3JCY01LRmpSckJJT0t0b0thVmROcVZnT0tSY1I1Qk9RcTNvUkw3VlI0WmpQWmRXUWFaYk81RmlOTEJuSzRKc1E0eG5STDdaTGFwZE41RmpQYUpuSnEzbVBMRmNKckJjTUtGalJyQVcqKioqKjA3OTQ3Tyo2Znd5NjJLKipXOSpNSnZnNlkyQ2oqY1drOHlWaVc3LWxLak1vV0VaN1dSTzc0QmdNTEJuUGEzaE5KVVlNcWxWUXJCWlFwd0U0My0tRklWMklZQmpQNHhtRXF4bVFhSlhSM05WUDVKWlF1NmM4SndFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRcFZDSW94V09hSlhSKio2Ki0yKjRVKlkqMFkqQVUqcioyWSpIKi1EKjMyKkpFLVAqNVUqVUUwRCo3YypjRTBhKjlBKmlVMTQqQjIqcioxYipEKip6azI1KkVrLTJFMksqRlUtNUUyVypHUS05KjJsKkhrLUZFM1UqS0EtVFUqKioqKioqKjYtKioqKioqKioqMGMqKioqKioqKioqKioqKioqKioqNDU8L2RhdGFWYWx1ZT4KPC9wYXJhbWV0ZXI+Cgo8L296bWw+Cg=="/>
+                                    <param name="trigger Enhance" key="18" value="6"/>
+                                    <param name="Exposure" key="3" value="-5.48849"/>
+                                    <param name="Contrast" key="17" value="0"/>
+                                    <param name="Brightness" key="2" value="8.92091"/>
+                                    <param name="Highlights" key="7" value="-3.52142"/>
+                                    <param name="Black Point" key="1" value="-0.74268"/>
+                                    <param name="Shadows" key="4" value="24.6777"/>
+                                    <param name="Super Highlights" key="25" value="0"/>
+                                    <param name="Saturation" key="16" value="0"/>
+                                    <param name="Highlights Warmth" key="10" value="0"/>
+                                    <param name="Highlights Tint" key="11" value="0"/>
+                                    <param name="Midtones Warmth" key="12" value="0"/>
+                                    <param name="Midtones Tint" key="13" value="0"/>
+                                    <param name="Shadows Warmth" key="14" value="0"/>
+                                    <param name="Shadows Tint" key="15" value="0"/>
+                                </filter-video>
+                            </asset-clip>
+                            <asset-clip ref="r9" lane="3" offset="587/24s" name="Busking Broll-07" duration="41000/24000s" tcFormat="NDF" audioRole="dialogue">
+                                <keyword start="0s" duration="208000/24000s" value="busking, busking broll"/>
+                                <audio-channel-source srcCh="1, 2" role="Nat Sound.Nat Sound-1"/>
+                                <filter-video ref="r4" name="Color Adjustments">
+                                    <data key="effectConfig">YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGlCwwVFhdVJG51bGzTDQ4PEBIUV05TLmtleXNaTlMub2JqZWN0c1YkY2xhc3OhEYACoROAA4AEXXBsdWdpblZlcnNpb24QAtIYGRobWiRjbGFzc25hbWVYJGNsYXNzZXNfEBNOU011dGFibGVEaWN0aW9uYXJ5oxocHVxOU0RpY3Rpb25hcnlYTlNPYmplY3QIERokKTI3SUxRU1lfZm55gIKEhoiKmJqfqrPJzdoAAAAAAAABAQAAAAAAAAAeAAAAAAAAAAAAAAAAAAAA4w==</data>
+                                    <param name="Control Range" key="19" value="0 (SDR)"/>
+                                    <param name="" key="20" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjE0NTA0OTJkODU0NTQ5Mzk4YzA3M2MxOGM2NDRhYWUxIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9IiIgaWQ9IjIwIiBmbGFncz0iNDI5NTAzMjg0OCI+Cgk8ZmxhZ3M+NDI5NTAzMjg0ODwvZmxhZ3M+Cgk8bnVtYmVyT2ZLZXlwb2ludHM+MDwvbnVtYmVyT2ZLZXlwb2ludHM+Cgk8ZGVmYXVsdFZhbD4qKioqKioqKio2SWVNYi1nT0xCb0ExMUkqRTYxLSpJNC1rZE03NU5aUWJCZFBxdE43NDNtTXFWZFJhSm1KMEZvUHItTTc0eFdPYUpYUjVBRyoqNDRjM3dFMW90SEdxSnROS0YtUWFCY09MTlpRaDI2MEo2WUE2KipjRWhKNzR0cFA0azYyRmNZOEg2ckdJbERJSkEqKioqKioqKi0qRSoqKioqKioqKkEqKioqKioqKioqKioqKioqKioqKktFKio8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKjZJZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqKmNFaEo3NHRwUDRrNjJGY1k4SDZyR0lsRElKQSoqKioqKioqLSpFKioqKioqKioqQSoqKioqKioqKioqKioqKioqKioqS0UqKjwvZGF0YVZhbHVlPgo8L3BhcmFtZXRlcj4KCjwvb3ptbD4K"/>
+                                    <param name="Neutralization Data" key="23" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjRkMGU0OGQ4NGZjYTQyNGQ4MmFhOThhMDI3YzZlYzVjIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9Ik5ldXRyYWxpemF0aW9uIERhdGEiIGlkPSIyMyIgZmxhZ3M9IjQyOTkyMjcxODQiPgoJPGZsYWdzPjQyOTkyMjcxODQ8L2ZsYWdzPgoJPG51bWJlck9mS2V5cG9pbnRzPjA8L251bWJlck9mS2V5cG9pbnRzPgoJPGRlZmF1bHRWYWw+KioqKioqKioqUjJlTWItZ09MQm9BMTFJKkU2MS0qSTQta2RNNzVOWlFiQmRQcXRONzQzbU1xVmRSYUptSjBGb1ByLU03NHhXT2FKWFI1QUcqKjQ0YzN3RTFvdEhHcUp0TktGLVFhQmNPTE5aUWgyNjBKNllBNiotY2tnQTVKSVlQYkpnUEJzQjFVd0UyRjZIMy1JSzNsVU40VmdQNGxnUDRsa1A0bGdQNGxnUEs0QmpQYkZtTUxCb0xMQmNNS0ZqUnJCTE1MN2hSNFZPTWFsVk1xaEVQcVppUjNOck1MN2hSNFZJUjRaaVIzbGhPS0ZvUHF0WlFwRmRQYkZLNzRCZ01MQm5LckJjTUtGalJyQklPS3RvS2FWZE5xVmdPS1JjUjVCT1FxM29STDdWUjRaalBaZFdRYVpiTzVGaU5MQm5LNEpzUTR4blJMN1pMYXBkTjVGalBhSm5KcTNtUExGY0pyQmNNS0ZqUnJBV0dsV0tVNiowb1ZzVDYwM083NEJnTUxCblBhM2hOSlVZTXFsVlFyQlpRcHdFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRdTZXNnB3RTQzLS1GSVYySVlCalA0eG1FcXhtUWFKWFIzTlZQNUpaUXBWQ0lveFdPYUpYUioqNiotMio0VSpZKjBZKkFVKnIqMlkqSCotRCozMipKRS1QKjVVKlVFMEQqN2MqY0UwYSo5QSppVTE0KkIyKnIqMWIqRCoqemsyNSpFay0xVTJIKkZzLTdrMzAqSUktTSoqKioqKioqKjYtKioqKioqKioqMEUqKioqKioqKioqKioqKioqKioqM2Q8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKlZzZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqLWNrZ0E4M0lZUGJKZ1BCc0IxVXdFMkY2SDMtSUszbFVONFZnUTRsb1M1bSpWNldBWTdHTWJLNEJqUGJGbU1MQm9MTEJjTUtGalJyQkxNTDdoUjRWT01hbFZNcWhFUHFaaVIzTnJNTDdoUjRWSVI0WmlSM2xoT0tGb1BxdFpRcEZkUGJGSzc0QmdNTEJuS3JCY01LRmpSckJJT0t0b0thVmROcVZnT0tSY1I1Qk9RcTNvUkw3VlI0WmpQWmRXUWFaYk81RmlOTEJuSzRKc1E0eG5STDdaTGFwZE41RmpQYUpuSnEzbVBMRmNKckJjTUtGalJyQVcqKioqKjA3Km53YmE2ZzM3NndrV0RzMWpQMDctZ1JTalUqNldFQTNOcVc5Klk1MW82WTFGcXIqV0VHVXdhVzktR2hwUDZZNDlBRFlXRVh3NlBCNmQ4V2dnS1dGWFA0M25RcXRWUEtKTTc0QmdNTEJuTkxCVDItVkVFSUo2RjM3MVBxbGpRWUJqUWI3Wk1yRktNS2xwTkxDVzlHdFQyLVZFRUlKNkYzNzFQcWxqUVlCalFiN1pNckZLTUtscE5MQk1IWkJETWFkWk1yRSowKipGKi1jKjcqKmQqMTYqQmstNyoyaypIay1GKjNJKktrLXMqNjIqWGswTyo4MipkVTBuKjljKmxVMUYqQmsqdGsxaypEdy0tazJBKkYyLTNVMlAqRyotNlUyYipHay1BRTJxKkhnLUUqMzMqSWMtSkUzUypMWS1UKjRMKioqKioqKioqVTIqKioqKioqKio5ayoqKioqKioqKioqKioqKioqKipPKio8L2RhdGFWYWx1ZT4KPC9wYXJhbWV0ZXI+Cgo8L296bWw+Cg=="/>
+                                    <param name="trigger Enhance" key="18" value="6"/>
+                                    <param name="Exposure" key="3" value="-12.679"/>
+                                    <param name="Contrast" key="17" value="0"/>
+                                    <param name="Brightness" key="2" value="10.5148"/>
+                                    <param name="Highlights" key="7" value="-4.51379"/>
+                                    <param name="Black Point" key="1" value="0"/>
+                                    <param name="Shadows" key="4" value="47.7582"/>
+                                    <param name="Super Highlights" key="25" value="0"/>
+                                    <param name="Saturation" key="16" value="0"/>
+                                    <param name="Highlights Warmth" key="10" value="0"/>
+                                    <param name="Highlights Tint" key="11" value="0"/>
+                                    <param name="Midtones Warmth" key="12" value="0"/>
+                                    <param name="Midtones Tint" key="13" value="0"/>
+                                    <param name="Shadows Warmth" key="14" value="0"/>
+                                    <param name="Shadows Tint" key="15" value="0"/>
+                                </filter-video>
+                            </asset-clip>
+                            <mc-clip ref="r10" lane="1" offset="27s" name="Interview Multicam" start="183500/2400s" duration="11000/2400s">
+                                <mc-source angleID="JvgNk9ekSQuY1/Tf0cECsA" srcEnable="all">
+                                    <audio-role-source role="dialogue.dialogue-1">
+                                        <adjust-volume amount="5.84477dB"/>
+                                    </audio-role-source>
+                                    <filter-video ref="r4" name="Color Adjustments">
+                                        <data key="effectConfig">YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGlCwwVFhdVJG51bGzTDQ4PEBIUV05TLmtleXNaTlMub2JqZWN0c1YkY2xhc3OhEYACoROAA4AEXXBsdWdpblZlcnNpb24QAtIYGRobWiRjbGFzc25hbWVYJGNsYXNzZXNfEBNOU011dGFibGVEaWN0aW9uYXJ5oxocHVxOU0RpY3Rpb25hcnlYTlNPYmplY3QIERokKTI3SUxRU1lfZm55gIKEhoiKmJqfqrPJzdoAAAAAAAABAQAAAAAAAAAeAAAAAAAAAAAAAAAAAAAA4w==</data>
+                                        <param name="Control Range" key="19" value="0 (SDR)"/>
+                                        <param name="" key="20" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjE0NTA0OTJkODU0NTQ5Mzk4YzA3M2MxOGM2NDRhYWUxIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9IiIgaWQ9IjIwIiBmbGFncz0iNDI5NTAzMjg0OCI+Cgk8ZmxhZ3M+NDI5NTAzMjg0ODwvZmxhZ3M+Cgk8bnVtYmVyT2ZLZXlwb2ludHM+MDwvbnVtYmVyT2ZLZXlwb2ludHM+Cgk8ZGVmYXVsdFZhbD4qKioqKioqKio2SWVNYi1nT0xCb0ExMUkqRTYxLSpJNC1rZE03NU5aUWJCZFBxdE43NDNtTXFWZFJhSm1KMEZvUHItTTc0eFdPYUpYUjVBRyoqNDRjM3dFMW90SEdxSnROS0YtUWFCY09MTlpRaDI2MEo2WUE2KipjRWhKNzR0cFA0azYyRmNZOEg2ckdJbERJSkEqKioqKioqKi0qRSoqKioqKioqKkEqKioqKioqKioqKioqKioqKioqKktFKio8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKjZJZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqKmNFaEo3NHRwUDRrNjJGY1k4SDZyR0lsRElKQSoqKioqKioqLSpFKioqKioqKioqQSoqKioqKioqKioqKioqKioqKioqS0UqKjwvZGF0YVZhbHVlPgo8L3BhcmFtZXRlcj4KCjwvb3ptbD4K"/>
+                                        <param name="Neutralization Data" key="23" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjRkMGU0OGQ4NGZjYTQyNGQ4MmFhOThhMDI3YzZlYzVjIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9Ik5ldXRyYWxpemF0aW9uIERhdGEiIGlkPSIyMyIgZmxhZ3M9IjQyOTkyMjcxODQiPgoJPGZsYWdzPjQyOTkyMjcxODQ8L2ZsYWdzPgoJPG51bWJlck9mS2V5cG9pbnRzPjA8L251bWJlck9mS2V5cG9pbnRzPgoJPGRlZmF1bHRWYWw+KioqKioqKioqUjJlTWItZ09MQm9BMTFJKkU2MS0qSTQta2RNNzVOWlFiQmRQcXRONzQzbU1xVmRSYUptSjBGb1ByLU03NHhXT2FKWFI1QUcqKjQ0YzN3RTFvdEhHcUp0TktGLVFhQmNPTE5aUWgyNjBKNllBNiotY2tnQTVKSVlQYkpnUEJzQjFVd0UyRjZIMy1JSzNsVU40VmdQNGxnUDRsa1A0bGdQNGxnUEs0QmpQYkZtTUxCb0xMQmNNS0ZqUnJCTE1MN2hSNFZPTWFsVk1xaEVQcVppUjNOck1MN2hSNFZJUjRaaVIzbGhPS0ZvUHF0WlFwRmRQYkZLNzRCZ01MQm5LckJjTUtGalJyQklPS3RvS2FWZE5xVmdPS1JjUjVCT1FxM29STDdWUjRaalBaZFdRYVpiTzVGaU5MQm5LNEpzUTR4blJMN1pMYXBkTjVGalBhSm5KcTNtUExGY0pyQmNNS0ZqUnJBV0dsV0tVNiowb1ZzVDYwM083NEJnTUxCblBhM2hOSlVZTXFsVlFyQlpRcHdFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRdTZXNnB3RTQzLS1GSVYySVlCalA0eG1FcXhtUWFKWFIzTlZQNUpaUXBWQ0lveFdPYUpYUioqNiotMio0VSpZKjBZKkFVKnIqMlkqSCotRCozMipKRS1QKjVVKlVFMEQqN2MqY0UwYSo5QSppVTE0KkIyKnIqMWIqRCoqemsyNSpFay0xVTJIKkZzLTdrMzAqSUktTSoqKioqKioqKjYtKioqKioqKioqMEUqKioqKioqKioqKioqKioqKioqM2Q8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKlRnZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqLWNrZ0E2cElZUGJKZ1BCc0IxVXdFMkY2SDMtSUszbFVONFZnUTVGa1E1LXNRNWxrVTZGa1dLNEJqUGJGbU1MQm9MTEJjTUtGalJyQkxNTDdoUjRWT01hbFZNcWhFUHFaaVIzTnJNTDdoUjRWSVI0WmlSM2xoT0tGb1BxdFpRcEZkUGJGSzc0QmdNTEJuS3JCY01LRmpSckJJT0t0b0thVmROcVZnT0tSY1I1Qk9RcTNvUkw3VlI0WmpQWmRXUWFaYk81RmlOTEJuSzRKc1E0eG5STDdaTGFwZE41RmpQYUpuSnEzbVBMRmNKckJjTUtGalJyQVcqKioqKjA3OTQ3Tyo2ZzNQY2FPKipXOS1XOWFhNlk2SVRHNldrU3V5OFc3LXo4WTZvV0VaN1dSTzc0QmdNTEJuUGEzaE5KVVlNcWxWUXJCWlFwd0U0My0tRklWMklZQmpQNHhtRXF4bVFhSlhSM05WUDVKWlF1NmM4SndFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRcFZDSW94V09hSlhSKio2Ki0yKjRVKlkqMFkqQVUqcioyWSpIKi1EKjMyKkpFLVAqNVUqVUUwRCo3YypjRTBhKjlBKmlVMTQqQjIqcioxYipEKip6azI1KkVrLTJFMksqRlUtNUUyVypHUS05KjJsKkhrLUZFM1UqS0EtVFUqKioqKioqKjYtKioqKioqKioqMGMqKioqKioqKioqKioqKioqKioqNDU8L2RhdGFWYWx1ZT4KPC9wYXJhbWV0ZXI+Cgo8L296bWw+Cg=="/>
+                                        <param name="trigger Enhance" key="18" value="6"/>
+                                        <param name="Exposure" key="3" value="0"/>
+                                        <param name="Contrast" key="17" value="0"/>
+                                        <param name="Brightness" key="2" value="0"/>
+                                        <param name="Highlights" key="7" value="0"/>
+                                        <param name="Black Point" key="1" value="0"/>
+                                        <param name="Shadows" key="4" value="0"/>
+                                        <param name="Super Highlights" key="25" value="0"/>
+                                        <param name="Saturation" key="16" value="0"/>
+                                        <param name="Highlights Warmth" key="10" value="0"/>
+                                        <param name="Highlights Tint" key="11" value="0"/>
+                                        <param name="Midtones Warmth" key="12" value="0"/>
+                                        <param name="Midtones Tint" key="13" value="0"/>
+                                        <param name="Shadows Warmth" key="14" value="0"/>
+                                        <param name="Shadows Tint" key="15" value="0"/>
+                                    </filter-video>
+                                </mc-source>
+                                <keyword start="0s" duration="8890000/24000s" value="interview, multi-cam"/>
+                            </mc-clip>
+                            <title ref="r5" lane="3" offset="27s" name="Opener - Basic Title" start="3600s" duration="6800/2400s">
+                                <param name="Position" key="9999/999166631/999166633/1/100/101" value="40.6017 -414.863"/>
+                                <param name="Flatten" key="9999/999166631/999166633/2/351" value="1"/>
+                                <param name="Alignment" key="9999/999166631/999166633/2/354/999169573/401" value="1 (Center)"/>
+                                <param name="Size" key="9999/999166631/999166633/5/999166635/3" value="85"/>
+                                <param name="Tracking" key="9999/999166631/999166633/5/999166635/81/79" value="-0.0225"/>
+                                <text>
+                                    <text-style ref="ts2">Introducin</text-style>
+                                    <text-style ref="ts3">g</text-style>
+                                </text>
+                                <text-style-def id="ts2">
+                                    <text-style font="Helvetica" fontSize="85" fontColor="1 1 1 1" bold="1" kerning="-1.9125" alignment="center">
+                                        <param name="MotionSimpleValues" key="MotionTextStyle:SimpleValues">
+                                            <param name="motionTextTracking" key="tracking" value="-1.9125"/>
+                                        </param>
+                                    </text-style>
+                                </text-style-def>
+                                <text-style-def id="ts3">
+                                    <text-style font="Helvetica" fontSize="85" fontColor="1 1 1 1" bold="1" alignment="center"/>
+                                </text-style-def>
+                                <adjust-blend>
+                                    <param name="amount">
+                                        <fadeIn type="linear" duration="542697/720000s"/>
+                                        <fadeOut type="linear" duration="602334/720000s"/>
+                                    </param>
+                                </adjust-blend>
+                            </title>
+                            <keyword start="0s" duration="30s" value="busking, busking broll"/>
+                            <audio-channel-source srcCh="1, 2" role="Nat Sound.Nat Sound-1">
+                                <adjust-volume>
+                                    <param name="amount">
+                                        <fadeIn type="easeIn" duration="1580/1000s"/>
+                                        <fadeOut type="easeInOut" duration="8617/1000s"/>
+                                    </param>
+                                </adjust-volume>
+                            </audio-channel-source>
+                            <filter-video ref="r4" name="Color Adjustments">
+                                <data key="effectConfig">YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGlCwwVFhdVJG51bGzTDQ4PEBIUV05TLmtleXNaTlMub2JqZWN0c1YkY2xhc3OhEYACoROAA4AEXXBsdWdpblZlcnNpb24QAtIYGRobWiRjbGFzc25hbWVYJGNsYXNzZXNfEBNOU011dGFibGVEaWN0aW9uYXJ5oxocHVxOU0RpY3Rpb25hcnlYTlNPYmplY3QIERokKTI3SUxRU1lfZm55gIKEhoiKmJqfqrPJzdoAAAAAAAABAQAAAAAAAAAeAAAAAAAAAAAAAAAAAAAA4w==</data>
+                                <param name="Control Range" key="19" value="0 (SDR)"/>
+                                <param name="" key="20" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjE0NTA0OTJkODU0NTQ5Mzk4YzA3M2MxOGM2NDRhYWUxIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9IiIgaWQ9IjIwIiBmbGFncz0iNDI5NTAzMjg0OCI+Cgk8ZmxhZ3M+NDI5NTAzMjg0ODwvZmxhZ3M+Cgk8bnVtYmVyT2ZLZXlwb2ludHM+MDwvbnVtYmVyT2ZLZXlwb2ludHM+Cgk8ZGVmYXVsdFZhbD4qKioqKioqKio2SWVNYi1nT0xCb0ExMUkqRTYxLSpJNC1rZE03NU5aUWJCZFBxdE43NDNtTXFWZFJhSm1KMEZvUHItTTc0eFdPYUpYUjVBRyoqNDRjM3dFMW90SEdxSnROS0YtUWFCY09MTlpRaDI2MEo2WUE2KipjRWhKNzR0cFA0azYyRmNZOEg2ckdJbERJSkEqKioqKioqKi0qRSoqKioqKioqKkEqKioqKioqKioqKioqKioqKioqKktFKio8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKjZJZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqKmNFaEo3NHRwUDRrNjJGY1k4SDZyR0lsRElKQSoqKioqKioqLSpFKioqKioqKioqQSoqKioqKioqKioqKioqKioqKioqS0UqKjwvZGF0YVZhbHVlPgo8L3BhcmFtZXRlcj4KCjwvb3ptbD4K"/>
+                                <param name="Neutralization Data" key="23" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjRkMGU0OGQ4NGZjYTQyNGQ4MmFhOThhMDI3YzZlYzVjIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9Ik5ldXRyYWxpemF0aW9uIERhdGEiIGlkPSIyMyIgZmxhZ3M9IjQyOTkyMjcxODQiPgoJPGZsYWdzPjQyOTkyMjcxODQ8L2ZsYWdzPgoJPG51bWJlck9mS2V5cG9pbnRzPjA8L251bWJlck9mS2V5cG9pbnRzPgoJPGRlZmF1bHRWYWw+KioqKioqKioqUjJlTWItZ09MQm9BMTFJKkU2MS0qSTQta2RNNzVOWlFiQmRQcXRONzQzbU1xVmRSYUptSjBGb1ByLU03NHhXT2FKWFI1QUcqKjQ0YzN3RTFvdEhHcUp0TktGLVFhQmNPTE5aUWgyNjBKNllBNiotY2tnQTVKSVlQYkpnUEJzQjFVd0UyRjZIMy1JSzNsVU40VmdQNGxnUDRsa1A0bGdQNGxnUEs0QmpQYkZtTUxCb0xMQmNNS0ZqUnJCTE1MN2hSNFZPTWFsVk1xaEVQcVppUjNOck1MN2hSNFZJUjRaaVIzbGhPS0ZvUHF0WlFwRmRQYkZLNzRCZ01MQm5LckJjTUtGalJyQklPS3RvS2FWZE5xVmdPS1JjUjVCT1FxM29STDdWUjRaalBaZFdRYVpiTzVGaU5MQm5LNEpzUTR4blJMN1pMYXBkTjVGalBhSm5KcTNtUExGY0pyQmNNS0ZqUnJBV0dsV0tVNiowb1ZzVDYwM083NEJnTUxCblBhM2hOSlVZTXFsVlFyQlpRcHdFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRdTZXNnB3RTQzLS1GSVYySVlCalA0eG1FcXhtUWFKWFIzTlZQNUpaUXBWQ0lveFdPYUpYUioqNiotMio0VSpZKjBZKkFVKnIqMlkqSCotRCozMipKRS1QKjVVKlVFMEQqN2MqY0UwYSo5QSppVTE0KkIyKnIqMWIqRCoqemsyNSpFay0xVTJIKkZzLTdrMzAqSUktTSoqKioqKioqKjYtKioqKioqKioqMEUqKioqKioqKioqKioqKioqKioqM2Q8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKlZzZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqLWNrZ0E4M0lZUGJKZ1BCc0IxVXdFMkY2SDMtSUszbFVONFZnUTRsb1M1bSpWNldBWTdHTWJLNEJqUGJGbU1MQm9MTEJjTUtGalJyQkxNTDdoUjRWT01hbFZNcWhFUHFaaVIzTnJNTDdoUjRWSVI0WmlSM2xoT0tGb1BxdFpRcEZkUGJGSzc0QmdNTEJuS3JCY01LRmpSckJJT0t0b0thVmROcVZnT0tSY1I1Qk9RcTNvUkw3VlI0WmpQWmRXUWFaYk81RmlOTEJuSzRKc1E0eG5STDdaTGFwZE41RmpQYUpuSnEzbVBMRmNKckJjTUtGalJyQVcqKioqKjA2emtFUXc2ZzQ0UjNvV2s5WTBIVzcqV1JjOFUqNldqd0lqZzA5LTFTN2U2ZnhnbU5FV0VVVHE4VzctT2k0cTZma1BTKipXRVdjS1pCNmQ4V2dnS1dGWFA0M25RcXRWUEtKTTc0QmdNTEJuTkxCVDItVkVFSUo2RjM3MVBxbGpRWUJqUWI3Wk1yRktNS2xwTkxDVzlHdFQyLVZFRUlKNkYzNzFQcWxqUVlCalFiN1pNckZLTUtscE5MQk1IWkJETWFkWk1yRSowKipGKi1jKjcqKmQqMTYqQmstNyoyaypIay1GKjNJKktrLXMqNjIqWGswTyo4MipkVTBuKjljKmxVMUYqQmsqdGsxaypEdy0tazJBKkYyLTNVMlAqRyotNlUyYipHay1BRTJxKkhnLUUqMzMqSWMtSkUzUypMWS1UKjRMKioqKioqKioqVTIqKioqKioqKio5ayoqKioqKioqKioqKioqKioqKipPKio8L2RhdGFWYWx1ZT4KPC9wYXJhbWV0ZXI+Cgo8L296bWw+Cg=="/>
+                                <param name="trigger Enhance" key="18" value="6"/>
+                                <param name="Exposure" key="3" value="14.6801"/>
+                                <param name="Contrast" key="17" value="0"/>
+                                <param name="Brightness" key="2" value="33.9904"/>
+                                <param name="Highlights" key="7" value="-8.86778"/>
+                                <param name="Black Point" key="1" value="0"/>
+                                <param name="Shadows" key="4" value="42.522"/>
+                                <param name="Super Highlights" key="25" value="0"/>
+                                <param name="Saturation" key="16" value="0"/>
+                                <param name="Highlights Warmth" key="10" value="0"/>
+                                <param name="Highlights Tint" key="11" value="0"/>
+                                <param name="Midtones Warmth" key="12" value="0"/>
+                                <param name="Midtones Tint" key="13" value="0"/>
+                                <param name="Shadows Warmth" key="14" value="0"/>
+                                <param name="Shadows Tint" key="15" value="0"/>
+                            </filter-video>
+                        </asset-clip>
+                        <mc-clip ref="r14" offset="261000/24000s" name="Busking Performance - Multicam" start="118100/2400s" duration="93000/24000s">
+                            <mc-source angleID="ilMeggtTRPyol7OCqKH0Pg" srcEnable="all">
+                                <audio-role-source role="music.music-1">
+                                    <adjust-volume>
+                                        <param name="amount">
+                                            <fadeIn type="easeInOut" duration="89000/24000s"/>
+                                        </param>
+                                    </adjust-volume>
+                                </audio-role-source>
+                            </mc-source>
+                            <title ref="r5" lane="4" offset="120500/2400s" name="General Demo - Basic Title" start="3600s" duration="6900/2400s">
+                                <param name="Position" key="9999/999166631/999166633/1/100/101" value="633.93 -414.863"/>
+                                <param name="Flatten" key="9999/999166631/999166633/2/351" value="1"/>
+                                <param name="Alignment" key="9999/999166631/999166633/2/354/999169573/401" value="1 (Center)"/>
+                                <param name="Size" key="9999/999166631/999166633/5/999166635/3" value="85"/>
+                                <param name="Tracking" key="9999/999166631/999166633/5/999166635/81/79" value="-0.0225"/>
+                                <text>
+                                    <text-style ref="ts4">General Demo</text-style>
+                                    
+                                </text>
+                                <text-style-def id="ts4">
+                                    <text-style font="Helvetica" fontSize="85" fontColor="0 0 0 1" bold="1" kerning="-1.9125" alignment="center">
+                                        <param name="MotionSimpleValues" key="MotionTextStyle:SimpleValues">
+                                            <param name="motionTextTracking" key="tracking" value="-1.9125"/>
+                                        </param>
+                                    </text-style>
+                                </text-style-def>
+                                <text-style-def id="ts5">
+                                    <text-style font="Helvetica" fontSize="85" fontColor="0 0 0 1" bold="1" alignment="center"/>
+                                </text-style-def>
+                                <adjust-blend>
+                                    <param name="amount">
+                                        <fadeIn type="linear" duration="542697/720000s"/>
+                                    </param>
+                                </adjust-blend>
+                            </title>
+                            <keyword start="0s" duration="4212000/24000s" value="busking performance, multi-cam"/>
+                        </mc-clip>
+                        <mc-clip ref="r14" offset="354000/24000s" name="Busking Performance - Multicam" start="1274000/24000s" duration="118000/24000s">
+                            <mc-source angleID="ilMeggtTRPyol7OCqKH0Pg" srcEnable="all">
+                                <audio-role-source role="music.music-1"/>
+                                <filter-video ref="r4" name="Color Adjustments">
+                                    <data key="effectConfig">YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGlCwwVFhdVJG51bGzTDQ4PEBIUV05TLmtleXNaTlMub2JqZWN0c1YkY2xhc3OhEYACoROAA4AEXXBsdWdpblZlcnNpb24QAtIYGRobWiRjbGFzc25hbWVYJGNsYXNzZXNfEBNOU011dGFibGVEaWN0aW9uYXJ5oxocHVxOU0RpY3Rpb25hcnlYTlNPYmplY3QIERokKTI3SUxRU1lfZm55gIKEhoiKmJqfqrPJzdoAAAAAAAABAQAAAAAAAAAeAAAAAAAAAAAAAAAAAAAA4w==</data>
+                                    <param name="Control Range" key="19" value="0 (SDR)"/>
+                                    <param name="" key="20" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjE0NTA0OTJkODU0NTQ5Mzk4YzA3M2MxOGM2NDRhYWUxIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9IiIgaWQ9IjIwIiBmbGFncz0iNDI5NTAzMjg0OCI+Cgk8ZmxhZ3M+NDI5NTAzMjg0ODwvZmxhZ3M+Cgk8bnVtYmVyT2ZLZXlwb2ludHM+MDwvbnVtYmVyT2ZLZXlwb2ludHM+Cgk8ZGVmYXVsdFZhbD4qKioqKioqKio2SWVNYi1nT0xCb0ExMUkqRTYxLSpJNC1rZE03NU5aUWJCZFBxdE43NDNtTXFWZFJhSm1KMEZvUHItTTc0eFdPYUpYUjVBRyoqNDRjM3dFMW90SEdxSnROS0YtUWFCY09MTlpRaDI2MEo2WUE2KipjRWhKNzR0cFA0azYyRmNZOEg2ckdJbERJSkEqKioqKioqKi0qRSoqKioqKioqKkEqKioqKioqKioqKioqKioqKioqKktFKio8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKjZJZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqKmNFaEo3NHRwUDRrNjJGY1k4SDZyR0lsRElKQSoqKioqKioqLSpFKioqKioqKioqQSoqKioqKioqKioqKioqKioqKioqS0UqKjwvZGF0YVZhbHVlPgo8L3BhcmFtZXRlcj4KCjwvb3ptbD4K"/>
+                                    <param name="Neutralization Data" key="23" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjRkMGU0OGQ4NGZjYTQyNGQ4MmFhOThhMDI3YzZlYzVjIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9Ik5ldXRyYWxpemF0aW9uIERhdGEiIGlkPSIyMyIgZmxhZ3M9IjQyOTkyMjcxODQiPgoJPGZsYWdzPjQyOTkyMjcxODQ8L2ZsYWdzPgoJPG51bWJlck9mS2V5cG9pbnRzPjA8L251bWJlck9mS2V5cG9pbnRzPgoJPGRlZmF1bHRWYWw+KioqKioqKioqUjJlTWItZ09MQm9BMTFJKkU2MS0qSTQta2RNNzVOWlFiQmRQcXRONzQzbU1xVmRSYUptSjBGb1ByLU03NHhXT2FKWFI1QUcqKjQ0YzN3RTFvdEhHcUp0TktGLVFhQmNPTE5aUWgyNjBKNllBNiotY2tnQTVKSVlQYkpnUEJzQjFVd0UyRjZIMy1JSzNsVU40VmdQNGxnUDRsa1A0bGdQNGxnUEs0QmpQYkZtTUxCb0xMQmNNS0ZqUnJCTE1MN2hSNFZPTWFsVk1xaEVQcVppUjNOck1MN2hSNFZJUjRaaVIzbGhPS0ZvUHF0WlFwRmRQYkZLNzRCZ01MQm5LckJjTUtGalJyQklPS3RvS2FWZE5xVmdPS1JjUjVCT1FxM29STDdWUjRaalBaZFdRYVpiTzVGaU5MQm5LNEpzUTR4blJMN1pMYXBkTjVGalBhSm5KcTNtUExGY0pyQmNNS0ZqUnJBV0dsV0tVNiowb1ZzVDYwM083NEJnTUxCblBhM2hOSlVZTXFsVlFyQlpRcHdFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRdTZXNnB3RTQzLS1GSVYySVlCalA0eG1FcXhtUWFKWFIzTlZQNUpaUXBWQ0lveFdPYUpYUioqNiotMio0VSpZKjBZKkFVKnIqMlkqSCotRCozMipKRS1QKjVVKlVFMEQqN2MqY0UwYSo5QSppVTE0KkIyKnIqMWIqRCoqemsyNSpFay0xVTJIKkZzLTdrMzAqSUktTSoqKioqKioqKjYtKioqKioqKioqMEUqKioqKioqKioqKioqKioqKioqM2Q8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKlRFZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqLWNrZ0E2WklZUGJKZ1BCc0IxVXdFMkY2SDMtSUszbFVONFZnUTRsa1E1LW9RNVZrVDYta1ZLNEJqUGJGbU1MQm9MTEJjTUtGalJyQkxNTDdoUjRWT01hbFZNcWhFUHFaaVIzTnJNTDdoUjRWSVI0WmlSM2xoT0tGb1BxdFpRcEZkUGJGSzc0QmdNTEJuS3JCY01LRmpSckJJT0t0b0thVmROcVZnT0tSY1I1Qk9RcTNvUkw3VlI0WmpQWmRXUWFaYk81RmlOTEJuSzRKc1E0eG5STDdaTGFwZE41RmpQYUpuSnEzbVBMRmNKckJjTUtGalJyQVcqKioqKjA3OTQ3TypVKjZXazhCR2pXNy1XTGp6NlkwQm1GVVdFWHZGRHg2WDcwSWFLV0ZYUDQzblFxdFZQS0pNNzRCZ01MQm5OTEJUMi1WRUVJSjZGMzcxUHFsalFZQmpRYjdaTXJGS01LbHBOTENXN21WVDItVkVFSUo2RjM3MVBxbGpRWUJqUWI3Wk1yRktNS2xwTkxCTUhaQkRNYWRaTXJFKjAqKkYqLWMqNyoqZCoxNipCay03KjJrKkhrLUYqM0kqS2stcyo2MipYazBPKjgyKmRVMG4qOWMqbFUxRipCayp0azFrKkR3LS1rMkEqRjItMmsyTSpGby02VTJiKkdrLUJrMyoqSmctTFUzdCoqKioqKioqKlUyKioqKioqKioqOEUqKioqKioqKioqKioqKioqKioqTTYqPC9kYXRhVmFsdWU+CjwvcGFyYW1ldGVyPgoKPC9vem1sPgo="/>
+                                    <param name="trigger Enhance" key="18" value="6"/>
+                                    <param name="Exposure" key="3" value="4.4308"/>
+                                    <param name="Contrast" key="17" value="0"/>
+                                    <param name="Brightness" key="2" value="17.1855"/>
+                                    <param name="Highlights" key="7" value="-5.10385"/>
+                                    <param name="Black Point" key="1" value="0"/>
+                                    <param name="Shadows" key="4" value="47.7043"/>
+                                    <param name="Super Highlights" key="25" value="0"/>
+                                    <param name="Saturation" key="16" value="0"/>
+                                    <param name="Highlights Warmth" key="10" value="0"/>
+                                    <param name="Highlights Tint" key="11" value="0"/>
+                                    <param name="Midtones Warmth" key="12" value="0"/>
+                                    <param name="Midtones Tint" key="13" value="0"/>
+                                    <param name="Shadows Warmth" key="14" value="0"/>
+                                    <param name="Shadows Tint" key="15" value="0"/>
+                                </filter-video>
+                            </mc-source>
+                            <keyword start="0s" duration="4212000/24000s" value="busking performance, multi-cam"/>
+                        </mc-clip>
+                        <gap name="Gap" offset="472000/24000s" start="3600s" duration="80000/24000s">
+                            <mc-clip ref="r14" lane="1" offset="3600s" name="Busking Performance - Multicam" start="1393000/24000s" duration="135000/24000s" audioStart="1393000/24000s" audioDuration="119000/24000s">
+                                <mc-source angleID="AJe/bohFR7WeHfKdLI0+Bg" srcEnable="video">
+                                    <filter-video ref="r4" name="Color Adjustments">
+                                        <data key="effectConfig">YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGlCwwVFhdVJG51bGzTDQ4PEBIUV05TLmtleXNaTlMub2JqZWN0c1YkY2xhc3OhEYACoROAA4AEXXBsdWdpblZlcnNpb24QAtIYGRobWiRjbGFzc25hbWVYJGNsYXNzZXNfEBNOU011dGFibGVEaWN0aW9uYXJ5oxocHVxOU0RpY3Rpb25hcnlYTlNPYmplY3QIERokKTI3SUxRU1lfZm55gIKEhoiKmJqfqrPJzdoAAAAAAAABAQAAAAAAAAAeAAAAAAAAAAAAAAAAAAAA4w==</data>
+                                        <param name="Control Range" key="19" value="0 (SDR)"/>
+                                        <param name="" key="20" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjE0NTA0OTJkODU0NTQ5Mzk4YzA3M2MxOGM2NDRhYWUxIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9IiIgaWQ9IjIwIiBmbGFncz0iNDI5NTAzMjg0OCI+Cgk8ZmxhZ3M+NDI5NTAzMjg0ODwvZmxhZ3M+Cgk8bnVtYmVyT2ZLZXlwb2ludHM+MDwvbnVtYmVyT2ZLZXlwb2ludHM+Cgk8ZGVmYXVsdFZhbD4qKioqKioqKio2SWVNYi1nT0xCb0ExMUkqRTYxLSpJNC1rZE03NU5aUWJCZFBxdE43NDNtTXFWZFJhSm1KMEZvUHItTTc0eFdPYUpYUjVBRyoqNDRjM3dFMW90SEdxSnROS0YtUWFCY09MTlpRaDI2MEo2WUE2KipjRWhKNzR0cFA0azYyRmNZOEg2ckdJbERJSkEqKioqKioqKi0qRSoqKioqKioqKkEqKioqKioqKioqKioqKioqKioqKktFKio8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKjZJZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqKmNFaEo3NHRwUDRrNjJGY1k4SDZyR0lsRElKQSoqKioqKioqLSpFKioqKioqKioqQSoqKioqKioqKioqKioqKioqKioqS0UqKjwvZGF0YVZhbHVlPgo8L3BhcmFtZXRlcj4KCjwvb3ptbD4K"/>
+                                        <param name="Neutralization Data" key="23" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjRkMGU0OGQ4NGZjYTQyNGQ4MmFhOThhMDI3YzZlYzVjIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9Ik5ldXRyYWxpemF0aW9uIERhdGEiIGlkPSIyMyIgZmxhZ3M9IjQyOTkyMjcxODQiPgoJPGZsYWdzPjQyOTkyMjcxODQ8L2ZsYWdzPgoJPG51bWJlck9mS2V5cG9pbnRzPjA8L251bWJlck9mS2V5cG9pbnRzPgoJPGRlZmF1bHRWYWw+KioqKioqKioqUjJlTWItZ09MQm9BMTFJKkU2MS0qSTQta2RNNzVOWlFiQmRQcXRONzQzbU1xVmRSYUptSjBGb1ByLU03NHhXT2FKWFI1QUcqKjQ0YzN3RTFvdEhHcUp0TktGLVFhQmNPTE5aUWgyNjBKNllBNiotY2tnQTVKSVlQYkpnUEJzQjFVd0UyRjZIMy1JSzNsVU40VmdQNGxnUDRsa1A0bGdQNGxnUEs0QmpQYkZtTUxCb0xMQmNNS0ZqUnJCTE1MN2hSNFZPTWFsVk1xaEVQcVppUjNOck1MN2hSNFZJUjRaaVIzbGhPS0ZvUHF0WlFwRmRQYkZLNzRCZ01MQm5LckJjTUtGalJyQklPS3RvS2FWZE5xVmdPS1JjUjVCT1FxM29STDdWUjRaalBaZFdRYVpiTzVGaU5MQm5LNEpzUTR4blJMN1pMYXBkTjVGalBhSm5KcTNtUExGY0pyQmNNS0ZqUnJBV0dsV0tVNiowb1ZzVDYwM083NEJnTUxCblBhM2hOSlVZTXFsVlFyQlpRcHdFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRdTZXNnB3RTQzLS1GSVYySVlCalA0eG1FcXhtUWFKWFIzTlZQNUpaUXBWQ0lveFdPYUpYUioqNiotMio0VSpZKjBZKkFVKnIqMlkqSCotRCozMipKRS1QKjVVKlVFMEQqN2MqY0UwYSo5QSppVTE0KkIyKnIqMWIqRCoqemsyNSpFay0xVTJIKkZzLTdrMzAqSUktTSoqKioqKioqKjYtKioqKioqKioqMEUqKioqKioqKioqKioqKioqKioqM2Q8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKlRFZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqLWNrZ0E2WklZUGJKZ1BCc0IxVXdFMkY2SDMtSUszbFVONFZnUTRsa1E1LW9RNVZrVDYta1ZLNEJqUGJGbU1MQm9MTEJjTUtGalJyQkxNTDdoUjRWT01hbFZNcWhFUHFaaVIzTnJNTDdoUjRWSVI0WmlSM2xoT0tGb1BxdFpRcEZkUGJGSzc0QmdNTEJuS3JCY01LRmpSckJJT0t0b0thVmROcVZnT0tSY1I1Qk9RcTNvUkw3VlI0WmpQWmRXUWFaYk81RmlOTEJuSzRKc1E0eG5STDdaTGFwZE41RmpQYUpuSnEzbVBMRmNKckJjTUtGalJyQVcqKioqKjA3OTQ3TypVKjZXa01UUnNXNy1veHBiNlk1MUtKSVdFV3hwalI2WDcwSWFLV0ZYUDQzblFxdFZQS0pNNzRCZ01MQm5OTEJUMi1WRUVJSjZGMzcxUHFsalFZQmpRYjdaTXJGS01LbHBOTENXN21WVDItVkVFSUo2RjM3MVBxbGpRWUJqUWI3Wk1yRktNS2xwTkxCTUhaQkRNYWRaTXJFKjAqKkYqLWMqNyoqZCoxNipCay03KjJrKkhrLUYqM0kqS2stcyo2MipYazBPKjgyKmRVMG4qOWMqbFUxRipCayp0azFrKkR3LS1rMkEqRjItMmsyTSpGby02VTJiKkdrLUJrMyoqSmctTFUzdCoqKioqKioqKlUyKioqKioqKioqOEUqKioqKioqKioqKioqKioqKioqTTYqPC9kYXRhVmFsdWU+CjwvcGFyYW1ldGVyPgoKPC9vem1sPgo="/>
+                                        <param name="trigger Enhance" key="18" value="6"/>
+                                        <param name="Exposure" key="3" value="24.4186"/>
+                                        <param name="Contrast" key="17" value="0"/>
+                                        <param name="Brightness" key="2" value="26.4831"/>
+                                        <param name="Highlights" key="7" value="-16.9833"/>
+                                        <param name="Black Point" key="1" value="0"/>
+                                        <param name="Shadows" key="4" value="43.865"/>
+                                        <param name="Super Highlights" key="25" value="0"/>
+                                        <param name="Saturation" key="16" value="0"/>
+                                        <param name="Highlights Warmth" key="10" value="0"/>
+                                        <param name="Highlights Tint" key="11" value="0"/>
+                                        <param name="Midtones Warmth" key="12" value="0"/>
+                                        <param name="Midtones Tint" key="13" value="0"/>
+                                        <param name="Shadows Warmth" key="14" value="0"/>
+                                        <param name="Shadows Tint" key="15" value="0"/>
+                                    </filter-video>
+                                </mc-source>
+                                <mc-source angleID="ilMeggtTRPyol7OCqKH0Pg" srcEnable="audio">
+                                    <audio-role-source role="music.music-1">
+                                        <adjust-volume>
+                                            <param name="amount">
+                                                <fadeOut type="easeIn" duration="2875/1000s"/>
+                                            </param>
+                                        </adjust-volume>
+                                    </audio-role-source>
+                                </mc-source>
+                                <keyword start="0s" duration="4212000/24000s" value="busking performance, multi-cam"/>
+                            </mc-clip>
+                        </gap>
+                        <mc-clip ref="r10" offset="23s" name="Interview Multicam" start="634800/2400s" duration="33000/24000s">
+                            <mc-source angleID="JvgNk9ekSQuY1/Tf0cECsA" srcEnable="all"/>
+                            <keyword start="0s" duration="8890000/24000s" value="interview, multi-cam"/>
+                        </mc-clip>
+                        <mc-clip ref="r10" offset="585000/24000s" name="Interview Multicam" start="92000/2400s" duration="800/2400s">
+                            <mc-source angleID="JvgNk9ekSQuY1/Tf0cECsA" srcEnable="all">
+                                <audio-role-source role="dialogue.dialogue-1"/>
+                            </mc-source>
+                            <keyword start="0s" duration="8890000/24000s" value="interview, multi-cam"/>
+                        </mc-clip>
+                        <mc-clip ref="r10" offset="593000/24000s" name="Interview Multicam" start="92800/2400s" duration="1400/2400s">
+                            <mc-source angleID="JvgNk9ekSQuY1/Tf0cECsA" srcEnable="audio">
+                                <audio-role-source role="dialogue.dialogue-1"/>
+                            </mc-source>
+                            <mc-source angleID="aYhfm/eURsCs5O2IF1Erpw" srcEnable="video"/>
+                            <keyword start="0s" duration="8890000/24000s" value="interview, multi-cam"/>
+                        </mc-clip>
+                        <mc-clip ref="r10" offset="607000/24000s" name="Interview Multicam" start="94200/2400s" duration="2500/2400s">
+                            <mc-source angleID="JvgNk9ekSQuY1/Tf0cECsA" srcEnable="audio">
+                                <audio-role-source role="dialogue.dialogue-1">
+                                    <adjust-volume>
+                                        <param name="amount">
+                                            <fadeOut type="linear" duration="102/1000s"/>
+                                        </param>
+                                    </adjust-volume>
+                                </audio-role-source>
+                            </mc-source>
+                            <mc-source angleID="kgJzHx1iS2aTT23ryFwaUg" srcEnable="video"/>
+                            <keyword start="0s" duration="8890000/24000s" value="interview, multi-cam"/>
+                        </mc-clip>
+                        <gap name="Gap" offset="632000/24000s" start="86560000/24000s" duration="9000/24000s">
+                            <mc-clip ref="r18" lane="1" offset="8656000/2400s" name="Studio Guitar 02 Performance" start="150300/2400s" duration="8200/2400s" audioStart="377/6s" audioDuration="11500/2400s">
+                                <mc-source angleID="Jd2ZgEhHQlO4+AOKDSq3OA" srcEnable="all">
+                                    <audio-role-source role="music.music-1">
+                                        <adjust-volume amount="-12.1915dB">
+                                            <param name="amount">
+                                                <fadeIn type="easeIn" duration="1637/1000s"/>
+                                            </param>
+                                        </adjust-volume>
+                                    </audio-role-source>
+                                    <filter-video ref="r4" name="Color Adjustments">
+                                        <data key="effectConfig">YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGlCwwVFhdVJG51bGzTDQ4PEBIUV05TLmtleXNaTlMub2JqZWN0c1YkY2xhc3OhEYACoROAA4AEXXBsdWdpblZlcnNpb24QAtIYGRobWiRjbGFzc25hbWVYJGNsYXNzZXNfEBNOU011dGFibGVEaWN0aW9uYXJ5oxocHVxOU0RpY3Rpb25hcnlYTlNPYmplY3QIERokKTI3SUxRU1lfZm55gIKEhoiKmJqfqrPJzdoAAAAAAAABAQAAAAAAAAAeAAAAAAAAAAAAAAAAAAAA4w==</data>
+                                        <param name="Control Range" key="19" value="0 (SDR)"/>
+                                        <param name="" key="20" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjE0NTA0OTJkODU0NTQ5Mzk4YzA3M2MxOGM2NDRhYWUxIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9IiIgaWQ9IjIwIiBmbGFncz0iNDI5NTAzMjg0OCI+Cgk8ZmxhZ3M+NDI5NTAzMjg0ODwvZmxhZ3M+Cgk8bnVtYmVyT2ZLZXlwb2ludHM+MDwvbnVtYmVyT2ZLZXlwb2ludHM+Cgk8ZGVmYXVsdFZhbD4qKioqKioqKio2SWVNYi1nT0xCb0ExMUkqRTYxLSpJNC1rZE03NU5aUWJCZFBxdE43NDNtTXFWZFJhSm1KMEZvUHItTTc0eFdPYUpYUjVBRyoqNDRjM3dFMW90SEdxSnROS0YtUWFCY09MTlpRaDI2MEo2WUE2KipjRWhKNzR0cFA0azYyRmNZOEg2ckdJbERJSkEqKioqKioqKi0qRSoqKioqKioqKkEqKioqKioqKioqKioqKioqKioqKktFKio8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKjZJZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqKmNFaEo3NHRwUDRrNjJGY1k4SDZyR0lsRElKQSoqKioqKioqLSpFKioqKioqKioqQSoqKioqKioqKioqKioqKioqKioqS0UqKjwvZGF0YVZhbHVlPgo8L3BhcmFtZXRlcj4KCjwvb3ptbD4K"/>
+                                        <param name="Neutralization Data" key="23" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjRkMGU0OGQ4NGZjYTQyNGQ4MmFhOThhMDI3YzZlYzVjIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9Ik5ldXRyYWxpemF0aW9uIERhdGEiIGlkPSIyMyIgZmxhZ3M9IjQyOTkyMjcxODQiPgoJPGZsYWdzPjQyOTkyMjcxODQ8L2ZsYWdzPgoJPG51bWJlck9mS2V5cG9pbnRzPjA8L251bWJlck9mS2V5cG9pbnRzPgoJPGRlZmF1bHRWYWw+KioqKioqKioqUjJlTWItZ09MQm9BMTFJKkU2MS0qSTQta2RNNzVOWlFiQmRQcXRONzQzbU1xVmRSYUptSjBGb1ByLU03NHhXT2FKWFI1QUcqKjQ0YzN3RTFvdEhHcUp0TktGLVFhQmNPTE5aUWgyNjBKNllBNiotY2tnQTVKSVlQYkpnUEJzQjFVd0UyRjZIMy1JSzNsVU40VmdQNGxnUDRsa1A0bGdQNGxnUEs0QmpQYkZtTUxCb0xMQmNNS0ZqUnJCTE1MN2hSNFZPTWFsVk1xaEVQcVppUjNOck1MN2hSNFZJUjRaaVIzbGhPS0ZvUHF0WlFwRmRQYkZLNzRCZ01MQm5LckJjTUtGalJyQklPS3RvS2FWZE5xVmdPS1JjUjVCT1FxM29STDdWUjRaalBaZFdRYVpiTzVGaU5MQm5LNEpzUTR4blJMN1pMYXBkTjVGalBhSm5KcTNtUExGY0pyQmNNS0ZqUnJBV0dsV0tVNiowb1ZzVDYwM083NEJnTUxCblBhM2hOSlVZTXFsVlFyQlpRcHdFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRdTZXNnB3RTQzLS1GSVYySVlCalA0eG1FcXhtUWFKWFIzTlZQNUpaUXBWQ0lveFdPYUpYUioqNiotMio0VSpZKjBZKkFVKnIqMlkqSCotRCozMipKRS1QKjVVKlVFMEQqN2MqY0UwYSo5QSppVTE0KkIyKnIqMWIqRCoqemsyNSpFay0xVTJIKkZzLTdrMzAqSUktTSoqKioqKioqKjYtKioqKioqKioqMEUqKioqKioqKioqKioqKioqKioqM2Q8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKlRFZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqLWNrZ0E2WklZUGJKZ1BCc0IxVXdFMkY2SDMtSUszbFVONFZnUTRsa1E1LW9RNVZrVDYta1ZLNEJqUGJGbU1MQm9MTEJjTUtGalJyQkxNTDdoUjRWT01hbFZNcWhFUHFaaVIzTnJNTDdoUjRWSVI0WmlSM2xoT0tGb1BxdFpRcEZkUGJGSzc0QmdNTEJuS3JCY01LRmpSckJJT0t0b0thVmROcVZnT0tSY1I1Qk9RcTNvUkw3VlI0WmpQWmRXUWFaYk81RmlOTEJuSzRKc1E0eG5STDdaTGFwZE41RmpQYUpuSnEzbVBMRmNKckJjTUtGalJyQVcqKioqKjA3OTQ3TypVKjZXanVsOTAwNy1kQkJFNmc1eXh2c1dFUDV5cVI2WDcwSWFLV0ZYUDQzblFxdFZQS0pNNzRCZ01MQm5OTEJUMi1WRUVJSjZGMzcxUHFsalFZQmpRYjdaTXJGS01LbHBOTENXN21WVDItVkVFSUo2RjM3MVBxbGpRWUJqUWI3Wk1yRktNS2xwTkxCTUhaQkRNYWRaTXJFKjAqKkYqLWMqNyoqZCoxNipCay03KjJrKkhrLUYqM0kqS2stcyo2MipYazBPKjgyKmRVMG4qOWMqbFUxRipCayp0azFrKkR3LS1rMkEqRjItMmsyTSpGby02VTJiKkdrLUJrMyoqSmctTFUzdCoqKioqKioqKlUyKioqKioqKioqOEUqKioqKioqKioqKioqKioqKioqTTYqPC9kYXRhVmFsdWU+CjwvcGFyYW1ldGVyPgoKPC9vem1sPgo="/>
+                                        <param name="trigger Enhance" key="18" value="6"/>
+                                        <param name="Exposure" key="3" value="0"/>
+                                        <param name="Contrast" key="17" value="0"/>
+                                        <param name="Brightness" key="2" value="0"/>
+                                        <param name="Highlights" key="7" value="0"/>
+                                        <param name="Black Point" key="1" value="0"/>
+                                        <param name="Shadows" key="4" value="0"/>
+                                        <param name="Super Highlights" key="25" value="0"/>
+                                        <param name="Saturation" key="16" value="0"/>
+                                        <param name="Highlights Warmth" key="10" value="0"/>
+                                        <param name="Highlights Tint" key="11" value="0"/>
+                                        <param name="Midtones Warmth" key="12" value="0"/>
+                                        <param name="Midtones Tint" key="13" value="0"/>
+                                        <param name="Shadows Warmth" key="14" value="0"/>
+                                        <param name="Shadows Tint" key="15" value="0"/>
+                                    </filter-video>
+                                </mc-source>
+                                <keyword start="0s" duration="2668000/24000s" value="multi-cam, studio performance"/>
+                            </mc-clip>
+                        </gap>
+                        <mc-clip ref="r10" offset="641000/24000s" name="Interview Multicam" start="6466000/24000s" duration="115000/24000s" audioStart="6455000/24000s" audioDuration="126000/24000s">
+                            <mc-source angleID="JvgNk9ekSQuY1/Tf0cECsA" srcEnable="all"/>
+                            <mc-clip ref="r18" lane="1" offset="657700/2400s" name="Studio Guitar 02 Performance" start="162300/2400s" duration="9900/2400s" audioStart="162300/2400s" audioDuration="205000/24000s">
+                                <mc-source angleID="FYoEM0HhR7GWdBWuk6bxxw" srcEnable="video"/>
+                                <mc-source angleID="Jd2ZgEhHQlO4+AOKDSq3OA" srcEnable="audio">
+                                    <audio-role-source role="music.music-1">
+                                        <adjust-volume amount="-12.1915dB">
+                                            <param name="amount">
+                                                <fadeOut type="easeInOut" duration="1985/1000s"/>
+                                            </param>
+                                        </adjust-volume>
+                                    </audio-role-source>
+                                </mc-source>
+                                <keyword start="0s" duration="2668000/24000s" value="multi-cam, studio performance"/>
+                            </mc-clip>
+                            <keyword start="0s" duration="8890000/24000s" value="interview, multi-cam"/>
+                        </mc-clip>
+                        <gap name="Gap" offset="756000/24000s" start="86683000/24000s" duration="11000/24000s"/>
+                        <mc-clip ref="r10" offset="767000/24000s" name="Interview Multicam" start="559900/2400s" duration="77000/24000s">
+                            <mc-source angleID="JvgNk9ekSQuY1/Tf0cECsA" srcEnable="audio">
+                                <audio-role-source role="dialogue.dialogue-1"/>
+                            </mc-source>
+                            <mc-source angleID="kgJzHx1iS2aTT23ryFwaUg" srcEnable="video"/>
+                            <keyword start="0s" duration="8890000/24000s" value="interview, multi-cam"/>
+                        </mc-clip>
+                        <mc-clip ref="r10" offset="844000/24000s" name="Interview Multicam" start="5681000/24000s" duration="4200/2400s">
+                            <mc-source angleID="JvgNk9ekSQuY1/Tf0cECsA" srcEnable="all">
+                                <audio-role-source role="dialogue.dialogue-1"/>
+                            </mc-source>
+                            <keyword start="0s" duration="8890000/24000s" value="interview, multi-cam"/>
+                        </mc-clip>
+                        <mc-clip ref="r10" offset="886000/24000s" name="Interview Multicam" start="5723000/24000s" duration="35000/24000s" audioStart="5723000/24000s" audioDuration="32000/24000s">
+                            <mc-source angleID="JvgNk9ekSQuY1/Tf0cECsA" srcEnable="audio">
+                                <audio-role-source role="dialogue.dialogue-1">
+                                    <adjust-volume>
+                                        <param name="amount">
+                                            <fadeOut type="easeIn" duration="485/1000s"/>
+                                        </param>
+                                    </adjust-volume>
+                                </audio-role-source>
+                            </mc-source>
+                            <mc-source angleID="kgJzHx1iS2aTT23ryFwaUg" srcEnable="video"/>
+                            <keyword start="0s" duration="8890000/24000s" value="interview, multi-cam"/>
+                        </mc-clip>
+                        <mc-clip ref="r22" offset="921000/24000s" name="Studio Guitar 01 Performance" start="73600/2400s" duration="202000/24000s" audioStart="736000/24000s" audioDuration="215000/24000s">
+                            <adjust-volume>
+                                <param name="amount">
+                                    <fadeIn type="easeIn" duration="24006/720000s"/>
+                                </param>
+                            </adjust-volume>
+                            <mc-source angleID="ww+0EsAHTG2TAikt4XljpQ" srcEnable="all">
+                                <audio-role-source role="music.music-1">
+                                    <adjust-volume>
+                                        <param name="amount">
+                                            <fadeOut type="easeIn" duration="2154/1000s"/>
+                                        </param>
+                                    </adjust-volume>
+                                </audio-role-source>
+                            </mc-source>
+                            <mc-clip ref="r26" lane="-2" offset="831000/24000s" name="Studio Piano Performance" start="3787000/24000s" duration="107000/24000s" srcEnable="audio">
+                                <mc-source angleID="7ICnThI4SHuHjAtVbAUgAQ" srcEnable="none">
+                                    <audio-role-source role="music.music-1" active="0">
+                                        <adjust-volume>
+                                            <param name="amount">
+                                                <fadeOut type="easeIn" duration="1345/1000s"/>
+                                            </param>
+                                        </adjust-volume>
+                                    </audio-role-source>
+                                </mc-source>
+                                <mc-source angleID="Ywp0TmaaRGyLsKI/RsdycA" srcEnable="audio">
+                                    <audio-role-source role="music.music-1">
+                                        <adjust-volume>
+                                            <param name="amount">
+                                                <fadeIn type="easeIn" duration="2279/1000s"/>
+                                            </param>
+                                        </adjust-volume>
+                                    </audio-role-source>
+                                </mc-source>
+                            </mc-clip>
+                            <keyword start="0s" duration="2753000/24000s" value="multi-cam, studio performance"/>
+                        </mc-clip>
+                        <mc-clip ref="r26" offset="1123000/24000s" name="Studio Piano Performance" start="389400/2400s" duration="19600/2400s" audioStart="3894000/24000s" audioDuration="32100/2400s">
+                            <mc-source angleID="7ICnThI4SHuHjAtVbAUgAQ" srcEnable="all">
+                                <audio-role-source role="music.music-1">
+                                    <adjust-volume>
+                                        <param name="amount">
+                                            <fadeOut type="easeIn" duration="2860/1000s"/>
+                                        </param>
+                                    </adjust-volume>
+                                </audio-role-source>
+                            </mc-source>
+                            <keyword start="0s" duration="5167000/24000s" value="multi-cam, studio performance"/>
+                        </mc-clip>
+                        <asset-clip ref="r32" offset="1319000/24000s" name="Studio Broll-07" duration="8800/2400s" tcFormat="NDF">
+                            <timeMap frameSampling="optical-flow-frc">
+                                <timept time="0s" value="0s" interp="smooth2"/>
+                                <timept time="88810/24000s" value="65000/24000s" interp="smooth2"/>
+                            </timeMap>
+                            <keyword start="0s" duration="65000/24000s" value="studio, studio broll"/>
+                        </asset-clip>
+                        <mc-clip ref="r10" offset="1407000/24000s" name="Interview Multicam" start="295s" duration="14000/24000s">
+                            <mc-source angleID="JvgNk9ekSQuY1/Tf0cECsA" srcEnable="all">
+                                <audio-role-source role="dialogue.dialogue-1">
+                                    <adjust-volume amount="6.8889dB"/>
+                                </audio-role-source>
+                            </mc-source>
+                            <mc-clip ref="r26" lane="1" offset="295s" name="Studio Piano Performance" start="4206000/24000s" duration="76000/24000s" audioStart="4118000/24000s" audioDuration="292000/24000s">
+                                <mc-source angleID="L3fX3Cc1TBiCeWMQcsmE/g" srcEnable="video">
+                                    <filter-video ref="r4" name="Color Adjustments" nameOverride="Piano Color Correction">
+                                        <data key="effectConfig">YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGlCwwVFhdVJG51bGzTDQ4PEBIUV05TLmtleXNaTlMub2JqZWN0c1YkY2xhc3OhEYACoROAA4AEXXBsdWdpblZlcnNpb24QAtIYGRobWiRjbGFzc25hbWVYJGNsYXNzZXNfEBNOU011dGFibGVEaWN0aW9uYXJ5oxocHVxOU0RpY3Rpb25hcnlYTlNPYmplY3QIERokKTI3SUxRU1lfZm55gIKEhoiKmJqfqrPJzdoAAAAAAAABAQAAAAAAAAAeAAAAAAAAAAAAAAAAAAAA4w==</data>
+                                        <param name="Control Range" key="19" value="0 (SDR)"/>
+                                        <param name="" key="20" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjE0NTA0OTJkODU0NTQ5Mzk4YzA3M2MxOGM2NDRhYWUxIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9IiIgaWQ9IjIwIiBmbGFncz0iNDI5NTAzMjg0OCI+Cgk8ZmxhZ3M+NDI5NTAzMjg0ODwvZmxhZ3M+Cgk8bnVtYmVyT2ZLZXlwb2ludHM+MDwvbnVtYmVyT2ZLZXlwb2ludHM+Cgk8ZGVmYXVsdFZhbD4qKioqKioqKio2SWVNYi1nT0xCb0ExMUkqRTYxLSpJNC1rZE03NU5aUWJCZFBxdE43NDNtTXFWZFJhSm1KMEZvUHItTTc0eFdPYUpYUjVBRyoqNDRjM3dFMW90SEdxSnROS0YtUWFCY09MTlpRaDI2MEo2WUE2KipjRWhKNzR0cFA0azYyRmNZOEg2ckdJbERJSkEqKioqKioqKi0qRSoqKioqKioqKkEqKioqKioqKioqKioqKioqKioqKktFKio8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKjZJZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqKmNFaEo3NHRwUDRrNjJGY1k4SDZyR0lsRElKQSoqKioqKioqLSpFKioqKioqKioqQSoqKioqKioqKioqKioqKioqKioqS0UqKjwvZGF0YVZhbHVlPgo8L3BhcmFtZXRlcj4KCjwvb3ptbD4K"/>
+                                        <param name="Neutralization Data" key="23" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjRkMGU0OGQ4NGZjYTQyNGQ4MmFhOThhMDI3YzZlYzVjIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9Ik5ldXRyYWxpemF0aW9uIERhdGEiIGlkPSIyMyIgZmxhZ3M9IjQyOTkyMjcxODQiPgoJPGZsYWdzPjQyOTkyMjcxODQ8L2ZsYWdzPgoJPG51bWJlck9mS2V5cG9pbnRzPjA8L251bWJlck9mS2V5cG9pbnRzPgoJPGRlZmF1bHRWYWw+KioqKioqKioqUjJlTWItZ09MQm9BMTFJKkU2MS0qSTQta2RNNzVOWlFiQmRQcXRONzQzbU1xVmRSYUptSjBGb1ByLU03NHhXT2FKWFI1QUcqKjQ0YzN3RTFvdEhHcUp0TktGLVFhQmNPTE5aUWgyNjBKNllBNiotY2tnQTVKSVlQYkpnUEJzQjFVd0UyRjZIMy1JSzNsVU40VmdQNGxnUDRsa1A0bGdQNGxnUEs0QmpQYkZtTUxCb0xMQmNNS0ZqUnJCTE1MN2hSNFZPTWFsVk1xaEVQcVppUjNOck1MN2hSNFZJUjRaaVIzbGhPS0ZvUHF0WlFwRmRQYkZLNzRCZ01MQm5LckJjTUtGalJyQklPS3RvS2FWZE5xVmdPS1JjUjVCT1FxM29STDdWUjRaalBaZFdRYVpiTzVGaU5MQm5LNEpzUTR4blJMN1pMYXBkTjVGalBhSm5KcTNtUExGY0pyQmNNS0ZqUnJBV0dsV0tVNiowb1ZzVDYwM083NEJnTUxCblBhM2hOSlVZTXFsVlFyQlpRcHdFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRdTZXNnB3RTQzLS1GSVYySVlCalA0eG1FcXhtUWFKWFIzTlZQNUpaUXBWQ0lveFdPYUpYUioqNiotMio0VSpZKjBZKkFVKnIqMlkqSCotRCozMipKRS1QKjVVKlVFMEQqN2MqY0UwYSo5QSppVTE0KkIyKnIqMWIqRCoqemsyNSpFay0xVTJIKkZzLTdrMzAqSUktTSoqKioqKioqKjYtKioqKioqKioqMEUqKioqKioqKioqKioqKioqKioqM2Q8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKldJZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqLWNrZ0E4SklZUGJKZ1BCc0IxVXdFMkY2SDMtSUszbFVONFZnUTVGc1Q2MDJXNm1FWjdXUWNLNEJqUGJGbU1MQm9MTEJjTUtGalJyQkxNTDdoUjRWT01hbFZNcWhFUHFaaVIzTnJNTDdoUjRWSVI0WmlSM2xoT0tGb1BxdFpRcEZkUGJGSzc0QmdNTEJuS3JCY01LRmpSckJJT0t0b0thVmROcVZnT0tSY1I1Qk9RcTNvUkw3VlI0WmpQWmRXUWFaYk81RmlOTEJuSzRKc1E0eG5STDdaTGFwZE41RmpQYUpuSnEzbVBMRmNKckJjTUtGalJyQVcqKioqKjA3Kkhjc1U2ZzEwZklZV2tGeUJuRzkqWFh2TTZZNEZicEMqKlc3KmFWNms2ZzVxRDc2V0VQeVNPbTctVW9aZzZZMThFRVFXRGRob3MwNzAqZDVWb1djZjkwcE83NEJnTUxCblBhM2hOSlVZTXFsVlFyQlpRcHdFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRdTZpOXB3RTQzLS1GSVYySVlCalA0eG1FcXhtUWFKWFIzTlZQNUpaUXBWQ0lveFdPYUpYUioqNiotMio0VSpZKjBZKkFVKnIqMlkqSCotRCozMipKRS1QKjVVKlVFMEQqN2MqY0UwYSo5QSppVTE0KkIyKnIqMWIqRCoqemsyNSpFay0yRTJLKkZnLTYqMloqR1EtOSoybCpITS1DazMqKklJLUdVM0QqSmMtTWszeSpNMi1iKioqKioqKioqNi0qKioqKioqKioxKioqKioqKioqKioqKioqKioqKio0WjwvZGF0YVZhbHVlPgo8L3BhcmFtZXRlcj4KCjwvb3ptbD4K"/>
+                                        <param name="trigger Enhance" key="18" value="6"/>
+                                        <param name="Exposure" key="3" value="0"/>
+                                        <param name="Contrast" key="17" value="0"/>
+                                        <param name="Brightness" key="2" value="0"/>
+                                        <param name="Highlights" key="7" value="0"/>
+                                        <param name="Black Point" key="1" value="0"/>
+                                        <param name="Shadows" key="4" value="0"/>
+                                        <param name="Super Highlights" key="25" value="0"/>
+                                        <param name="Saturation" key="16" value="0"/>
+                                        <param name="Highlights Warmth" key="10" value="0"/>
+                                        <param name="Highlights Tint" key="11" value="0"/>
+                                        <param name="Midtones Warmth" key="12" value="0"/>
+                                        <param name="Midtones Tint" key="13" value="0"/>
+                                        <param name="Shadows Warmth" key="14" value="0"/>
+                                        <param name="Shadows Tint" key="15" value="0"/>
+                                    </filter-video>
+                                </mc-source>
+                                <mc-source angleID="Ywp0TmaaRGyLsKI/RsdycA" srcEnable="audio">
+                                    <audio-role-source role="music.music-1">
+                                        <adjust-loudness amount="40" uniformity="3"/>
+                                        <adjust-volume amount="-8.65146dB">
+                                            <param name="amount">
+                                                <fadeIn type="easeInOut" duration="5867/1000s"/>
+                                            </param>
+                                        </adjust-volume>
+                                    </audio-role-source>
+                                </mc-source>
+                                <keyword start="0s" duration="5167000/24000s" value="multi-cam, studio performance"/>
+                            </mc-clip>
+                            <keyword start="0s" duration="8890000/24000s" value="interview, multi-cam"/>
+                        </mc-clip>
+                        <mc-clip ref="r10" offset="1421000/24000s" name="Interview Multicam" start="7094000/24000s" duration="27000/24000s">
+                            <mc-source angleID="JvgNk9ekSQuY1/Tf0cECsA" srcEnable="all">
+                                <audio-role-source role="dialogue.dialogue-1">
+                                    <adjust-volume amount="12dB">
+                                        <param name="amount">
+                                            <fadeOut type="easeIn" duration="205/1000s"/>
+                                        </param>
+                                    </adjust-volume>
+                                </audio-role-source>
+                            </mc-source>
+                            <keyword start="0s" duration="8890000/24000s" value="interview, multi-cam"/>
+                        </mc-clip>
+                        <mc-clip ref="r10" offset="1448000/24000s" name="Interview Multicam" start="735500/2400s" duration="400/2400s">
+                            <mc-source angleID="JvgNk9ekSQuY1/Tf0cECsA" srcEnable="all">
+                                <audio-role-source role="dialogue.dialogue-1">
+                                    <adjust-volume amount="8.64798dB">
+                                        <param name="amount">
+                                            <fadeIn type="easeIn" duration="93/1000s"/>
+                                            <fadeOut type="easeIn" duration="73/1000s"/>
+                                        </param>
+                                    </adjust-volume>
+                                </audio-role-source>
+                            </mc-source>
+                            <keyword start="0s" duration="8890000/24000s" value="interview, multi-cam"/>
+                        </mc-clip>
+                        <mc-clip ref="r10" offset="1452000/24000s" name="Interview Multicam" start="717000/2400s" duration="31000/24000s">
+                            <mc-source angleID="JvgNk9ekSQuY1/Tf0cECsA" srcEnable="all">
+                                <audio-role-source role="dialogue.dialogue-1">
+                                    <adjust-volume amount="8.64798dB">
+                                        <param name="amount">
+                                            <fadeIn type="easeIn" duration="274/1000s"/>
+                                        </param>
+                                    </adjust-volume>
+                                </audio-role-source>
+                            </mc-source>
+                            <keyword start="0s" duration="8890000/24000s" value="interview, multi-cam"/>
+                        </mc-clip>
+                        <mc-clip ref="r10" offset="1483000/24000s" name="Interview Multicam" start="360s" duration="55000/24000s">
+                            <mc-source angleID="JvgNk9ekSQuY1/Tf0cECsA" srcEnable="audio">
+                                <audio-role-source role="dialogue.dialogue-1">
+                                    <adjust-volume amount="8.64798dB">
+                                        <param name="amount">
+                                            <fadeOut type="easeIn" duration="125/1000s"/>
+                                        </param>
+                                    </adjust-volume>
+                                </audio-role-source>
+                            </mc-source>
+                            <mc-source angleID="kgJzHx1iS2aTT23ryFwaUg" srcEnable="video"/>
+                            <keyword start="0s" duration="8890000/24000s" value="interview, multi-cam"/>
+                        </mc-clip>
+                        <mc-clip ref="r10" offset="1538000/24000s" name="Interview Multicam" start="8725000/24000s" duration="46000/24000s">
+                            <mc-source angleID="JvgNk9ekSQuY1/Tf0cECsA" srcEnable="all">
+                                <audio-role-source role="dialogue.dialogue-1">
+                                    <adjust-volume amount="12dB"/>
+                                </audio-role-source>
+                            </mc-source>
+                            <spine lane="1" offset="4385/12s">
+                                <mc-clip ref="r26" offset="0s" name="Studio Piano Performance" start="439600/2400s" duration="8800/2400s">
+                                    <mc-source angleID="7ICnThI4SHuHjAtVbAUgAQ" srcEnable="all">
+                                        <audio-role-source role="music.music-1">
+                                            <adjust-volume amount="6.82329dB"/>
+                                        </audio-role-source>
+                                    </mc-source>
+                                    <keyword start="0s" duration="5167000/24000s" value="multi-cam, studio performance"/>
+                                </mc-clip>
+                                <mc-clip ref="r26" offset="8800/2400s" name="Studio Piano Performance" start="448400/2400s" duration="6000/2400s">
+                                    <mc-source angleID="7ICnThI4SHuHjAtVbAUgAQ" srcEnable="all">
+                                        <audio-role-source role="music.music-1">
+                                            <adjust-volume amount="6.82329dB"/>
+                                        </audio-role-source>
+                                    </mc-source>
+                                    <keyword start="0s" duration="5167000/24000s" value="multi-cam, studio performance"/>
+                                </mc-clip>
+                                <mc-clip ref="r26" offset="14800/2400s" name="Studio Piano Performance" start="454400/2400s" duration="9300/2400s">
+                                    <mc-source angleID="7ICnThI4SHuHjAtVbAUgAQ" srcEnable="audio">
+                                        <audio-role-source role="music.music-1">
+                                            <adjust-volume amount="6.82329dB"/>
+                                        </audio-role-source>
+                                    </mc-source>
+                                    <mc-source angleID="L3fX3Cc1TBiCeWMQcsmE/g" srcEnable="video"/>
+                                    <keyword start="0s" duration="5167000/24000s" value="multi-cam, studio performance"/>
+                                </mc-clip>
+                                <mc-clip ref="r26" offset="24100/2400s" name="Studio Piano Performance" start="463700/2400s" duration="6700/2400s" audioStart="463700/2400s" audioDuration="298000/24000s">
+                                    <mc-source angleID="7ICnThI4SHuHjAtVbAUgAQ" srcEnable="audio">
+                                        <audio-role-source role="music.music-1">
+                                            <adjust-volume amount="6.82329dB"/>
+                                        </audio-role-source>
+                                    </mc-source>
+                                    <mc-source angleID="91b/wMg4SUyhvCTO4NRpaA" srcEnable="video"/>
+                                    <keyword start="0s" duration="5167000/24000s" value="multi-cam, studio performance"/>
+                                </mc-clip>
+                            </spine>
+                            <keyword start="0s" duration="8890000/24000s" value="interview, multi-cam"/>
+                        </mc-clip>
+                        <mc-clip ref="r14" offset="66s" name="Busking Performance - Multicam" start="370000/2400s" duration="87000/24000s" srcEnable="video">
+                            <mc-source angleID="ilMeggtTRPyol7OCqKH0Pg" srcEnable="video"/>
+                            <keyword start="0s" duration="4212000/24000s" value="busking performance, multi-cam"/>
+                        </mc-clip>
+                        <mc-clip ref="r14" offset="1671000/24000s" name="Busking Performance - Multicam" start="3788000/24000s" duration="220000/24000s" srcEnable="video">
+                            <mc-source angleID="ilMeggtTRPyol7OCqKH0Pg" srcEnable="video"/>
+                            <keyword start="0s" duration="4212000/24000s" value="busking performance, multi-cam"/>
+                        </mc-clip>
+                        <mc-clip ref="r14" offset="1891000/24000s" name="Busking Performance - Multicam" start="167s" duration="62000/24000s" audioStart="991/6s" audioDuration="106000/24000s">
+                            <mc-source angleID="AJe/bohFR7WeHfKdLI0+Bg" srcEnable="video">
+                                <filter-video ref="r4" name="Color Adjustments">
+                                    <data key="effectConfig">YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGlCwwVFhdVJG51bGzTDQ4PEBIUV05TLmtleXNaTlMub2JqZWN0c1YkY2xhc3OhEYACoROAA4AEXXBsdWdpblZlcnNpb24QAtIYGRobWiRjbGFzc25hbWVYJGNsYXNzZXNfEBNOU011dGFibGVEaWN0aW9uYXJ5oxocHVxOU0RpY3Rpb25hcnlYTlNPYmplY3QIERokKTI3SUxRU1lfZm55gIKEhoiKmJqfqrPJzdoAAAAAAAABAQAAAAAAAAAeAAAAAAAAAAAAAAAAAAAA4w==</data>
+                                    <param name="Control Range" key="19" value="0 (SDR)"/>
+                                    <param name="" key="20" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjE0NTA0OTJkODU0NTQ5Mzk4YzA3M2MxOGM2NDRhYWUxIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9IiIgaWQ9IjIwIiBmbGFncz0iNDI5NTAzMjg0OCI+Cgk8ZmxhZ3M+NDI5NTAzMjg0ODwvZmxhZ3M+Cgk8bnVtYmVyT2ZLZXlwb2ludHM+MDwvbnVtYmVyT2ZLZXlwb2ludHM+Cgk8ZGVmYXVsdFZhbD4qKioqKioqKio2SWVNYi1nT0xCb0ExMUkqRTYxLSpJNC1rZE03NU5aUWJCZFBxdE43NDNtTXFWZFJhSm1KMEZvUHItTTc0eFdPYUpYUjVBRyoqNDRjM3dFMW90SEdxSnROS0YtUWFCY09MTlpRaDI2MEo2WUE2KipjRWhKNzR0cFA0azYyRmNZOEg2ckdJbERJSkEqKioqKioqKi0qRSoqKioqKioqKkEqKioqKioqKioqKioqKioqKioqKktFKio8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKjZJZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqKmNFaEo3NHRwUDRrNjJGY1k4SDZyR0lsRElKQSoqKioqKioqLSpFKioqKioqKioqQSoqKioqKioqKioqKioqKioqKioqS0UqKjwvZGF0YVZhbHVlPgo8L3BhcmFtZXRlcj4KCjwvb3ptbD4K"/>
+                                    <param name="Neutralization Data" key="23" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjRkMGU0OGQ4NGZjYTQyNGQ4MmFhOThhMDI3YzZlYzVjIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9Ik5ldXRyYWxpemF0aW9uIERhdGEiIGlkPSIyMyIgZmxhZ3M9IjQyOTkyMjcxODQiPgoJPGZsYWdzPjQyOTkyMjcxODQ8L2ZsYWdzPgoJPG51bWJlck9mS2V5cG9pbnRzPjA8L251bWJlck9mS2V5cG9pbnRzPgoJPGRlZmF1bHRWYWw+KioqKioqKioqUjJlTWItZ09MQm9BMTFJKkU2MS0qSTQta2RNNzVOWlFiQmRQcXRONzQzbU1xVmRSYUptSjBGb1ByLU03NHhXT2FKWFI1QUcqKjQ0YzN3RTFvdEhHcUp0TktGLVFhQmNPTE5aUWgyNjBKNllBNiotY2tnQTVKSVlQYkpnUEJzQjFVd0UyRjZIMy1JSzNsVU40VmdQNGxnUDRsa1A0bGdQNGxnUEs0QmpQYkZtTUxCb0xMQmNNS0ZqUnJCTE1MN2hSNFZPTWFsVk1xaEVQcVppUjNOck1MN2hSNFZJUjRaaVIzbGhPS0ZvUHF0WlFwRmRQYkZLNzRCZ01MQm5LckJjTUtGalJyQklPS3RvS2FWZE5xVmdPS1JjUjVCT1FxM29STDdWUjRaalBaZFdRYVpiTzVGaU5MQm5LNEpzUTR4blJMN1pMYXBkTjVGalBhSm5KcTNtUExGY0pyQmNNS0ZqUnJBV0dsV0tVNiowb1ZzVDYwM083NEJnTUxCblBhM2hOSlVZTXFsVlFyQlpRcHdFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRdTZXNnB3RTQzLS1GSVYySVlCalA0eG1FcXhtUWFKWFIzTlZQNUpaUXBWQ0lveFdPYUpYUioqNiotMio0VSpZKjBZKkFVKnIqMlkqSCotRCozMipKRS1QKjVVKlVFMEQqN2MqY0UwYSo5QSppVTE0KkIyKnIqMWIqRCoqemsyNSpFay0xVTJIKkZzLTdrMzAqSUktTSoqKioqKioqKjYtKioqKioqKioqMEUqKioqKioqKioqKioqKioqKioqM2Q8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKlRFZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqLWNrZ0E2WklZUGJKZ1BCc0IxVXdFMkY2SDMtSUszbFVONFZnUTRsa1E1LW9RNVZrVDYta1ZLNEJqUGJGbU1MQm9MTEJjTUtGalJyQkxNTDdoUjRWT01hbFZNcWhFUHFaaVIzTnJNTDdoUjRWSVI0WmlSM2xoT0tGb1BxdFpRcEZkUGJGSzc0QmdNTEJuS3JCY01LRmpSckJJT0t0b0thVmROcVZnT0tSY1I1Qk9RcTNvUkw3VlI0WmpQWmRXUWFaYk81RmlOTEJuSzRKc1E0eG5STDdaTGFwZE41RmpQYUpuSnEzbVBMRmNKckJjTUtGalJyQVcqKioqKjA3OTQ3TypVKjZXa0d5bkxXNy1CbXdxNlk0QkdBRVdFVVl5Tmg2WDcwSWFLV0ZYUDQzblFxdFZQS0pNNzRCZ01MQm5OTEJUMi1WRUVJSjZGMzcxUHFsalFZQmpRYjdaTXJGS01LbHBOTENXN21WVDItVkVFSUo2RjM3MVBxbGpRWUJqUWI3Wk1yRktNS2xwTkxCTUhaQkRNYWRaTXJFKjAqKkYqLWMqNyoqZCoxNipCay03KjJrKkhrLUYqM0kqS2stcyo2MipYazBPKjgyKmRVMG4qOWMqbFUxRipCayp0azFrKkR3LS1rMkEqRjItMmsyTSpGby02VTJiKkdrLUJrMyoqSmctTFUzdCoqKioqKioqKlUyKioqKioqKioqOEUqKioqKioqKioqKioqKioqKioqTTYqPC9kYXRhVmFsdWU+CjwvcGFyYW1ldGVyPgoKPC9vem1sPgo="/>
+                                    <param name="trigger Enhance" key="18" value="6"/>
+                                    <param name="Exposure" key="3" value="17.6605"/>
+                                    <param name="Contrast" key="17" value="0"/>
+                                    <param name="Brightness" key="2" value="11.449"/>
+                                    <param name="Highlights" key="7" value="-10.9813"/>
+                                    <param name="Black Point" key="1" value="0"/>
+                                    <param name="Shadows" key="4" value="34.3109"/>
+                                    <param name="Super Highlights" key="25" value="0"/>
+                                    <param name="Saturation" key="16" value="0"/>
+                                    <param name="Highlights Warmth" key="10" value="0"/>
+                                    <param name="Highlights Tint" key="11" value="0"/>
+                                    <param name="Midtones Warmth" key="12" value="0"/>
+                                    <param name="Midtones Tint" key="13" value="0"/>
+                                    <param name="Shadows Warmth" key="14" value="0"/>
+                                    <param name="Shadows Tint" key="15" value="0"/>
+                                </filter-video>
+                            </mc-source>
+                            <mc-source angleID="ilMeggtTRPyol7OCqKH0Pg" srcEnable="audio">
+                                <audio-role-source role="music.music-1" enabled="0">
+                                    <adjust-volume>
+                                        <param name="amount">
+                                            <fadeIn type="easeIn" duration="105000/24000s"/>
+                                        </param>
+                                    </adjust-volume>
+                                </audio-role-source>
+                            </mc-source>
+                            <keyword start="0s" duration="4212000/24000s" value="busking performance, multi-cam"/>
+                        </mc-clip>
+                        <mc-clip ref="r14" offset="1953000/24000s" name="Busking Performance - Multicam" start="4070000/24000s" duration="3s" audioStart="333/2s" audioDuration="9s">
+                            <mc-source angleID="ilMeggtTRPyol7OCqKH0Pg" srcEnable="all">
+                                <audio-role-source role="music.music-1">
+                                    <adjust-volume>
+                                        <param name="amount">
+                                            <fadeIn type="easeIn" duration="3676/1000s"/>
+                                            <fadeOut type="easeInOut" duration="255551/48000s"/>
+                                        </param>
+                                    </adjust-volume>
+                                </audio-role-source>
+                                <filter-video ref="r4" name="Color Adjustments">
+                                    <data key="effectConfig">YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGlCwwVFhdVJG51bGzTDQ4PEBIUV05TLmtleXNaTlMub2JqZWN0c1YkY2xhc3OhEYACoROAA4AEXXBsdWdpblZlcnNpb24QAtIYGRobWiRjbGFzc25hbWVYJGNsYXNzZXNfEBNOU011dGFibGVEaWN0aW9uYXJ5oxocHVxOU0RpY3Rpb25hcnlYTlNPYmplY3QIERokKTI3SUxRU1lfZm55gIKEhoiKmJqfqrPJzdoAAAAAAAABAQAAAAAAAAAeAAAAAAAAAAAAAAAAAAAA4w==</data>
+                                    <param name="Control Range" key="19" value="0 (SDR)"/>
+                                    <param name="" key="20" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjE0NTA0OTJkODU0NTQ5Mzk4YzA3M2MxOGM2NDRhYWUxIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9IiIgaWQ9IjIwIiBmbGFncz0iNDI5NTAzMjg0OCI+Cgk8ZmxhZ3M+NDI5NTAzMjg0ODwvZmxhZ3M+Cgk8bnVtYmVyT2ZLZXlwb2ludHM+MDwvbnVtYmVyT2ZLZXlwb2ludHM+Cgk8ZGVmYXVsdFZhbD4qKioqKioqKio2SWVNYi1nT0xCb0ExMUkqRTYxLSpJNC1rZE03NU5aUWJCZFBxdE43NDNtTXFWZFJhSm1KMEZvUHItTTc0eFdPYUpYUjVBRyoqNDRjM3dFMW90SEdxSnROS0YtUWFCY09MTlpRaDI2MEo2WUE2KipjRWhKNzR0cFA0azYyRmNZOEg2ckdJbERJSkEqKioqKioqKi0qRSoqKioqKioqKkEqKioqKioqKioqKioqKioqKioqKktFKio8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKjZJZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqKmNFaEo3NHRwUDRrNjJGY1k4SDZyR0lsRElKQSoqKioqKioqLSpFKioqKioqKioqQSoqKioqKioqKioqKioqKioqKioqS0UqKjwvZGF0YVZhbHVlPgo8L3BhcmFtZXRlcj4KCjwvb3ptbD4K"/>
+                                    <param name="Neutralization Data" key="23" value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIG96eG1sc2NlbmU+Cjxvem1sIHZlcnNpb249IjUuMTUiPgoKPGZhY3RvcnkgaWQ9IjEiIHV1aWQ9IjRkMGU0OGQ4NGZjYTQyNGQ4MmFhOThhMDI3YzZlYzVjIj4KCTxkZXNjcmlwdGlvbj5DaGFubmVsPC9kZXNjcmlwdGlvbj4KCTxtYW51ZmFjdHVyZXI+QXBwbGU8L21hbnVmYWN0dXJlcj4KCTx2ZXJzaW9uPjE8L3ZlcnNpb24+CjwvZmFjdG9yeT4KCgo8cGFyYW1ldGVyIG5hbWU9Ik5ldXRyYWxpemF0aW9uIERhdGEiIGlkPSIyMyIgZmxhZ3M9IjQyOTkyMjcxODQiPgoJPGZsYWdzPjQyOTkyMjcxODQ8L2ZsYWdzPgoJPG51bWJlck9mS2V5cG9pbnRzPjA8L251bWJlck9mS2V5cG9pbnRzPgoJPGRlZmF1bHRWYWw+KioqKioqKioqUjJlTWItZ09MQm9BMTFJKkU2MS0qSTQta2RNNzVOWlFiQmRQcXRONzQzbU1xVmRSYUptSjBGb1ByLU03NHhXT2FKWFI1QUcqKjQ0YzN3RTFvdEhHcUp0TktGLVFhQmNPTE5aUWgyNjBKNllBNiotY2tnQTVKSVlQYkpnUEJzQjFVd0UyRjZIMy1JSzNsVU40VmdQNGxnUDRsa1A0bGdQNGxnUEs0QmpQYkZtTUxCb0xMQmNNS0ZqUnJCTE1MN2hSNFZPTWFsVk1xaEVQcVppUjNOck1MN2hSNFZJUjRaaVIzbGhPS0ZvUHF0WlFwRmRQYkZLNzRCZ01MQm5LckJjTUtGalJyQklPS3RvS2FWZE5xVmdPS1JjUjVCT1FxM29STDdWUjRaalBaZFdRYVpiTzVGaU5MQm5LNEpzUTR4blJMN1pMYXBkTjVGalBhSm5KcTNtUExGY0pyQmNNS0ZqUnJBV0dsV0tVNiowb1ZzVDYwM083NEJnTUxCblBhM2hOSlVZTXFsVlFyQlpRcHdFNDMtLUZJVjJJWUJqUDR4bUVxeG1RYUpYUjNOVlA1SlpRdTZXNnB3RTQzLS1GSVYySVlCalA0eG1FcXhtUWFKWFIzTlZQNUpaUXBWQ0lveFdPYUpYUioqNiotMio0VSpZKjBZKkFVKnIqMlkqSCotRCozMipKRS1QKjVVKlVFMEQqN2MqY0UwYSo5QSppVTE0KkIyKnIqMWIqRCoqemsyNSpFay0xVTJIKkZzLTdrMzAqSUktTSoqKioqKioqKjYtKioqKioqKioqMEUqKioqKioqKioqKioqKioqKioqM2Q8L2RlZmF1bHRWYWw+Cgk8ZGF0YVZhbHVlPioqKioqKioqKlRFZU1iLWdPTEJvQTExSSpFNjEtKkk0LWtkTTc1TlpRYkJkUHF0Tjc0M21NcVZkUmFKbUowRm9Qci1NNzR4V09hSlhSNUFHKio0NGMzd0Uxb3RIR3FKdE5LRi1RYUJjT0xOWlFoMjYwSjZZQTYqLWNrZ0E2WklZUGJKZ1BCc0IxVXdFMkY2SDMtSUszbFVONFZnUTRsa1E1LW9RNVZrVDYta1ZLNEJqUGJGbU1MQm9MTEJjTUtGalJyQkxNTDdoUjRWT01hbFZNcWhFUHFaaVIzTnJNTDdoUjRWSVI0WmlSM2xoT0tGb1BxdFpRcEZkUGJGSzc0QmdNTEJuS3JCY01LRmpSckJJT0t0b0thVmROcVZnT0tSY1I1Qk9RcTNvUkw3VlI0WmpQWmRXUWFaYk81RmlOTEJuSzRKc1E0eG5STDdaTGFwZE41RmpQYUpuSnEzbVBMRmNKckJjTUtGalJyQVcqKioqKjA3OTQ3TypVKjZXazlvVFBXNy1CLSpNNlh3QmZXWVdFWFFvKng2WDcwSWFLV0ZYUDQzblFxdFZQS0pNNzRCZ01MQm5OTEJUMi1WRUVJSjZGMzcxUHFsalFZQmpRYjdaTXJGS01LbHBOTENXN21WVDItVkVFSUo2RjM3MVBxbGpRWUJqUWI3Wk1yRktNS2xwTkxCTUhaQkRNYWRaTXJFKjAqKkYqLWMqNyoqZCoxNipCay03KjJrKkhrLUYqM0kqS2stcyo2MipYazBPKjgyKmRVMG4qOWMqbFUxRipCayp0azFrKkR3LS1rMkEqRjItMmsyTSpGby02VTJiKkdrLUJrMyoqSmctTFUzdCoqKioqKioqKlUyKioqKioqKioqOEUqKioqKioqKioqKioqKioqKioqTTYqPC9kYXRhVmFsdWU+CjwvcGFyYW1ldGVyPgoKPC9vem1sPgo="/>
+                                    <param name="trigger Enhance" key="18" value="6"/>
+                                    <param name="Exposure" key="3" value="0.553439"/>
+                                    <param name="Contrast" key="17" value="0"/>
+                                    <param name="Brightness" key="2" value="11.2539"/>
+                                    <param name="Highlights" key="7" value="-5.91009"/>
+                                    <param name="Black Point" key="1" value="0"/>
+                                    <param name="Shadows" key="4" value="45.8008"/>
+                                    <param name="Super Highlights" key="25" value="0"/>
+                                    <param name="Saturation" key="16" value="0"/>
+                                    <param name="Highlights Warmth" key="10" value="0"/>
+                                    <param name="Highlights Tint" key="11" value="0"/>
+                                    <param name="Midtones Warmth" key="12" value="0"/>
+                                    <param name="Midtones Tint" key="13" value="0"/>
+                                    <param name="Shadows Warmth" key="14" value="0"/>
+                                    <param name="Shadows Tint" key="15" value="0"/>
+                                </filter-video>
+                            </mc-source>
+                            <keyword start="0s" duration="4212000/24000s" value="busking performance, multi-cam"/>
+                        </mc-clip>
+                        <asset-clip ref="r33" offset="2025000/24000s" name="Studio Broll-08" start="3000/2400s" duration="110000/24000s" tcFormat="NDF">
+                            <adjust-transform>
+                                <param name="anchor">
+                                    <keyframeAnimation>
+                                        <keyframe time="45000/24000s" value="0 0"/>
+                                        <keyframe time="139000/24000s" value="0 0"/>
+                                    </keyframeAnimation>
+                                </param>
+                                <param name="position">
+                                    <keyframeAnimation>
+                                        <keyframe time="45000/24000s" value="0 0"/>
+                                        <keyframe time="139000/24000s" value="0 0"/>
+                                    </keyframeAnimation>
+                                </param>
+                                <param name="rotation">
+                                    <keyframeAnimation>
+                                        <keyframe time="45000/24000s" value="0"/>
+                                        <keyframe time="139000/24000s" value="0"/>
+                                    </keyframeAnimation>
+                                </param>
+                                <param name="scale">
+                                    <keyframeAnimation>
+                                        <keyframe time="45000/24000s" value="1 1"/>
+                                        <keyframe time="139000/24000s" value="1.15 1.15"/>
+                                    </keyframeAnimation>
+                                </param>
+                            </adjust-transform>
+                            <adjust-blend>
+                                <param name="amount">
+                                    <keyframeAnimation>
+                                        <keyframe time="50000/24000s" value="1"/>
+                                        <keyframe time="139000/24000s" value="0"/>
+                                    </keyframeAnimation>
+                                </param>
+                            </adjust-blend>
+                            <keyword start="0s" duration="140000/24000s" value="studio, studio broll"/>
+                        </asset-clip>
+                        <gap name="Gap" offset="2135000/24000s" start="8651000/2400s" duration="800/2400s"/>
+                    </spine>
+                </sequence>
+            </project>
+        </event>
+        <smart-collection name="Projects" match="all">
+            <match-clip rule="is" type="project"/>
+        </smart-collection>
+        <smart-collection name="All Video" match="any">
+            <match-media rule="is" type="videoOnly"/>
+            <match-media rule="is" type="videoWithAudio"/>
+        </smart-collection>
+        <smart-collection name="Audio Only" match="all">
+            <match-media rule="is" type="audioOnly"/>
+        </smart-collection>
+        <smart-collection name="Stills" match="all">
+            <match-media rule="is" type="stills"/>
+        </smart-collection>
+        <smart-collection name="Favorites" match="all">
+            <match-ratings value="favorites"/>
+        </smart-collection>
+        <smart-collection name="Missing Analysis" match="all">
+            <match-analysis-type rule="isMissing" value="any"/>
+        </smart-collection>
+    </library>
+</fcpxml>
