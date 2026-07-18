@@ -36,6 +36,8 @@ jobs:
   macOS:
     name: macOS
     runs-on: macos-26
+    # Swift Testing recompiles a large @Test suite; fail clearly instead of looking hung.
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: ${{ github.workspace }}
@@ -45,16 +47,27 @@ jobs:
       with:
         xcode-version: latest-stable
     - name: Build
-      run: xcodebuild build -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "generic/platform=macOS,name=Any Mac" | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
+      run: |
+        set -o pipefail
+        xcodebuild build -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "generic/platform=macOS,name=Any Mac" | xcbeautify --renderer github-actions
     - name: Unit Tests
-      run: xcodebuild test -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "platform=macOS" | xcbeautify --renderer github-actions | awk '!/^::notice /' && exit ${PIPESTATUS[0]}
+      # Avoid `xcodebuild | xcbeautify | awk`: a third pipe stage + huge Swift Testing
+      # compile output can fill buffers and stall the job with no new log lines.
+      # SPM `swift test` is the native Swift Testing path for this package.
+      run: |
+        set -o pipefail
+        swift test 2>&1 | xcbeautify --renderer github-actions
 
   # Strict concurrency: SWIFT_STRICT_CONCURRENCY=complete
   # (do not use OTHER_SWIFT_FLAGS here — it overrides per-target flags and
   #  strips the experimental "Lifetimes" feature from SwiftExtensions/SwiftTimecodeAV)
+  # Build-only: compile-time Sendable checks. Full test execution is covered by the
+  # macOS job (running the suite twice under xcodebuild was the slow/hang-prone path
+  # after the XCTest → Swift Testing migration).
   macOS-swift6-strict-concurrency:
     name: macOS (strict concurrency)
     runs-on: macos-26
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: ${{ github.workspace }}
@@ -64,9 +77,9 @@ jobs:
       with:
         xcode-version: latest-stable
     - name: Build with strict concurrency
-      run: xcodebuild build -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "generic/platform=macOS,name=Any Mac" SWIFT_STRICT_CONCURRENCY=complete | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
-    - name: Tests with strict concurrency
-      run: xcodebuild test -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "platform=macOS" SWIFT_STRICT_CONCURRENCY=complete | xcbeautify --renderer github-actions | awk '!/^::notice /' && exit ${PIPESTATUS[0]}
+      run: |
+        set -o pipefail
+        xcodebuild build -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "generic/platform=macOS,name=Any Mac" SWIFT_STRICT_CONCURRENCY=complete | xcbeautify --renderer github-actions
 
   # iOS Simulator build (no tests — tests require Foundation XML which is macOS-only)
   iOS:
@@ -90,7 +103,9 @@ jobs:
         scheme: ${{ env.SCHEME }}
         target: iOS
     - name: Build
-      run: xcodebuild build -skipMacroValidation -workspace "$WORKSPACEPATH" -scheme "$SCHEME" -destination "generic/platform=$PLATFORMSHORT" | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
+      run: |
+        set -o pipefail
+        xcodebuild build -skipMacroValidation -workspace "$WORKSPACEPATH" -scheme "$SCHEME" -destination "generic/platform=$PLATFORMSHORT" | xcbeautify --renderer github-actions
       env:
         PLATFORMSHORT: ${{ steps.sim-setup.outputs.platform-short }}
         WORKSPACEPATH: ${{ steps.sim-setup.outputs.workspace-path }}
