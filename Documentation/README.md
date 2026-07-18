@@ -22,20 +22,26 @@ The manual is split into **chapters** for easier navigation and maintenance:
 | [08 — Timeline Manipulation](Manual/08-Timeline-Manipulation.md) | Ripple insert, auto lane, clip queries, lane range |
 | [09 — Timeline Metadata](Manual/09-Timeline-Metadata.md) | Markers, chapter markers, keywords, ratings, timestamps |
 | [10 — Extraction & Media](Manual/10-Extraction-Media.md) | Extraction scope and presets, media extraction and copy |
-| [20 — Timeline Projection](Manual/20-Timeline-Projection.md) | `TimelineProjector`, `MediaUsageWindow`, options, occupancy, report project-once |
-| [11 — Media Processing](Manual/11-Media-Processing.md) | MIME type, asset validation, silence detection, duration, parallel I/O |
-| [12 — Typed Models](Manual/12-Typed-Models.md) | Adjustments, filters, captions/titles, keyframe animation, Live Drawing, collections |
-| [13 — XML Extensions](Manual/13-XML-Extensions.md) | OFKXMLDocument and OFKXMLElement FCPXML extensions (cross-platform) |
-| [14 — High-Level Model](Manual/14-High-Level-Model.md) | FinalCutPro.FCPXML, Root, events, projects |
-| [18 — Cross-Platform & iOS](Manual/18-Cross-Platform-iOS.md) | XML abstraction layer, Foundation vs AEXML, iOS support |
-| [15 — Errors & Utilities](Manual/15-Errors-Utilities.md) | Error types, ErrorHandling, ProgressBar, FCPXMLUID |
-| [16 — CLI](Manual/16-CLI.md) | Experimental command-line interface (OpenFCPXMLKit-CLI) |
-| [17 — Examples](Manual/17-Examples.md) | End-to-end workflows and code examples |
+| [11 — Timeline Projection](Manual/11-Timeline-Projection.md) | `TimelineProjector`, `MediaUsageWindow`, options, occupancy, report project-once |
+| [12 — Media Processing](Manual/12-Media-Processing.md) | MIME type, asset validation, silence detection, duration, parallel I/O |
+| [13 — Typed Models](Manual/13-Typed-Models.md) | Adjustments, filters, captions/titles, keyframe animation, Live Drawing, collections |
+| [14 — XML Extensions](Manual/14-XML-Extensions.md) | OFKXMLDocument and OFKXMLElement FCPXML extensions (cross-platform) |
+| [15 — High-Level Model](Manual/15-High-Level-Model.md) | FinalCutPro.FCPXML, Root, events, projects |
+| [16 — Cross-Platform & iOS](Manual/16-Cross-Platform-iOS.md) | XML abstraction layer, Foundation vs AEXML, iOS support |
+| [17 — Errors & Utilities](Manual/17-Errors-Utilities.md) | Error types, ErrorHandling, ProgressBar, FCPXMLUID |
+| [18 — CLI](Manual/18-CLI.md) | Experimental command-line interface (OpenFCPXMLKit-CLI) |
 | [19 — Reporting, Excel & PDF Export](Manual/19-Reporting.md) | Report builder, ReportOptions (`copyrightLabel`, `includeMarkersOutsideClipBoundaries`, `protectSheets`, …), Projection-first sections, Excel/PDF export |
+| [20 — Examples](Manual/20-Examples.md) | End-to-end workflows and code examples |
 
-The manual covers the **entire public API** with examples: core operations, async/await, file I/O, validation, timeline creation and manipulation, metadata, media processing, typed models, version conversion, **Timeline Projection**, reporting and Excel/PDF export, CLI, and utilities. **Chapter 18** describes the cross-platform XML abstraction. **Chapter 19** covers reporting. **Chapter 20** covers Projection (`MediaUsageWindow`, project-once for reports). Architecture philosophy: [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7. Hard constraints: [GUARDRAILS.md](../GUARDRAILS.md).
+The manual covers the **entire public API** with examples: core operations, async/await, file I/O, validation, timeline creation and manipulation, metadata, media processing, typed models, version conversion, **Timeline Projection**, reporting and Excel/PDF export, CLI, and utilities.
 
-**Test count (keep in sync):** **1084** listed in `swift test --list-tests` — **1078** in `OpenFCPXMLKitTests` (1075 XCTest + 3 `@Test`) + **6** optional `ExcelReportTest`; **60** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML/](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
+- **Chapter 11** — Projection (`MediaUsageWindow`, project-once for reports)
+- **Chapter 16** — Cross-platform XML abstraction (OFKXML)
+- **Chapter 19** — Reporting (Excel & PDF)
+
+Architecture philosophy: [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7. Hard constraints: [GUARDRAILS.md](../GUARDRAILS.md).
+
+**Test count (keep in sync):** **1084** listed in `swift test list` — **1078** in `OpenFCPXMLKitTests` + **6** optional `ExcelReportTest` (all Swift Testing `@Test`); **60** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
 
 ---
 
@@ -43,7 +49,7 @@ The manual covers the **entire public API** with examples: core operations, asyn
 
 - **[CLI](../Sources/OpenFCPXMLKitCLI/README.md)** — Full CLI usage, options, building, extending, and regenerating embedded DTDs (`Scripts/generate_embedded_dtds.sh` or `swift run GenerateEmbeddedDTDs`).
 - **Project [README](../README.md)** — Installation, architecture, requirements.
-- **[Tests/README.md](../Tests/README.md)** — Test suite layout and categories (including §12a Submitted FCPXML).
+- **[Tests/README.md](../Tests/README.md)** — Test suite layout and categories (including Submitted FCPXML).
 - **[Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md)** — Private inbox workflow for parsing / reporting edge cases (local only).
 - **[ARCHITECTURE.md](../ARCHITECTURE.md)** — Layer stack, Projection, reporting.
 - **[GUARDRAILS.md](../GUARDRAILS.md)** — Must / must-not constraints (layers, naming, tests, reporting honesty).

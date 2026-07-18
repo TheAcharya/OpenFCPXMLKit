@@ -8,22 +8,25 @@
 //	File Tests: MulticamSample.fcpxml, MulticamSampleWithCuts.fcpxml.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFileTest_Multicam: XCTestCase {
+@Suite("File test multicam")
+struct FCPXMLFileTest_Multicam {
 
-    func testMulticamSample() throws {
-        let fcpxml = try loadFCPXMLSample(named: "MulticamSample")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertEqual(fcpxml.version, .ver1_13)
+    @Test("MulticamSample")
+    func multicamSample() throws {
+        let fcpxml = try requireFCPXMLSample(named: "MulticamSample")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.version == .ver1_13)
         let events = fcpxml.allEvents()
-        XCTAssertFalse(events.isEmpty, "Expected at least one event")
+        let hasEvents = !events.isEmpty
+        #expect(hasEvents, "Expected at least one event")
         let projects = fcpxml.allProjects()
-        XCTAssertFalse(projects.isEmpty, "Expected at least one project")
-        
-        // Verify multicam resources exist
+        let hasProjects = !projects.isEmpty
+        #expect(hasProjects, "Expected at least one project")
+
         let resources = fcpxml.root.resources
         let mediaResources = resources.childElements.filter { $0.name == "media" }
         var foundMulticam = false
@@ -33,28 +36,27 @@ final class FCPXMLFileTest_Multicam: XCTestCase {
                 break
             }
         }
-        XCTAssertTrue(foundMulticam, "Should find multicam resource")
+        #expect(foundMulticam, "Should find multicam resource")
     }
 
-    func testMulticamSampleWithCuts() throws {
-        let fcpxml = try loadFCPXMLSample(named: "MulticamSampleWithCuts")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertEqual(fcpxml.version, .ver1_13)
+    @Test("MulticamSampleWithCuts")
+    func multicamSampleWithCuts() throws {
+        let fcpxml = try requireFCPXMLSample(named: "MulticamSampleWithCuts")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.version == .ver1_13)
         let events = fcpxml.allEvents()
-        XCTAssertFalse(events.isEmpty, "Expected at least one event")
+        let hasEvents = !events.isEmpty
+        #expect(hasEvents, "Expected at least one event")
         let projects = fcpxml.allProjects()
-        XCTAssertFalse(projects.isEmpty, "Expected at least one project")
-        
-        guard let project = projects.first else {
-            XCTFail("No project found")
-            return
-        }
-        
-        let sequence = try XCTUnwrap(project.sequence)
+        let hasProjects = !projects.isEmpty
+        #expect(hasProjects, "Expected at least one project")
+
+        let project = try #require(projects.first, "No project found")
+
+        let sequence = project.sequence
         let spine = sequence.spine
         let storyElements = Array(spine.storyElements)
-        
-        // Verify multicam clips exist in timeline
+
         var foundMulticamClip = false
         for element in storyElements {
             if element.name == "mc-clip" {
@@ -62,22 +64,21 @@ final class FCPXMLFileTest_Multicam: XCTestCase {
                 break
             }
         }
-        XCTAssertTrue(foundMulticamClip, "Should find multicam clips in timeline")
+        #expect(foundMulticamClip, "Should find multicam clips in timeline")
     }
 
-    func testLoadViaLoaderAndParseViaService() throws {
+    @Test("Load via loader and parse via service")
+    func loadViaLoaderAndParseViaService() throws {
         for name in ["MulticamSample", "MulticamSampleWithCuts"] {
             let url = urlForFCPXMLSample(named: name)
-            guard FileManager.default.fileExists(atPath: url.path) else {
-                throw XCTSkip("\(name).fcpxml not found")
-            }
+            _ = try requireFCPXMLSampleData(named: name)
             let loader = FCPXMLFileLoader()
             let doc = try loader.loadDocument(from: url)
-            XCTAssertEqual(doc.rootElement()?.name, "fcpxml", "\(name).fcpxml")
+            #expect(doc.rootElement()?.name == "fcpxml", "\(name).fcpxml")
             let service = FCPXMLService()
             let data = try Data(contentsOf: url)
             let parsed = try service.parseFCPXML(from: data)
-            XCTAssertEqual(parsed.rootElement()?.name, "fcpxml", "\(name).fcpxml")
+            #expect(parsed.rootElement()?.name == "fcpxml", "\(name).fcpxml")
         }
     }
 }

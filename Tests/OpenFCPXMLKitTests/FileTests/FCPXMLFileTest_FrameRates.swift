@@ -8,36 +8,39 @@
 //	File Tests: All frame-rate samples (23.98, 24, 24With25Media, 25i, 29.97, 29.97d, 30, 50, 59.94, 60). Mirrors DAW one-file-per-frame-rate pattern.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFileTest_FrameRates: XCTestCase {
+@Suite("File test frame rates")
+struct FCPXMLFileTest_FrameRates {
 
-    func testEachFrameRateSampleParsesAndHasValidRoot() throws {
+    @Test("Each frame rate sample parses and has valid root")
+    func eachFrameRateSampleParsesAndHasValidRoot() throws {
         for name in fcpxmlFrameRateSampleNames {
-            let url = urlForFCPXMLSample(named: name)
-            guard FileManager.default.fileExists(atPath: url.path) else { continue }
-            let data = try Data(contentsOf: url)
-            let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
-            XCTAssertEqual(fcpxml.root.element.name, "fcpxml", "\(name).fcpxml")
-            XCTAssertTrue(fcpxml.version.major >= 1 && fcpxml.version.minor >= 5, "\(name).fcpxml version")
+            let fcpxml = try requireFCPXMLSample(named: name)
+            #expect(fcpxml.root.element.name == "fcpxml", "\(name).fcpxml")
+            let versionOK = fcpxml.version.major >= 1 && fcpxml.version.minor >= 5
+            #expect(versionOK, "\(name).fcpxml version")
         }
     }
 
-    func testFrameRateSample_24() throws {
-        let fcpxml = try loadFCPXMLSample(named: "24")
-        XCTAssertEqual(fcpxml.version, .ver1_11)
-        XCTAssertFalse(fcpxml.allProjects().isEmpty)
+    @Test("Frame rate sample 24")
+    func frameRateSample_24() throws {
+        let fcpxml = try requireFCPXMLSample(named: "24")
+        #expect(fcpxml.version == .ver1_11)
+        let hasProjects = !fcpxml.allProjects().isEmpty
+        #expect(hasProjects)
     }
 
-    func testFrameRateSample_29_97() throws {
-        let fcpxml = try loadFCPXMLSample(named: "29.97")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
+    @Test("Frame rate sample 29.97")
+    func frameRateSample_29_97() throws {
+        let fcpxml = try requireFCPXMLSample(named: "29.97")
+        #expect(fcpxml.root.element.name == "fcpxml")
     }
 
-    func testFrameRateSample_60() throws {
-        let fcpxml = try loadFCPXMLSample(named: "60")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
+    @Test("Frame rate sample 60")
+    func frameRateSample_60() throws {
+        let fcpxml = try requireFCPXMLSample(named: "60")
+        #expect(fcpxml.root.element.name == "fcpxml")
     }
 }

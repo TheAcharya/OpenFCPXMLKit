@@ -8,30 +8,35 @@
 //	File Tests: CompoundClips.fcpxml, CompoundClipSample.fcpxml.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFileTest_CompoundClips: XCTestCase {
+@Suite("File test compound clips")
+struct FCPXMLFileTest_CompoundClips {
 
-    func testParse() throws {
-        let fcpxml = try loadFCPXMLSample(named: "CompoundClips")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertFalse(fcpxml.allProjects().isEmpty)
+    @Test("Parse CompoundClips sample")
+    func parse() throws {
+        let fcpxml = try requireFCPXMLSample(named: "CompoundClips")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        let hasProjects = !fcpxml.allProjects().isEmpty
+        #expect(hasProjects)
     }
 
-    func testCompoundClipSample() throws {
-        let fcpxml = try loadFCPXMLSample(named: "CompoundClipSample")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertEqual(fcpxml.version, .ver1_13)
+    @Test("CompoundClipSample")
+    func compoundClipSample() throws {
+        let fcpxml = try requireFCPXMLSample(named: "CompoundClipSample")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.version == .ver1_13)
         let events = fcpxml.allEvents()
-        XCTAssertFalse(events.isEmpty, "Expected at least one event")
+        let hasEvents = !events.isEmpty
+        #expect(hasEvents, "Expected at least one event")
         let projects = fcpxml.allProjects()
-        XCTAssertFalse(projects.isEmpty, "Expected at least one project")
-        
-        // Verify compound clip resources exist
+        let hasProjects = !projects.isEmpty
+        #expect(hasProjects, "Expected at least one project")
+
         let resources = fcpxml.root.resources
         let mediaResources = resources.childElements.filter { $0.name == "media" }
-        XCTAssertFalse(mediaResources.isEmpty, "Expected media resources for compound clips")
+        let hasMediaResources = !mediaResources.isEmpty
+        #expect(hasMediaResources, "Expected media resources for compound clips")
     }
 }

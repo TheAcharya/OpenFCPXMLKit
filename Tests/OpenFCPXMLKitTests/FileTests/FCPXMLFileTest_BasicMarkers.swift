@@ -8,29 +8,33 @@
 //	File tests for BasicMarkers.fcpxml: marker parsing and event/project structure.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFileTest_BasicMarkers: XCTestCase {
+@Suite("File test basic markers")
+struct FCPXMLFileTest_BasicMarkers {
 
-    func testParse() throws {
-        let fcpxml = try loadFCPXMLSample(named: "BasicMarkers")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertEqual(fcpxml.version, .ver1_9)
+    @Test("Parse BasicMarkers sample")
+    func parse() throws {
+        let fcpxml = try requireFCPXMLSample(named: "BasicMarkers")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.version == .ver1_9)
         let root = fcpxml.root.element
-        XCTAssertEqual(root.xmlString, fcpxml.root.element.xmlString)
+        #expect(root.xmlString == fcpxml.root.element.xmlString)
         let resources = fcpxml.root.resources
-        XCTAssertGreaterThanOrEqual(resources.childElements.count, 1)
+        #expect(resources.childElements.count >= 1)
         let library = fcpxml.root.library
-        XCTAssertNotNil(library)
+        #expect(library != nil)
     }
 
-    func testAllEventsAndProjects() throws {
-        let fcpxml = try loadFCPXMLSample(named: "BasicMarkers")
+    @Test("All events and projects")
+    func allEventsAndProjects() throws {
+        let fcpxml = try requireFCPXMLSample(named: "BasicMarkers")
         let events = fcpxml.allEvents()
-        XCTAssertFalse(events.isEmpty)
+        let hasEvents = !events.isEmpty
+        #expect(hasEvents)
         let projects = fcpxml.allProjects()
-        XCTAssertFalse(projects.isEmpty)
+        let hasProjects = !projects.isEmpty
+        #expect(hasProjects)
     }
 }

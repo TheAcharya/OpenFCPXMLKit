@@ -1,4 +1,4 @@
-# 20 — Timeline Projection
+# 11 — Timeline Projection
 
 [← Manual Index](00-Index.md)
 
@@ -154,7 +154,8 @@ For private complex exports used only while debugging Projection/reporting, use 
 
 ## Next
 
+- [12 — Media Processing](12-Media-Processing.md) — MIME type, asset validation, silence, duration, parallel I/O.
 - [19 — Reporting, Excel & PDF Export](19-Reporting.md) — build Excel/PDF from Projection + Extraction.
-- [17 — Examples](17-Examples.md) — end-to-end workflows.
+- [20 — Examples](20-Examples.md) — end-to-end workflows.
 
 [← Manual Index](00-Index.md)

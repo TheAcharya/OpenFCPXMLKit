@@ -36,7 +36,7 @@ let package = Package(
         // Cross-platform XML parsing (AEXML backend for iOS and other non-macOS platforms)
         .package(url: "https://github.com/tadija/AEXML", from: "4.7.0"),
         // Excel file creation
-        .package(url: "https://github.com/TheAcharya/XLKit", from: "1.1.6"),
+        .package(url: "https://github.com/TheAcharya/XLKit", from: "1.1.7"),
     ],
     // Targets: core library, tests, user CLI, and DTD generator utility.
     targets: [
@@ -65,13 +65,15 @@ let package = Package(
             exclude: ["README.md", "ExcelReportTest", "Submitted FCPXML"],
             sources: ["OpenFCPXMLKitTests"],
             resources: [.process("FCPXML Samples/FCPXML")]),
+        // ExcelReportTest READMEs are docs only (not test sources/resources).
         .testTarget(
             name: "ExcelReportTest",
             dependencies: [
                 "OpenFCPXMLKit",
                 .product(name: "XLKit", package: "XLKit"),
             ],
-            path: "Tests/ExcelReportTest"),
+            path: "Tests/ExcelReportTest",
+            exclude: ["README.md", "Output/README.md"]),
         // End-user CLI target
         .executableTarget(
             name: "OpenFCPXMLKitCLI",

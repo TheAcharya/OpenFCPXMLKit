@@ -343,7 +343,7 @@ extension OFKXMLElement {
         case .assetClip:
             // A connected asset-clip that remaps its own channels via active
             // audio-channel-source elements is a standalone connected-audio host (for
-            // example an Atmos or effects clip anchored inside a sync-clip), so it is
+            // example an atmosphere or effects clip anchored inside a sync-clip), so it is
             // inventoried in its own right rather than through the parent host.
             if fcpHasActiveInventoryAudioChannelSources() {
                 return false

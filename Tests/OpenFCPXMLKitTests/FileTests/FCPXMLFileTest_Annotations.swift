@@ -8,16 +8,19 @@
 //	File Tests: Annotations.fcpxml.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFileTest_Annotations: XCTestCase {
+@Suite("File test annotations")
+struct FCPXMLFileTest_Annotations {
 
-    func testParse() throws {
-        let fcpxml = try loadFCPXMLSample(named: "Annotations")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertFalse(fcpxml.allEvents().isEmpty)
-        XCTAssertFalse(fcpxml.allProjects().isEmpty)
+    @Test("Parse Annotations sample")
+    func parse() throws {
+        let fcpxml = try requireFCPXMLSample(named: "Annotations")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        let hasEvents = !fcpxml.allEvents().isEmpty
+        #expect(hasEvents)
+        let hasProjects = !fcpxml.allProjects().isEmpty
+        #expect(hasProjects)
     }
 }

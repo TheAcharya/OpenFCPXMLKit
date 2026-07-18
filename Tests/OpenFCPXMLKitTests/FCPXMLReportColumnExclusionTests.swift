@@ -8,62 +8,66 @@
 //	Tests for global workbook column exclusion.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 import XLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLReportColumnExclusionTests: XCTestCase {
+@Suite("Report column exclusion")
+struct FCPXMLReportColumnExclusionTests {
     private typealias Layout = FinalCutPro.FCPXML.RoleInventoryColumnLayout
     private typealias Column = FinalCutPro.FCPXML.ReportColumn
-    
-    func testResolveColumnAcceptsCommonAliases() {
-        XCTAssertEqual(
-            FinalCutPro.FCPXML.ReportColumnExclusion.resolveColumn("Row Numbers"),
-            .row
+
+    @Test("Resolve column accepts common aliases")
+    func resolveColumnAcceptsCommonAliases() {
+        #expect(
+            FinalCutPro.FCPXML.ReportColumnExclusion.resolveColumn("Row Numbers")
+                == .row
         )
-        XCTAssertEqual(
-            FinalCutPro.FCPXML.ReportColumnExclusion.resolveColumn("Role • Subrole"),
-            .roleSubrole
+        #expect(
+            FinalCutPro.FCPXML.ReportColumnExclusion.resolveColumn("Role • Subrole")
+                == .roleSubrole
         )
-        XCTAssertEqual(
-            FinalCutPro.FCPXML.ReportColumnExclusion.resolveColumn("frame rate"),
-            .frameRateSampleRate
+        #expect(
+            FinalCutPro.FCPXML.ReportColumnExclusion.resolveColumn("frame rate")
+                == .frameRateSampleRate
         )
-        XCTAssertEqual(
-            FinalCutPro.FCPXML.ReportColumnExclusion.resolveColumn("Metadata"),
-            .metadata
+        #expect(
+            FinalCutPro.FCPXML.ReportColumnExclusion.resolveColumn("Metadata")
+                == .metadata
         )
     }
-    
-    func testColumnHeadersOmitExcludedColumns() {
+
+    @Test("Column headers omit excluded columns")
+    func columnHeadersOmitExcludedColumns() {
         let ingestKey = FinalCutPro.FCPXML.Metadata.Key.ingestDate.rawValue
         let headers = Layout.columnHeaders(
             metadataColumnKeys: [ingestKey],
             excludedColumns: [.row, .enabled, .metadata]
         )
-        
-        XCTAssertFalse(headers.contains("Row"))
-        XCTAssertFalse(headers.contains("Enabled"))
-        XCTAssertFalse(headers.contains(ingestKey))
-        XCTAssertTrue(headers.contains("Clip Name"))
-        XCTAssertTrue(headers.contains("Role ▸ Subrole"))
+
+        #expect(!headers.contains("Row"))
+        #expect(!headers.contains("Enabled"))
+        #expect(!headers.contains(ingestKey))
+        #expect(headers.contains("Clip Name"))
+        #expect(headers.contains("Role ▸ Subrole"))
     }
-    
-    func testColumnHeadersUseTimecodeFormatSuffix() {
+
+    @Test("Column headers use timecode format suffix")
+    func columnHeadersUseTimecodeFormatSuffix() {
         let headers = Layout.columnHeaders(
             metadataColumnKeys: [],
             timecodeFormat: .frames
         )
-        
-        XCTAssertEqual(headers[5], "Timeline In (frames)")
-        XCTAssertEqual(headers[6], "Timeline Out (frames)")
-        XCTAssertEqual(headers[7], "Clip Duration (frames)")
-        XCTAssertEqual(headers[8], "Source In (frames)")
+
+        #expect(headers[5] == "Timeline In (frames)")
+        #expect(headers[6] == "Timeline Out (frames)")
+        #expect(headers[7] == "Clip Duration (frames)")
+        #expect(headers[8] == "Source In (frames)")
     }
-    
-    func testExclusionMatchesFormatSuffixedTimelineInHeader() {
-        XCTAssertTrue(
+
+    @Test("Exclusion matches format-suffixed Timeline In header")
+    func exclusionMatchesFormatSuffixedTimelineInHeader() {
+        #expect(
             FinalCutPro.FCPXML.ReportColumnExclusion.isHeaderExcluded(
                 "Timeline In (frames)",
                 excluded: [.timelineIn],
@@ -71,8 +75,9 @@ final class FCPXMLReportColumnExclusionTests: XCTestCase {
             )
         )
     }
-    
-    func testColumnValuesAlignWithExcludedHeaders() {
+
+    @Test("Column values align with excluded headers")
+    func columnValuesAlignWithExcludedHeaders() {
         let ingestKey = FinalCutPro.FCPXML.Metadata.Key.ingestDate.rawValue
         let row = FinalCutPro.FCPXML.RoleClipReportRow(
             roleSubrole: "Video",
@@ -87,7 +92,7 @@ final class FCPXMLReportColumnExclusionTests: XCTestCase {
             sourceDuration: "",
             metadataValues: [ingestKey: "2024-01-01"]
         )
-        
+
         let excluded: Set<Column> = [.row, .metadata]
         let headers = Layout.columnHeaders(
             metadataColumnKeys: [ingestKey],
@@ -99,15 +104,16 @@ final class FCPXMLReportColumnExclusionTests: XCTestCase {
             metadataColumnKeys: [ingestKey],
             excludedColumns: excluded
         )
-        
-        XCTAssertEqual(headers.count, values.count)
-        XCTAssertEqual(headers.first, "Role ▸ Subrole")
-        XCTAssertEqual(values.first, "Video")
-        XCTAssertFalse(headers.contains(ingestKey))
+
+        #expect(headers.count == values.count)
+        #expect(headers.first == "Role ▸ Subrole")
+        #expect(values.first == "Video")
+        #expect(!headers.contains(ingestKey))
     }
-    
+
+    @Test("Workbook export omits excluded inventory columns")
     @MainActor
-    func testWorkbookExportOmitsExcludedInventoryColumns() {
+    func workbookExportOmitsExcludedInventoryColumns() {
         let ingestKey = FinalCutPro.FCPXML.Metadata.Key.ingestDate.rawValue
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test",
@@ -131,18 +137,19 @@ final class FCPXMLReportColumnExclusionTests: XCTestCase {
             ),
             excludedColumns: [.row, .enabled, .metadata]
         )
-        
+
         let sheet = FinalCutPro.FCPXML.ReportExcelExport
             .makeWorkbook(from: report)
             .getSheet(name: FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName)
-        
-        XCTAssertEqual(sheet?.getCellWithFormat("A1")?.value.stringValue, "Role ▸ Subrole")
-        XCTAssertEqual(sheet?.getCellWithFormat("B1")?.value.stringValue, "Clip Name")
-        XCTAssertEqual(sheet?.getCellWithFormat("C1")?.value.stringValue, "Category")
+
+        #expect(sheet?.getCellWithFormat("A1")?.value.stringValue == "Role ▸ Subrole")
+        #expect(sheet?.getCellWithFormat("B1")?.value.stringValue == "Clip Name")
+        #expect(sheet?.getCellWithFormat("C1")?.value.stringValue == "Category")
     }
-    
+
+    @Test("Workbook export omits excluded columns from Markers sheet")
     @MainActor
-    func testWorkbookExportOmitsExcludedColumnsFromMarkersSheet() {
+    func workbookExportOmitsExcludedColumnsFromMarkersSheet() {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test",
             markers: FinalCutPro.FCPXML.MarkersReportSection(rows: [
@@ -160,66 +167,69 @@ final class FCPXMLReportColumnExclusionTests: XCTestCase {
             ]),
             excludedColumns: [.reel, .scene, .notes]
         )
-        
+
         let sheet = FinalCutPro.FCPXML.ReportExcelExport
             .makeWorkbook(from: report)
             .getSheet(name: FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName)
-        
-        XCTAssertEqual(sheet?.getCellWithFormat("A1")?.value.stringValue, "Row")
-        XCTAssertEqual(sheet?.getCellWithFormat("B1")?.value.stringValue, "Marker Name")
-        XCTAssertEqual(sheet?.getCellWithFormat("C1")?.value.stringValue, "Type")
-        XCTAssertEqual(sheet?.getCellWithFormat("D1")?.value.stringValue, "Position")
-        XCTAssertFalse(
-            [
-                sheet?.getCellWithFormat("A1")?.value.stringValue,
-                sheet?.getCellWithFormat("B1")?.value.stringValue,
-                sheet?.getCellWithFormat("C1")?.value.stringValue,
-                sheet?.getCellWithFormat("D1")?.value.stringValue,
-                sheet?.getCellWithFormat("E1")?.value.stringValue,
-                sheet?.getCellWithFormat("F1")?.value.stringValue,
-                sheet?.getCellWithFormat("G1")?.value.stringValue
-            ].contains("Reel")
-        )
+
+        let headerCells = [
+            sheet?.getCellWithFormat("A1")?.value.stringValue,
+            sheet?.getCellWithFormat("B1")?.value.stringValue,
+            sheet?.getCellWithFormat("C1")?.value.stringValue,
+            sheet?.getCellWithFormat("D1")?.value.stringValue,
+            sheet?.getCellWithFormat("E1")?.value.stringValue,
+            sheet?.getCellWithFormat("F1")?.value.stringValue,
+            sheet?.getCellWithFormat("G1")?.value.stringValue
+        ]
+        #expect(headerCells[0] == "Row")
+        #expect(headerCells[1] == "Marker Name")
+        #expect(headerCells[2] == "Type")
+        #expect(headerCells[3] == "Position")
+        #expect(!headerCells.contains(where: { $0 == "Reel" }))
     }
-    
-    func testEnsuringRowColumnPrependsOneBasedIndices() {
+
+    @Test("ensuringRowColumn prepends one-based indices")
+    func ensuringRowColumnPrependsOneBasedIndices() {
         let prepared = FinalCutPro.FCPXML.ReportColumnExclusion.ensuringRowColumn(
             headers: ["Marker Name", "Type"],
             rows: [["Marker A", "Standard"], ["Marker B", "Chapter"]],
             excluded: []
         )
-        
-        XCTAssertEqual(prepared.headers, ["Row", "Marker Name", "Type"])
-        XCTAssertEqual(prepared.rows, [
+
+        #expect(prepared.headers == ["Row", "Marker Name", "Type"])
+        #expect(prepared.rows == [
             ["1", "Marker A", "Standard"],
             ["2", "Marker B", "Chapter"]
         ])
     }
-    
-    func testEnsuringRowColumnRespectsRowExclusion() {
+
+    @Test("ensuringRowColumn respects Row exclusion")
+    func ensuringRowColumnRespectsRowExclusion() {
         let prepared = FinalCutPro.FCPXML.ReportColumnExclusion.ensuringRowColumn(
             headers: ["Marker Name", "Type"],
             rows: [["Marker A", "Standard"]],
             excluded: [.row]
         )
-        
-        XCTAssertEqual(prepared.headers, ["Marker Name", "Type"])
-        XCTAssertEqual(prepared.rows, [["Marker A", "Standard"]])
+
+        #expect(prepared.headers == ["Marker Name", "Type"])
+        #expect(prepared.rows == [["Marker A", "Standard"]])
     }
-    
-    func testFilterPrependsRowThenAppliesOtherExclusions() {
+
+    @Test("filter prepends Row then applies other exclusions")
+    func filterPrependsRowThenAppliesOtherExclusions() {
         let filtered = FinalCutPro.FCPXML.ReportColumnExclusion.filter(
             headers: ["Marker Name", "Notes", "Reel"],
             rows: [["Marker A", "Note", "A001"]],
             excluded: [.notes]
         )
-        
-        XCTAssertEqual(filtered.headers, ["Row", "Marker Name", "Reel"])
-        XCTAssertEqual(filtered.rows, [["1", "Marker A", "A001"]])
+
+        #expect(filtered.headers == ["Row", "Marker Name", "Reel"])
+        #expect(filtered.rows == [["1", "Marker A", "A001"]])
     }
-    
+
+    @Test("Workbook export includes Row on section sheets")
     @MainActor
-    func testWorkbookExportIncludesRowOnSectionSheets() {
+    func workbookExportIncludesRowOnSectionSheets() {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test",
             markers: FinalCutPro.FCPXML.MarkersReportSection(rows: [
@@ -298,9 +308,9 @@ final class FCPXMLReportColumnExclusionTests: XCTestCase {
                 missingMediaPaths: ["/missing/clip.mov"]
             )
         )
-        
+
         let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
-        
+
         let sheetNames = [
             FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName,
             FinalCutPro.FCPXML.KeywordsReportSection.defaultSheetName,
@@ -310,31 +320,30 @@ final class FCPXMLReportColumnExclusionTests: XCTestCase {
             FinalCutPro.FCPXML.SpeedChangeEffectsReportSection.defaultSheetName,
             FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName
         ]
-        
+
         for name in sheetNames {
             let sheet = workbook.getSheet(name: name)
-            XCTAssertEqual(
-                sheet?.getCellWithFormat("A1")?.value.stringValue,
-                "Row",
+            #expect(
+                sheet?.getCellWithFormat("A1")?.value.stringValue == "Row",
                 "Expected Row as first column on \(name)"
             )
-            XCTAssertEqual(
-                sheet?.getCellWithFormat("A2")?.value.stringValue,
-                "1",
+            #expect(
+                sheet?.getCellWithFormat("A2")?.value.stringValue == "1",
                 "Expected 1-based row index on \(name)"
             )
         }
-        
+
         let summary = workbook.getSheet(
             name: FinalCutPro.FCPXML.SummaryReportSection.defaultSheetName
         )
-        XCTAssertEqual(summary?.getCellWithFormat("A1")?.value.stringValue, "Row")
-        XCTAssertEqual(summary?.getCellWithFormat("B1")?.value.stringValue, "Role ▸ Subrole")
-        XCTAssertEqual(summary?.getCellWithFormat("A2")?.value.stringValue, "1")
+        #expect(summary?.getCellWithFormat("A1")?.value.stringValue == "Row")
+        #expect(summary?.getCellWithFormat("B1")?.value.stringValue == "Role ▸ Subrole")
+        #expect(summary?.getCellWithFormat("A2")?.value.stringValue == "1")
     }
-    
+
+    @Test("Workbook export omits Row from section sheets when excluded")
     @MainActor
-    func testWorkbookExportOmitsRowFromSectionSheetsWhenExcluded() {
+    func workbookExportOmitsRowFromSectionSheetsWhenExcluded() {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test",
             markers: FinalCutPro.FCPXML.MarkersReportSection(rows: [
@@ -352,29 +361,30 @@ final class FCPXMLReportColumnExclusionTests: XCTestCase {
             ),
             excludedColumns: [.row]
         )
-        
+
         let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
-        
+
         let markers = workbook.getSheet(
             name: FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName
         )
-        XCTAssertEqual(markers?.getCellWithFormat("A1")?.value.stringValue, "Marker Name")
-        XCTAssertEqual(markers?.getCellWithFormat("A2")?.value.stringValue, "Marker A")
-        
+        #expect(markers?.getCellWithFormat("A1")?.value.stringValue == "Marker Name")
+        #expect(markers?.getCellWithFormat("A2")?.value.stringValue == "Marker A")
+
         let media = workbook.getSheet(
             name: FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName
         )
-        XCTAssertEqual(media?.getCellWithFormat("A1")?.value.stringValue, "Missing Media")
-        XCTAssertEqual(media?.getCellWithFormat("A2")?.value.stringValue, "/missing/clip.mov")
+        #expect(media?.getCellWithFormat("A1")?.value.stringValue == "Missing Media")
+        #expect(media?.getCellWithFormat("A2")?.value.stringValue == "/missing/clip.mov")
     }
-    
+
     /// Selected Roles uses a global 1-based Row sequence; each role sheet renumbers from 1.
+    @Test("Inventory Row renumbers independently on Selected Roles and role sheets")
     @MainActor
-    func testWorkbookInventoryRowRenumbersIndependentlyOnSelectedRolesAndRoleSheets() throws {
+    func workbookInventoryRowRenumbersIndependentlyOnSelectedRolesAndRoleSheets() throws {
         let videoA = inventoryRow(roleSubrole: "Video", clipName: "Clip A")
         let dialogue = inventoryRow(roleSubrole: "Dialogue", clipName: "Clip B")
         let videoC = inventoryRow(roleSubrole: "Video", clipName: "Clip C")
-        
+
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test",
             roleInventory: FinalCutPro.FCPXML.RoleInventoryReportSection(
@@ -385,36 +395,37 @@ final class FCPXMLReportColumnExclusionTests: XCTestCase {
                 ]
             )
         )
-        
+
         let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
-        let selected = try XCTUnwrap(
+        let selected = try #require(
             workbook.getSheet(name: FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName)
         )
-        let videoSheet = try XCTUnwrap(workbook.getSheet(name: "Video"))
-        let dialogueSheet = try XCTUnwrap(workbook.getSheet(name: "Dialogue"))
-        
-        XCTAssertEqual(selected.getCellWithFormat("A1")?.value.stringValue, "Row")
-        XCTAssertEqual(selected.getCellWithFormat("A2")?.value.stringValue, "1")
-        XCTAssertEqual(selected.getCellWithFormat("A3")?.value.stringValue, "2")
-        XCTAssertEqual(selected.getCellWithFormat("A4")?.value.stringValue, "3")
-        XCTAssertEqual(selected.getCellWithFormat("C2")?.value.stringValue, "Clip A")
-        XCTAssertEqual(selected.getCellWithFormat("C3")?.value.stringValue, "Clip B")
-        XCTAssertEqual(selected.getCellWithFormat("C4")?.value.stringValue, "Clip C")
-        
+        let videoSheet = try #require(workbook.getSheet(name: "Video"))
+        let dialogueSheet = try #require(workbook.getSheet(name: "Dialogue"))
+
+        #expect(selected.getCellWithFormat("A1")?.value.stringValue == "Row")
+        #expect(selected.getCellWithFormat("A2")?.value.stringValue == "1")
+        #expect(selected.getCellWithFormat("A3")?.value.stringValue == "2")
+        #expect(selected.getCellWithFormat("A4")?.value.stringValue == "3")
+        #expect(selected.getCellWithFormat("C2")?.value.stringValue == "Clip A")
+        #expect(selected.getCellWithFormat("C3")?.value.stringValue == "Clip B")
+        #expect(selected.getCellWithFormat("C4")?.value.stringValue == "Clip C")
+
         // Video sheet: Clip A and Clip C are rows 1 and 2 — not the Selected Roles indices 1 and 3.
-        XCTAssertEqual(videoSheet.getCellWithFormat("A1")?.value.stringValue, "Row")
-        XCTAssertEqual(videoSheet.getCellWithFormat("A2")?.value.stringValue, "1")
-        XCTAssertEqual(videoSheet.getCellWithFormat("A3")?.value.stringValue, "2")
-        XCTAssertEqual(videoSheet.getCellWithFormat("C2")?.value.stringValue, "Clip A")
-        XCTAssertEqual(videoSheet.getCellWithFormat("C3")?.value.stringValue, "Clip C")
-        
-        XCTAssertEqual(dialogueSheet.getCellWithFormat("A2")?.value.stringValue, "1")
-        XCTAssertEqual(dialogueSheet.getCellWithFormat("C2")?.value.stringValue, "Clip B")
+        #expect(videoSheet.getCellWithFormat("A1")?.value.stringValue == "Row")
+        #expect(videoSheet.getCellWithFormat("A2")?.value.stringValue == "1")
+        #expect(videoSheet.getCellWithFormat("A3")?.value.stringValue == "2")
+        #expect(videoSheet.getCellWithFormat("C2")?.value.stringValue == "Clip A")
+        #expect(videoSheet.getCellWithFormat("C3")?.value.stringValue == "Clip C")
+
+        #expect(dialogueSheet.getCellWithFormat("A2")?.value.stringValue == "1")
+        #expect(dialogueSheet.getCellWithFormat("C2")?.value.stringValue == "Clip B")
     }
-    
+
     /// Selected Roles and per-role sheets share header layout, exclusions, and metadata cells.
+    @Test("Inventory Selected Roles and role sheets share exclusions and metadata")
     @MainActor
-    func testWorkbookInventorySelectedRolesAndRoleSheetsShareExclusionsAndMetadata() throws {
+    func workbookInventorySelectedRolesAndRoleSheetsShareExclusionsAndMetadata() throws {
         let ingestKey = FinalCutPro.FCPXML.Metadata.Key.ingestDate.rawValue
         let video = inventoryRow(
             roleSubrole: "Video",
@@ -427,7 +438,7 @@ final class FCPXMLReportColumnExclusionTests: XCTestCase {
             metadataValues: [ingestKey: "2024-06-15"]
         )
         let excluded: Set<Column> = [.enabled, .notes]
-        
+
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test",
             roleInventory: FinalCutPro.FCPXML.RoleInventoryReportSection(
@@ -440,51 +451,51 @@ final class FCPXMLReportColumnExclusionTests: XCTestCase {
             ),
             excludedColumns: excluded
         )
-        
+
         let expectedHeaders = Layout.columnHeaders(
             metadataColumnKeys: [ingestKey],
             excludedColumns: excluded
         )
-        XCTAssertFalse(expectedHeaders.contains("Enabled"))
-        XCTAssertFalse(expectedHeaders.contains("Notes"))
-        XCTAssertTrue(expectedHeaders.contains(ingestKey))
-        
+        #expect(!expectedHeaders.contains("Enabled"))
+        #expect(!expectedHeaders.contains("Notes"))
+        #expect(expectedHeaders.contains(ingestKey))
+
         let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
-        let selected = try XCTUnwrap(
+        let selected = try #require(
             workbook.getSheet(name: FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName)
         )
-        let videoSheet = try XCTUnwrap(workbook.getSheet(name: "Video"))
-        let dialogueSheet = try XCTUnwrap(workbook.getSheet(name: "Dialogue"))
-        
+        let videoSheet = try #require(workbook.getSheet(name: "Video"))
+        let dialogueSheet = try #require(workbook.getSheet(name: "Dialogue"))
+
         let selectedHeaders = headerRow(from: selected, columnCount: expectedHeaders.count)
         let videoHeaders = headerRow(from: videoSheet, columnCount: expectedHeaders.count)
         let dialogueHeaders = headerRow(from: dialogueSheet, columnCount: expectedHeaders.count)
-        
-        XCTAssertEqual(selectedHeaders, expectedHeaders)
-        XCTAssertEqual(videoHeaders, expectedHeaders)
-        XCTAssertEqual(dialogueHeaders, expectedHeaders)
-        
-        let metadataColumn = try XCTUnwrap(expectedHeaders.firstIndex(of: ingestKey))
+
+        #expect(selectedHeaders == expectedHeaders)
+        #expect(videoHeaders == expectedHeaders)
+        #expect(dialogueHeaders == expectedHeaders)
+
+        let metadataColumn = try #require(expectedHeaders.firstIndex(of: ingestKey))
         let metadataAddress = excelAddress(columnZeroBased: metadataColumn, row: 2)
-        XCTAssertEqual(
-            selected.getCellWithFormat(metadataAddress)?.value.stringValue,
-            "2024-01-01"
+        #expect(
+            selected.getCellWithFormat(metadataAddress)?.value.stringValue
+                == "2024-01-01"
         )
-        XCTAssertEqual(
-            videoSheet.getCellWithFormat(metadataAddress)?.value.stringValue,
-            "2024-01-01"
+        #expect(
+            videoSheet.getCellWithFormat(metadataAddress)?.value.stringValue
+                == "2024-01-01"
         )
-        XCTAssertEqual(
-            dialogueSheet.getCellWithFormat(metadataAddress)?.value.stringValue,
-            "2024-06-15"
+        #expect(
+            dialogueSheet.getCellWithFormat(metadataAddress)?.value.stringValue
+                == "2024-06-15"
         )
-        
+
         // With Enabled excluded, Clip Name is column C (Row, Role ▸ Subrole, Clip Name…).
-        XCTAssertEqual(selected.getCellWithFormat("C2")?.value.stringValue, "Clip A")
-        XCTAssertEqual(videoSheet.getCellWithFormat("C2")?.value.stringValue, "Clip A")
-        XCTAssertEqual(dialogueSheet.getCellWithFormat("C2")?.value.stringValue, "Clip B")
+        #expect(selected.getCellWithFormat("C2")?.value.stringValue == "Clip A")
+        #expect(videoSheet.getCellWithFormat("C2")?.value.stringValue == "Clip A")
+        #expect(dialogueSheet.getCellWithFormat("C2")?.value.stringValue == "Clip B")
     }
-    
+
     private func inventoryRow(
         roleSubrole: String,
         clipName: String,
@@ -505,14 +516,14 @@ final class FCPXMLReportColumnExclusionTests: XCTestCase {
             metadataValues: metadataValues
         )
     }
-    
+
     private func headerRow(from sheet: Sheet, columnCount: Int) -> [String] {
         (0..<columnCount).map { column in
             sheet.getCellWithFormat(excelAddress(columnZeroBased: column, row: 1))?
                 .value.stringValue ?? ""
         }
     }
-    
+
     /// 0-based column index → Excel column letters (0 → A, 25 → Z, 26 → AA).
     private func excelAddress(columnZeroBased: Int, row: Int) -> String {
         var index = columnZeroBased

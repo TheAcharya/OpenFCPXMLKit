@@ -8,84 +8,87 @@
 //	File Tests: GeneralDemo.fcpxml — multicam, titles, effects, color, nested storylines.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFileTest_GeneralDemo: XCTestCase {
+@Suite("File test general demo")
+struct FCPXMLFileTest_GeneralDemo {
 
-    func testParse() throws {
-        let fcpxml = try loadFCPXMLSample(named: "GeneralDemo")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertEqual(fcpxml.version, .ver1_14)
-        XCTAssertFalse(fcpxml.allEvents().isEmpty)
-        XCTAssertFalse(fcpxml.allProjects().isEmpty)
+    @Test("Parse GeneralDemo sample")
+    func parse() throws {
+        let fcpxml = try requireFCPXMLSample(named: "GeneralDemo")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.version == .ver1_14)
+        let hasEvents = !fcpxml.allEvents().isEmpty
+        #expect(hasEvents)
+        let hasProjects = !fcpxml.allProjects().isEmpty
+        #expect(hasProjects)
     }
 
-    func testProjectAndEventNames() throws {
-        let fcpxml = try loadFCPXMLSample(named: "GeneralDemo")
+    @Test("Project and event names")
+    func projectAndEventNames() throws {
+        let fcpxml = try requireFCPXMLSample(named: "GeneralDemo")
         let events = fcpxml.allEvents()
-        XCTAssertTrue(events.contains { $0.name == "General Demo" })
+        let hasGeneralDemoEvent = events.contains { $0.name == "General Demo" }
+        #expect(hasGeneralDemoEvent)
         let projects = fcpxml.allProjects()
-        XCTAssertTrue(projects.contains { $0.name == "General Demo" })
+        let hasGeneralDemoProject = projects.contains { $0.name == "General Demo" }
+        #expect(hasGeneralDemoProject)
     }
 
-    func testMulticamResourcesAndClips() throws {
-        let fcpxml = try loadFCPXMLSample(named: "GeneralDemo")
+    @Test("Multicam resources and clips")
+    func multicamResourcesAndClips() throws {
+        let fcpxml = try requireFCPXMLSample(named: "GeneralDemo")
         let mediaResources = fcpxml.root.resources.childElements.filter { $0.name == "media" }
-        XCTAssertTrue(
-            mediaResources.contains { $0.firstChildElement(named: "multicam") != nil },
-            "Expected at least one multicam media resource"
-        )
+        let hasMulticamResource = mediaResources.contains { $0.firstChildElement(named: "multicam") != nil }
+        #expect(hasMulticamResource, "Expected at least one multicam media resource")
 
-        guard let project = fcpxml.allProjects().first else {
-            XCTFail("No project found")
-            return
-        }
-        let spine = try XCTUnwrap(project.sequence.spine)
+        let project = try #require(fcpxml.allProjects().first, "No project found")
+        let spine = project.sequence.spine
         let storyElements = Array(spine.storyElements)
-        XCTAssertTrue(
-            storyElements.contains { $0.name == "mc-clip" },
-            "Expected multicam clips on the primary spine"
-        )
+        let hasMCClip = storyElements.contains { $0.name == "mc-clip" }
+        #expect(hasMCClip, "Expected multicam clips on the primary spine")
     }
 
-    func testTitlesAndEffectsPresent() throws {
-        let fcpxml = try loadFCPXMLSample(named: "GeneralDemo")
-        XCTAssertNotNil(
-            firstDescendantElement(in: fcpxml.root.element, named: "title"),
+    @Test("Titles and effects present")
+    func titlesAndEffectsPresent() throws {
+        let fcpxml = try requireFCPXMLSample(named: "GeneralDemo")
+        #expect(
+            firstDescendantElement(in: fcpxml.root.element, named: "title") != nil,
             "Expected title elements in timeline"
         )
-        XCTAssertNotNil(
-            firstDescendantElement(in: fcpxml.root.element, named: "filter-video"),
+        #expect(
+            firstDescendantElement(in: fcpxml.root.element, named: "filter-video") != nil,
             "Expected video filter effects"
         )
     }
 
-    func testMediaPathsAreAnonymized() throws {
-        let data = try loadFCPXMLSampleData(named: "GeneralDemo")
+    @Test("Media paths are anonymized")
+    func mediaPathsAreAnonymized() throws {
+        let data = try requireFCPXMLSampleData(named: "GeneralDemo")
         let xml = String(decoding: data, as: UTF8.self)
-        XCTAssertFalse(xml.contains("Ancestral"), "Sample should not contain original volume names")
-        XCTAssertFalse(xml.contains("Allie"), "Sample should not contain identifying names")
-        XCTAssertFalse(xml.contains("<bookmark>"), "Sample should not contain macOS bookmarks with embedded paths")
-        XCTAssertTrue(
-            xml.contains("file:///Users/user/Movies/GeneralDemo/Media/"),
-            "Expected anonymized media paths"
-        )
+        let hasAncestral = xml.contains("Ancestral")
+        #expect(!hasAncestral, "Sample should not contain original volume names")
+        let hasAllie = xml.contains("Allie")
+        #expect(!hasAllie, "Sample should not contain identifying names")
+        let hasBookmark = xml.contains("<bookmark>")
+        #expect(!hasBookmark, "Sample should not contain macOS bookmarks with embedded paths")
+        let hasAnonymizedPath = xml.contains("file:///Users/user/Movies/GeneralDemo/Media/")
+        #expect(hasAnonymizedPath, "Expected anonymized media paths")
     }
 
-    func testLoadViaLoaderAndParseViaService() throws {
+    @Test("Load via loader and parse via service")
+    func loadViaLoaderAndParseViaService() throws {
         let url = urlForFCPXMLSample(named: "GeneralDemo")
-        guard FileManager.default.fileExists(atPath: url.path) else {
-            throw XCTSkip("GeneralDemo.fcpxml not found")
-        }
+        _ = try requireFCPXMLSampleData(named: "GeneralDemo")
         let loader = FCPXMLFileLoader()
         let doc = try loader.loadDocument(from: url)
-        XCTAssertEqual(doc.rootElement()?.name, "fcpxml")
+        #expect(doc.rootElement()?.name == "fcpxml")
 
         let service = FCPXMLService()
         let data = try Data(contentsOf: url)
         let parsed = try service.parseFCPXML(from: data)
-        XCTAssertEqual(parsed.rootElement()?.name, "fcpxml")
+        #expect(parsed.rootElement()?.name == "fcpxml")
     }
 }

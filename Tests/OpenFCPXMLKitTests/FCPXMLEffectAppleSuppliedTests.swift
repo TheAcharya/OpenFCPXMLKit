@@ -8,43 +8,54 @@
 //	Unit tests for Apple-supplied effect UID classification.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-final class FCPXMLEffectAppleSuppliedTests: XCTestCase {
+@Suite("Effect Apple-supplied classification")
+struct FCPXMLEffectAppleSuppliedTests {
     private typealias Effect = FinalCutPro.FCPXML.Effect
-    
-    func testIsAppleSuppliedFxPlugUIDReturnsTrue() {
-        XCTAssertTrue(
+
+    @Test("isAppleSupplied FxPlug UID returns true")
+    func isAppleSuppliedFxPlugUIDReturnsTrue() {
+        #expect(
             Effect.isAppleSupplied(uid: "FxPlug:4731E73A-8DAC-4113-9A30-AE85B1761265")
         )
     }
-    
-    func testIsAppleSuppliedLocalizedMotionTemplateReturnsTrue() {
-        XCTAssertTrue(
+
+    @Test("isAppleSupplied localized Motion template returns true")
+    func isAppleSuppliedLocalizedMotionTemplateReturnsTrue() {
+        #expect(
             Effect.isAppleSupplied(
                 uid: ".../Titles.localized/Bumper:Opener.localized/Basic Title.localized/Basic Title.moti"
             )
         )
     }
-    
-    func testIsAppleSuppliedEllipsisPrefixedReturnsTrue() {
-        XCTAssertTrue(Effect.isAppleSupplied(uid: ".../Effects.localized/Custom.moti"))
+
+    @Test("isAppleSupplied ellipsis-prefixed returns true")
+    func isAppleSuppliedEllipsisPrefixedReturnsTrue() {
+        #expect(Effect.isAppleSupplied(uid: ".../Effects.localized/Custom.moti"))
     }
-    
-    func testIsAppleSuppliedTildePrefixedReturnsFalse() {
-        XCTAssertFalse(Effect.isAppleSupplied(uid: "~/Effects/Custom.moti"))
+
+    @Test("isAppleSupplied tilde-prefixed returns false")
+    func isAppleSuppliedTildePrefixedReturnsFalse() {
+        let isApple = Effect.isAppleSupplied(uid: "~/Effects/Custom.moti")
+        #expect(!isApple)
     }
-    
-    func testIsAppleSuppliedEmptyUIDReturnsFalse() {
-        XCTAssertFalse(Effect.isAppleSupplied(uid: ""))
+
+    @Test("isAppleSupplied empty UID returns false")
+    func isAppleSuppliedEmptyUIDReturnsFalse() {
+        let isApple = Effect.isAppleSupplied(uid: "")
+        #expect(!isApple)
     }
-    
-    func testIsAppleSuppliedThirdPartyUIDReturnsFalse() {
-        XCTAssertFalse(Effect.isAppleSupplied(uid: "com.vendor.custom-effect"))
+
+    @Test("isAppleSupplied third-party UID returns false")
+    func isAppleSuppliedThirdPartyUIDReturnsFalse() {
+        let isApple = Effect.isAppleSupplied(uid: "com.vendor.custom-effect")
+        #expect(!isApple)
     }
-    
-    func testEffectInstanceReflectsUIDClassification() {
+
+    @Test("Effect instance reflects UID classification")
+    func effectInstanceReflectsUIDClassification() {
         let appleEffect = Effect(
             id: "r1",
             name: "Cross Dissolve",
@@ -55,28 +66,22 @@ final class FCPXMLEffectAppleSuppliedTests: XCTestCase {
             name: "Vendor Effect",
             uid: "com.vendor.effect"
         )
-        
-        XCTAssertTrue(appleEffect.isAppleSupplied)
-        XCTAssertFalse(customEffect.isAppleSupplied)
+
+        #expect(appleEffect.isAppleSupplied)
+        let customIsApple = customEffect.isAppleSupplied
+        #expect(!customIsApple)
     }
-    
-    func testTransitionPrimaryEffectFromSampleIsAppleSupplied() throws {
-        let fcpxml = try loadFCPXMLSample(named: "TransitionMarkers1")
+
+    @Test("Transition primary effect from sample is Apple-supplied")
+    func transitionPrimaryEffectFromSampleIsAppleSupplied() throws {
+        let fcpxml = try requireFCPXMLSample(named: "TransitionMarkers1")
         let resources = fcpxml.root.resources
-        
-        guard let transitionElement = firstDescendantElement(
-            in: fcpxml.root.element,
-            named: "transition"
-        ) else {
-            XCTFail("Expected transition in TransitionMarkers1")
-            return
-        }
-        
-        guard let transition = transitionElement.fcpAsTransition else {
-            XCTFail("Could not wrap transition element")
-            return
-        }
-        
-        XCTAssertTrue(transition.isAppleSuppliedPrimaryEffect(in: resources))
+
+        let transitionElement = try #require(
+            firstDescendantElement(in: fcpxml.root.element, named: "transition")
+        )
+        let transition = try #require(transitionElement.fcpAsTransition)
+
+        #expect(transition.isAppleSuppliedPrimaryEffect(in: resources))
     }
 }

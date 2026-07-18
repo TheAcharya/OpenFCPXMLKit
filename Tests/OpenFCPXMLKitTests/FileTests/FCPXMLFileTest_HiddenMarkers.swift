@@ -8,16 +8,18 @@
 //	File tests for HiddenMarkers.fcpxml: markers outside host media range.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFileTest_HiddenMarkers: XCTestCase {
+@Suite("File test hidden markers")
+struct FCPXMLFileTest_HiddenMarkers {
 
-    func testParse() throws {
-        let fcpxml = try loadFCPXMLSample(named: FCPXMLSampleName.hiddenMarkers.rawValue)
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertEqual(fcpxml.version, .ver1_14)
-        XCTAssertFalse(fcpxml.allProjects().isEmpty)
+    @Test("Parse HiddenMarkers sample")
+    func parse() throws {
+        let fcpxml = try requireFCPXMLSample(named: FCPXMLSampleName.hiddenMarkers.rawValue)
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.version == .ver1_14)
+        let hasProjects = !fcpxml.allProjects().isEmpty
+        #expect(hasProjects)
     }
 }

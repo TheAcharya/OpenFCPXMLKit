@@ -179,7 +179,7 @@ enum FCPXMLReportRowColorPolicy {
             return .videoOrSRT
         }
         
-        if ["dialogue", "effects", "music", "atmos", "score komponist", "sound mix"].contains(mainRole) {
+        if ["dialogue", "effects", "music", "atmosphere", "score composer", "sound mix"].contains(mainRole) {
             return .audio
         }
         

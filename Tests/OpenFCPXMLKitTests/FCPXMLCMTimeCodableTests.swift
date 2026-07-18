@@ -1,63 +1,73 @@
 //
 //  FCPXMLCMTimeCodableTests.swift
-//  OpenFCPXMLKitTests
+//  OpenFCPXMLKit • https://github.com/TheAcharya/OpenFCPXMLKit
 //  © 2026 • Licensed under MIT License
 //
 
-import XCTest
+//
+//	Tests for CMTime Codable encoding and decoding as FCPXML time strings.
+//
+
+import Foundation
+import Testing
 import CoreMedia
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLCMTimeCodableTests: XCTestCase {
-    
-    func testCMTimeCodableEncodeDecode() throws {
+@Suite("CMTime Codable")
+struct FCPXMLCMTimeCodableTests {
+
+    @Test("Encode and decode")
+    func cmTimeCodableEncodeDecode() throws {
         let time = CMTime(seconds: 5.0, preferredTimescale: 600)
-        
+
         let encoder = JSONEncoder()
         let data = try encoder.encode(time)
-        
+
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(CMTime.self, from: data)
-        
-        XCTAssertEqual(decoded.value, time.value)
-        XCTAssertEqual(decoded.timescale, time.timescale)
+
+        #expect(decoded.value == time.value)
+        #expect(decoded.timescale == time.timescale)
     }
-    
-    func testCMTimeCodableRationalFormat() throws {
+
+    @Test("Rational format")
+    func cmTimeCodableRationalFormat() throws {
         let time = CMTime(value: 7200, timescale: 2400)
-        
+
         let encoder = JSONEncoder()
         let data = try encoder.encode(time)
-        
+
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(CMTime.self, from: data)
-        
-        XCTAssertEqual(decoded.value, time.value)
-        XCTAssertEqual(decoded.timescale, time.timescale)
+
+        #expect(decoded.value == time.value)
+        #expect(decoded.timescale == time.timescale)
     }
-    
-    func testCMTimeCodableZero() throws {
+
+    @Test("Zero")
+    func cmTimeCodableZero() throws {
         let time = CMTime.zero
-        
+
         let encoder = JSONEncoder()
         let data = try encoder.encode(time)
-        
+
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(CMTime.self, from: data)
-        
-        XCTAssertEqual(decoded.value, 0)
+
+        #expect(decoded.value == 0)
     }
-    
-    func testCMTimeCodableRoundTrip() throws {
+
+    @Test("Round trip")
+    func cmTimeCodableRoundTrip() throws {
         let original = CMTime(seconds: 10.5, preferredTimescale: 600)
-        
+
         let encoder = JSONEncoder()
         let data = try encoder.encode(original)
-        
+
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(CMTime.self, from: data)
-        
-        XCTAssertEqual(decoded.seconds, original.seconds, accuracy: 0.001)
+
+        let secondsMatch = abs(decoded.seconds - original.seconds) < 0.001
+        #expect(secondsMatch)
     }
 }

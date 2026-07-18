@@ -1,28 +1,41 @@
+# =============================================================================
+# OpenFCPXMLKit — CI build & test
+# =============================================================================
+# Jobs:
+#   • macOS                  — build + full unit suite (default concurrency)
+#   • macOS (strict)         — build + full unit suite under complete concurrency
+#   • iOS                    — Simulator build only (tests need Foundation XML)
+#
+# Triggers: push to main/dev, PRs to main, manual dispatch, nightly cron.
+# Docs-only changes are skipped via paths-ignore.
+# =============================================================================
+
 name: build
 
 on:
   push:
     branches: [main, dev]
     paths-ignore:
-      - 'Docs/**'       # Docs folder in root of repo
-      - '**/*.md'       # .md files anywhere in the repo
-      - '**/LICENSE'    # LICENSE files anywhere in the repo
-      - '**/.gitignore' # .gitignore files anywhere in the repo
-      - '**/*.cursorrules'  # .cursorrules files anywhere in the repo
-      - '**/.cursorrules'   # .cursorrules files anywhere in the repo
-      
+      - 'Docs/**'
+      - '**/*.md'
+      - '**/LICENSE'
+      - '**/.gitignore'
+      - '**/*.cursorrules'
+      - '**/.cursorrules'
+
   pull_request:
     branches: [main]
     paths-ignore:
-      - 'Docs/**'       # Docs folder in root of repo
-      - '**/*.md'       # .md files anywhere in the repo
-      - '**/LICENSE'    # LICENSE files anywhere in the repo
-      - '**/.gitignore' # .gitignore files anywhere in the repo
-      
+      - 'Docs/**'
+      - '**/*.md'
+      - '**/LICENSE'
+      - '**/.gitignore'
+
   workflow_dispatch:
-    
+
+  # 00:00 UTC = 08:00 Singapore
   schedule:
-    - cron: '0 0 * * *'     # Runs at 8 AM Singapore time (00:00 UTC) every day
+    - cron: '0 0 * * *'
 
 env:
   SCHEME: "OpenFCPXMLKit-Package"
@@ -32,43 +45,80 @@ permissions:
   contents: read
 
 jobs:
-  # Non-strict concurrency (default Swift / targeted mode)
+  # ---------------------------------------------------------------------------
+  # macOS — default (targeted) concurrency
+  # ---------------------------------------------------------------------------
   macOS:
     name: macOS
     runs-on: macos-26
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: ${{ github.workspace }}
     steps:
-    - uses: actions/checkout@main
-    - uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: latest-stable
-    - name: Build
-      run: xcodebuild build -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "generic/platform=macOS,name=Any Mac" | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
-    - name: Unit Tests
-      run: xcodebuild test -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "platform=macOS" | xcbeautify --renderer github-actions | awk '!/^::notice /' && exit ${PIPESTATUS[0]}
+      - uses: actions/checkout@main
 
-  # Strict concurrency: SWIFT_STRICT_CONCURRENCY=complete
-  # (do not use OTHER_SWIFT_FLAGS here — it overrides per-target flags and
-  #  strips the experimental "Lifetimes" feature from SwiftExtensions/SwiftTimecodeAV)
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Build
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -workspace ".swiftpm/xcode/package.xcworkspace" \
+            -scheme "$SCHEME" \
+            -destination "generic/platform=macOS,name=Any Mac" \
+            | xcbeautify --renderer github-actions
+
+      # Swift Testing notes:
+      # • Do not pipe through xcbeautify — large diagnostic streams can stall CI.
+      # • Use plain `swift test` (SPM), not xcodebuild test.
+      # • Always pass `--no-parallel`: in-process parallel runs deadlock on
+      #   non-Sendable Foundation XML (1000+ tests start, none finish).
+      - name: Unit Tests
+        run: swift test --no-parallel
+
+  # ---------------------------------------------------------------------------
+  # macOS — Swift 6 strict concurrency (`complete`)
+  #
+  # Pass SWIFT_STRICT_CONCURRENCY=complete to xcodebuild / swiftc.
+  # Do NOT use OTHER_SWIFT_FLAGS: it replaces per-target flags and strips the
+  # experimental "Lifetimes" feature from SwiftExtensions / SwiftTimecodeAV.
+  # ---------------------------------------------------------------------------
   macOS-swift6-strict-concurrency:
     name: macOS (strict concurrency)
     runs-on: macos-26
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: ${{ github.workspace }}
     steps:
-    - uses: actions/checkout@main
-    - uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: latest-stable
-    - name: Build with strict concurrency
-      run: xcodebuild build -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "generic/platform=macOS,name=Any Mac" SWIFT_STRICT_CONCURRENCY=complete | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
-    - name: Tests with strict concurrency
-      run: xcodebuild test -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "platform=macOS" SWIFT_STRICT_CONCURRENCY=complete | xcbeautify --renderer github-actions | awk '!/^::notice /' && exit ${PIPESTATUS[0]}
+      - uses: actions/checkout@main
 
-  # iOS Simulator build (no tests — tests require Foundation XML which is macOS-only)
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Build
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -workspace ".swiftpm/xcode/package.xcworkspace" \
+            -scheme "$SCHEME" \
+            -destination "generic/platform=macOS,name=Any Mac" \
+            SWIFT_STRICT_CONCURRENCY=complete \
+            | xcbeautify --renderer github-actions
+
+      # Same serial Swift Testing constraints as the macOS job, with
+      # `-strict-concurrency=complete` applied to the test build as well.
+      - name: Unit Tests
+        run: swift test --no-parallel -Xswiftc -strict-concurrency=complete
+
+  # ---------------------------------------------------------------------------
+  # iOS Simulator — build only
+  # Unit tests are macOS-only (Foundation XML / DTD validation).
+  # ---------------------------------------------------------------------------
   iOS:
     name: iOS
     runs-on: macos-26
@@ -77,20 +127,30 @@ jobs:
       run:
         working-directory: ${{ github.workspace }}
     steps:
-    - uses: actions/checkout@main
-    - uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: latest-stable
-    - name: Prepare Device Simulator
-      id: sim-setup
-      uses: orchetect/setup-xcode-simulator@v1
-      with:
-        refresh: true
-        download: true
-        scheme: ${{ env.SCHEME }}
-        target: iOS
-    - name: Build
-      run: xcodebuild build -skipMacroValidation -workspace "$WORKSPACEPATH" -scheme "$SCHEME" -destination "generic/platform=$PLATFORMSHORT" | xcbeautify --renderer github-actions && exit ${PIPESTATUS[0]}
-      env:
-        PLATFORMSHORT: ${{ steps.sim-setup.outputs.platform-short }}
-        WORKSPACEPATH: ${{ steps.sim-setup.outputs.workspace-path }}
+      - uses: actions/checkout@main
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Prepare Device Simulator
+        id: sim-setup
+        uses: orchetect/setup-xcode-simulator@v1
+        with:
+          refresh: true
+          download: true
+          scheme: ${{ env.SCHEME }}
+          target: iOS
+
+      - name: Build
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -skipMacroValidation \
+            -workspace "$WORKSPACEPATH" \
+            -scheme "$SCHEME" \
+            -destination "generic/platform=$PLATFORMSHORT" \
+            | xcbeautify --renderer github-actions
+        env:
+          PLATFORMSHORT: ${{ steps.sim-setup.outputs.platform-short }}
+          WORKSPACEPATH: ${{ steps.sim-setup.outputs.workspace-path }}

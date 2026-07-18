@@ -1,4 +1,4 @@
-# 12 — Typed Models
+# 13 — Typed Models
 
 [← Manual Index](00-Index.md)
 
@@ -193,4 +193,6 @@ let parentFolder = FinalCutPro.FCPXML.CollectionFolder(
 
 ## Next
 
-- [13 — XML Extensions](13-XML-Extensions.md) — XMLDocument and XMLElement FCPXML APIs.
+- [14 — XML Extensions](14-XML-Extensions.md) — OFKXMLDocument and OFKXMLElement FCPXML APIs.
+
+[← Manual Index](00-Index.md)

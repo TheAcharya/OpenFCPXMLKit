@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1084** tests listed in `swift test --list-tests` — **1078** in `OpenFCPXMLKitTests` (1075 XCTest + 3 Swift Testing `@Test`) + **6** optional `ExcelReportTest`; **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1084** tests listed in `swift test list` — **1078** in `OpenFCPXMLKitTests` + **6** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -30,7 +30,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 |------|--------|
 | **OpenFCPXMLKit only** | Use OpenFCPXMLKit naming in code, comments, symbols, CLI, and logs (`ServiceLogger`, `OFKXML*`, `createService()`, …). No legacy fork identifiers. |
 | **No marketing names in code** | Never use “PBF” or “Production’s Best Friend” in source, comments, symbol names, or CLI/log output. Describe reporting neutrally (“Excel report”, “PDF report”, “role inventory”, “workbook export”). Those marketing terms may appear **only** in prose docs (README, CHANGELOG, Manual, agent guides). |
-| **Tests are FCPXML-prefixed** | Every XCTest case class is `FCPXML…` except the module umbrella `OpenFCPXMLKitTests`. |
+| **Tests are FCPXML-prefixed** | Every test suite type is `FCPXML…` except the module umbrella `OpenFCPXMLKitTests`. |
 
 ---
 
@@ -97,11 +97,11 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 | Rule | Detail |
 |------|--------|
 | **Tests with behaviour** | Public API and report behaviour changes need tests. Prefer core (parse / extract / project) tests **plus** report shape tests when fixing a report gap. |
-| **Hybrid XCTest** | Do **not** wholesale migrate XCTest → Swift Testing. Stay hybrid; use Swift Testing selectively for new/parameterized tests when it helps. |
-| **Missing samples skip** | Tests that need a sample use `XCTSkip` when the file is absent — do not fail CI on optional local fixtures. |
+| **Swift Testing only** | The suite is **100% Swift Testing** (`import Testing`, `@Suite` / `@Test` / `#expect` / `#require`). There is **no** `import XCTest` in `Tests/`. Do not reintroduce XCTest or mix frameworks in one file. Performance smoke uses `ContinuousClock` budgets, not XCTest `measure {}`. |
+| **Bundled samples fail; optional fixtures cancel** | Bundled public samples **fail** if missing (`requireFCPXMLSample`). Optional fixtures (Submitted inbox, `OFK_REPORTING_FCPXML_BUNDLE`, ExcelReportTest Sample) **cancel** via `Test.cancel` (`requireSubmittedInboxItems` / `requireReportingFixtureFCPXML` / `ExcelReportFixture.requireFixtureURL`). Never throw `XCTSkip`. Harness: `FCPXMLTestSampleLoading` (`tryLoad*`) + `FCPXMLTestingSampleSupport` (`require*`). |
 | **Never commit private FCPXML** | `Tests/Submitted FCPXML/` inbox contents and private ExcelReportTest fixtures (`.fcpxml` / `.fcpxmld` under those trees) are **gitignored**. Never commit or push private project XML to GitHub. Anonymise → reproduce → fix → promote a **minimal public** sample when appropriate. |
-| **ExcelReportTest is optional** | Integration target may skip without a local fixture; do not make CI depend on private Sample bundles. |
-| **Update counts when adding tests** | Keep listed counts aligned in `Tests/README.md`, `AGENT.md`, and `.cursorrules` when you add or remove tests. |
+| **ExcelReportTest is optional** | Integration target **cancels** without a local fixture; do not make CI depend on private Sample bundles. |
+| **Update counts when adding tests** | Keep listed counts aligned in `Tests/README.md`, `GUARDRAILS.md`, `ARCHITECTURE.md`, `AGENT.md`, and `.cursorrules` when you add or remove tests (`swift test list`). |
 
 ---
 
@@ -110,7 +110,7 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 | Rule | Detail |
 |------|--------|
 | **AGENT ↔ .cursorrules** | When you update one, update the other. Same overview, architecture, test structure, and conventions. |
-| **Feature docs** | User-visible behaviour → Manual (esp. 16 CLI / 19 Reporting / 20 Projection) and CLI README as needed. Structural boundaries → ARCHITECTURE.md. Hard constraints → this file. |
+| **Feature docs** | User-visible behaviour → Manual (esp. [11 Timeline Projection](Documentation/Manual/11-Timeline-Projection.md) / [18 CLI](Documentation/Manual/18-CLI.md) / [19 Reporting](Documentation/Manual/19-Reporting.md) / [20 Examples](Documentation/Manual/20-Examples.md)) and CLI README as needed. Structural boundaries → ARCHITECTURE.md. Hard constraints → this file. |
 | **CHANGELOG** | Keep a Changelog format. Version heading links to the GitHub release tag. Sections: **✨ New Features**, **🔧 Improvements**, **🐛 Bug Fixes** (empty → “None in this release.”). |
 | **File headers** | New Swift files use the project header (see ARCHITECTURE.md §5.2): OpenFCPXMLKit URL line, MIT, tabbed purpose block — no `Created by` / extra copyright lines. |
 
@@ -162,11 +162,11 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Reason:** XLKit supports sheet protection, not file encryption; PDF passwords belong in Preview (or a future dedicated API).
 - **Provenance:** 2026-07 — design lock for `--protect-sheets`.
 
-### Sign: no-wholesale-swift-testing-migration
-- **Trigger:** Urge to “modernise” the test suite to Swift Testing.
-- **Instruction:** Stay hybrid; migrate selectively for new/parameterized tests only.
-- **Reason:** Large XCTest surface; migration risk outweighs benefit without a dedicated project.
-- **Provenance:** 2026-07 — explicit project decision.
+### Sign: swift-testing-only
+- **Trigger:** Adding or changing any test under `Tests/`.
+- **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1084** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.
@@ -179,12 +179,13 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ## 10. Quick checklist before merge
 
 - [ ] Change sits in the correct layer (ARCHITECTURE §2.7 / Guardrails §2).
-- [ ] Public behaviour has tests; optional fixtures use `XCTSkip`.
+- [ ] Public behaviour has tests (Swift Testing); optional fixtures use `Test.cancel`.
 - [ ] No PBF / legacy naming in code or CLI output.
 - [ ] FCPXML 1.5 compatibility preserved; newer features version-marked.
 - [ ] Concurrency: no Task over non-Sendable XML/timecode types.
-- [ ] Docs: AGENT.md ↔ .cursorrules if agent briefing changed; Manual/CLI/CHANGELOG as needed.
+- [ ] Docs: AGENT.md ↔ .cursorrules if agent briefing changed; GUARDRAILS / ARCHITECTURE / Manual / CLI / CHANGELOG as needed.
 - [ ] Private FCPXML / secrets not staged.
+- [ ] Test counts still match `swift test list` if tests were added or removed.
 
 ---
 

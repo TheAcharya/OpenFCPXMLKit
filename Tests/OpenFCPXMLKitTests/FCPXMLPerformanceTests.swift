@@ -5,16 +5,23 @@
 //
 
 //
-//	Performance tests for timecode conversion, document creation, and filtering.
+//	Performance smoke tests for parsing, file loading, and timeline projection.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLPerformanceTests: XCTestCase {
+@Suite("Performance")
+struct FCPXMLPerformanceTests {
 
-    func testPerformanceParseFCPXMLDataRepeatedly() throws {
+    /// Sanity bound so pathological hangs fail CI; not a regression baseline.
+    private let parseBudget: Duration = .seconds(30)
+    private let loadBudget: Duration = .seconds(30)
+    private let projectBudget: Duration = .seconds(60)
+
+    @Test("Parse FCPXML data repeatedly")
+    func parseFCPXMLDataRepeatedly() throws {
         let xml = """
         <?xml version="1.0" encoding="UTF-8"?>
         <fcpxml version="1.14">
@@ -35,41 +42,39 @@ final class FCPXMLPerformanceTests: XCTestCase {
         </library>
         </fcpxml>
         """
-        let data = xml.data(using: .utf8)!
+        let data = try #require(xml.data(using: .utf8))
         let service = FCPXMLService()
-        measure(metrics: [XCTClockMetric()]) {
+        let elapsed = ContinuousClock().measure {
             for _ in 0..<50 {
                 _ = try? service.parseFCPXML(from: data)
             }
         }
+        #expect(elapsed < parseBudget)
     }
 
-    func testPerformanceLoadSampleFileWhenAvailable() throws {
+    @Test("Load sample file when available")
+    func loadSampleFileWhenAvailable() throws {
+        try cancelIfSampleMissing(named: "Structure")
         let url = urlForFCPXMLSample(named: "Structure")
-        guard FileManager.default.fileExists(atPath: url.path) else {
-            throw XCTSkip("Structure.fcpxml not found")
-        }
         let loader = FCPXMLFileLoader()
-        measure(metrics: [XCTClockMetric()]) {
+        let elapsed = ContinuousClock().measure {
             for _ in 0..<20 {
                 _ = try? loader.loadDocument(from: url)
             }
         }
+        #expect(elapsed < loadBudget)
     }
 
-    func testPerformanceProjectComplexSampleWhenAvailable() throws {
-        let fcpxml: FinalCutPro.FCPXML
-        do {
-            fcpxml = try loadFCPXMLSample(named: "Complex")
-        } catch {
-            throw XCTSkip("Complex.fcpxml not found")
-        }
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+    @Test("Project complex sample when available")
+    func projectComplexSampleWhenAvailable() throws {
+        let fcpxml = try requireFCPXMLSample(named: "Complex")
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let projector = FinalCutPro.FCPXML.TimelineProjector()
-        // Warm once so measure focuses on steady-state projection cost.
+        // Warm once so the timed run focuses on steady-state projection cost.
         try projector.projectSync(from: source, fcpxml: fcpxml, options: .init()) { _ in }
-        measure(metrics: [XCTClockMetric()]) {
+        let elapsed = ContinuousClock().measure {
             try? projector.projectSync(from: source, fcpxml: fcpxml, options: .init()) { _ in }
         }
+        #expect(elapsed < projectBudget)
     }
 }

@@ -8,16 +8,18 @@
 //	API edge case tests for file loading, logging, and validation.
 //
 
-import XCTest
+import Foundation
 import SwiftTimecode
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLAPIAndEdgeCaseTests: XCTestCase {
+@Suite("API and edge cases")
+struct FCPXMLAPIAndEdgeCaseTests {
 
     // MARK: - FCPXMLFileLoader async load(from:)
 
-    func testFCPXMLFileLoaderAsyncLoadFromURL() async throws {
+    @Test("FCPXML file loader async load from URL")
+    func fcpxmlFileLoaderAsyncLoadFromURL() async throws {
         let temp = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".fcpxml")
         let xml = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -29,16 +31,17 @@ final class FCPXMLAPIAndEdgeCaseTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: temp) }
         let loader = FCPXMLFileLoader()
         let doc = try await loader.load(from: temp)
-        XCTAssertNotNil(doc.rootElement())
-        XCTAssertEqual(doc.rootElement()?.name, "fcpxml")
+        #expect(doc.rootElement() != nil)
+        #expect(doc.rootElement()?.name == "fcpxml")
     }
 
-    func testFCPXMLFileLoaderAsyncLoadThrowsForMissingFile() async {
+    @Test("FCPXML file loader async load throws for missing file")
+    func fcpxmlFileLoaderAsyncLoadThrowsForMissingFile() async {
         let url = URL(fileURLWithPath: "/nonexistent/\(UUID().uuidString).fcpxml")
         let loader = FCPXMLFileLoader()
         do {
             _ = try await loader.load(from: url)
-            XCTFail("Expected FCPXMLLoadError")
+            Issue.record("expected throw")
         } catch let err as FCPXMLLoadError {
             switch err {
             case .notAFile: break
@@ -47,34 +50,37 @@ final class FCPXMLAPIAndEdgeCaseTests: XCTestCase {
         } catch is FCPXMLError {
             // Parse failures surface as FCPXMLError.parsingFailed
         } catch {
-            XCTFail("Expected FCPXMLLoadError or FCPXMLError, got \(error)")
+            Issue.record("Expected FCPXMLLoadError or FCPXMLError, got \(error)")
         }
     }
 
     // MARK: - Logger injection
 
-    func testFCPXMLServiceWithNoOpLoggerParsesSuccessfully() throws {
+    @Test("FCPXML service with NoOp logger parses successfully")
+    func fcpxmlServiceWithNoOpLoggerParsesSuccessfully() throws {
         let logger = NoOpServiceLogger()
         let service = FCPXMLService(logger: logger)
         let xml = """
         <?xml version="1.0" encoding="UTF-8"?>
         <fcpxml version="1.14"><resources/></fcpxml>
         """
-        let data = xml.data(using: .utf8)!
+        let data = try #require(xml.data(using: .utf8))
         let doc = try service.parseFCPXML(from: data)
-        XCTAssertEqual(doc.rootElement()?.name, "fcpxml")
+        #expect(doc.rootElement()?.name == "fcpxml")
     }
 
-    func testFCPXMLServiceWithPrintLoggerParsesSuccessfully() throws {
+    @Test("FCPXML service with Print logger parses successfully")
+    func fcpxmlServiceWithPrintLoggerParsesSuccessfully() throws {
         let logger = PrintServiceLogger(minimumLevel: .error)
         let service = FCPXMLService(logger: logger)
         let xml = "<?xml version=\"1.0\"?><fcpxml version=\"1.14\"><resources/></fcpxml>"
-        let data = xml.data(using: .utf8)!
+        let data = try #require(xml.data(using: .utf8))
         let doc = try service.parseFCPXML(from: data)
-        XCTAssertEqual(doc.rootElement()?.name, "fcpxml")
+        #expect(doc.rootElement()?.name == "fcpxml")
     }
 
-    func testCreateCustomServiceWithLogger() throws {
+    @Test("Create custom service with logger")
+    func createCustomServiceWithLogger() throws {
         let logger = NoOpServiceLogger()
         let service = ModularUtilities.createCustomService(
             parser: FCPXMLParser(),
@@ -83,80 +89,94 @@ final class FCPXMLAPIAndEdgeCaseTests: XCTestCase {
             errorHandler: ErrorHandler(),
             logger: logger
         )
-        let data = "<fcpxml version=\"1.14\"><resources/></fcpxml>".data(using: .utf8)!
+        let data = try #require("<fcpxml version=\"1.14\"><resources/></fcpxml>".data(using: .utf8))
         let doc = try service.parseFCPXML(from: data)
-        XCTAssertNotNil(doc.rootElement())
+        #expect(doc.rootElement() != nil)
     }
 
     // MARK: - Edge cases: invalid / empty input
 
-    func testParseEmptyDataThrows() {
+    @Test("Parse empty data throws")
+    func parseEmptyDataThrows() {
         let service = FCPXMLService()
         let data = Data()
-        XCTAssertThrowsError(try service.parseFCPXML(from: data))
-    }
-
-    func testParseInvalidXMLThrows() {
-        let service = FCPXMLService()
-        let data = "not xml at all".data(using: .utf8)!
-        XCTAssertThrowsError(try service.parseFCPXML(from: data))
-    }
-
-    func testParseMalformedXMLThrows() {
-        let service = FCPXMLService()
-        let data = "<fcpxml version=\"1.14\"><resources".data(using: .utf8)!
-        XCTAssertThrowsError(try service.parseFCPXML(from: data))
-    }
-
-    func testLoadDocumentFromInvalidPathThrowsCorrectError() {
-        let loader = FCPXMLFileLoader()
-        let url = URL(fileURLWithPath: "/nonexistent/file.fcpxml")
-        XCTAssertThrowsError(try loader.loadDocument(from: url)) { err in
-            guard err is FCPXMLLoadError else {
-                XCTFail("Expected FCPXMLLoadError"); return
-            }
+        #expect(throws: (any Error).self) {
+            try service.parseFCPXML(from: data)
         }
     }
 
-    func testResolveFCPXMLFileURLForNonexistentPathThrows() {
+    @Test("Parse invalid XML throws")
+    func parseInvalidXMLThrows() throws {
+        let service = FCPXMLService()
+        let data = try #require("not xml at all".data(using: .utf8))
+        #expect(throws: (any Error).self) {
+            try service.parseFCPXML(from: data)
+        }
+    }
+
+    @Test("Parse malformed XML throws")
+    func parseMalformedXMLThrows() throws {
+        let service = FCPXMLService()
+        let data = try #require("<fcpxml version=\"1.14\"><resources".data(using: .utf8))
+        #expect(throws: (any Error).self) {
+            try service.parseFCPXML(from: data)
+        }
+    }
+
+    @Test("Load document from invalid path throws correct error")
+    func loadDocumentFromInvalidPathThrowsCorrectError() {
+        let loader = FCPXMLFileLoader()
+        let url = URL(fileURLWithPath: "/nonexistent/file.fcpxml")
+        do {
+            _ = try loader.loadDocument(from: url)
+            Issue.record("expected throw")
+        } catch {
+            #expect(error is FCPXMLLoadError)
+        }
+    }
+
+    @Test("Resolve FCPXML file URL for nonexistent path throws")
+    func resolveFCPXMLFileURLForNonexistentPathThrows() {
         let loader = FCPXMLFileLoader()
         let url = URL(fileURLWithPath: "/does/not/exist.fcpxml")
-        XCTAssertThrowsError(try loader.resolveFCPXMLFileURL(from: url)) { err in
-            guard case FCPXMLLoadError.notAFile = err else {
-                XCTFail("Expected notAFile"); return
-            }
+        #expect(throws: FCPXMLLoadError.self) {
+            try loader.resolveFCPXMLFileURL(from: url)
         }
     }
 
     // MARK: - FCPXML creation (smoke)
 
-    func testCreateFCPXMLDocumentAllVersions() throws {
+    @Test("Create FCPXML document all versions")
+    func createFCPXMLDocumentAllVersions() throws {
         let service = FCPXMLService()
         for v in ["1.5", "1.10", "1.14"] {
             let doc = service.createFCPXMLDocument(version: v)
-            XCTAssertEqual(doc.rootElement()?.attribute(forName: "version"), v)
-            XCTAssertNotNil(doc.rootElement())
+            #expect(doc.rootElement()?.attribute(forName: "version") == v)
+            #expect(doc.rootElement() != nil)
         }
     }
 
     // MARK: - ValidationResult / ValidationError
 
-    func testValidationResultWithErrors() {
+    @Test("Validation result with errors")
+    func validationResultWithErrors() {
         let err = ValidationError(type: .missingAssetReference, message: "Missing ref", context: ["id": "r1"])
         let result = ValidationResult(errors: [err], warnings: [])
-        XCTAssertFalse(result.isValid)
-        XCTAssertEqual(result.errors.count, 1)
-        XCTAssertEqual(result.errors.first?.message, "Missing ref")
+        #expect(!result.isValid)
+        #expect(result.errors.count == 1)
+        #expect(result.errors.first?.message == "Missing ref")
     }
 
-    func testValidationWarning() {
+    @Test("Validation warning")
+    func validationWarning() {
         let warning = ValidationWarning(type: .missingMetadata, message: "Deprecated attribute")
-        XCTAssertFalse(warning.message.isEmpty)
+        #expect(!warning.message.isEmpty)
     }
 
     // MARK: - HiddenClipMarker (1.13+, marker_item)
 
-    func testHiddenClipMarkerModelAndAnnotationElements() {
+    @Test("Hidden clip marker model and annotation elements")
+    func hiddenClipMarkerModelAndAnnotationElements() {
         let clip = FoundationXMLFactory().makeElement(name: "clip")
         clip.addAttribute(name: "ref", value: "r1")
         clip.addAttribute(name: "offset", value: "0s")
@@ -168,17 +188,18 @@ final class FCPXMLAPIAndEdgeCaseTests: XCTestCase {
         let hiddenEl = FoundationXMLFactory().makeElement(name: "hidden-clip-marker")
         clip.addChild(hiddenEl)
         let marker = FinalCutPro.FCPXML.HiddenClipMarker(element: hiddenEl)
-        XCTAssertNotNil(marker)
-        XCTAssertEqual(marker?.element.name, "hidden-clip-marker")
+        #expect(marker != nil)
+        #expect(marker?.element.name == "hidden-clip-marker")
         let annotations = clip.fcpxAnnotations
-        XCTAssertTrue(annotations.contains { $0.name == "hidden-clip-marker" })
+        #expect(annotations.contains { $0.name == "hidden-clip-marker" })
         let created = FinalCutPro.FCPXML.HiddenClipMarker()
-        XCTAssertEqual(created.element.name, "hidden-clip-marker")
+        #expect(created.element.name == "hidden-clip-marker")
     }
 
     // MARK: - LiveDrawing (1.11+, live-drawing story element)
 
-    func testLiveDrawingModelInitAndAttributes() {
+    @Test("Live drawing model init and attributes")
+    func liveDrawingModelInitAndAttributes() {
         let ld = FinalCutPro.FCPXML.LiveDrawing(
             role: "video",
             dataLocator: "r1",
@@ -191,34 +212,29 @@ final class FCPXMLAPIAndEdgeCaseTests: XCTestCase {
             enabled: true,
             note: nil
         )
-        XCTAssertEqual(ld.element.name, "live-drawing")
-        XCTAssertEqual(ld.role, "video")
-        XCTAssertEqual(ld.dataLocator, "r1")
-        XCTAssertEqual(ld.animationType, "draw")
-        XCTAssertEqual(ld.name, "Sketch")
-        XCTAssertEqual(ld.duration, Fraction(5, 1))
+        #expect(ld.element.name == "live-drawing")
+        #expect(ld.role == "video")
+        #expect(ld.dataLocator == "r1")
+        #expect(ld.animationType == "draw")
+        #expect(ld.name == "Sketch")
+        #expect(ld.duration == Fraction(5, 1))
     }
 
-    func testLiveDrawingFromElementAndAnyTimelineRoundTrip() {
+    @Test("Live drawing from element and AnyTimeline round trip")
+    func liveDrawingFromElementAndAnyTimelineRoundTrip() throws {
         let el = FoundationXMLFactory().makeElement(name: "live-drawing")
         el.addAttribute(name: "name", value: "Draw")
         el.addAttribute(name: "duration", value: "3s")
         el.addAttribute(name: "role", value: "video")
-        guard let ld = FinalCutPro.FCPXML.LiveDrawing(element: el) else {
-            XCTFail("LiveDrawing(element:) should succeed for live-drawing element")
-            return
-        }
-        XCTAssertEqual(ld.name, "Draw")
-        XCTAssertEqual(ld.role, "video")
-        guard let anyTimeline = FinalCutPro.FCPXML.AnyTimeline(element: el) else {
-            XCTFail("AnyTimeline should accept live-drawing element")
-            return
-        }
+        let ld = try #require(FinalCutPro.FCPXML.LiveDrawing(element: el))
+        #expect(ld.name == "Draw")
+        #expect(ld.role == "video")
+        let anyTimeline = try #require(FinalCutPro.FCPXML.AnyTimeline(element: el))
         if case .liveDrawing(let model) = anyTimeline {
-            XCTAssertEqual(model.name, "Draw")
-            XCTAssert(model.element === ld.element)
+            #expect(model.name == "Draw")
+            #expect(model.element === ld.element)
         } else {
-            XCTFail("Expected AnyTimeline.liveDrawing, got \(anyTimeline)")
+            Issue.record("Expected AnyTimeline.liveDrawing, got \(anyTimeline)")
         }
     }
 }

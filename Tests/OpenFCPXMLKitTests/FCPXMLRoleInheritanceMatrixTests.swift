@@ -9,61 +9,64 @@
 //	Role inheritance matrix — primary / connected / sync / multicam × channel-source edges.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLRoleInheritanceMatrixTests: XCTestCase {
+@Suite("Role inheritance matrix")
+struct FCPXMLRoleInheritanceMatrixTests {
     private typealias Collector = FinalCutPro.FCPXML.RoleInventoryClipCollector
 
-    func testPrimarySpineAssetClipUsesAudioChannelSourceOverClipAudioRole() async throws {
+    @Test("Primary spine asset-clip uses audio channel source over clip audio role")
+    func primarySpineAssetClipUsesAudioChannelSourceOverClipAudioRole() async throws {
         let fcpxml = try parseInlineFCPXML(primaryWithChannelSource)
-        let timeline = try XCTUnwrap(fcpxml.allProjects().first?.sequence.element)
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
 
         let entries = await Collector.collectEntries(from: timeline, scope: .init())
         let audio = entries.filter {
             $0.extracted.displayClipName() == "Primary" && $0.category == .primaryAudio
         }
-        XCTAssertEqual(audio.count, 1)
-        XCTAssertTrue(
-            audio[0].roleSubroleField.localizedCaseInsensitiveContains("mix"),
-            "Expected channel-source Mix role, got \(audio[0].roleSubroleField)"
-        )
-        XCTAssertFalse(
-            audio[0].roleSubroleField.localizedCaseInsensitiveContains("dialogue"),
-            "Clip audioRole should be overridden by active audio-channel-source"
-        )
+        #expect(audio.count == 1)
+        let containsMix = audio[0].roleSubroleField.localizedCaseInsensitiveContains("mix")
+        #expect(containsMix, "Expected channel-source Mix role, got \(audio[0].roleSubroleField)")
+        let containsDialogue = audio[0].roleSubroleField.localizedCaseInsensitiveContains("dialogue")
+        #expect(!containsDialogue, "Clip audioRole should be overridden by active audio-channel-source")
     }
 
-    func testConnectedLaneInheritsAnchorVideoInRoleField() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "SyncClipRoles2")
+    @Test("Connected lane inherits anchor video in role field")
+    func connectedLaneInheritsAnchorVideoInRoleField() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "SyncClipRoles2")
         let entries = await Collector.collectEntries(from: timeline, scope: .init())
 
         let connectedAudio = entries.filter {
             $0.extracted.displayClipName() == "5-1-5 NK"
                 && $0.category == .connectedAudio
         }
-        XCTAssertFalse(connectedAudio.isEmpty)
+        let connectedAudioEmpty = connectedAudio.isEmpty
+        #expect(!connectedAudioEmpty)
         for entry in connectedAudio {
-            XCTAssertTrue(
-                entry.roleSubroleField.hasPrefix("Video,"),
+            let hasVideoPrefix = entry.roleSubroleField.hasPrefix("Video,")
+            #expect(
+                hasVideoPrefix,
                 "Connected sync audio should prefix Video anchor, got \(entry.roleSubroleField)"
             )
         }
     }
 
-    func testSyncClipSyncedAudioUsesSyncSourceGroupedRoles() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "SyncClipRoles")
+    @Test("Sync-clip synced audio uses sync-source grouped roles")
+    func syncClipSyncedAudioUsesSyncSourceGroupedRoles() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "SyncClipRoles")
         let roles = await timeline.fcpExtract(
             preset: .roles(roleTypes: [.audio]),
             scope: .reportMainTimelineVisible()
         )
-        XCTAssertTrue(roles.contains { $0.role.lowercased() == "dialogue" })
+        let hasDialogue = roles.contains { $0.role.lowercased() == "dialogue" }
+        #expect(hasDialogue)
     }
 
-    func testMCClipInheritedAudioWhenSourcesLackRoleSources() async throws {
+    @Test("MC-clip inherited audio when sources lack role sources")
+    func mcClipInheritedAudioWhenSourcesLackRoleSources() async throws {
         let fcpxml = try parseInlineFCPXML(mcClipInheritedAudio)
-        let timeline = try XCTUnwrap(fcpxml.allProjects().first?.sequence.element)
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         let entries = await Collector.collectEntries(from: timeline, scope: .init())
 
         let dialogueRows = entries.filter {
@@ -71,11 +74,12 @@ final class FCPXMLRoleInheritanceMatrixTests: XCTestCase {
                 && $0.category == .primaryClip
                 && $0.roleSubroleField.localizedCaseInsensitiveContains("mix")
         }
-        XCTAssertEqual(dialogueRows.count, 1)
+        #expect(dialogueRows.count == 1)
     }
 
-    func testInheritedRolesHonorsMcClipAnglesAllMask() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "MulticamSample")
+    @Test("Inherited roles honors mc-clip angles all mask")
+    func inheritedRolesHonorsMcClipAnglesAllMask() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "MulticamSample")
 
         var activeScope = FinalCutPro.FCPXML.ExtractionScope.reportMainTimelineVisible()
         activeScope.mcClipAngles = .active
@@ -91,11 +95,13 @@ final class FCPXMLRoleInheritanceMatrixTests: XCTestCase {
             scope: allScope
         )
 
-        XCTAssertGreaterThanOrEqual(allExtracted.count, activeExtracted.count)
+        #expect(allExtracted.count >= activeExtracted.count)
 
         // Scope masks must be stored on ExtractedElement for role resolution.
-        XCTAssertTrue(allExtracted.allSatisfy { $0.mcClipAngles == .all })
-        XCTAssertTrue(activeExtracted.allSatisfy { $0.mcClipAngles == .active })
+        let allHaveAllMask = allExtracted.allSatisfy { $0.mcClipAngles == .all }
+        #expect(allHaveAllMask)
+        let activeHaveActiveMask = activeExtracted.allSatisfy { $0.mcClipAngles == .active }
+        #expect(activeHaveActiveMask)
     }
 
     // MARK: - Fixtures

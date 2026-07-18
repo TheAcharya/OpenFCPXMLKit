@@ -9,194 +9,216 @@
 //
 
 import SwiftTimecode
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLReportFormattingTests: XCTestCase {
+@Suite("Report formatting")
+struct FCPXMLReportFormattingTests {
     private typealias ReportFormatting = FinalCutPro.FCPXML.ReportFormatting
     private typealias ReportTimecodeFormat = FinalCutPro.FCPXML.ReportTimecodeFormat
     private typealias ExtractedEffect = FinalCutPro.FCPXML.ExtractedEffect
-    
-    func testTimecodeStringFormatsHoursMinutesSecondsFrames() throws {
+
+    @Test("Timecode string formats hours minutes seconds frames")
+    func timecodeStringFormatsHoursMinutesSecondsFrames() throws {
         let totalFrames = (1 * 3600 + 2 * 60 + 3) * 24 + 4
         let timecode = try Timecode(.frames(totalFrames), at: TimecodeFrameRate.fps24)
-        XCTAssertEqual(ReportFormatting.timecodeString(timecode), "01:02:03:04")
+        #expect(ReportFormatting.timecodeString(timecode) == "01:02:03:04")
     }
-    
-    func testTimecodeStringUsesSemicolonForDropFrameRate() throws {
+
+    @Test("Timecode string uses semicolon for drop-frame rate")
+    func timecodeStringUsesSemicolonForDropFrameRate() throws {
         let timecode = try Timecode(.realTime(seconds: 3600), at: .fps29_97d)
-        XCTAssertEqual(ReportFormatting.timecodeString(timecode), timecode.stringValue())
-        XCTAssertTrue(ReportFormatting.timecodeString(timecode).contains(";"))
+        #expect(ReportFormatting.timecodeString(timecode) == timecode.stringValue())
+        #expect(ReportFormatting.timecodeString(timecode).contains(";"))
     }
-    
-    func testTimecodeStringUsesColonForNonDropFrameRate() throws {
+
+    @Test("Timecode string uses colon for non-drop-frame rate")
+    func timecodeStringUsesColonForNonDropFrameRate() throws {
         let timecode = try Timecode(.realTime(seconds: 3600), at: .fps29_97)
-        XCTAssertEqual(ReportFormatting.timecodeString(timecode), timecode.stringValue())
-        XCTAssertFalse(ReportFormatting.timecodeString(timecode).contains(";"))
+        #expect(ReportFormatting.timecodeString(timecode) == timecode.stringValue())
+        #expect(!ReportFormatting.timecodeString(timecode).contains(";"))
     }
-    
-    func testTimecodeStringFramesFormatReturnsWholeFrameCount() throws {
+
+    @Test("Timecode string frames format returns whole frame count")
+    func timecodeStringFramesFormatReturnsWholeFrameCount() throws {
         let totalFrames = (1 * 3600 + 2 * 60 + 3) * 24 + 4
         let timecode = try Timecode(.frames(totalFrames), at: .fps24)
-        XCTAssertEqual(
-            ReportFormatting.timecodeString(timecode, format: .frames),
-            String(timecode.frameCount.wholeFrames)
+        #expect(
+            ReportFormatting.timecodeString(timecode, format: .frames)
+                == String(timecode.frameCount.wholeFrames)
         )
     }
-    
-    func testTimecodeStringFeetAndFramesFormat() throws {
+
+    @Test("Timecode string feet+frames format")
+    func timecodeStringFeetAndFramesFormat() throws {
         let timecode = try Timecode(.feetAndFrames(feet: 60, frames: 10), at: .fps24)
-        XCTAssertEqual(
-            ReportFormatting.timecodeString(timecode, format: .feetAndFrames),
-            timecode.feetAndFramesValue.stringValue
+        #expect(
+            ReportFormatting.timecodeString(timecode, format: .feetAndFrames)
+                == timecode.feetAndFramesValue.stringValue
         )
     }
-    
-    func testTimecodeStringSmpteNoFramesFormat() throws {
+
+    @Test("Timecode string SMPTE no-frames format")
+    func timecodeStringSmpteNoFramesFormat() throws {
         let totalFrames = (1 * 3600 + 2 * 60 + 3) * 24 + 4
         let timecode = try Timecode(.frames(totalFrames), at: .fps24)
-        XCTAssertEqual(
-            ReportFormatting.timecodeString(timecode, format: .smpteNoFrames),
-            "01:02:03"
+        #expect(
+            ReportFormatting.timecodeString(timecode, format: .smpteNoFrames)
+                == "01:02:03"
         )
     }
-    
-    func testCompareTimelinePositionsUsesNumericOrderForFramesFormat() {
-        XCTAssertEqual(
-            ReportFormatting.compareTimelinePositions("9", "100", format: .frames),
-            .orderedAscending
+
+    @Test("Compare timeline positions uses numeric order for frames")
+    func compareTimelinePositionsUsesNumericOrderForFramesFormat() {
+        #expect(
+            ReportFormatting.compareTimelinePositions("9", "100", format: .frames)
+                == .orderedAscending
         )
-        XCTAssertEqual(
-            ReportFormatting.compareTimelinePositions("20", "100", format: .frames),
-            .orderedAscending
+        #expect(
+            ReportFormatting.compareTimelinePositions("20", "100", format: .frames)
+                == .orderedAscending
         )
-        XCTAssertEqual(
-            ReportFormatting.compareTimelinePositions("100", "20", format: .frames),
-            .orderedDescending
+        #expect(
+            ReportFormatting.compareTimelinePositions("100", "20", format: .frames)
+                == .orderedDescending
         )
-        XCTAssertEqual(
-            ReportFormatting.compareTimelinePositions("1500", "1500", format: .frames),
-            .orderedSame
-        )
-    }
-    
-    func testFramesFormatSortDiffersFromLexicographicStringSort() {
-        // Pure character-wise order treats "20" as after "100"; timeline order is the opposite.
-        XCTAssertEqual("20".compare("100"), .orderedDescending)
-        XCTAssertEqual(
-            ReportFormatting.compareTimelinePositions("20", "100", format: .frames),
-            .orderedAscending
+        #expect(
+            ReportFormatting.compareTimelinePositions("1500", "1500", format: .frames)
+                == .orderedSame
         )
     }
-    
-    func testCompareTimelinePositionsUsesChronologicalOrderForSmpteFormats() {
-        XCTAssertEqual(
-            ReportFormatting.compareTimelinePositions("01:00:00:00", "01:00:00:01", format: .smpteFrames),
-            .orderedAscending
-        )
-        XCTAssertEqual(
-            ReportFormatting.compareTimelinePositions("01:02:03", "01:02:04", format: .smpteNoFrames),
-            .orderedAscending
+
+    @Test("Frames format sort differs from lexicographic string sort")
+    func framesFormatSortDiffersFromLexicographicStringSort() {
+        #expect("20".compare("100") == .orderedDescending)
+        #expect(
+            ReportFormatting.compareTimelinePositions("20", "100", format: .frames)
+                == .orderedAscending
         )
     }
-    
-    func testCompareTimelinePositionsUsesNumericOrderForFeetAndFramesFormat() {
-        XCTAssertEqual(
-            ReportFormatting.compareTimelinePositions("9+00", "10+00", format: .feetAndFrames),
-            .orderedAscending
+
+    @Test("Compare timeline positions uses chronological order for SMPTE")
+    func compareTimelinePositionsUsesChronologicalOrderForSmpteFormats() {
+        #expect(
+            ReportFormatting.compareTimelinePositions(
+                "01:00:00:00",
+                "01:00:00:01",
+                format: .smpteFrames
+            ) == .orderedAscending
         )
-        XCTAssertEqual(
-            ReportFormatting.compareTimelinePositions("100+00", "20+00", format: .feetAndFrames),
-            .orderedDescending
-        )
-        XCTAssertEqual(
-            ReportFormatting.compareTimelinePositions("60+09", "60+10", format: .feetAndFrames),
-            .orderedAscending
-        )
-    }
-    
-    func testFeetAndFramesFormatSortDiffersFromLexicographicStringSort() {
-        XCTAssertEqual("9+00".compare("10+00"), .orderedDescending)
-        XCTAssertEqual(
-            ReportFormatting.compareTimelinePositions("9+00", "10+00", format: .feetAndFrames),
-            .orderedAscending
+        #expect(
+            ReportFormatting.compareTimelinePositions(
+                "01:02:03",
+                "01:02:04",
+                format: .smpteNoFrames
+            ) == .orderedAscending
         )
     }
-    
-    func testReportTimecodeFormatParsesCLIValues() {
-        XCTAssertEqual(ReportTimecodeFormat(cliValue: "HH:MM:SS:FF"), .smpteFrames)
-        XCTAssertEqual(ReportTimecodeFormat(cliValue: "frames"), .frames)
-        XCTAssertEqual(ReportTimecodeFormat(cliValue: "Feet+Frames"), .feetAndFrames)
-        XCTAssertEqual(ReportTimecodeFormat(cliValue: "HH:MM:SS"), .smpteNoFrames)
-        XCTAssertNil(ReportTimecodeFormat(cliValue: "invalid"))
+
+    @Test("Compare timeline positions uses numeric order for feet+frames")
+    func compareTimelinePositionsUsesNumericOrderForFeetAndFramesFormat() {
+        #expect(
+            ReportFormatting.compareTimelinePositions("9+00", "10+00", format: .feetAndFrames)
+                == .orderedAscending
+        )
+        #expect(
+            ReportFormatting.compareTimelinePositions("100+00", "20+00", format: .feetAndFrames)
+                == .orderedDescending
+        )
+        #expect(
+            ReportFormatting.compareTimelinePositions("60+09", "60+10", format: .feetAndFrames)
+                == .orderedAscending
+        )
     }
-    
-    func testMarkerReportTypeMapsConfigurations() {
-        XCTAssertEqual(
-            ReportFormatting.markerReportType(for: .standard),
-            .standard
+
+    @Test("Feet+frames format sort differs from lexicographic string sort")
+    func feetAndFramesFormatSortDiffersFromLexicographicStringSort() {
+        #expect("9+00".compare("10+00") == .orderedDescending)
+        #expect(
+            ReportFormatting.compareTimelinePositions("9+00", "10+00", format: .feetAndFrames)
+                == .orderedAscending
         )
-        XCTAssertEqual(
-            ReportFormatting.markerReportType(for: .toDo(completed: false)),
-            .incompleteToDo
+    }
+
+    @Test("ReportTimecodeFormat parses CLI values")
+    func reportTimecodeFormatParsesCLIValues() {
+        #expect(ReportTimecodeFormat(cliValue: "HH:MM:SS:FF") == .smpteFrames)
+        #expect(ReportTimecodeFormat(cliValue: "frames") == .frames)
+        #expect(ReportTimecodeFormat(cliValue: "Feet+Frames") == .feetAndFrames)
+        #expect(ReportTimecodeFormat(cliValue: "HH:MM:SS") == .smpteNoFrames)
+        #expect(ReportTimecodeFormat(cliValue: "invalid") == nil)
+    }
+
+    @Test("Marker report type maps configurations")
+    func markerReportTypeMapsConfigurations() {
+        #expect(ReportFormatting.markerReportType(for: .standard) == .standard)
+        #expect(
+            ReportFormatting.markerReportType(for: .toDo(completed: false))
+                == .incompleteToDo
         )
-        XCTAssertEqual(
-            ReportFormatting.markerReportType(for: .toDo(completed: true)),
-            .completedToDo
+        #expect(
+            ReportFormatting.markerReportType(for: .toDo(completed: true))
+                == .completedToDo
         )
-        XCTAssertEqual(
-            ReportFormatting.markerReportType(for: .chapter(posterOffset: Fraction(1, 24))),
-            .chapter
+        #expect(
+            ReportFormatting.markerReportType(for: .chapter(posterOffset: Fraction(1, 24)))
+                == .chapter
         )
-        XCTAssertEqual(
+        #expect(
             ReportFormatting.markerReportType(
                 for: .analysis(
                     shotTypes: [FinalCutPro.FCPXML.ShotType(value: .closeUp)],
                     stabilizationTypes: []
                 )
-            ),
-            .analysis
+            ) == .analysis
         )
     }
-    
-    func testRoleSubroleDisplayIncludesSubroleSeparator() {
+
+    @Test("Role subrole display includes subrole separator")
+    func roleSubroleDisplayIncludesSubroleSeparator() {
         let role = interpolatedRole("dialogue.MixL")
         let display = ReportFormatting.roleSubroleDisplay(from: role)
-        
-        XCTAssertTrue(display.contains("▸"))
-        XCTAssertTrue(display.lowercased().contains("dialogue"))
+
+        #expect(display.contains("▸"))
+        #expect(display.lowercased().contains("dialogue"))
     }
-    
-    func testMainRoleDisplayTitleCasesBuiltInRoles() {
+
+    @Test("Main role display title-cases built-in roles")
+    func mainRoleDisplayTitleCasesBuiltInRoles() {
         let role = interpolatedRole("dialogue")
-        XCTAssertEqual(ReportFormatting.mainRoleDisplay(from: role), "Dialogue")
+        #expect(ReportFormatting.mainRoleDisplay(from: role) == "Dialogue")
     }
-    
-    func testEnabledAndAppleCheckmarks() {
+
+    @Test("Enabled and Apple checkmarks")
+    func enabledAndAppleCheckmarks() {
         let enabled = OFKXMLDefaultFactory().makeElement(name: "title")
         enabled.addAttribute(name: "enabled", value: "1")
-        
-        XCTAssertEqual(ReportFormatting.enabledCheckmark(for: enabled), "✓")
-        XCTAssertEqual(ReportFormatting.appleCheckmark(forAppleSupplied: true), "✓")
-        XCTAssertEqual(ReportFormatting.appleCheckmark(forAppleSupplied: false), "")
-        XCTAssertEqual(ReportFormatting.appleCheckmarkForTitle(isAppleSupplied: false), "✗")
+
+        #expect(ReportFormatting.enabledCheckmark(for: enabled) == "✓")
+        #expect(ReportFormatting.appleCheckmark(forAppleSupplied: true) == "✓")
+        #expect(ReportFormatting.appleCheckmark(forAppleSupplied: false) == "")
+        #expect(ReportFormatting.appleCheckmarkForTitle(isAppleSupplied: false) == "✗")
     }
-    
-    func testTransitionCategoryDisplayNames() {
-        XCTAssertEqual(
-            ReportFormatting.transitionCategory(for: .primary),
-            "Primary transition"
+
+    @Test("Transition category display names")
+    func transitionCategoryDisplayNames() {
+        #expect(
+            ReportFormatting.transitionCategory(for: .primary)
+                == "Primary transition"
         )
-        XCTAssertEqual(
-            ReportFormatting.transitionCategory(for: .secondary),
-            "Secondary transition"
+        #expect(
+            ReportFormatting.transitionCategory(for: .secondary)
+                == "Secondary transition"
         )
     }
-    
-    func testEffectSettingsDisplayFormatsStructuredSettings() throws {
-        let host = try makeExtractedHost(from: parseInlineFCPXML(minimalTimeline()), elementName: "asset-clip")
-        
+
+    @Test("Effect settings display formats structured settings")
+    func effectSettingsDisplayFormatsStructuredSettings() throws {
+        let host = try requireExtractedHost(
+            from: parseInlineFCPXML(minimalTimeline()),
+            elementName: "asset-clip"
+        )
+
         let cases: [(ExtractedEffect.Settings, String)] = [
             (.empty, ""),
             (.text("Blur"), "Blur"),
@@ -207,61 +229,72 @@ final class FCPXMLReportFormattingTests: XCTestCase {
             (.transformRotation(45), "Rotation 45.0°"),
             (.transformScale(.init(x: 1.5, y: 1.5)), "Scale 150.0%")
         ]
-        
+
         for (settings, expected) in cases {
-            let effect = makeExtractedEffect(name: "Test", kind: .transform, host: host, settings: settings)
-            XCTAssertEqual(ReportFormatting.effectSettingsDisplay(for: effect), expected)
+            let effect = makeExtractedEffect(
+                name: "Test",
+                kind: .transform,
+                host: host,
+                settings: settings
+            )
+            #expect(ReportFormatting.effectSettingsDisplay(for: effect) == expected)
         }
     }
-    
-    func testTitleRoleSubroleAlwaysReturnsTitles() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "DisabledClips")
+
+    @Test("Title role subrole always returns Titles")
+    func titleRoleSubroleAlwaysReturnsTitles() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "DisabledClips")
         let titles = await timeline.fcpExtract(types: [.title], scope: .mainTimeline)
-        let title = try XCTUnwrap(titles.first)
-        
-        XCTAssertEqual(ReportFormatting.titleRoleSubrole(for: title), "Titles")
+        let title = try #require(titles.first)
+
+        #expect(ReportFormatting.titleRoleSubrole(for: title) == "Titles")
     }
-    
-    func testInventoryCombinedRoleFieldUsesAnchorFormatWhenVideoPresent() {
+
+    @Test("Inventory combined role field uses anchor format when video present")
+    func inventoryCombinedRoleFieldUsesAnchorFormatWhenVideoPresent() {
         let field = ReportFormatting.inventoryCombinedRoleField(from: [
             "Video",
             "Dialogue ▸ Mix L",
             "Dialogue ▸ Mix R",
             "Dialogue ▸ Boom 1"
         ])
-        
-        XCTAssertEqual(field, "Video, Dialogue ▸ Boom 1, Mix L, Mix R")
+
+        #expect(field == "Video, Dialogue ▸ Boom 1, Mix L, Mix R")
     }
-    
-    func testInventoryCombinedRoleFieldGroupsSubrolesWithoutVideo() {
+
+    @Test("Inventory combined role field groups subroles without video")
+    func inventoryCombinedRoleFieldGroupsSubrolesWithoutVideo() {
         let field = ReportFormatting.inventoryCombinedRoleField(from: [
             "Dialogue ▸ Mix L",
             "Dialogue ▸ Mix R",
             "Dialogue ▸ Boom 1",
             "Dialogue ▸ <Blank>"
         ])
-        
-        XCTAssertEqual(field, "Dialogue ▸ Mix L, Mix R, Boom 1")
+
+        #expect(field == "Dialogue ▸ Mix L, Mix R, Boom 1")
     }
-    
-    func testInventoryCombinedRoleFieldLoneEmptyDialogueUsesDefaultSubrole() {
+
+    @Test("Lone empty Dialogue uses default subrole")
+    func inventoryCombinedRoleFieldLoneEmptyDialogueUsesDefaultSubrole() {
         let field = ReportFormatting.inventoryCombinedRoleField(from: [
             "Video",
             "Dialogue ▸ <Blank>"
         ])
-        
-        XCTAssertEqual(field, "Video, Dialogue ▸ Dialogue-1")
+
+        #expect(field == "Video, Dialogue ▸ Dialogue-1")
     }
-    
-    func testInventoryCombinedRoleFieldLoneEmptyAtmosUsesDefaultSubrole() {
+
+    @Test("Lone empty Atmosphere uses default subrole")
+    func inventoryCombinedRoleFieldLoneEmptyAtmosphereUsesDefaultSubrole() {
         let field = ReportFormatting.inventoryCombinedRoleField(from: [
-            "Atmos ▸ <Blank>"
+            "Atmosphere ▸ <Blank>"
         ])
-        
-        XCTAssertEqual(field, "Atmos ▸ Atmos-1")
+
+        #expect(field == "Atmosphere ▸ Atmosphere-1")
     }
-    
-    func testInventoryCombinedRoleFieldDropsBlankDialogueAmongSiblingSubroles() {
+
+    @Test("Drops blank Dialogue among sibling subroles")
+    func inventoryCombinedRoleFieldDropsBlankDialogueAmongSiblingSubroles() {
         let field = ReportFormatting.inventoryCombinedRoleField(from: [
             "Video",
             "Dialogue ▸ Boom 1",
@@ -269,40 +302,42 @@ final class FCPXMLReportFormattingTests: XCTestCase {
             "Dialogue ▸ Mix R",
             "Dialogue ▸ <Blank>"
         ])
-        
-        XCTAssertEqual(field, "Video, Dialogue ▸ Boom 1, Mix L, Mix R")
+
+        #expect(field == "Video, Dialogue ▸ Boom 1, Mix L, Mix R")
     }
-    
-    func testInventoryCombinedRoleFieldUsesStableChannelOrderForRadioSubroles() {
+
+    @Test("Stable channel order for radio subroles")
+    func inventoryCombinedRoleFieldUsesStableChannelOrderForRadioSubroles() {
         let field = ReportFormatting.inventoryCombinedRoleField(from: [
             "Dialogue ▸ R_Fahd",
             "Dialogue ▸ R_Slate"
         ])
-        
-        XCTAssertEqual(field, "Dialogue ▸ R_Slate, R_Fahd")
+
+        #expect(field == "Dialogue ▸ R_Slate, R_Fahd")
     }
-    
-    func testKeywordRoleDisplaysSortsVideoBeforeDialogueWhenBothPresent() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "Keywords")
+
+    @Test("Keyword role displays sort video before dialogue when both present")
+    func keywordRoleDisplaysSortsVideoBeforeDialogueWhenBothPresent() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "Keywords")
         let keywords = await timeline.fcpExtract(
             types: [.keyword],
             scope: .reportMainTimelineVisible()
         )
-        
+
         for keyword in keywords {
             let displays = ReportFormatting.keywordRoleDisplays(for: keyword)
             guard displays.count >= 2,
                   let videoIndex = displays.firstIndex(where: { $0.lowercased() == "video" }),
                   let dialogueIndex = displays.firstIndex(where: { $0.lowercased() == "dialogue" })
             else { continue }
-            
-            XCTAssertLessThan(videoIndex, dialogueIndex)
+
+            #expect(videoIndex < dialogueIndex)
             return
         }
-        
-        throw XCTSkip("No keyword with both Video and Dialogue roles in Keywords sample")
+
+        try Test.cancel("No keyword with both Video and Dialogue roles in Keywords sample")
     }
-    
+
     private func minimalTimeline() -> String {
         """
         <?xml version="1.0" encoding="UTF-8"?>

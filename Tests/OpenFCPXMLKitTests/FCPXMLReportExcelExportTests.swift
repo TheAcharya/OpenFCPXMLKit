@@ -9,14 +9,15 @@
 //
 
 import Foundation
+import Testing
 @testable import OpenFCPXMLKit
-import XCTest
 import XLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
-    
-    func testReportWorkbookSheetTitlesUseTitleCase() {
+@Suite("Report Excel export")
+struct FCPXMLReportExcelExportTests {
+
+    @Test("Workbook sheet titles use title case")
+    func reportWorkbookSheetTitlesUseTitleCase() {
         let sheetTitles = [
             FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName,
             FinalCutPro.FCPXML.KeywordsReportSection.defaultSheetName,
@@ -28,8 +29,8 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
             FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName,
             FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName
         ]
-        
-        XCTAssertEqual(sheetTitles, [
+
+        #expect(sheetTitles == [
             "Markers",
             "Keywords",
             "Titles & Generators",
@@ -40,66 +41,78 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
             "Media Summary",
             "Selected Roles Inventory"
         ])
-        
-        XCTAssertEqual(
-            FinalCutPro.FCPXML.ReportBuildPhase.roleInventory.rawValue,
-            "Selected Roles Inventory"
+
+        #expect(
+            FinalCutPro.FCPXML.ReportBuildPhase.roleInventory.rawValue
+                == "Selected Roles Inventory"
         )
     }
-    
-    func testSanitizeSheetNameReplacesInvalidCharactersAndTruncates() {
+
+    @Test("Sanitize sheet name replaces invalid characters and truncates")
+    func sanitizeSheetNameReplacesInvalidCharactersAndTruncates() {
         let sanitized = FinalCutPro.FCPXML.ReportExcelExport.sanitizeSheetName(
             "Video: Effects? [test]/path\\name that is way too long"
         )
-        
-        XCTAssertFalse(sanitized.contains(":"))
-        XCTAssertFalse(sanitized.contains("?"))
-        XCTAssertFalse(sanitized.contains("["))
-        XCTAssertFalse(sanitized.contains("]"))
-        XCTAssertFalse(sanitized.contains("/"))
-        XCTAssertFalse(sanitized.contains("\\"))
-        XCTAssertLessThanOrEqual(sanitized.count, 31)
+
+        let hasColon = sanitized.contains(":")
+        let hasQuestion = sanitized.contains("?")
+        let hasOpenBracket = sanitized.contains("[")
+        let hasCloseBracket = sanitized.contains("]")
+        let hasSlash = sanitized.contains("/")
+        let hasBackslash = sanitized.contains("\\")
+        #expect(!hasColon)
+        #expect(!hasQuestion)
+        #expect(!hasOpenBracket)
+        #expect(!hasCloseBracket)
+        #expect(!hasSlash)
+        #expect(!hasBackslash)
+        #expect(sanitized.count <= 31)
     }
-    
-    func testMakeWorkbookFromMarkersReportIncludesMarkersSheet() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
-        
-        let report = try await fcpxml.buildReport(
-            options: try FCPXMLReportingReportFixture.reportOptions {
-                $0.includeMarkers = true
-            }
-        )
-        
-        let sheetNames = await sheetNames(from: report)
-        XCTAssertEqual(sheetNames, [
+
+    @Test("Make workbook from markers report includes Markers sheet")
+    @MainActor
+    func makeWorkbookFromMarkersReportIncludesMarkersSheet() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
+
+        var options = FinalCutPro.FCPXML.ReportOptions()
+        options.projectName = FCPXMLReportingReportFixture.primaryProjectName(in: fcpxml)
+        options.includeMarkers = true
+
+        let report = try await fcpxml.buildReport(options: options)
+
+        let names = sheetNames(from: report)
+        #expect(names == [
             "Created by OpenFCPXMLKit",
             FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName
         ])
     }
-    
-    func testExportMarkersReportWritesXLSXFile() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
-        
-        let report = try await fcpxml.buildReport(
-            options: try FCPXMLReportingReportFixture.reportOptions {
-                $0.includeMarkers = true
-            }
-        )
-        
+
+    @Test("Export markers report writes XLSX file")
+    func exportMarkersReportWritesXLSXFile() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
+
+        var options = FinalCutPro.FCPXML.ReportOptions()
+        options.projectName = FCPXMLReportingReportFixture.primaryProjectName(in: fcpxml)
+        options.includeMarkers = true
+
+        let report = try await fcpxml.buildReport(options: options)
+
         let outputURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("OFK-Markers-\(UUID().uuidString).xlsx")
         defer { try? FileManager.default.removeItem(at: outputURL) }
-        
+
         try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: outputURL)
-        
-        XCTAssertTrue(FileManager.default.fileExists(atPath: outputURL.path))
-        
+
+        #expect(FileManager.default.fileExists(atPath: outputURL.path))
+
         let attributes = try FileManager.default.attributesOfItem(atPath: outputURL.path)
         let fileSize = attributes[.size] as? NSNumber
-        XCTAssertGreaterThan(fileSize?.intValue ?? 0, 0)
+        #expect((fileSize?.intValue ?? 0) > 0)
     }
-    
-    func testMakeWorkbookFromSyntheticReportIncludesAllSections() async {
+
+    @Test("Make workbook from synthetic report includes all sections")
+    @MainActor
+    func makeWorkbookFromSyntheticReportIncludesAllSections() {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test Project",
             markers: FinalCutPro.FCPXML.MarkersReportSection(rows: [
@@ -159,9 +172,9 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
                 ]
             )
         )
-        
-        let sheetNames = await sheetNames(from: report)
-        XCTAssertEqual(sheetNames, [
+
+        let names = sheetNames(from: report)
+        #expect(names == [
             FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName,
             "Video",
             FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName,
@@ -174,34 +187,36 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
             FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName
         ])
     }
-    
+
+    @Test("Media Summary sheet lists missing media paths")
     @MainActor
-    func testMediaSummarySheetListsMissingMediaPaths() {
+    func mediaSummarySheetListsMissingMediaPaths() {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test Project",
             mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection(
                 missingMediaPaths: ["/missing/clip.mov", "/missing/audio.wav"]
             )
         )
-        
+
         let sheet = FinalCutPro.FCPXML.ReportExcelExport
             .makeWorkbook(from: report)
             .getSheet(name: FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName)
-        
-        XCTAssertEqual(sheet?.getCellWithFormat("A1")?.value.stringValue, "Row")
-        XCTAssertEqual(sheet?.getCellWithFormat("B1")?.value.stringValue, "Missing Media")
-        XCTAssertEqual(sheet?.getCellWithFormat("B1")?.format?.backgroundColor, "#000000")
-        XCTAssertEqual(sheet?.getCellWithFormat("B1")?.format?.fontColor, "#FFFFFF")
-        XCTAssertEqual(sheet?.getCellWithFormat("A2")?.value.stringValue, "1")
-        XCTAssertEqual(sheet?.getCellWithFormat("B2")?.value.stringValue, "/missing/clip.mov")
-        XCTAssertEqual(sheet?.getCellWithFormat("B2")?.format?.fontColor, "#FF0000")
-        XCTAssertEqual(sheet?.getCellWithFormat("A3")?.value.stringValue, "2")
-        XCTAssertEqual(sheet?.getCellWithFormat("B3")?.value.stringValue, "/missing/audio.wav")
-        XCTAssertEqual(sheet?.getCellWithFormat("B3")?.format?.fontColor, "#FF0000")
+
+        #expect(sheet?.getCellWithFormat("A1")?.value.stringValue == "Row")
+        #expect(sheet?.getCellWithFormat("B1")?.value.stringValue == "Missing Media")
+        #expect(sheet?.getCellWithFormat("B1")?.format?.backgroundColor == "#000000")
+        #expect(sheet?.getCellWithFormat("B1")?.format?.fontColor == "#FFFFFF")
+        #expect(sheet?.getCellWithFormat("A2")?.value.stringValue == "1")
+        #expect(sheet?.getCellWithFormat("B2")?.value.stringValue == "/missing/clip.mov")
+        #expect(sheet?.getCellWithFormat("B2")?.format?.fontColor == "#FF0000")
+        #expect(sheet?.getCellWithFormat("A3")?.value.stringValue == "2")
+        #expect(sheet?.getCellWithFormat("B3")?.value.stringValue == "/missing/audio.wav")
+        #expect(sheet?.getCellWithFormat("B3")?.format?.fontColor == "#FF0000")
     }
-    
+
+    @Test("Report table headers use black background and white text")
     @MainActor
-    func testReportTableHeadersUseBlackBackgroundAndWhiteText() {
+    func reportTableHeadersUseBlackBackgroundAndWhiteText() {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test Project",
             markers: FinalCutPro.FCPXML.MarkersReportSection(rows: [
@@ -215,20 +230,21 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
                 )
             ])
         )
-        
+
         let sheet = FinalCutPro.FCPXML.ReportExcelExport
             .makeWorkbook(from: report)
             .getSheet(name: FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName)
-        
+
         let headerCell = sheet?.getCellWithFormat("A1")
-        XCTAssertEqual(headerCell?.format?.backgroundColor, "#000000")
-        XCTAssertEqual(headerCell?.format?.fontColor, "#FFFFFF")
-        XCTAssertEqual(headerCell?.value.stringValue, "Row")
-        XCTAssertEqual(sheet?.getCellWithFormat("B1")?.value.stringValue, "Marker Name")
+        #expect(headerCell?.format?.backgroundColor == "#000000")
+        #expect(headerCell?.format?.fontColor == "#FFFFFF")
+        #expect(headerCell?.value.stringValue == "Row")
+        #expect(sheet?.getCellWithFormat("B1")?.value.stringValue == "Marker Name")
     }
-    
+
+    @Test("Workbook cover sheet uses configured title header and style")
     @MainActor
-    func testWorkbookCoverSheetUsesConfiguredTitleHeaderAndStyle() {
+    func workbookCoverSheetUsesConfiguredTitleHeaderAndStyle() {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test Project",
             markers: FinalCutPro.FCPXML.MarkersReportSection(rows: []),
@@ -237,21 +253,22 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
                 headerText: "Created by XYZ"
             )
         )
-        
+
         let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
-        let sheetNames = workbook.getSheets().map { $0.name }
-        XCTAssertEqual(sheetNames.first, "Created by XYZ")
-        
+        let names = workbook.getSheets().map { $0.name }
+        #expect(names.first == "Created by XYZ")
+
         let coverSheet = workbook.getSheet(name: "Created by XYZ")
         let headerCell = coverSheet?.getCellWithFormat("A1")
-        XCTAssertEqual(headerCell?.value.stringValue, "Created by XYZ")
-        XCTAssertEqual(headerCell?.format?.backgroundColor, "#000000")
-        XCTAssertEqual(headerCell?.format?.fontColor, "#FFFFFF")
-        XCTAssertNil(coverSheet?.getCellWithFormat("A2")?.value.stringValue)
+        #expect(headerCell?.value.stringValue == "Created by XYZ")
+        #expect(headerCell?.format?.backgroundColor == "#000000")
+        #expect(headerCell?.format?.fontColor == "#FFFFFF")
+        #expect(coverSheet?.getCellWithFormat("A2")?.value.stringValue == nil)
     }
-    
+
+    @Test("Workbook cover sheet includes copyright label on row two")
     @MainActor
-    func testWorkbookCoverSheetIncludesCopyrightLabelOnRowTwo() {
+    func workbookCoverSheetIncludesCopyrightLabelOnRowTwo() {
         let copyright = "© 2026 Example Studios"
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test Project",
@@ -259,23 +276,24 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
             workbookCoverSheet: .openFCPXMLKitDefault,
             copyrightLabel: copyright
         )
-        
+
         let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
         let coverSheet = workbook.getSheet(
             name: FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.title
         )
-        XCTAssertEqual(
-            coverSheet?.getCellWithFormat("A1")?.value.stringValue,
-            FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.headerText
+        #expect(
+            coverSheet?.getCellWithFormat("A1")?.value.stringValue
+                == FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.headerText
         )
         let copyrightCell = coverSheet?.getCellWithFormat("A2")
-        XCTAssertEqual(copyrightCell?.value.stringValue, copyright)
-        XCTAssertEqual(copyrightCell?.format?.backgroundColor, "#000000")
-        XCTAssertEqual(copyrightCell?.format?.fontColor, "#FFFFFF")
+        #expect(copyrightCell?.value.stringValue == copyright)
+        #expect(copyrightCell?.format?.backgroundColor == "#000000")
+        #expect(copyrightCell?.format?.fontColor == "#FFFFFF")
     }
-    
+
+    @Test("Marker row uses configured marker type colors")
     @MainActor
-    func testMarkerRowUsesConfiguredMarkerTypeColors() {
+    func markerRowUsesConfiguredMarkerTypeColors() {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test Project",
             markers: FinalCutPro.FCPXML.MarkersReportSection(rows: [
@@ -313,23 +331,24 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
                 )
             ])
         )
-        
+
         let sheet = FinalCutPro.FCPXML.ReportExcelExport
             .makeWorkbook(from: report)
             .getSheet(name: FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName)
-        
-        XCTAssertEqual(sheet?.getCellWithFormat("A2")?.format?.fontColor, "#0066FF")
-        XCTAssertEqual(sheet?.getCellWithFormat("B2")?.format?.fontColor, "#0066FF")
-        XCTAssertEqual(sheet?.getCellWithFormat("A3")?.format?.fontColor, "#FF0000")
-        XCTAssertEqual(sheet?.getCellWithFormat("B3")?.format?.fontColor, "#FF0000")
-        XCTAssertEqual(sheet?.getCellWithFormat("A4")?.format?.fontColor, "#00AA44")
-        XCTAssertEqual(sheet?.getCellWithFormat("B4")?.format?.fontColor, "#00AA44")
-        XCTAssertEqual(sheet?.getCellWithFormat("A5")?.format?.fontColor, "#FF8800")
-        XCTAssertEqual(sheet?.getCellWithFormat("B5")?.format?.fontColor, "#FF8800")
+
+        #expect(sheet?.getCellWithFormat("A2")?.format?.fontColor == "#0066FF")
+        #expect(sheet?.getCellWithFormat("B2")?.format?.fontColor == "#0066FF")
+        #expect(sheet?.getCellWithFormat("A3")?.format?.fontColor == "#FF0000")
+        #expect(sheet?.getCellWithFormat("B3")?.format?.fontColor == "#FF0000")
+        #expect(sheet?.getCellWithFormat("A4")?.format?.fontColor == "#00AA44")
+        #expect(sheet?.getCellWithFormat("B4")?.format?.fontColor == "#00AA44")
+        #expect(sheet?.getCellWithFormat("A5")?.format?.fontColor == "#FF8800")
+        #expect(sheet?.getCellWithFormat("B5")?.format?.fontColor == "#FF8800")
     }
-    
+
+    @Test("Role Subrole cell uses configured role colors")
     @MainActor
-    func testRoleSubroleCellUsesConfiguredRoleColors() {
+    func roleSubroleCellUsesConfiguredRoleColors() {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test Project",
             roleInventory: FinalCutPro.FCPXML.RoleInventoryReportSection(
@@ -385,20 +404,21 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
                 ]
             )
         )
-        
+
         let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
         let sheet = workbook.getSheet(name: FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName)
-        
-        XCTAssertEqual(sheet?.getCellWithFormat("A2")?.format?.fontColor, "#0066FF")
-        XCTAssertEqual(sheet?.getCellWithFormat("B2")?.format?.fontColor, "#0066FF")
-        XCTAssertEqual(sheet?.getCellWithFormat("C2")?.format?.fontColor, "#0066FF")
-        XCTAssertEqual(sheet?.getCellWithFormat("A3")?.format?.fontColor, "#9933FF")
-        XCTAssertEqual(sheet?.getCellWithFormat("A4")?.format?.fontColor, "#00AA44")
-        XCTAssertEqual(sheet?.getCellWithFormat("A5")?.format?.fontColor, "#808080")
+
+        #expect(sheet?.getCellWithFormat("A2")?.format?.fontColor == "#0066FF")
+        #expect(sheet?.getCellWithFormat("B2")?.format?.fontColor == "#0066FF")
+        #expect(sheet?.getCellWithFormat("C2")?.format?.fontColor == "#0066FF")
+        #expect(sheet?.getCellWithFormat("A3")?.format?.fontColor == "#9933FF")
+        #expect(sheet?.getCellWithFormat("A4")?.format?.fontColor == "#00AA44")
+        #expect(sheet?.getCellWithFormat("A5")?.format?.fontColor == "#808080")
     }
-    
+
+    @Test("Keywords rows use blue text matching section sheets")
     @MainActor
-    func testKeywordsRowsUseBlueTextMatchingPBFSectionSheets() {
+    func keywordsRowsUseBlueTextMatchingSectionSheets() {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test Project",
             keywords: FinalCutPro.FCPXML.KeywordsReportSection(rows: [
@@ -412,17 +432,18 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
                 )
             ])
         )
-        
+
         let sheet = FinalCutPro.FCPXML.ReportExcelExport
             .makeWorkbook(from: report)
             .getSheet(name: FinalCutPro.FCPXML.KeywordsReportSection.defaultSheetName)
-        
-        XCTAssertEqual(sheet?.getCellWithFormat("A2")?.format?.fontColor, "#0066FF")
-        XCTAssertEqual(sheet?.getCellWithFormat("G2")?.format?.fontColor, "#0066FF")
+
+        #expect(sheet?.getCellWithFormat("A2")?.format?.fontColor == "#0066FF")
+        #expect(sheet?.getCellWithFormat("G2")?.format?.fontColor == "#0066FF")
     }
-    
+
+    @Test("Effects rows use role-appropriate colors when category unavailable")
     @MainActor
-    func testEffectsRowsUseRoleAppropriateColorsWhenCategoryUnavailable() {
+    func effectsRowsUseRoleAppropriateColorsWhenCategoryUnavailable() {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test Project",
             effects: FinalCutPro.FCPXML.EffectsReportSection(rows: [
@@ -458,18 +479,19 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
                 )
             ])
         )
-        
+
         let sheet = FinalCutPro.FCPXML.ReportExcelExport
             .makeWorkbook(from: report)
             .getSheet(name: FinalCutPro.FCPXML.EffectsReportSection.defaultSheetName)
-        
-        XCTAssertEqual(sheet?.getCellWithFormat("A2")?.format?.fontColor, "#0066FF")
-        XCTAssertEqual(sheet?.getCellWithFormat("A3")?.format?.fontColor, "#00AA44")
-        XCTAssertEqual(sheet?.getCellWithFormat("A4")?.format?.fontColor, "#0066FF")
+
+        #expect(sheet?.getCellWithFormat("A2")?.format?.fontColor == "#0066FF")
+        #expect(sheet?.getCellWithFormat("A3")?.format?.fontColor == "#00AA44")
+        #expect(sheet?.getCellWithFormat("A4")?.format?.fontColor == "#0066FF")
     }
-    
+
+    @Test("Summary long project title does not widen Row column")
     @MainActor
-    func testSummaryLongProjectTitleDoesNotWidenRowColumn() throws {
+    func summaryLongProjectTitleDoesNotWidenRowColumn() throws {
         let longTitle = String(repeating: "Very Long Project Title Segment ", count: 6)
         let report = FinalCutPro.FCPXML.Report(
             projectName: longTitle,
@@ -490,33 +512,26 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
                 ]
             )
         )
-        
+
         let sheet = FinalCutPro.FCPXML.ReportExcelExport
             .makeWorkbook(from: report)
             .getSheet(name: FinalCutPro.FCPXML.SummaryReportSection.defaultSheetName)
-        
-        XCTAssertEqual(sheet?.getCellWithFormat("B1")?.value.stringValue, longTitle)
-        XCTAssertEqual(sheet?.getCellWithFormat("A3")?.value.stringValue, "Row")
-        let rowColumnWidth = try XCTUnwrap(sheet?.getColumnWidth(1))
-        XCTAssertEqual(
-            rowColumnWidth,
-            8.0,
-            accuracy: 0.01,
-            "Row column must stay narrow when project title is long"
-        )
-        let titleColumnWidth = try XCTUnwrap(sheet?.getColumnWidth(2))
+
+        #expect(sheet?.getCellWithFormat("B1")?.value.stringValue == longTitle)
+        #expect(sheet?.getCellWithFormat("A3")?.value.stringValue == "Row")
+        let rowColumnWidth = try #require(sheet?.getColumnWidth(1))
+        let rowWidthMatch = abs(rowColumnWidth - 8.0) < 0.01
+        #expect(rowWidthMatch, "Row column must stay narrow when project title is long")
+        let titleColumnWidth = try #require(sheet?.getColumnWidth(2))
         let desired = FCPXMLReportWorkbookColumnAutoFit.summaryProjectTitleColumnWidth(for: longTitle)
-        XCTAssertEqual(
-            titleColumnWidth,
-            desired,
-            accuracy: 0.01,
-            "Title column (B) should use the Summary project-title width"
-        )
-        XCTAssertGreaterThanOrEqual(titleColumnWidth, 56.0)
+        let titleWidthMatch = abs(titleColumnWidth - desired) < 0.01
+        #expect(titleWidthMatch, "Title column (B) should use the Summary project-title width")
+        #expect(titleColumnWidth >= 56.0)
     }
-    
+
+    @Test("Summary percent column is numeric percentage formatted")
     @MainActor
-    func testSummaryPercentColumnIsNumericPercentageFormatted() {
+    func summaryPercentColumnIsNumericPercentageFormatted() {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test Project",
             summary: FinalCutPro.FCPXML.SummaryReportSection(
@@ -541,83 +556,86 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
                 ]
             )
         )
-        
+
         let sheet = FinalCutPro.FCPXML.ReportExcelExport
             .makeWorkbook(from: report)
             .getSheet(name: FinalCutPro.FCPXML.SummaryReportSection.defaultSheetName)
-        
+
         // Project title sits in B1 so a long name does not widen the Row column (A).
         let titleCell = sheet?.getCellWithFormat("B1")
-        XCTAssertEqual(titleCell?.value.stringValue, "Test Project")
-        XCTAssertEqual(titleCell?.format?.backgroundColor, "#000000")
-        XCTAssertEqual(titleCell?.format?.fontColor, "#FFFFFF")
-        XCTAssertEqual(titleCell?.format?.fontWeight, .bold)
-        XCTAssertNil(sheet?.getCellWithFormat("A1")?.value.stringValue)
-        
+        #expect(titleCell?.value.stringValue == "Test Project")
+        #expect(titleCell?.format?.backgroundColor == "#000000")
+        #expect(titleCell?.format?.fontColor == "#FFFFFF")
+        #expect(titleCell?.format?.fontWeight == .bold)
+        #expect(sheet?.getCellWithFormat("A1")?.value.stringValue == nil)
+
         // Role table header on row 3, data rows on 4–5; columns are Row | Role | Estimated Total | %.
-        XCTAssertEqual(sheet?.getCellWithFormat("A3")?.value.stringValue, "Row")
+        #expect(sheet?.getCellWithFormat("A3")?.value.stringValue == "Row")
         let percentCell = sheet?.getCellWithFormat("D4")
-        
+
         // The value must be stored as the raw fraction in a numeric cell (not a text string),
         // so Excel renders it through the percentage number format as "50.0%".
-        XCTAssertEqual(percentCell?.value, .number(0.5))
-        XCTAssertEqual(percentCell?.format?.numberFormat, .custom)
-        XCTAssertEqual(percentCell?.format?.customNumberFormat, "0.0%")
-        XCTAssertNil(percentCell?.format?.fontColor)
-        
+        #expect(percentCell?.value == .number(0.5))
+        #expect(percentCell?.format?.numberFormat == .custom)
+        #expect(percentCell?.format?.customNumberFormat == "0.0%")
+        #expect(percentCell?.format?.fontColor == nil)
+
         // Summary data uses default black text for all columns (no role colour coding).
-        XCTAssertNil(sheet?.getCellWithFormat("A4")?.format?.fontColor)
-        XCTAssertNil(sheet?.getCellWithFormat("B4")?.format?.fontColor)
-        XCTAssertNil(sheet?.getCellWithFormat("C4")?.format?.fontColor)
-        XCTAssertNil(sheet?.getCellWithFormat("A5")?.format?.fontColor)
-        XCTAssertNil(sheet?.getCellWithFormat("B5")?.format?.fontColor)
-        XCTAssertNil(sheet?.getCellWithFormat("C5")?.format?.fontColor)
-        XCTAssertNil(sheet?.getCellWithFormat("D5")?.format?.fontColor)
+        #expect(sheet?.getCellWithFormat("A4")?.format?.fontColor == nil)
+        #expect(sheet?.getCellWithFormat("B4")?.format?.fontColor == nil)
+        #expect(sheet?.getCellWithFormat("C4")?.format?.fontColor == nil)
+        #expect(sheet?.getCellWithFormat("A5")?.format?.fontColor == nil)
+        #expect(sheet?.getCellWithFormat("B5")?.format?.fontColor == nil)
+        #expect(sheet?.getCellWithFormat("C5")?.format?.fontColor == nil)
+        #expect(sheet?.getCellWithFormat("D5")?.format?.fontColor == nil)
     }
-    
+
+    @Test("Make workbook leaves sheets unprotected by default")
     @MainActor
-    func testMakeWorkbookLeavesSheetsUnprotectedByDefault() {
+    func makeWorkbookLeavesSheetsUnprotectedByDefault() {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Demo",
             markers: FinalCutPro.FCPXML.MarkersReportSection(rows: []),
             workbookCoverSheet: .openFCPXMLKitDefault
         )
-        
+
         let sheets = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report).getSheets()
-        XCTAssertFalse(sheets.isEmpty)
+        let sheetsEmpty = sheets.isEmpty
+        #expect(!sheetsEmpty)
         for sheet in sheets {
-            XCTAssertNil(
-                sheet.protection,
+            #expect(
+                sheet.protection == nil,
                 "Sheet '\(sheet.name)' should be unprotected by default"
             )
         }
     }
-    
+
+    @Test("Make workbook protects all sheets when requested")
     @MainActor
-    func testMakeWorkbookProtectsAllSheetsWhenRequested() {
+    func makeWorkbookProtectsAllSheetsWhenRequested() {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Demo",
             markers: FinalCutPro.FCPXML.MarkersReportSection(rows: []),
             workbookCoverSheet: .openFCPXMLKitDefault,
             protectSheets: true
         )
-        
+
         let sheets = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report).getSheets()
-        XCTAssertGreaterThanOrEqual(sheets.count, 2, "Cover + Markers expected")
+        #expect(sheets.count >= 2, "Cover + Markers expected")
         for sheet in sheets {
-            XCTAssertNotNil(
-                sheet.protection,
+            #expect(
+                sheet.protection != nil,
                 "Sheet '\(sheet.name)' should be protected when protectSheets is true"
             )
-            XCTAssertEqual(sheet.protection?.sheet, true)
-            XCTAssertNil(
-                sheet.protection?.password,
+            #expect(sheet.protection?.sheet == true)
+            #expect(
+                sheet.protection?.password == nil,
                 "Default sheet protection must not set a password"
             )
-            XCTAssertNil(sheet.protection?.hashValue)
+            #expect(sheet.protection?.hashValue == nil)
         }
     }
-    
+
     @MainActor
     private func sheetNames(from report: FinalCutPro.FCPXML.Report) -> [String] {
         FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report).getSheets().map(\.name)

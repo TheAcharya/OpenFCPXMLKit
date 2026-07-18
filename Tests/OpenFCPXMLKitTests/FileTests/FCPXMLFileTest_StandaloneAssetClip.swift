@@ -8,15 +8,16 @@
 //	File Tests: StandaloneAssetClip.fcpxml.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFileTest_StandaloneAssetClip: XCTestCase {
+@Suite("File test standalone asset clip")
+struct FCPXMLFileTest_StandaloneAssetClip {
 
-    func testParse() throws {
-        let fcpxml = try loadFCPXMLSample(named: "StandaloneAssetClip")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertTrue(fcpxml.root.resources.childElements.count >= 1)
+    @Test("Parse StandaloneAssetClip sample")
+    func parse() throws {
+        let fcpxml = try requireFCPXMLSample(named: "StandaloneAssetClip")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.root.resources.childElements.count >= 1)
     }
 }

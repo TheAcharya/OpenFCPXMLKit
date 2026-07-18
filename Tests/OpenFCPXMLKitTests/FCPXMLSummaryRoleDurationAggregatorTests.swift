@@ -4,15 +4,20 @@
 //  © 2026 • Licensed under MIT License
 //
 
-import XCTest
+//
+//	Unit tests for Summary sheet role-duration aggregation.
+//
+
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLSummaryRoleDurationAggregatorTests: XCTestCase {
+@Suite("Summary role duration aggregator")
+struct FCPXMLSummaryRoleDurationAggregatorTests {
     private typealias Aggregator = FinalCutPro.FCPXML.SummaryRoleDurationAggregator
     private typealias Component = FinalCutPro.FCPXML.RoleInventoryClipComponent
-    
-    func testAudioMainRolesUseAudioCategoryTotalsOnly() throws {
+
+    @Test("Audio main roles use audio category totals only")
+    func audioMainRolesUseAudioCategoryTotalsOnly() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -33,8 +38,8 @@ final class FCPXMLSummaryRoleDurationAggregatorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let timeline = try XCTUnwrap(fcpxml.allProjects().first?.sequence.element)
+
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         let components = [
             Component(
                 roleSubroleField: "Video, Dialogue ▸ Boom 1",
@@ -47,19 +52,21 @@ final class FCPXMLSummaryRoleDurationAggregatorTests: XCTestCase {
                 durationSeconds: 40
             )
         ]
-        
+
         let rows = Aggregator.roleDurationRows(
             from: components,
             projectDurationSeconds: 200,
             timeline: timeline,
             resources: fcpxml.root.resources
         )
-        
-        let boomRow = try XCTUnwrap(rows.first { $0.roleSubrole == "Dialogue ▸ Boom 1" })
-        XCTAssertEqual(boomRow.percentOfTotal, 0.2, accuracy: 0.0001)
+
+        let boomRow = try #require(rows.first { $0.roleSubrole == "Dialogue ▸ Boom 1" })
+        let percentMatch = abs(boomRow.percentOfTotal - 0.2) < 0.0001
+        #expect(percentMatch)
     }
-    
-    func testBareDialogueRoleUsesExactRoleFieldMatch() throws {
+
+    @Test("Bare Dialogue role uses exact role field match")
+    func bareDialogueRoleUsesExactRoleFieldMatch() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -80,8 +87,8 @@ final class FCPXMLSummaryRoleDurationAggregatorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let timeline = try XCTUnwrap(fcpxml.allProjects().first?.sequence.element)
+
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         let components = [
             Component(
                 roleSubroleField: "Dialogue",
@@ -94,19 +101,21 @@ final class FCPXMLSummaryRoleDurationAggregatorTests: XCTestCase {
                 durationSeconds: 60
             )
         ]
-        
+
         let rows = Aggregator.roleDurationRows(
             from: components,
             projectDurationSeconds: 100,
             timeline: timeline,
             resources: fcpxml.root.resources
         )
-        
-        let dialogueRow = try XCTUnwrap(rows.first { $0.roleSubrole == "Dialogue" })
-        XCTAssertEqual(dialogueRow.percentOfTotal, 0.3, accuracy: 0.0001)
+
+        let dialogueRow = try #require(rows.first { $0.roleSubrole == "Dialogue" })
+        let percentMatch = abs(dialogueRow.percentOfTotal - 0.3) < 0.0001
+        #expect(percentMatch)
     }
-    
-    func testRoleRowsUseWorkbookOrdering() throws {
+
+    @Test("Role rows use workbook ordering")
+    func roleRowsUseWorkbookOrdering() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -127,28 +136,30 @@ final class FCPXMLSummaryRoleDurationAggregatorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let timeline = try XCTUnwrap(fcpxml.allProjects().first?.sequence.element)
+
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         let components = [
             Component(roleSubroleField: "Dialogue ▸ Boom 1", category: .connectedAudio, durationSeconds: 10),
             Component(roleSubroleField: "Video", category: .primaryVideo, durationSeconds: 10),
             Component(roleSubroleField: "Titles", category: .primaryTitle, durationSeconds: 10)
         ]
-        
+
         let rows = Aggregator.roleDurationRows(
             from: components,
             projectDurationSeconds: 100,
             timeline: timeline,
             resources: fcpxml.root.resources
         )
-        
+
         let roleNames = rows.map(\.roleSubrole).filter { !$0.isEmpty }
-        XCTAssertEqual(roleNames.first, "Titles")
-        XCTAssertTrue(roleNames.contains("Video"))
-        XCTAssertTrue(roleNames.last?.hasPrefix("Dialogue") == true)
+        #expect(roleNames.first == "Titles")
+        #expect(roleNames.contains("Video"))
+        let lastIsDialogue = roleNames.last?.hasPrefix("Dialogue") == true
+        #expect(lastIsDialogue)
     }
-    
-    func testSRTRolesUseCaptionCategoryTotals() throws {
+
+    @Test("SRT roles use caption category totals")
+    func srtRolesUseCaptionCategoryTotals() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -169,8 +180,8 @@ final class FCPXMLSummaryRoleDurationAggregatorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let timeline = try XCTUnwrap(fcpxml.allProjects().first?.sequence.element)
+
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         let components = [
             Component(
                 roleSubroleField: "SRT ▸ de-DE",
@@ -183,19 +194,21 @@ final class FCPXMLSummaryRoleDurationAggregatorTests: XCTestCase {
                 durationSeconds: 60
             )
         ]
-        
+
         let rows = Aggregator.roleDurationRows(
             from: components,
             projectDurationSeconds: 100,
             timeline: timeline,
             resources: fcpxml.root.resources
         )
-        
-        let srtRow = try XCTUnwrap(rows.first { $0.roleSubrole == "SRT ▸ de-DE" })
-        XCTAssertEqual(srtRow.percentOfTotal, 0.25, accuracy: 0.0001)
+
+        let srtRow = try #require(rows.first { $0.roleSubrole == "SRT ▸ de-DE" })
+        let percentMatch = abs(srtRow.percentOfTotal - 0.25) < 0.0001
+        #expect(percentMatch)
     }
-    
-    func testUserDefinedAudioMainRoleUsesAudioCategoryTotals() throws {
+
+    @Test("User-defined audio main role uses audio category totals")
+    func userDefinedAudioMainRoleUsesAudioCategoryTotals() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -216,8 +229,8 @@ final class FCPXMLSummaryRoleDurationAggregatorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let timeline = try XCTUnwrap(fcpxml.allProjects().first?.sequence.element)
+
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         let components = [
             Component(
                 roleSubroleField: "Ambient Beds ▸ Boom 1",
@@ -230,19 +243,21 @@ final class FCPXMLSummaryRoleDurationAggregatorTests: XCTestCase {
                 durationSeconds: 100
             )
         ]
-        
+
         let rows = Aggregator.roleDurationRows(
             from: components,
             projectDurationSeconds: 100,
             timeline: timeline,
             resources: fcpxml.root.resources
         )
-        
-        let boomRow = try XCTUnwrap(rows.first { $0.roleSubrole == "Ambient Beds ▸ Boom 1" })
-        XCTAssertEqual(boomRow.percentOfTotal, 0.4, accuracy: 0.0001)
+
+        let boomRow = try #require(rows.first { $0.roleSubrole == "Ambient Beds ▸ Boom 1" })
+        let percentMatch = abs(boomRow.percentOfTotal - 0.4) < 0.0001
+        #expect(percentMatch)
     }
-    
-    func testSharedSubroleFanOutAppliesToUserDefinedMainRoles() throws {
+
+    @Test("Shared subrole fan-out applies to user-defined main roles")
+    func sharedSubroleFanOutAppliesToUserDefinedMainRoles() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -263,8 +278,8 @@ final class FCPXMLSummaryRoleDurationAggregatorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let timeline = try XCTUnwrap(fcpxml.allProjects().first?.sequence.element)
+
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         let components = [
             Component(
                 roleSubroleField: "Primary Dialog ▸ Boom 1",
@@ -277,17 +292,19 @@ final class FCPXMLSummaryRoleDurationAggregatorTests: XCTestCase {
                 durationSeconds: 40
             )
         ]
-        
+
         let rows = Aggregator.roleDurationRows(
             from: components,
             projectDurationSeconds: 100,
             timeline: timeline,
             resources: fcpxml.root.resources
         )
-        
-        let primaryRow = try XCTUnwrap(rows.first { $0.roleSubrole == "Primary Dialog ▸ Boom 1" })
-        let ambientRow = try XCTUnwrap(rows.first { $0.roleSubrole == "Ambient Beds ▸ Boom 1" })
-        XCTAssertEqual(primaryRow.percentOfTotal, 0.8, accuracy: 0.0001)
-        XCTAssertEqual(ambientRow.percentOfTotal, 0.8, accuracy: 0.0001)
+
+        let primaryRow = try #require(rows.first { $0.roleSubrole == "Primary Dialog ▸ Boom 1" })
+        let ambientRow = try #require(rows.first { $0.roleSubrole == "Ambient Beds ▸ Boom 1" })
+        let primaryMatch = abs(primaryRow.percentOfTotal - 0.8) < 0.0001
+        let ambientMatch = abs(ambientRow.percentOfTotal - 0.8) < 0.0001
+        #expect(primaryMatch)
+        #expect(ambientMatch)
     }
 }

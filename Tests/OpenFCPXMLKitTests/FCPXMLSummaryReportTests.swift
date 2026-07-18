@@ -8,85 +8,98 @@
 //	Summary report integration tests (optional local FCPXML fixture).
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLSummaryReportTests: XCTestCase, @unchecked Sendable {
-    
-    private func summaryOptions() throws -> FinalCutPro.FCPXML.ReportOptions {
-        var options = try FCPXMLReportingReportFixture.reportOptions {
-            $0.includeSummary = true
-        }
-        options.mediaBaseURL = try FCPXMLReportingReportFixture.mediaBaseURL()
+@Suite("Summary report")
+struct FCPXMLSummaryReportTests {
+
+    private func summaryOptions(
+        for fcpxml: FinalCutPro.FCPXML
+    ) throws -> FinalCutPro.FCPXML.ReportOptions {
+        var options = FinalCutPro.FCPXML.ReportOptions()
+        options.projectName = FCPXMLReportingReportFixture.primaryProjectName(in: fcpxml)
+        options.includeSummary = true
+        options.mediaBaseURL = try requireReportingFixtureMediaBaseURL()
         return options
     }
-    
-    func testBuildSummaryReportProjectHeaderFromFixture() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
-        let report = try await fcpxml.buildReport(options: try summaryOptions())
-        
-        XCTAssertNotNil(report.summary)
-        
+
+    @Test("Build summary report project header from fixture")
+    func buildSummaryReportProjectHeaderFromFixture() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
+        let report = try await fcpxml.buildReport(options: try summaryOptions(for: fcpxml))
+
+        #expect(report.summary != nil)
+
         let projectSummary = report.summary?.projectSummary
-        XCTAssertEqual(projectSummary?.title, FCPXMLReportingReportFixture.primaryProjectName(in: fcpxml))
+        #expect(projectSummary?.title == FCPXMLReportingReportFixture.primaryProjectName(in: fcpxml))
         FCPXMLReportingReportTestSupport.assertValidTimecode(projectSummary?.duration ?? "")
-        XCTAssertFalse(projectSummary?.resolution.isEmpty ?? true)
-        XCTAssertFalse(projectSummary?.frameRate.isEmpty ?? true)
-        XCTAssertFalse(projectSummary?.audioSampleRate.isEmpty ?? true)
+        let resolutionEmpty = projectSummary?.resolution.isEmpty ?? true
+        let frameRateEmpty = projectSummary?.frameRate.isEmpty ?? true
+        let audioSampleRateEmpty = projectSummary?.audioSampleRate.isEmpty ?? true
+        #expect(!resolutionEmpty)
+        #expect(!frameRateEmpty)
+        #expect(!audioSampleRateEmpty)
     }
-    
-    func testSummaryRoleDurationRowsHaveValidShapeFromFixture() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
-        let report = try await fcpxml.buildReport(options: try summaryOptions())
-        
+
+    @Test("Summary role duration rows have valid shape from fixture")
+    func summaryRoleDurationRowsHaveValidShapeFromFixture() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
+        let report = try await fcpxml.buildReport(options: try summaryOptions(for: fcpxml))
+
         let rows = report.summary?.roleDurations ?? []
-        XCTAssertFalse(rows.isEmpty)
-        
+        let rowsEmpty = rows.isEmpty
+        #expect(!rowsEmpty)
+
         for row in rows {
-            XCTAssertFalse(row.roleSubrole.isEmpty)
+            let roleEmpty = row.roleSubrole.isEmpty
+            #expect(!roleEmpty)
             FCPXMLReportingReportTestSupport.assertValidTimecode(row.estimatedTotal)
-            XCTAssertGreaterThanOrEqual(row.percentOfTotal, 0)
+            #expect(row.percentOfTotal >= 0)
         }
     }
-    
-    func testSummaryMissingMediaPathsFromFixture() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
-        var options = try FCPXMLReportingReportFixture.reportOptions {
-            $0.includeMediaSummary = true
-        }
-        options.mediaBaseURL = try FCPXMLReportingReportFixture.mediaBaseURL()
+
+    @Test("Summary missing media paths from fixture")
+    func summaryMissingMediaPathsFromFixture() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
+        var options = FinalCutPro.FCPXML.ReportOptions()
+        options.projectName = FCPXMLReportingReportFixture.primaryProjectName(in: fcpxml)
+        options.includeMediaSummary = true
+        options.mediaBaseURL = try requireReportingFixtureMediaBaseURL()
         let report = try await fcpxml.buildReport(options: options)
-        
+
         let paths = report.mediaSummary?.missingMediaPaths ?? []
-        XCTAssertFalse(paths.isEmpty)
-        XCTAssertTrue(paths.allSatisfy { $0.hasPrefix("/") })
-        XCTAssertNil(report.summary)
+        let pathsEmpty = paths.isEmpty
+        #expect(!pathsEmpty)
+        #expect(paths.allSatisfy { $0.hasPrefix("/") })
+        #expect(report.summary == nil)
     }
-    
-    func testSummaryOnlyPresetEnablesSummarySectionOnly() {
+
+    @Test("Summary only preset enables summary section only")
+    func summaryOnlyPresetEnablesSummarySectionOnly() {
         let options = FinalCutPro.FCPXML.ReportOptions.summaryOnly
-        
-        XCTAssertFalse(options.includeMarkers)
-        XCTAssertFalse(options.includeKeywords)
-        XCTAssertFalse(options.includeTitlesAndGenerators)
-        XCTAssertFalse(options.includeTransitions)
-        XCTAssertFalse(options.includeEffects)
-        XCTAssertTrue(options.includeSummary)
-        XCTAssertFalse(options.includeMediaSummary)
-        XCTAssertFalse(options.includeRoleInventory)
+
+        #expect(!options.includeMarkers)
+        #expect(!options.includeKeywords)
+        #expect(!options.includeTitlesAndGenerators)
+        #expect(!options.includeTransitions)
+        #expect(!options.includeEffects)
+        #expect(options.includeSummary)
+        #expect(!options.includeMediaSummary)
+        #expect(!options.includeRoleInventory)
     }
-    
-    func testMediaSummaryOnlyPresetEnablesMediaSummarySectionOnly() {
+
+    @Test("Media summary only preset enables media summary section only")
+    func mediaSummaryOnlyPresetEnablesMediaSummarySectionOnly() {
         let options = FinalCutPro.FCPXML.ReportOptions.mediaSummaryOnly
-        
-        XCTAssertFalse(options.includeMarkers)
-        XCTAssertFalse(options.includeKeywords)
-        XCTAssertFalse(options.includeTitlesAndGenerators)
-        XCTAssertFalse(options.includeTransitions)
-        XCTAssertFalse(options.includeEffects)
-        XCTAssertFalse(options.includeSummary)
-        XCTAssertTrue(options.includeMediaSummary)
-        XCTAssertFalse(options.includeRoleInventory)
+
+        #expect(!options.includeMarkers)
+        #expect(!options.includeKeywords)
+        #expect(!options.includeTitlesAndGenerators)
+        #expect(!options.includeTransitions)
+        #expect(!options.includeEffects)
+        #expect(!options.includeSummary)
+        #expect(options.includeMediaSummary)
+        #expect(!options.includeRoleInventory)
     }
 }

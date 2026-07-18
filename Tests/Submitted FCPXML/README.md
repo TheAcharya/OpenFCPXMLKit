@@ -4,7 +4,7 @@ Local-only drop zone for **private / user-supplied** FCPXML exports used when in
 
 **These files are never committed.** Contents are gitignored; only this README (and `.gitkeep`) is tracked. See [GUARDRAILS.md](../../GUARDRAILS.md) (Sign: never-commit-submitted-fcpxml) and [ARCHITECTURE.md](../../ARCHITECTURE.md) §8.
 
-**Public suite counts (keep in sync):** **1084** tests listed (`1078` OpenFCPXMLKitTests + `6` ExcelReportTest); **60** public samples under `Tests/FCPXML Samples/FCPXML/` (e.g. `HiddenMarkers.fcpxml` was promoted from this workflow).
+**Public suite counts (keep in sync):** **1084** tests listed (`1078` OpenFCPXMLKitTests + `6` ExcelReportTest; **all Swift Testing**); **60** public samples under `Tests/FCPXML Samples/FCPXML/` (e.g. `HiddenMarkers.fcpxml` was promoted from this workflow).
 
 ---
 
@@ -77,7 +77,7 @@ Optional local notes in `Notes/` (e.g. expected sheet rows, frame rate, FCP vers
 
 ## Optional smoke tests
 
-`OpenFCPXMLKitTests` includes **`FCPXMLSubmittedFCPXMLSmokeTests`**: if `Inbox/` has any `.fcpxml` / `.fcpxmld`, each is loaded and asserted to parse as `fcpxml`. If `Inbox/` is empty, the test **skips** so CI stays green.
+`OpenFCPXMLKitTests` includes **`FCPXMLSubmittedFCPXMLSmokeTests`**: if `Inbox/` has any `.fcpxml` / `.fcpxmld`, each is loaded and asserted to parse as `fcpxml`. If `Inbox/` is empty, the test **cancels** via `Test.cancel` so CI stays green.
 
 This does **not** replace promoting anonymised fixtures into `FCPXML Samples/`.
 
@@ -88,7 +88,7 @@ This does **not** replace promoting anonymised fixtures into `FCPXML Samples/`.
 | Folder | Committed? | Purpose |
 |--------|------------|---------|
 | `Tests/FCPXML Samples/FCPXML/` | Yes | Canonical public fixtures + CI (**60** `.fcpxml` files) |
-| `Tests/ExcelReportTest/` | Fixture no / README yes | Local full workbook/PDF visual check (**6** optional tests) |
+| `Tests/ExcelReportTest/` | Fixture no / README yes | Local full workbook/PDF visual check (**6** optional Swift Testing tests; cancel without fixture) |
 | `Tests/Submitted FCPXML/` | README only | Private investigation inbox |
 
 ---

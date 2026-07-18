@@ -8,13 +8,15 @@
 //	PDF sheet plan colour indices shared by TOC chips and content-page tints.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLReportPDFSheetPlanTests: XCTestCase {
-    
-    func testPlannedSheetsAssignSequentialColorIndicesPerTitle() {
+@Suite("Report PDF sheet plan")
+struct FCPXMLReportPDFSheetPlanTests {
+
+    @Test("Planned sheets assign sequential color indices per title")
+    func plannedSheetsAssignSequentialColorIndicesPerTitle() {
         let clipRow = FinalCutPro.FCPXML.RoleClipReportRow(
             roleSubrole: "Dialogue",
             clipName: "Clip A",
@@ -27,7 +29,7 @@ final class FCPXMLReportPDFSheetPlanTests: XCTestCase {
             sourceOut: "01:00:05:00",
             sourceDuration: "00:00:05:00"
         )
-        
+
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Colour Index",
             markers: FinalCutPro.FCPXML.MarkersReportSection(rows: [
@@ -50,35 +52,35 @@ final class FCPXMLReportPDFSheetPlanTests: XCTestCase {
                 ]
             )
         )
-        
+
         let planned = FCPXMLReportPDFSheetPlan.plannedSheets(from: report)
-        XCTAssertGreaterThanOrEqual(planned.count, 3)
-        
+        #expect(planned.count >= 3)
+
         for (index, entry) in planned.enumerated() {
-            XCTAssertEqual(
-                entry.colorIndex,
-                index,
+            #expect(
+                entry.colorIndex == index,
                 "TOC and content pages must share sequential colour indices by sheet title"
             )
         }
-        
+
         let lookup = FCPXMLReportPDFSheetPlan.colorIndexLookup(for: planned)
-        XCTAssertEqual(
-            lookup[FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName],
-            0
+        #expect(
+            lookup[FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName]
+                == 0
         )
-        
+
         let dialogueTab = FinalCutPro.FCPXML.RoleInventoryRoleSheetOrdering.sheetTabName(
             for: "Dialogue"
         )
-        XCTAssertEqual(lookup[dialogueTab], 1)
-        XCTAssertEqual(
-            lookup[FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName],
-            2
+        #expect(lookup[dialogueTab] == 1)
+        #expect(
+            lookup[FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName]
+                == 2
         )
     }
-    
-    func testTableOfContentsEntriesPreserveColorIndex() {
+
+    @Test("Table of contents entries preserve color index")
+    func tableOfContentsEntriesPreserveColorIndex() {
         let planned = [
             FCPXMLReportPDFSheetPlan.SheetEntry(title: "Selected Roles Inventory", colorIndex: 0),
             FCPXMLReportPDFSheetPlan.SheetEntry(title: "Markers", colorIndex: 1),
@@ -87,13 +89,13 @@ final class FCPXMLReportPDFSheetPlanTests: XCTestCase {
             (title: "Selected Roles Inventory", startPage: 3),
             (title: "Markers", startPage: 10),
         ]
-        
+
         let toc = FCPXMLReportPDFSheetPlan.tableOfContentsEntries(
             from: planned,
             recorded: recorded
         )
-        
-        XCTAssertEqual(toc.map(\.colorIndex), [0, 1])
-        XCTAssertEqual(toc.map(\.startPage), [3, 10])
+
+        #expect(toc.map(\.colorIndex) == [0, 1])
+        #expect(toc.map(\.startPage) == [3, 10])
     }
 }

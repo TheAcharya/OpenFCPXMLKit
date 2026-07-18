@@ -8,85 +8,93 @@
 //	Unit tests for role priority selection in workbook reports.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-final class FCPXMLRoleDisplayPreferenceTests: XCTestCase {
+@Suite("Role display preference")
+struct FCPXMLRoleDisplayPreferenceTests {
     private typealias RoleDisplayPreference = FinalCutPro.FCPXML.RoleDisplayPreference
-    
-    func testPreferredRoleMarkersContextPicksDialogueOverVideo() {
+
+    @Test("Markers context prefers dialogue over video")
+    func preferredRoleMarkersContextPicksDialogueOverVideo() {
         let roles = [interpolatedRole("video"), interpolatedRole("dialogue")]
-        
+
         let preferred = RoleDisplayPreference.builtIn.preferredRole(
             from: roles,
             context: .markers
         )
-        
-        XCTAssertEqual(preferred?.wrapped.role.lowercased(), "dialogue")
+
+        #expect(preferred?.wrapped.role.lowercased() == "dialogue")
     }
-    
-    func testPreferredRoleVideoEffectsContextPicksVideoOverDialogue() {
+
+    @Test("Video effects context prefers video over dialogue")
+    func preferredRoleVideoEffectsContextPicksVideoOverDialogue() {
         let roles = [interpolatedRole("dialogue"), interpolatedRole("video")]
-        
+
         let preferred = RoleDisplayPreference.builtIn.preferredRole(
             from: roles,
             context: .videoEffects
         )
-        
-        XCTAssertEqual(preferred?.wrapped.role.lowercased(), "video")
+
+        #expect(preferred?.wrapped.role.lowercased() == "video")
     }
-    
-    func testPreferredRoleAudioEffectsContextPicksDialogueOverMusic() {
+
+    @Test("Audio effects context prefers dialogue over music")
+    func preferredRoleAudioEffectsContextPicksDialogueOverMusic() {
         let roles = [interpolatedRole("music"), interpolatedRole("dialogue")]
-        
+
         let preferred = RoleDisplayPreference.builtIn.preferredRole(
             from: roles,
             context: .audioEffects
         )
-        
-        XCTAssertEqual(preferred?.wrapped.role.lowercased(), "dialogue")
+
+        #expect(preferred?.wrapped.role.lowercased() == "dialogue")
     }
-    
-    func testPreferredRoleFallsBackToFirstRoleByTypeAndName() {
+
+    @Test("Falls back to first role by type and name")
+    func preferredRoleFallsBackToFirstRoleByTypeAndName() {
         let roles = [
-            interpolatedRole("score komponist"),
+            interpolatedRole("score composer"),
             interpolatedRole("custom library role")
         ]
-        
+
         let preferred = RoleDisplayPreference.builtIn.preferredRole(
             from: roles,
             context: .audioEffects
         )
-        
-        XCTAssertEqual(preferred?.wrapped.role.lowercased(), "custom library role")
+
+        #expect(preferred?.wrapped.role.lowercased() == "custom library role")
     }
-    
-    func testPreferredRoleReturnsNilForEmptyRoleList() {
+
+    @Test("Returns nil for empty role list")
+    func preferredRoleReturnsNilForEmptyRoleList() {
         let preferred = RoleDisplayPreference.builtIn.preferredRole(
             from: [],
             context: .markers
         )
-        
-        XCTAssertNil(preferred)
+
+        #expect(preferred == nil)
     }
-    
-    func testKeywordSortRankOrdersBuiltInRolesBeforeCustom() {
+
+    @Test("Keyword sort rank orders built-in roles before custom")
+    func keywordSortRankOrdersBuiltInRolesBeforeCustom() {
         let videoRank = RoleDisplayPreference.keywordSortRank(for: "Video")
         let dialogueRank = RoleDisplayPreference.keywordSortRank(for: "Dialogue")
         let customRank = RoleDisplayPreference.keywordSortRank(for: "Custom Library Role")
-        
-        XCTAssertLessThan(videoRank, dialogueRank)
-        XCTAssertLessThan(dialogueRank, customRank)
+
+        #expect(videoRank < dialogueRank)
+        #expect(dialogueRank < customRank)
     }
-    
-    func testBuiltInContainsOnlyStandardRoleNames() {
+
+    @Test("Built-in preference contains only standard role names")
+    func builtInContainsOnlyStandardRoleNames() {
         let builtIn = RoleDisplayPreference.builtIn
-        
-        XCTAssertEqual(
-            builtIn.markerRolePriority,
-            ["dialogue", "video", "titles", "srt", "effects", "music"]
+
+        #expect(
+            builtIn.markerRolePriority
+                == ["dialogue", "video", "titles", "srt", "effects", "music"]
         )
-        XCTAssertFalse(builtIn.markerRolePriority.contains("vfx"))
-        XCTAssertFalse(builtIn.markerRolePriority.contains("score komponist"))
+        #expect(!builtIn.markerRolePriority.contains("vfx"))
+        #expect(!builtIn.markerRolePriority.contains("score composer"))
     }
 }

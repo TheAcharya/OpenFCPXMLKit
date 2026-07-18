@@ -8,25 +8,26 @@
 //	Unit tests for Selected Roles Inventory column layout and metadata discovery.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLRoleInventoryColumnLayoutTests: XCTestCase {
+@Suite("Role inventory column layout")
+struct FCPXMLRoleInventoryColumnLayoutTests {
     private typealias Layout = FinalCutPro.FCPXML.RoleInventoryColumnLayout
     private typealias RoleRow = FinalCutPro.FCPXML.RoleClipReportRow
-    
-    func testColumnHeadersIncludeRowAndFixedColumns() {
+
+    @Test("Column headers include Row and fixed columns")
+    func columnHeadersIncludeRowAndFixedColumns() {
         let headers = Layout.columnHeaders(metadataColumnKeys: [])
-        
-        XCTAssertEqual(headers.first, "Row")
-        XCTAssertEqual(
-            Array(headers.dropFirst()),
-            RoleRow.fixedColumnHeaders
+
+        #expect(headers.first == "Row")
+        #expect(
+            Array(headers.dropFirst()) == RoleRow.fixedColumnHeaders
         )
     }
-    
-    func testMetadataColumnKeysExcludesDedicatedFixedColumns() {
+
+    @Test("Metadata column keys exclude dedicated fixed columns")
+    func metadataColumnKeysExcludesDedicatedFixedColumns() {
         let row = RoleRow(
             roleSubrole: "Video",
             clipName: "Clip",
@@ -47,16 +48,17 @@ final class FCPXMLRoleInventoryColumnLayoutTests: XCTestCase {
                 FinalCutPro.FCPXML.Metadata.Key.cameraAngle.rawValue: "A"
             ]
         )
-        
+
         let keys = Layout.metadataColumnKeys(from: [row])
-        
-        XCTAssertEqual(keys, [
+
+        #expect(keys == [
             FinalCutPro.FCPXML.Metadata.Key.ingestDate.rawValue,
             FinalCutPro.FCPXML.Metadata.Key.cameraAngle.rawValue
         ])
     }
-    
-    func testColumnValuesIncludeRowIndexAndDynamicMetadata() {
+
+    @Test("Column values include row index and dynamic metadata")
+    func columnValuesIncludeRowIndexAndDynamicMetadata() {
         let ingestKey = FinalCutPro.FCPXML.Metadata.Key.ingestDate.rawValue
         let row = RoleRow(
             roleSubrole: "Video",
@@ -73,26 +75,27 @@ final class FCPXMLRoleInventoryColumnLayoutTests: XCTestCase {
             frameSize: "1920 × 1080",
             metadataValues: [ingestKey: "2024-01-01"]
         )
-        
+
         let values = Layout.columnValues(
             for: row,
             rowIndex: 5,
             metadataColumnKeys: [ingestKey]
         )
-        
-        XCTAssertEqual(values.first, "5")
-        XCTAssertEqual(values[1], "Video")
-        XCTAssertEqual(values[values.count - 1], "2024-01-01")
+
+        #expect(values.first == "5")
+        #expect(values[1] == "Video")
+        #expect(values[values.count - 1] == "2024-01-01")
     }
-    
-    func testInventoryAudioRateDisplayUsesKilohertzLabel() {
-        XCTAssertEqual(
-            FinalCutPro.FCPXML.ReportFormatting.inventoryAudioRateDisplay(.rate48kHz),
-            "48 kHz"
+
+    @Test("Inventory audio rate display uses kilohertz label")
+    func inventoryAudioRateDisplayUsesKilohertzLabel() {
+        #expect(
+            FinalCutPro.FCPXML.ReportFormatting.inventoryAudioRateDisplay(.rate48kHz)
+                == "48 kHz"
         )
-        XCTAssertEqual(
-            FinalCutPro.FCPXML.ReportFormatting.inventoryAudioRateDisplay(.rate44_1kHz),
-            "44.1 kHz"
+        #expect(
+            FinalCutPro.FCPXML.ReportFormatting.inventoryAudioRateDisplay(.rate44_1kHz)
+                == "44.1 kHz"
         )
     }
 }

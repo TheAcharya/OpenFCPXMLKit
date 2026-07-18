@@ -9,18 +9,20 @@
 //	Tests for TimelineProjection: identity, timeMap, nested lanes, multicam/ref/audition, report consume + occupancy.
 //
 
-import XCTest
+import Foundation
+import Testing
 import SwiftTimecode
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLTimelineProjectionTests: XCTestCase {
+@Suite("Timeline projection")
+struct FCPXMLTimelineProjectionTests {
 
     private let projector = FinalCutPro.FCPXML.TimelineProjector()
 
     // MARK: - Inline identity asset-clip
 
-    func testProject_SimpleAssetClip_EmitsVideoAndAudioIdentityWindows() async throws {
+    @Test("Simple asset-clip emits video and audio identity windows")
+    func project_SimpleAssetClip_EmitsVideoAndAudioIdentityWindows() async throws {
         let fcpxml = try parseInlineFCPXML("""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE fcpxml>
@@ -46,7 +48,7 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             """)
 
         let sources = fcpxml.allReportTimelineSources()
-        XCTAssertEqual(sources.count, 1)
+        #expect(sources.count == 1)
 
         let windows = try await projector.project(
             from: sources[0],
@@ -54,31 +56,32 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             options: .init()
         )
 
-        XCTAssertEqual(windows.count, 2)
+        #expect(windows.count == 2)
 
-        let video = try XCTUnwrap(windows.first { $0.channel.kind == .video })
-        let audio = try XCTUnwrap(windows.first { $0.channel.kind == .audio })
+        let video = try #require(windows.first { $0.channel.kind == .video })
+        let audio = try #require(windows.first { $0.channel.kind == .audio })
 
-        XCTAssertEqual(video.channel.resourceID, "r2")
-        XCTAssertEqual(video.channel.sourceIndex, 1)
-        XCTAssertEqual(video.channel.originalMediaURL?.path, "/tmp/ClipA.mov")
-        XCTAssertEqual(video.clipDisplayName, "ClipA On Timeline")
-        XCTAssertEqual(video.lanePath, .primary)
-        XCTAssertEqual(video.timelineIn, Fraction(2, 1))
-        XCTAssertEqual(video.timelineOut, Fraction(7, 1))
-        XCTAssertEqual(video.mediaIn, Fraction(10, 1))
-        XCTAssertEqual(video.mediaOut, Fraction(15, 1))
-        XCTAssertEqual(video.retiming.scale, 1)
-        XCTAssertFalse(video.retiming.isReversed)
+        #expect(video.channel.resourceID == "r2")
+        #expect(video.channel.sourceIndex == 1)
+        #expect(video.channel.originalMediaURL?.path == "/tmp/ClipA.mov")
+        #expect(video.clipDisplayName == "ClipA On Timeline")
+        #expect(video.lanePath == .primary)
+        #expect(video.timelineIn == Fraction(2, 1))
+        #expect(video.timelineOut == Fraction(7, 1))
+        #expect(video.mediaIn == Fraction(10, 1))
+        #expect(video.mediaOut == Fraction(15, 1))
+        #expect(video.retiming.scale == 1)
+        #expect(!video.retiming.isReversed)
 
-        XCTAssertEqual(audio.channel.resourceID, "r2")
-        XCTAssertEqual(audio.timelineIn, video.timelineIn)
-        XCTAssertEqual(audio.timelineOut, video.timelineOut)
-        XCTAssertEqual(audio.mediaIn, video.mediaIn)
-        XCTAssertEqual(audio.mediaOut, video.mediaOut)
+        #expect(audio.channel.resourceID == "r2")
+        #expect(audio.timelineIn == video.timelineIn)
+        #expect(audio.timelineOut == video.timelineOut)
+        #expect(audio.mediaIn == video.mediaIn)
+        #expect(audio.mediaOut == video.mediaOut)
     }
 
-    func testProject_DisabledAssetClip_OmittedWhenIncludeDisabledFalse() async throws {
+    @Test("Disabled asset-clip omitted when includeDisabled is false")
+    func project_DisabledAssetClip_OmittedWhenIncludeDisabledFalse() async throws {
         let fcpxml = try parseInlineFCPXML("""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE fcpxml>
@@ -104,28 +107,29 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             </fcpxml>
             """)
 
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
 
         let included = try await projector.project(
             from: source,
             fcpxml: fcpxml,
             options: .init(includeDisabled: true)
         )
-        XCTAssertEqual(included.count, 2)
-        XCTAssertEqual(Set(included.map(\.clipDisplayName)), Set(["On", "Off"]))
+        #expect(included.count == 2)
+        #expect(Set(included.map(\.clipDisplayName)) == Set(["On", "Off"]))
 
         let visibleOnly = try await projector.project(
             from: source,
             fcpxml: fcpxml,
             options: .mainTimeline
         )
-        XCTAssertEqual(visibleOnly.count, 1)
-        XCTAssertEqual(visibleOnly.first?.clipDisplayName, "On")
+        #expect(visibleOnly.count == 1)
+        #expect(visibleOnly.first?.clipDisplayName == "On")
     }
 
-    func testProject_AudioOnlySample_EmitsAudioWindowsForSpineClips() async throws {
-        let fcpxml = try loadFCPXMLSample(named: "AudioOnly")
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+    @Test("AudioOnly sample emits audio windows for spine clips")
+    func project_AudioOnlySample_EmitsAudioWindowsForSpineClips() async throws {
+        let fcpxml = try requireFCPXMLSample(named: "AudioOnly")
+        let source = try #require(fcpxml.allReportTimelineSources().first)
 
         let windows = try await projector.project(
             from: source,
@@ -134,21 +138,24 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
         )
 
         // Walks primary spine + anchored lane children (3 Forest Day + 2 Water Lake).
-        XCTAssertEqual(windows.count, 5)
-        XCTAssertTrue(windows.allSatisfy { $0.channel.kind == .audio })
-        XCTAssertEqual(windows.filter { $0.lanePath == .primary }.count, 3)
-        XCTAssertEqual(windows.filter { $0.lanePath.components == [-1] }.count, 2)
-        XCTAssertTrue(windows.allSatisfy { $0.retiming.scale == 1 })
-        XCTAssertEqual(windows[0].clipDisplayName, "Forest Day")
-        XCTAssertEqual(windows[0].timelineIn, .zero)
+        #expect(windows.count == 5)
+        let allAudio = windows.allSatisfy { $0.channel.kind == .audio }
+        #expect(allAudio)
+        #expect(windows.filter { $0.lanePath == .primary }.count == 3)
+        #expect(windows.filter { $0.lanePath.components == [-1] }.count == 2)
+        let allIdentityScale = windows.allSatisfy { $0.retiming.scale == 1 }
+        #expect(allIdentityScale)
+        #expect(windows[0].clipDisplayName == "Forest Day")
+        #expect(windows[0].timelineIn == .zero)
 
         let waterLake = windows.filter { $0.clipDisplayName == "Water Lake 3" }
-        XCTAssertEqual(waterLake.count, 2)
-        XCTAssertEqual(waterLake[0].timelineIn, .zero)
-        XCTAssertGreaterThan(waterLake[1].timelineIn.doubleValue, 0)
+        #expect(waterLake.count == 2)
+        #expect(waterLake[0].timelineIn == .zero)
+        #expect(waterLake[1].timelineIn.doubleValue > 0)
     }
 
-    func testProject_StreamingCallback_MatchesCollect() async throws {
+    @Test("Streaming callback matches collect")
+    func project_StreamingCallback_MatchesCollect() async throws {
         let fcpxml = try parseInlineFCPXML("""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE fcpxml>
@@ -173,7 +180,7 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
                 </library>
             </fcpxml>
             """)
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
 
         let collected = try await projector.project(from: source, fcpxml: fcpxml, options: .init())
         var streamed: [FinalCutPro.FCPXML.MediaUsageWindow] = []
@@ -181,11 +188,12 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             streamed.append(window)
         }
 
-        XCTAssertEqual(streamed, collected)
-        XCTAssertEqual(collected.count, 2)
+        #expect(streamed == collected)
+        #expect(collected.count == 2)
     }
 
-    func testProjectTimeline_Convenience_UsesFirstSource() async throws {
+    @Test("projectTimeline convenience uses first source")
+    func projectTimeline_Convenience_UsesFirstSource() async throws {
         let fcpxml = try parseInlineFCPXML("""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE fcpxml>
@@ -211,14 +219,15 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             """)
 
         let windows = try await fcpxml.projectTimeline(options: .mainTimeline)
-        XCTAssertEqual(windows.count, 1)
-        XCTAssertEqual(windows[0].timelineIn, Fraction(1, 1))
-        XCTAssertEqual(windows[0].timelineOut, Fraction(3, 1))
+        #expect(windows.count == 1)
+        #expect(windows[0].timelineIn == Fraction(1, 1))
+        #expect(windows[0].timelineOut == Fraction(3, 1))
     }
 
     // MARK: - timeMap retiming
 
-    func testProject_TimeMapTwoPoints_EmitsScaledIdentityOccupancy() async throws {
+    @Test("TimeMap two points emits scaled identity occupancy")
+    func project_TimeMapTwoPoints_EmitsScaledIdentityOccupancy() async throws {
         // Map span is 10s locally; clip duration is 5s → normalize onto [2s, 7s).
         // Media 0→20s over remapped 0→10s → scale 2.0
         let fcpxml = try parseInlineFCPXML("""
@@ -250,20 +259,26 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             </fcpxml>
             """)
 
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: .init())
 
-        XCTAssertEqual(windows.count, 1)
+        #expect(windows.count == 1)
         let window = windows[0]
-        XCTAssertEqual(window.timelineIn.doubleValue, 2, accuracy: 0.000_1)
-        XCTAssertEqual(window.timelineOut.doubleValue, 7, accuracy: 0.000_1)
-        XCTAssertEqual(window.mediaIn.doubleValue, 0, accuracy: 0.000_1)
-        XCTAssertEqual(window.mediaOut.doubleValue, 20, accuracy: 0.000_1)
-        XCTAssertEqual(window.retiming.scale, 2, accuracy: 0.000_1)
-        XCTAssertFalse(window.retiming.isReversed)
+        let timelineInMatch = abs(window.timelineIn.doubleValue - 2) < 0.000_1
+        let timelineOutMatch = abs(window.timelineOut.doubleValue - 7) < 0.000_1
+        let mediaInMatch = abs(window.mediaIn.doubleValue - 0) < 0.000_1
+        let mediaOutMatch = abs(window.mediaOut.doubleValue - 20) < 0.000_1
+        let scaleMatch = abs(window.retiming.scale - 2) < 0.000_1
+        #expect(timelineInMatch)
+        #expect(timelineOutMatch)
+        #expect(mediaInMatch)
+        #expect(mediaOutMatch)
+        #expect(scaleMatch)
+        #expect(!window.retiming.isReversed)
     }
 
-    func testProject_TimeMapReverse_SetsIsReversedAndNegativeSpeedMagnitude() async throws {
+    @Test("TimeMap reverse sets isReversed and negative speed magnitude")
+    func project_TimeMapReverse_SetsIsReversedAndNegativeSpeedMagnitude() async throws {
         // Same reverse map as SpeedChangeFormattingTests (-100%).
         let fcpxml = try parseInlineFCPXML("""
             <?xml version="1.0" encoding="UTF-8"?>
@@ -294,18 +309,20 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             </fcpxml>
             """)
 
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: .init())
 
-        XCTAssertEqual(windows.count, 1)
+        #expect(windows.count == 1)
         let retiming = windows[0].retiming
-        XCTAssertTrue(retiming.isReversed)
-        XCTAssertEqual(retiming.scale, 1, accuracy: 0.001)
-        XCTAssertGreaterThan(retiming.mediaStart.doubleValue, retiming.mediaEnd.doubleValue)
-        XCTAssertLessThanOrEqual(retiming.timelineStart.doubleValue, retiming.timelineEnd.doubleValue)
+        #expect(retiming.isReversed)
+        let scaleMatch = abs(retiming.scale - 1) < 0.001
+        #expect(scaleMatch)
+        #expect(retiming.mediaStart.doubleValue > retiming.mediaEnd.doubleValue)
+        #expect(retiming.timelineStart.doubleValue <= retiming.timelineEnd.doubleValue)
     }
 
-    func testProject_TimeMapThreePoints_EmitsTwoSegmentsPerChannel() async throws {
+    @Test("TimeMap three points emits two segments per channel")
+    func project_TimeMapThreePoints_EmitsTwoSegmentsPerChannel() async throws {
         let fcpxml = try parseInlineFCPXML("""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE fcpxml>
@@ -336,22 +353,28 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             </fcpxml>
             """)
 
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: .init())
 
         // 2 segments × 2 channels
-        XCTAssertEqual(windows.count, 4)
+        #expect(windows.count == 4)
 
         let video = windows.filter { $0.channel.kind == .video }
-        XCTAssertEqual(video.count, 2)
-        XCTAssertEqual(video[0].retiming.scale, 2, accuracy: 0.000_1)
-        XCTAssertEqual(video[1].retiming.scale, 0.4, accuracy: 0.000_1)
-        XCTAssertEqual(video[0].timelineOut.doubleValue, video[1].timelineIn.doubleValue, accuracy: 0.000_1)
-        XCTAssertEqual(video[0].timelineIn.doubleValue, 0, accuracy: 0.000_1)
-        XCTAssertEqual(video[1].timelineOut.doubleValue, 10, accuracy: 0.000_1)
+        #expect(video.count == 2)
+        let scale0Match = abs(video[0].retiming.scale - 2) < 0.000_1
+        let scale1Match = abs(video[1].retiming.scale - 0.4) < 0.000_1
+        let abutMatch = abs(video[0].timelineOut.doubleValue - video[1].timelineIn.doubleValue) < 0.000_1
+        let startMatch = abs(video[0].timelineIn.doubleValue - 0) < 0.000_1
+        let endMatch = abs(video[1].timelineOut.doubleValue - 10) < 0.000_1
+        #expect(scale0Match)
+        #expect(scale1Match)
+        #expect(abutMatch)
+        #expect(startMatch)
+        #expect(endMatch)
     }
 
-    func testConformRate_ApplyingConform_AnnotatesScaleFromSharedTable() throws {
+    @Test("ConformRate applyingConform annotates scale from shared table")
+    func conformRate_ApplyingConform_AnnotatesScaleFromSharedTable() throws {
         let conform = FinalCutPro.FCPXML.ConformRate(
             scaleEnabled: true,
             srcFrameRate: .fps29_97
@@ -364,14 +387,16 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
         let adjusted = conform.applyingConform(to: identity, timelineFrameRate: .fps23_976)
 
         // NTSC 29.97 → 23.976 uses factor 1.001 from the shared conform table.
-        XCTAssertEqual(adjusted.scale, 1.001, accuracy: 0.000_1)
-        XCTAssertEqual(adjusted.timelineStart, identity.timelineStart)
-        XCTAssertEqual(adjusted.timelineEnd, identity.timelineEnd)
-        XCTAssertEqual(adjusted.mediaStart, identity.mediaStart)
-        XCTAssertEqual(adjusted.mediaEnd, identity.mediaEnd)
+        let scaleMatch = abs(adjusted.scale - 1.001) < 0.000_1
+        #expect(scaleMatch)
+        #expect(adjusted.timelineStart == identity.timelineStart)
+        #expect(adjusted.timelineEnd == identity.timelineEnd)
+        #expect(adjusted.mediaStart == identity.mediaStart)
+        #expect(adjusted.mediaEnd == identity.mediaEnd)
     }
 
-    func testConformRate_ScaleDisabled_LeavesSegmentUnchanged() throws {
+    @Test("ConformRate scaleDisabled leaves segment unchanged")
+    func conformRate_ScaleDisabled_LeavesSegmentUnchanged() throws {
         let conform = FinalCutPro.FCPXML.ConformRate(
             scaleEnabled: false,
             srcFrameRate: .fps29_97
@@ -382,12 +407,13 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             mediaStart: Fraction(1, 1)
         )
         let adjusted = conform.applyingConform(to: identity, timelineFrameRate: .fps24)
-        XCTAssertEqual(adjusted, identity)
+        #expect(adjusted == identity)
     }
 
     // MARK: - Nested lanes, secondary spines, J/L cuts
 
-    func testProject_AnchoredLaneClip_ComposesLanePathAndAbsoluteStart() async throws {
+    @Test("Anchored lane clip composes lane path and absolute start")
+    func project_AnchoredLaneClip_ComposesLanePathAndAbsoluteStart() async throws {
         let fcpxml = try parseInlineFCPXML("""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE fcpxml>
@@ -417,25 +443,26 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             </fcpxml>
             """)
 
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: .init())
 
-        let host = try XCTUnwrap(windows.first { $0.clipDisplayName == "Host" })
-        let overlay = try XCTUnwrap(windows.first { $0.clipDisplayName == "Overlay" })
+        let host = try #require(windows.first { $0.clipDisplayName == "Host" })
+        let overlay = try #require(windows.first { $0.clipDisplayName == "Overlay" })
 
-        XCTAssertEqual(host.lanePath, .primary)
-        XCTAssertEqual(host.timelineIn, Fraction(2, 1))
-        XCTAssertEqual(host.timelineOut, Fraction(10, 1))
+        #expect(host.lanePath == .primary)
+        #expect(host.timelineIn == Fraction(2, 1))
+        #expect(host.timelineOut == Fraction(10, 1))
 
         // absolute = hostAbs + (overlay.offset − host.start) = 2 + (12 − 10) = 4
-        XCTAssertEqual(overlay.lanePath.components, [1])
-        XCTAssertEqual(overlay.timelineIn, Fraction(4, 1))
-        XCTAssertEqual(overlay.timelineOut, Fraction(7, 1))
-        XCTAssertEqual(overlay.mediaIn, .zero)
-        XCTAssertEqual(overlay.mediaOut, Fraction(3, 1))
+        #expect(overlay.lanePath.components == [1])
+        #expect(overlay.timelineIn == Fraction(4, 1))
+        #expect(overlay.timelineOut == Fraction(7, 1))
+        #expect(overlay.mediaIn == .zero)
+        #expect(overlay.mediaOut == Fraction(3, 1))
     }
 
-    func testProject_SecondarySpine_AppendsLaneAndShiftsChildren() async throws {
+    @Test("Secondary spine appends lane and shifts children")
+    func project_SecondarySpine_AppendsLaneAndShiftsChildren() async throws {
         let fcpxml = try parseInlineFCPXML("""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE fcpxml>
@@ -467,17 +494,18 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             </fcpxml>
             """)
 
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: .init())
 
-        let broll = try XCTUnwrap(windows.first { $0.clipDisplayName == "BRoll" })
+        let broll = try #require(windows.first { $0.clipDisplayName == "BRoll" })
         // spineAbs = 0 + (8 − 5) = 3; childAbs = 3 + 2 = 5
-        XCTAssertEqual(broll.lanePath.components, [1])
-        XCTAssertEqual(broll.timelineIn, Fraction(5, 1))
-        XCTAssertEqual(broll.timelineOut, Fraction(9, 1))
+        #expect(broll.lanePath.components == [1])
+        #expect(broll.timelineIn == Fraction(5, 1))
+        #expect(broll.timelineOut == Fraction(9, 1))
     }
 
-    func testProject_AudioStartDuration_EmitsSeparateAudioWindow() async throws {
+    @Test("Audio start/duration emits separate audio window")
+    func project_AudioStartDuration_EmitsSeparateAudioWindow() async throws {
         // Video: start=10s duration=5s at offset=2s → timeline [2, 7), media [10, 15)
         // Audio: audioStart=9s audioDuration=7s → timeline [1, 8), media [9, 16)
         let fcpxml = try parseInlineFCPXML("""
@@ -505,25 +533,26 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             </fcpxml>
             """)
 
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: .init())
 
-        XCTAssertEqual(windows.count, 2)
-        let video = try XCTUnwrap(windows.first { $0.channel.kind == .video })
-        let audio = try XCTUnwrap(windows.first { $0.channel.kind == .audio })
+        #expect(windows.count == 2)
+        let video = try #require(windows.first { $0.channel.kind == .video })
+        let audio = try #require(windows.first { $0.channel.kind == .audio })
 
-        XCTAssertEqual(video.timelineIn, Fraction(2, 1))
-        XCTAssertEqual(video.timelineOut, Fraction(7, 1))
-        XCTAssertEqual(video.mediaIn, Fraction(10, 1))
-        XCTAssertEqual(video.mediaOut, Fraction(15, 1))
+        #expect(video.timelineIn == Fraction(2, 1))
+        #expect(video.timelineOut == Fraction(7, 1))
+        #expect(video.mediaIn == Fraction(10, 1))
+        #expect(video.mediaOut == Fraction(15, 1))
 
-        XCTAssertEqual(audio.timelineIn, Fraction(1, 1))
-        XCTAssertEqual(audio.timelineOut, Fraction(8, 1))
-        XCTAssertEqual(audio.mediaIn, Fraction(9, 1))
-        XCTAssertEqual(audio.mediaOut, Fraction(16, 1))
+        #expect(audio.timelineIn == Fraction(1, 1))
+        #expect(audio.timelineOut == Fraction(8, 1))
+        #expect(audio.mediaIn == Fraction(9, 1))
+        #expect(audio.mediaOut == Fraction(16, 1))
     }
 
-    func testAudioSplitRetiming_NoSplit_ReusesVideoSegments() throws {
+    @Test("AudioSplitRetiming with no split reuses video segments")
+    func audioSplitRetiming_NoSplit_ReusesVideoSegments() throws {
         let segments = FinalCutPro.FCPXML.AudioSplitRetiming.segments(
             timeMap: nil,
             absoluteStart: Fraction(2, 1),
@@ -533,14 +562,15 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             audioStart: nil,
             audioDuration: nil
         )
-        XCTAssertEqual(segments.video, segments.audio)
-        XCTAssertEqual(segments.video.count, 1)
-        XCTAssertEqual(segments.video[0].timelineStart, Fraction(2, 1))
+        #expect(segments.video == segments.audio)
+        #expect(segments.video.count == 1)
+        #expect(segments.video[0].timelineStart == Fraction(2, 1))
     }
 
     // MARK: - Multicam, ref-clip, audition, video/audio leaves
 
-    func testProject_MCClip_ActiveAngleOnly_EmitsFromActiveAngle() async throws {
+    @Test("MC-clip active angle only emits from active angle")
+    func project_MCClip_ActiveAngleOnly_EmitsFromActiveAngle() async throws {
         let fcpxml = try parseInlineFCPXML("""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE fcpxml>
@@ -580,26 +610,27 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             </fcpxml>
             """)
 
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let active = try await projector.project(
             from: source,
             fcpxml: fcpxml,
             options: .mainTimeline
         )
-        XCTAssertEqual(active.count, 1)
-        XCTAssertEqual(active[0].clipDisplayName, "CamB")
-        XCTAssertEqual(active[0].timelineIn, Fraction(2, 1))
-        XCTAssertEqual(active[0].channel.resourceID, "r3")
+        #expect(active.count == 1)
+        #expect(active[0].clipDisplayName == "CamB")
+        #expect(active[0].timelineIn == Fraction(2, 1))
+        #expect(active[0].channel.resourceID == "r3")
 
         let allAngles = try await projector.project(
             from: source,
             fcpxml: fcpxml,
             options: .init(includeDisabled: false, auditions: .active, mcClipAngles: .all)
         )
-        XCTAssertEqual(Set(allAngles.map(\.clipDisplayName)), Set(["CamA", "CamB"]))
+        #expect(Set(allAngles.map(\.clipDisplayName)) == Set(["CamA", "CamB"]))
     }
 
-    func testProject_MCClip_SplitVideoAudioAngles_FiltersChannels() async throws {
+    @Test("MC-clip split video/audio angles filters channels")
+    func project_MCClip_SplitVideoAudioAngles_FiltersChannels() async throws {
         let fcpxml = try parseInlineFCPXML("""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE fcpxml>
@@ -640,18 +671,19 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             </fcpxml>
             """)
 
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: .mainTimeline)
 
         let video = windows.filter { $0.channel.kind == .video }
         let audio = windows.filter { $0.channel.kind == .audio }
-        XCTAssertEqual(video.count, 1)
-        XCTAssertEqual(audio.count, 1)
-        XCTAssertEqual(video[0].channel.resourceID, "r2")
-        XCTAssertEqual(audio[0].channel.resourceID, "r3")
+        #expect(video.count == 1)
+        #expect(audio.count == 1)
+        #expect(video[0].channel.resourceID == "r2")
+        #expect(audio[0].channel.resourceID == "r3")
     }
 
-    func testProject_RefClip_UnfoldsMediaSequence() async throws {
+    @Test("Ref-clip unfolds media sequence")
+    func project_RefClip_UnfoldsMediaSequence() async throws {
         let fcpxml = try parseInlineFCPXML("""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE fcpxml>
@@ -683,18 +715,19 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             </fcpxml>
             """)
 
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: .mainTimeline)
 
-        XCTAssertEqual(windows.count, 1)
+        #expect(windows.count == 1)
         // absolute = refAbs + (inner.offset − ref.start) = 5 + (3 − 3) = 5
-        XCTAssertEqual(windows[0].clipDisplayName, "InnerClip")
-        XCTAssertEqual(windows[0].timelineIn, Fraction(5, 1))
-        XCTAssertEqual(windows[0].timelineOut, Fraction(9, 1))
-        XCTAssertEqual(windows[0].mediaIn, Fraction(3, 1))
+        #expect(windows[0].clipDisplayName == "InnerClip")
+        #expect(windows[0].timelineIn == Fraction(5, 1))
+        #expect(windows[0].timelineOut == Fraction(9, 1))
+        #expect(windows[0].mediaIn == Fraction(3, 1))
     }
 
-    func testProject_Audition_ActiveOnly_EmitsFirstChild() async throws {
+    @Test("Audition active-only emits first child")
+    func project_Audition_ActiveOnly_EmitsFirstChild() async throws {
         let fcpxml = try parseInlineFCPXML("""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE fcpxml>
@@ -725,21 +758,22 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             </fcpxml>
             """)
 
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let active = try await projector.project(from: source, fcpxml: fcpxml, options: .mainTimeline)
-        XCTAssertEqual(active.count, 1)
-        XCTAssertEqual(active[0].clipDisplayName, "Active")
-        XCTAssertEqual(active[0].timelineIn, Fraction(1, 1))
+        #expect(active.count == 1)
+        #expect(active[0].clipDisplayName == "Active")
+        #expect(active[0].timelineIn == Fraction(1, 1))
 
         let all = try await projector.project(
             from: source,
             fcpxml: fcpxml,
             options: .init(includeDisabled: false, auditions: .all, mcClipAngles: .active)
         )
-        XCTAssertEqual(Set(all.map(\.clipDisplayName)), Set(["Active", "Inactive"]))
+        #expect(Set(all.map(\.clipDisplayName)) == Set(["Active", "Inactive"]))
     }
 
-    func testProject_VideoLeaf_EmitsVideoChannelOnly() async throws {
+    @Test("Video leaf emits video channel only")
+    func project_VideoLeaf_EmitsVideoChannelOnly() async throws {
         let fcpxml = try parseInlineFCPXML("""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE fcpxml>
@@ -767,30 +801,34 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             </fcpxml>
             """)
 
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: .mainTimeline)
 
-        XCTAssertEqual(windows.count, 2)
-        let video = try XCTUnwrap(windows.first { $0.channel.kind == .video })
-        let audio = try XCTUnwrap(windows.first { $0.channel.kind == .audio })
-        XCTAssertEqual(video.clipDisplayName, "VOnly")
-        XCTAssertEqual(audio.clipDisplayName, "AOnly")
-        XCTAssertEqual(audio.lanePath.components, [-1])
+        #expect(windows.count == 2)
+        let video = try #require(windows.first { $0.channel.kind == .video })
+        let audio = try #require(windows.first { $0.channel.kind == .audio })
+        #expect(video.clipDisplayName == "VOnly")
+        #expect(audio.clipDisplayName == "AOnly")
+        #expect(audio.lanePath.components == [-1])
     }
 
-    func testProject_SyncClipSample_EmitsNestedAssetClips() async throws {
-        let fcpxml = try loadFCPXMLSample(named: "SyncClip")
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+    @Test("SyncClip sample emits nested asset-clips")
+    func project_SyncClipSample_EmitsNestedAssetClips() async throws {
+        let fcpxml = try requireFCPXMLSample(named: "SyncClip")
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: .mainTimeline)
 
-        XCTAssertGreaterThanOrEqual(windows.count, 2)
-        XCTAssertTrue(windows.contains { $0.clipDisplayName == "TestVideo" })
-        XCTAssertTrue(windows.contains { $0.clipDisplayName == "TestAudio" })
+        #expect(windows.count >= 2)
+        let hasTestVideo = windows.contains { $0.clipDisplayName == "TestVideo" }
+        let hasTestAudio = windows.contains { $0.clipDisplayName == "TestAudio" }
+        #expect(hasTestVideo)
+        #expect(hasTestAudio)
         let audioLane = windows.first { $0.clipDisplayName == "TestAudio" }
-        XCTAssertEqual(audioLane?.lanePath.components, [-1])
+        #expect(audioLane?.lanePath.components == [-1])
     }
 
-    func testProjectionTiming_ConformScaledParent_DoesNotTrap() {
+    @Test("ProjectionTiming conform-scaled parent does not trap")
+    func projectionTiming_ConformScaledParent_DoesNotTrap() {
         // Regression: Fraction(double:) conform-scaled starts mixed with literal FCPXML
         // rationals used to trap on Int overflow inside Fraction `+` / `-` (e.g. 24.fcpxml).
         let parentAbs = Fraction(745, 6) // 298000/2400 reduced
@@ -802,36 +840,40 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
             parentAbsoluteStart: parentAbs,
             parentLocalStart: parentLocal
         )
-        XCTAssertGreaterThan(absolute.doubleValue, 0)
-        XCTAssertLessThan(abs(absolute.doubleValue - (parentAbs.doubleValue + (childOffset.doubleValue - parentLocal.doubleValue))), 0.001)
+        #expect(absolute.doubleValue > 0)
+        let expected =
+            parentAbs.doubleValue + (childOffset.doubleValue - parentLocal.doubleValue)
+        let deltaMatch = abs(absolute.doubleValue - expected) < 0.001
+        #expect(deltaMatch)
     }
 
-    func testReportOptions_ConsumesTimelineProjection_WhenInventoryOrSpeedEnabled() {
-        XCTAssertTrue(FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly.consumesTimelineProjection)
-        XCTAssertTrue(FinalCutPro.FCPXML.ReportOptions.speedChangeEffectsOnly.consumesTimelineProjection)
-        XCTAssertTrue(FinalCutPro.FCPXML.ReportOptions.mediaSummaryOnly.consumesTimelineProjection)
-        XCTAssertTrue(FinalCutPro.FCPXML.ReportOptions.effectsOnly.consumesTimelineProjection)
-        XCTAssertTrue(FinalCutPro.FCPXML.ReportOptions.summaryOnly.consumesTimelineProjection)
-        XCTAssertTrue(FinalCutPro.FCPXML.ReportOptions.markersOnly.consumesTimelineProjection)
-        XCTAssertTrue(FinalCutPro.FCPXML.ReportOptions.keywordsOnly.consumesTimelineProjection)
-        XCTAssertTrue(FinalCutPro.FCPXML.ReportOptions.titlesAndGeneratorsOnly.consumesTimelineProjection)
-        XCTAssertTrue(FinalCutPro.FCPXML.ReportOptions.transitionsOnly.consumesTimelineProjection)
-        XCTAssertFalse(
-            FinalCutPro.FCPXML.ReportOptions(
-                includeMarkers: false,
-                includeKeywords: false,
-                includeTitlesAndGenerators: false,
-                includeTransitions: false,
-                includeEffects: false,
-                includeSpeedChangeEffects: false,
-                includeSummary: false,
-                includeMediaSummary: false,
-                includeRoleInventory: false
-            ).consumesTimelineProjection
-        )
+    @Test("ReportOptions consumesTimelineProjection when inventory or speed enabled")
+    func reportOptions_ConsumesTimelineProjection_WhenInventoryOrSpeedEnabled() {
+        #expect(FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly.consumesTimelineProjection)
+        #expect(FinalCutPro.FCPXML.ReportOptions.speedChangeEffectsOnly.consumesTimelineProjection)
+        #expect(FinalCutPro.FCPXML.ReportOptions.mediaSummaryOnly.consumesTimelineProjection)
+        #expect(FinalCutPro.FCPXML.ReportOptions.effectsOnly.consumesTimelineProjection)
+        #expect(FinalCutPro.FCPXML.ReportOptions.summaryOnly.consumesTimelineProjection)
+        #expect(FinalCutPro.FCPXML.ReportOptions.markersOnly.consumesTimelineProjection)
+        #expect(FinalCutPro.FCPXML.ReportOptions.keywordsOnly.consumesTimelineProjection)
+        #expect(FinalCutPro.FCPXML.ReportOptions.titlesAndGeneratorsOnly.consumesTimelineProjection)
+        #expect(FinalCutPro.FCPXML.ReportOptions.transitionsOnly.consumesTimelineProjection)
+        let emptyConsumes = FinalCutPro.FCPXML.ReportOptions(
+            includeMarkers: false,
+            includeKeywords: false,
+            includeTitlesAndGenerators: false,
+            includeTransitions: false,
+            includeEffects: false,
+            includeSpeedChangeEffects: false,
+            includeSummary: false,
+            includeMediaSummary: false,
+            includeRoleInventory: false
+        ).consumesTimelineProjection
+        #expect(!emptyConsumes)
     }
 
-    func testTimelineOccupancyIndex_UnionDurationMergesOverlaps() {
+    @Test("TimelineOccupancyIndex union duration merges overlaps")
+    func timelineOccupancyIndex_UnionDurationMergesOverlaps() {
         let channel = FinalCutPro.FCPXML.MediaChannel(
             resourceID: "r1",
             kind: .video,
@@ -849,13 +891,16 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
         )
         let index = FinalCutPro.FCPXML.TimelineOccupancyIndex(windows: [a, b])
 
-        XCTAssertEqual(index.summedDuration(kind: .video), 8, accuracy: 0.001)
-        XCTAssertEqual(index.occupiedDuration(kind: .video), 6, accuracy: 0.001)
-        XCTAssertEqual(index.windows(overlapping: Fraction(3, 1), end: Fraction(5, 1)).count, 2)
-        XCTAssertEqual(index.windows(overlapping: Fraction(7, 1), end: Fraction(8, 1)).count, 0)
+        let summedMatch = abs(index.summedDuration(kind: .video) - 8) < 0.001
+        let occupiedMatch = abs(index.occupiedDuration(kind: .video) - 6) < 0.001
+        #expect(summedMatch)
+        #expect(occupiedMatch)
+        #expect(index.windows(overlapping: Fraction(3, 1), end: Fraction(5, 1)).count == 2)
+        #expect(index.windows(overlapping: Fraction(7, 1), end: Fraction(8, 1)).count == 0)
     }
 
-    func testMediaSummary_ProjectionWindows_PreferChannelURLs() async throws {
+    @Test("Media Summary projection windows prefer channel URLs")
+    func mediaSummary_ProjectionWindows_PreferChannelURLs() async throws {
         let missingURL = URL(fileURLWithPath: "/tmp/ofk-missing-\(UUID().uuidString).mov")
         let fcpxml = try parseInlineFCPXML("""
             <?xml version="1.0" encoding="UTF-8"?>
@@ -885,11 +930,13 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
         options.workbookCoverSheet = nil
         let report = try await fcpxml.buildReport(options: options)
         let paths = report.mediaSummary?.missingMediaPaths ?? []
-        XCTAssertTrue(paths.contains(missingURL.path), "Expected \(missingURL.path) in \(paths)")
+        let containsMissing = paths.contains(missingURL.path)
+        #expect(containsMissing, "Expected \(missingURL.path) in \(paths)")
     }
 
-    func testBuildReport_24Sample_EffectsAndSummaryWithProjection() async throws {
-        let fcpxml = try loadFCPXMLSample(named: "24")
+    @Test("buildReport 24 sample effects and summary with projection")
+    func buildReport_24Sample_EffectsAndSummaryWithProjection() async throws {
+        let fcpxml = try requireFCPXMLSample(named: "24")
         var options = FinalCutPro.FCPXML.ReportOptions.full
         options.workbookCoverSheet = nil
         options.projectName = "24_V1"
@@ -904,39 +951,46 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
         options.includeMediaSummary = true
 
         let report = try await fcpxml.buildReport(options: options)
-        XCTAssertNotNil(report.effects)
-        XCTAssertNotNil(report.summary)
-        XCTAssertNotNil(report.mediaSummary)
+        #expect(report.effects != nil)
+        #expect(report.summary != nil)
+        #expect(report.mediaSummary != nil)
     }
 
-    func testProject_ComplexSample_DoesNotCrash() async throws {
-        let fcpxml = try loadFCPXMLSample(named: "Complex")
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+    @Test("Project Complex sample does not crash")
+    func project_ComplexSample_DoesNotCrash() async throws {
+        let fcpxml = try requireFCPXMLSample(named: "Complex")
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: .mainTimeline)
-        XCTAssertFalse(windows.isEmpty)
+        let hasWindows = !windows.isEmpty
+        #expect(hasWindows)
     }
 
-    func testProject_23_98Sample_DoesNotCrash() async throws {
-        let fcpxml = try loadFCPXMLSample(named: "23.98")
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+    @Test("Project 23.98 sample does not crash")
+    func project_23_98Sample_DoesNotCrash() async throws {
+        let fcpxml = try requireFCPXMLSample(named: "23.98")
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: .mainTimeline)
-        XCTAssertFalse(windows.isEmpty)
+        let hasWindows = !windows.isEmpty
+        #expect(hasWindows)
     }
 
-    func testProject_24Sample_DoesNotCrash() async throws {
-        let fcpxml = try loadFCPXMLSample(named: "24")
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+    @Test("Project 24 sample does not crash")
+    func project_24Sample_DoesNotCrash() async throws {
+        let fcpxml = try requireFCPXMLSample(named: "24")
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(
             from: source,
             fcpxml: fcpxml,
             options: .mainTimeline
         )
-        XCTAssertFalse(windows.isEmpty)
+        let hasWindows = !windows.isEmpty
+        #expect(hasWindows)
     }
 
-    func testProject_24Sample_ReportOptions_DoesNotCrash() async throws {
-        let fcpxml = try loadFCPXMLSample(named: "24")
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+    @Test("Project 24 sample with report options does not crash")
+    func project_24Sample_ReportOptions_DoesNotCrash() async throws {
+        let fcpxml = try requireFCPXMLSample(named: "24")
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(
             from: source,
             fcpxml: fcpxml,
@@ -946,30 +1000,42 @@ final class FCPXMLTimelineProjectionTests: XCTestCase {
                 mcClipAngles: .all
             )
         )
-        XCTAssertFalse(windows.isEmpty)
+        let hasWindows = !windows.isEmpty
+        #expect(hasWindows)
     }
 
-    func testBuildReport_24Sample_RoleInventoryWithProjection() async throws {
-        let fcpxml = try loadFCPXMLSample(named: "24")
+    @Test("buildReport 24 sample role inventory with projection")
+    func buildReport_24Sample_RoleInventoryWithProjection() async throws {
+        let fcpxml = try requireFCPXMLSample(named: "24")
         var options = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
         options.workbookCoverSheet = nil
         options.projectName = "24_V1"
         let report = try await fcpxml.buildReport(options: options)
-        XCTAssertFalse(report.roleInventory?.selectedRoles.isEmpty ?? true)
+        let hasRoles = !(report.roleInventory?.selectedRoles.isEmpty ?? true)
+        #expect(hasRoles)
     }
 
-    func testBuildReport_24Sample_SpeedChangeWithProjection() async throws {
-        let fcpxml = try loadFCPXMLSample(named: "24")
+    @Test("buildReport 24 sample speed change with projection")
+    func buildReport_24Sample_SpeedChangeWithProjection() async throws {
+        let fcpxml = try requireFCPXMLSample(named: "24")
         var options = FinalCutPro.FCPXML.ReportOptions.speedChangeEffectsOnly
         options.workbookCoverSheet = nil
         options.projectName = "24_V1"
         let report = try await fcpxml.buildReport(options: options)
         let rows = report.speedChangeEffects?.rows ?? []
-        XCTAssertFalse(rows.isEmpty)
+        let hasRows = !rows.isEmpty
+        #expect(hasRows)
+        let smptePattern = #"^\d{2}:\d{2}:\d{2}[:;]\d{2}$"#
         for row in rows {
-            XCTAssertTrue(row.effect.hasPrefix("Retime "))
-            FCPXMLReportingReportTestSupport.assertValidTimecode(row.timelineIn)
-            FCPXMLReportingReportTestSupport.assertValidTimecode(row.timelineOut)
+            #expect(row.effect.hasPrefix("Retime "))
+            let inNonEmpty = !row.timelineIn.isEmpty
+            let outNonEmpty = !row.timelineOut.isEmpty
+            #expect(inNonEmpty)
+            #expect(outNonEmpty)
+            let inValid = row.timelineIn.range(of: smptePattern, options: .regularExpression) != nil
+            let outValid = row.timelineOut.range(of: smptePattern, options: .regularExpression) != nil
+            #expect(inValid)
+            #expect(outValid)
         }
     }
 }

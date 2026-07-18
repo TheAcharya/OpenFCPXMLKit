@@ -5,10 +5,11 @@
 //
 
 //
-//	Shared structural assertions for optional reporting integration tests.
+//	Shared structural assertions for reporting tests (Swift Testing).
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
 enum FCPXMLReportingReportTestSupport {
@@ -16,267 +17,242 @@ enum FCPXMLReportingReportTestSupport {
     private static let smpteTimecodePattern = #"^\d{2}:\d{2}:\d{2}[:;]\d{2}$"#
     private static let smpteNoFramesPattern = #"^\d{2}:\d{2}:\d{2}$"#
     private static let feetAndFramesPattern = #"^\d+\+\d{2}$"#
-    
+
     static func assertValidTimecode(
         _ value: String,
         format: FinalCutPro.FCPXML.ReportTimecodeFormat = .smpteFrames,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        sourceLocation: SourceLocation = #_sourceLocation
     ) {
-        XCTAssertFalse(
-            value.isEmpty,
-            "Expected non-empty timecode",
-            file: file,
-            line: line
-        )
-        
+        #expect(!value.isEmpty, "Expected non-empty timecode", sourceLocation: sourceLocation)
+
         switch format {
         case .smpteFrames:
-            XCTAssertNotNil(
-                value.range(of: smpteTimecodePattern, options: .regularExpression),
+            #expect(
+                value.range(of: smpteTimecodePattern, options: .regularExpression) != nil,
                 "Expected HH:MM:SS:FF or HH:MM:SS;FF timecode, got \(value)",
-                file: file,
-                line: line
+                sourceLocation: sourceLocation
             )
         case .frames:
-            XCTAssertNotNil(
-                Int(value),
+            #expect(
+                Int(value) != nil,
                 "Expected integer frame count, got \(value)",
-                file: file,
-                line: line
+                sourceLocation: sourceLocation
             )
         case .feetAndFrames:
-            XCTAssertNotNil(
-                value.range(of: feetAndFramesPattern, options: .regularExpression),
+            #expect(
+                value.range(of: feetAndFramesPattern, options: .regularExpression) != nil,
                 "Expected feet+frames timecode, got \(value)",
-                file: file,
-                line: line
+                sourceLocation: sourceLocation
             )
         case .smpteNoFrames:
-            XCTAssertNotNil(
-                value.range(of: smpteNoFramesPattern, options: .regularExpression),
+            #expect(
+                value.range(of: smpteNoFramesPattern, options: .regularExpression) != nil,
                 "Expected HH:MM:SS timecode, got \(value)",
-                file: file,
-                line: line
+                sourceLocation: sourceLocation
             )
         }
     }
-    
+
     static func assertAllValidTimecodes(
         _ values: [String],
         format: FinalCutPro.FCPXML.ReportTimecodeFormat,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        sourceLocation: SourceLocation = #_sourceLocation
     ) {
         for value in values where !value.isEmpty {
-            assertValidTimecode(value, format: format, file: file, line: line)
+            assertValidTimecode(value, format: format, sourceLocation: sourceLocation)
         }
     }
-    
+
     static func assertDropFrameTimecode(
         _ value: String,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        sourceLocation: SourceLocation = #_sourceLocation
     ) {
-        assertValidTimecode(value, format: .smpteFrames, file: file, line: line)
-        XCTAssertTrue(
+        assertValidTimecode(value, format: .smpteFrames, sourceLocation: sourceLocation)
+        #expect(
             value.contains(";"),
             "Expected drop-frame semicolon before frames, got \(value)",
-            file: file,
-            line: line
+            sourceLocation: sourceLocation
         )
     }
-    
+
     static func assertNonDropFrameTimecode(
         _ value: String,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        sourceLocation: SourceLocation = #_sourceLocation
     ) {
-        assertValidTimecode(value, format: .smpteFrames, file: file, line: line)
-        XCTAssertFalse(
-            value.contains(";"),
+        assertValidTimecode(value, format: .smpteFrames, sourceLocation: sourceLocation)
+        #expect(
+            !value.contains(";"),
             "Expected non-drop-frame colons only, got \(value)",
-            file: file,
-            line: line
+            sourceLocation: sourceLocation
         )
     }
-    
+
     /// Asserts every non-empty timecode cell in a built report matches ``format``.
     static func assertReportTimecodeValues(
         _ report: FinalCutPro.FCPXML.Report,
         format: FinalCutPro.FCPXML.ReportTimecodeFormat,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        sourceLocation: SourceLocation = #_sourceLocation
     ) {
         if let markers = report.markers {
             for row in markers.rows {
-                assertValidTimecode(row.position, format: format, file: file, line: line)
+                assertValidTimecode(row.position, format: format, sourceLocation: sourceLocation)
                 if !row.sourcePosition.isEmpty {
-                    assertValidTimecode(row.sourcePosition, format: format, file: file, line: line)
+                    assertValidTimecode(row.sourcePosition, format: format, sourceLocation: sourceLocation)
                 }
             }
             assertSortedTimelinePositions(
                 markers.rows.map(\.position),
                 format: format,
-                file: file,
-                line: line
+                sourceLocation: sourceLocation
             )
         }
-        
+
         if let keywords = report.keywords {
             for row in keywords.rows {
-                assertValidTimecode(row.timelineIn, format: format, file: file, line: line)
-                assertValidTimecode(row.timelineOut, format: format, file: file, line: line)
-                assertValidTimecode(row.duration, format: format, file: file, line: line)
+                assertValidTimecode(row.timelineIn, format: format, sourceLocation: sourceLocation)
+                assertValidTimecode(row.timelineOut, format: format, sourceLocation: sourceLocation)
+                assertValidTimecode(row.duration, format: format, sourceLocation: sourceLocation)
             }
             assertSortedTimelinePositions(
                 keywords.rows.map(\.timelineIn),
                 format: format,
-                file: file,
-                line: line
+                sourceLocation: sourceLocation
             )
         }
-        
+
         if let titles = report.titlesAndGenerators {
             for row in titles.rows {
-                assertValidTimecode(row.timelineIn, format: format, file: file, line: line)
-                assertValidTimecode(row.timelineOut, format: format, file: file, line: line)
-                assertValidTimecode(row.duration, format: format, file: file, line: line)
+                assertValidTimecode(row.timelineIn, format: format, sourceLocation: sourceLocation)
+                assertValidTimecode(row.timelineOut, format: format, sourceLocation: sourceLocation)
+                assertValidTimecode(row.duration, format: format, sourceLocation: sourceLocation)
             }
             assertSortedTimelinePositions(
                 titles.rows.map(\.timelineIn),
                 format: format,
-                file: file,
-                line: line
+                sourceLocation: sourceLocation
             )
         }
-        
+
         if let transitions = report.transitions {
             for row in transitions.rows {
-                assertValidTimecode(row.timelineIn, format: format, file: file, line: line)
-                assertValidTimecode(row.timelineOut, format: format, file: file, line: line)
-                assertValidTimecode(row.duration, format: format, file: file, line: line)
+                assertValidTimecode(row.timelineIn, format: format, sourceLocation: sourceLocation)
+                assertValidTimecode(row.timelineOut, format: format, sourceLocation: sourceLocation)
+                assertValidTimecode(row.duration, format: format, sourceLocation: sourceLocation)
             }
             assertSortedTimelinePositions(
                 transitions.rows.map(\.timelineIn),
                 format: format,
-                file: file,
-                line: line
+                sourceLocation: sourceLocation
             )
         }
-        
+
         if let effects = report.effects {
             for row in effects.rows {
-                assertValidTimecode(row.timelineIn, format: format, file: file, line: line)
-                assertValidTimecode(row.timelineOut, format: format, file: file, line: line)
+                assertValidTimecode(row.timelineIn, format: format, sourceLocation: sourceLocation)
+                assertValidTimecode(row.timelineOut, format: format, sourceLocation: sourceLocation)
             }
             assertSortedTimelinePositions(
                 effects.rows.map(\.timelineIn),
                 format: format,
-                file: file,
-                line: line
+                sourceLocation: sourceLocation
             )
         }
-        
+
         if let speedChangeEffects = report.speedChangeEffects {
             for row in speedChangeEffects.rows {
-                assertValidTimecode(row.timelineIn, format: format, file: file, line: line)
-                assertValidTimecode(row.timelineOut, format: format, file: file, line: line)
+                assertValidTimecode(row.timelineIn, format: format, sourceLocation: sourceLocation)
+                assertValidTimecode(row.timelineOut, format: format, sourceLocation: sourceLocation)
             }
             assertSortedTimelinePositions(
                 speedChangeEffects.rows.map(\.timelineIn),
                 format: format,
-                file: file,
-                line: line
+                sourceLocation: sourceLocation
             )
         }
-        
+
         if let summary = report.summary {
             if let duration = summary.projectSummary?.duration, !duration.isEmpty {
-                assertValidTimecode(duration, format: format, file: file, line: line)
+                assertValidTimecode(duration, format: format, sourceLocation: sourceLocation)
             }
             for row in summary.roleDurations {
-                assertValidTimecode(row.estimatedTotal, format: format, file: file, line: line)
+                assertValidTimecode(row.estimatedTotal, format: format, sourceLocation: sourceLocation)
             }
         }
-        
+
         if let roleInventory = report.roleInventory {
             for row in roleInventory.selectedRoles {
-                assertValidTimecode(row.timelineIn, format: format, file: file, line: line)
-                assertValidTimecode(row.timelineOut, format: format, file: file, line: line)
-                assertValidTimecode(row.clipDuration, format: format, file: file, line: line)
+                assertValidTimecode(row.timelineIn, format: format, sourceLocation: sourceLocation)
+                assertValidTimecode(row.timelineOut, format: format, sourceLocation: sourceLocation)
+                assertValidTimecode(row.clipDuration, format: format, sourceLocation: sourceLocation)
                 if !row.sourceIn.isEmpty {
-                    assertValidTimecode(row.sourceIn, format: format, file: file, line: line)
+                    assertValidTimecode(row.sourceIn, format: format, sourceLocation: sourceLocation)
                 }
                 if !row.sourceOut.isEmpty {
-                    assertValidTimecode(row.sourceOut, format: format, file: file, line: line)
+                    assertValidTimecode(row.sourceOut, format: format, sourceLocation: sourceLocation)
                 }
                 if !row.sourceDuration.isEmpty {
-                    assertValidTimecode(row.sourceDuration, format: format, file: file, line: line)
+                    assertValidTimecode(row.sourceDuration, format: format, sourceLocation: sourceLocation)
                 }
             }
             assertSortedTimelinePositions(
                 roleInventory.selectedRoles.map(\.timelineIn),
                 format: format,
-                file: file,
-                line: line
+                sourceLocation: sourceLocation
             )
         }
     }
-    
+
     /// Asserts workbook column headers for each populated section match ``report/timecodeFormat``.
     static func assertReportColumnHeadersMatchTimecodeFormat(
         _ report: FinalCutPro.FCPXML.Report,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        sourceLocation: SourceLocation = #_sourceLocation
     ) {
         let format = report.timecodeFormat
-        
+
         if report.markers != nil {
             let headers = FinalCutPro.FCPXML.MarkerReportRow.columnHeaders(timecodeFormat: format)
-            assertTimecodeHeader(headers[3], baseName: "Position", format: format, file: file, line: line)
+            assertTimecodeHeader(headers[3], baseName: "Position", format: format, sourceLocation: sourceLocation)
             assertTimecodeHeader(
                 headers[8],
                 baseName: "Source Position",
                 format: format,
-                file: file,
-                line: line
+                sourceLocation: sourceLocation
             )
         }
-        
+
         if report.keywords != nil {
             let headers = FinalCutPro.FCPXML.KeywordReportRow.columnHeaders(timecodeFormat: format)
-            assertTimecodeHeader(headers[2], baseName: "Timeline In", format: format, file: file, line: line)
-            assertTimecodeHeader(headers[3], baseName: "Timeline Out", format: format, file: file, line: line)
-            assertTimecodeHeader(headers[4], baseName: "Duration", format: format, file: file, line: line)
+            assertTimecodeHeader(headers[2], baseName: "Timeline In", format: format, sourceLocation: sourceLocation)
+            assertTimecodeHeader(headers[3], baseName: "Timeline Out", format: format, sourceLocation: sourceLocation)
+            assertTimecodeHeader(headers[4], baseName: "Duration", format: format, sourceLocation: sourceLocation)
         }
-        
+
         if report.titlesAndGenerators != nil {
             let headers = FinalCutPro.FCPXML.TitleReportRow.columnHeaders(timecodeFormat: format)
-            assertTimecodeHeader(headers[4], baseName: "Timeline In", format: format, file: file, line: line)
-            assertTimecodeHeader(headers[5], baseName: "Timeline Out", format: format, file: file, line: line)
-            assertTimecodeHeader(headers[6], baseName: "Duration", format: format, file: file, line: line)
+            assertTimecodeHeader(headers[4], baseName: "Timeline In", format: format, sourceLocation: sourceLocation)
+            assertTimecodeHeader(headers[5], baseName: "Timeline Out", format: format, sourceLocation: sourceLocation)
+            assertTimecodeHeader(headers[6], baseName: "Duration", format: format, sourceLocation: sourceLocation)
         }
-        
+
         if report.transitions != nil {
             let headers = FinalCutPro.FCPXML.TransitionReportRow.columnHeaders(timecodeFormat: format)
-            assertTimecodeHeader(headers[3], baseName: "Timeline In", format: format, file: file, line: line)
-            assertTimecodeHeader(headers[4], baseName: "Timeline Out", format: format, file: file, line: line)
-            assertTimecodeHeader(headers[5], baseName: "Duration", format: format, file: file, line: line)
+            assertTimecodeHeader(headers[3], baseName: "Timeline In", format: format, sourceLocation: sourceLocation)
+            assertTimecodeHeader(headers[4], baseName: "Timeline Out", format: format, sourceLocation: sourceLocation)
+            assertTimecodeHeader(headers[5], baseName: "Duration", format: format, sourceLocation: sourceLocation)
         }
-        
+
         if report.effects != nil {
             let headers = FinalCutPro.FCPXML.EffectReportRow.columnHeaders(timecodeFormat: format)
-            assertTimecodeHeader(headers[6], baseName: "Timeline In", format: format, file: file, line: line)
-            assertTimecodeHeader(headers[7], baseName: "Timeline Out", format: format, file: file, line: line)
+            assertTimecodeHeader(headers[6], baseName: "Timeline In", format: format, sourceLocation: sourceLocation)
+            assertTimecodeHeader(headers[7], baseName: "Timeline Out", format: format, sourceLocation: sourceLocation)
         }
-        
+
         if report.speedChangeEffects != nil {
             let headers = FinalCutPro.FCPXML.EffectReportRow.columnHeaders(timecodeFormat: format)
-            assertTimecodeHeader(headers[6], baseName: "Timeline In", format: format, file: file, line: line)
-            assertTimecodeHeader(headers[7], baseName: "Timeline Out", format: format, file: file, line: line)
+            assertTimecodeHeader(headers[6], baseName: "Timeline In", format: format, sourceLocation: sourceLocation)
+            assertTimecodeHeader(headers[7], baseName: "Timeline Out", format: format, sourceLocation: sourceLocation)
         }
-        
+
         if let summary = report.summary, !summary.roleDurations.isEmpty {
             let headers = FinalCutPro.FCPXML.SummaryRoleDurationRow.columnHeaders(
                 timecodeFormat: format
@@ -285,49 +261,42 @@ enum FCPXMLReportingReportTestSupport {
                 headers[1],
                 baseName: "Estimated Total",
                 format: format,
-                file: file,
-                line: line
+                sourceLocation: sourceLocation
             )
         }
-        
+
         if report.roleInventory != nil {
             let headers = FinalCutPro.FCPXML.RoleInventoryColumnLayout.columnHeaders(
                 metadataColumnKeys: report.roleInventory?.metadataColumnKeys ?? [],
                 timecodeFormat: format
             )
-            XCTAssertTrue(
+            #expect(
                 headers.contains(format.formattedColumnHeader("Timeline In")),
-                file: file,
-                line: line
+                sourceLocation: sourceLocation
             )
-            XCTAssertTrue(
+            #expect(
                 headers.contains(format.formattedColumnHeader("Clip Duration")),
-                file: file,
-                line: line
+                sourceLocation: sourceLocation
             )
         }
     }
-    
+
     private static func assertTimecodeHeader(
         _ header: String,
         baseName: String,
         format: FinalCutPro.FCPXML.ReportTimecodeFormat,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        sourceLocation: SourceLocation
     ) {
-        XCTAssertEqual(
-            header,
-            format.formattedColumnHeader(baseName),
-            file: file,
-            line: line
+        #expect(
+            header == format.formattedColumnHeader(baseName),
+            sourceLocation: sourceLocation
         )
     }
-    
+
     static func assertSortedTimelinePositions(
         _ positions: [String],
         format: FinalCutPro.FCPXML.ReportTimecodeFormat = .smpteFrames,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        sourceLocation: SourceLocation = #_sourceLocation
     ) {
         let sorted = positions.sorted {
             FinalCutPro.FCPXML.ReportFormatting.compareTimelinePositions(
@@ -336,14 +305,13 @@ enum FCPXMLReportingReportTestSupport {
                 format: format
             ) == .orderedAscending
         }
-        XCTAssertEqual(positions, sorted, file: file, line: line)
+        #expect(positions == sorted, sourceLocation: sourceLocation)
     }
-    
+
     static func assertCheckmarkOrCross(
         _ value: String,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        sourceLocation: SourceLocation = #_sourceLocation
     ) {
-        XCTAssertTrue(value == "✓" || value == "✗", file: file, line: line)
+        #expect(value == "✓" || value == "✗", sourceLocation: sourceLocation)
     }
 }

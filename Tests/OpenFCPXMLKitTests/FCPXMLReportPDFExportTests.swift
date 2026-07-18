@@ -9,16 +9,17 @@
 //
 
 import Foundation
-import OpenFCPXMLKit
-import XCTest
+import Testing
+@testable import OpenFCPXMLKit
 #if canImport(PDFKit)
 import PDFKit
 #endif
 
-@available(macOS 26.0, *)
-final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
-    
-    func testMakePDFDataFromSyntheticMarkersReportStartsWithPDFHeader() throws {
+@Suite("Report PDF export")
+struct FCPXMLReportPDFExportTests {
+
+    @Test("Make PDF data from synthetic markers report starts with PDF header")
+    func makePDFDataFromSyntheticMarkersReportStartsWithPDFHeader() throws {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test Project",
             eventName: "Test Event",
@@ -36,35 +37,31 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
                 )
             ])
         )
-        
+
         let data = try FinalCutPro.FCPXML.ReportPDFExport.makePDFData(from: report)
-        XCTAssertGreaterThan(data.count, 0)
-        
+        #expect(data.count > 0)
+
         let prefix = String(data: data.prefix(4), encoding: .ascii)
-        XCTAssertEqual(prefix, "%PDF")
-        
+        #expect(prefix == "%PDF")
+
         #if canImport(PDFKit)
-        guard let document = PDFDocument(data: data) else {
-            XCTFail("Expected valid PDF document")
-            return
-        }
-        
+        let document = try #require(PDFDocument(data: data))
+
         let markersPageIndex = document.pageCount > 2 ? 2 : 1
-        guard let markersPageText = document.page(at: markersPageIndex)?.string else {
-            XCTFail("Expected markers content page")
-            return
-        }
-        
+        let markersPageText = try #require(document.page(at: markersPageIndex)?.string)
+
         for header in FinalCutPro.FCPXML.MarkerReportRow.columnHeaders {
-            XCTAssertTrue(
-                markersPageText.contains(header),
+            let containsHeader = markersPageText.contains(header)
+            #expect(
+                containsHeader,
                 "Expected table header \"\(header)\" to be visible in PDF text extraction"
             )
         }
         #endif
     }
-    
-    func testExportSyntheticSummaryReportWritesPDFFile() throws {
+
+    @Test("Export synthetic Summary report writes PDF file")
+    func exportSyntheticSummaryReportWritesPDFFile() throws {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Summary Project",
             summary: FinalCutPro.FCPXML.SummaryReportSection(
@@ -84,20 +81,21 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
                 ]
             )
         )
-        
+
         let outputURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("OFK-Summary-\(UUID().uuidString).pdf")
         defer { try? FileManager.default.removeItem(at: outputURL) }
-        
+
         try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: outputURL)
-        
-        XCTAssertTrue(FileManager.default.fileExists(atPath: outputURL.path))
-        
+
+        #expect(FileManager.default.fileExists(atPath: outputURL.path))
+
         let data = try Data(contentsOf: outputURL)
-        XCTAssertEqual(String(data: data.prefix(4), encoding: .ascii), "%PDF")
+        #expect(String(data: data.prefix(4), encoding: .ascii) == "%PDF")
     }
-    
-    func testExportSyntheticMediaSummaryReportWritesPDFFile() throws {
+
+    @Test("Export synthetic Media Summary report writes PDF file")
+    func exportSyntheticMediaSummaryReportWritesPDFFile() throws {
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Media Project",
             mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection(
@@ -107,62 +105,65 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
                 ]
             )
         )
-        
+
         let outputURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("OFK-MediaSummary-\(UUID().uuidString).pdf")
         defer { try? FileManager.default.removeItem(at: outputURL) }
-        
+
         try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: outputURL)
-        
-        XCTAssertTrue(FileManager.default.fileExists(atPath: outputURL.path))
+
+        #expect(FileManager.default.fileExists(atPath: outputURL.path))
     }
-    
-    func testExportMarkersReportWritesPDFFileFromFixture() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
-        
-        let report = try await fcpxml.buildReport(
-            options: try FCPXMLReportingReportFixture.reportOptions {
-                $0.includeMarkers = true
-            }
-        )
-        
+
+    @Test("Export markers report writes PDF file from fixture")
+    func exportMarkersReportWritesPDFFileFromFixture() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
+
+        var options = FinalCutPro.FCPXML.ReportOptions()
+        options.projectName = FCPXMLReportingReportFixture.primaryProjectName(in: fcpxml)
+        options.includeMarkers = true
+
+        let report = try await fcpxml.buildReport(options: options)
+
         let outputURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("OFK-Markers-\(UUID().uuidString).pdf")
         defer { try? FileManager.default.removeItem(at: outputURL) }
-        
+
         try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: outputURL)
-        
-        XCTAssertTrue(FileManager.default.fileExists(atPath: outputURL.path))
-        
+
+        #expect(FileManager.default.fileExists(atPath: outputURL.path))
+
         let attributes = try FileManager.default.attributesOfItem(atPath: outputURL.path)
         let fileSize = attributes[.size] as? NSNumber
-        XCTAssertGreaterThan(fileSize?.intValue ?? 0, 0)
+        #expect((fileSize?.intValue ?? 0) > 0)
     }
-    
-    func testExportMarkersReportFromBasicMarkersSampleWritesPDFFile() async throws {
-        let fcpxml = try loadFCPXMLSample(named: FCPXMLSampleName.basicMarkers.rawValue)
-        
+
+    @Test("Export markers report from BasicMarkers sample writes PDF file")
+    func exportMarkersReportFromBasicMarkersSampleWritesPDFFile() async throws {
+        let fcpxml = try requireFCPXMLSample(named: FCPXMLSampleName.basicMarkers.rawValue)
+
         var options = FinalCutPro.FCPXML.ReportOptions(
             includeMarkers: true,
             includeRoleInventory: false
         )
         options.projectName = fcpxml.allProjects().first?.name
         options.includeMarkersOutsideClipBoundaries = true
-        
+
         let report = try await fcpxml.buildReport(options: options)
-        
+
         let outputURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("OFK-BasicMarkers-\(UUID().uuidString).pdf")
         defer { try? FileManager.default.removeItem(at: outputURL) }
-        
+
         try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: outputURL)
-        
-        XCTAssertTrue(FileManager.default.fileExists(atPath: outputURL.path))
+
+        #expect(FileManager.default.fileExists(atPath: outputURL.path))
         let data = try Data(contentsOf: outputURL)
-        XCTAssertEqual(String(data: data.prefix(4), encoding: .ascii), "%PDF")
+        #expect(String(data: data.prefix(4), encoding: .ascii) == "%PDF")
     }
-    
-    func testWideMarkersTableProducesMultiPagePDF() throws {
+
+    @Test("Wide markers table produces multi-page PDF")
+    func wideMarkersTableProducesMultiPagePDF() throws {
         let rows = (1...40).map { index in
             FinalCutPro.FCPXML.MarkerReportRow(
                 markerName: "Marker \(index)",
@@ -176,21 +177,18 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
                 sourcePosition: "00:00:\(String(format: "%02d", index % 60)):00"
             )
         }
-        
+
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Wide Table",
             markers: FinalCutPro.FCPXML.MarkersReportSection(rows: rows)
         )
-        
+
         let data = try FinalCutPro.FCPXML.ReportPDFExport.makePDFData(from: report)
-        XCTAssertGreaterThan(data.count, 4_000, "Wide tables should produce multi-page PDF output")
-        
+        #expect(data.count > 4_000, "Wide tables should produce multi-page PDF output")
+
         #if canImport(PDFKit)
-        guard let document = PDFDocument(data: data) else {
-            XCTFail("Expected valid PDF document")
-            return
-        }
-        
+        let document = try #require(PDFDocument(data: data))
+
         var foundRowOnContinuationPage = false
         for pageIndex in 1..<document.pageCount {
             guard let pageText = document.page(at: pageIndex)?.string else { continue }
@@ -199,15 +197,16 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
                 break
             }
         }
-        
-        XCTAssertTrue(
+
+        #expect(
             foundRowOnContinuationPage,
             "Expected Row column with stable row numbers on marker continuation pages"
         )
         #endif
     }
-    
-    func testWideMarkersTableOmitsRowWhenExcluded() throws {
+
+    @Test("Wide markers table omits Row when excluded")
+    func wideMarkersTableOmitsRowWhenExcluded() throws {
         let rows = (1...40).map { index in
             FinalCutPro.FCPXML.MarkerReportRow(
                 markerName: "Marker \(index)",
@@ -221,68 +220,71 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
                 sourcePosition: "00:00:\(String(format: "%02d", index % 60)):00"
             )
         }
-        
+
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Wide Table",
             markers: FinalCutPro.FCPXML.MarkersReportSection(rows: rows),
             excludedColumns: [.row]
         )
-        
+
         let data = try FinalCutPro.FCPXML.ReportPDFExport.makePDFData(from: report)
-        
+
         #if canImport(PDFKit)
-        guard let document = PDFDocument(data: data) else {
-            XCTFail("Expected valid PDF document")
-            return
-        }
-        
+        let document = try #require(PDFDocument(data: data))
+
         // Cover notes may mention "Row"; assert marker continuation pages never include the column.
         var foundMarkerContinuationWithoutRow = false
         for pageIndex in 1..<document.pageCount {
             guard let pageText = document.page(at: pageIndex)?.string else { continue }
             if pageText.contains("Marker 25") {
-                XCTAssertFalse(
-                    pageText.contains("Row"),
+                let containsRow = pageText.contains("Row")
+                #expect(
+                    !containsRow,
                     "Excluded Row must not appear on marker continuation pages"
                 )
                 foundMarkerContinuationWithoutRow = true
                 break
             }
         }
-        
-        XCTAssertTrue(
+
+        #expect(
             foundMarkerContinuationWithoutRow,
             "Expected Marker 25 on a continuation page for exclusion assertion"
         )
         #else
-        XCTAssertGreaterThan(data.count, 4_000)
+        #expect(data.count > 4_000)
         #endif
     }
-    
-    func testCoverPageOnlyReportProducesMinimalPDF() throws {
+
+    @Test("Cover-page-only report produces minimal PDF")
+    func coverPageOnlyReportProducesMinimalPDF() throws {
         let report = FinalCutPro.FCPXML.Report(projectName: "Cover Only")
-        
+
         let data = try FinalCutPro.FCPXML.ReportPDFExport.makePDFData(from: report)
-        XCTAssertGreaterThan(data.count, 100)
-        XCTAssertEqual(String(data: data.prefix(4), encoding: .ascii), "%PDF")
-        
+        #expect(data.count > 100)
+        #expect(String(data: data.prefix(4), encoding: .ascii) == "%PDF")
+
         #if canImport(PDFKit)
-        guard let document = PDFDocument(data: data),
-              let coverText = document.page(at: 0)?.string
-        else {
-            XCTFail("Expected cover page text")
-            return
-        }
-        
-        XCTAssertTrue(coverText.contains(FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.brandingText))
-        XCTAssertTrue(coverText.contains("About This PDF Export"))
-        XCTAssertTrue(coverText.contains("experimental"))
-        XCTAssertTrue(coverText.contains("truncate"))
-        XCTAssertTrue(coverText.contains("Excel (.xlsx)"))
+        let document = try #require(PDFDocument(data: data))
+        let coverText = try #require(document.page(at: 0)?.string)
+
+        let containsBranding = coverText.contains(
+            FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.brandingText
+        )
+        let containsAbout = coverText.contains("About This PDF Export")
+        let containsExperimental = coverText.contains("experimental")
+        let containsTruncate = coverText.contains("truncate")
+        let containsExcel = coverText.contains("Excel (.xlsx)")
+        #expect(containsBranding)
+        #expect(containsAbout)
+        #expect(containsExperimental)
+        #expect(containsTruncate)
+        #expect(containsExcel)
         #endif
     }
-    
-    func testCustomWorkbookCoverSheetBrandingAppearsInPDFCoverAndFooter() throws {
+
+    @Test("Custom workbook cover sheet branding appears in PDF cover and footer")
+    func customWorkbookCoverSheetBrandingAppearsInPDFCoverAndFooter() throws {
         let branding = "Exported by My Studio"
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Branded Project",
@@ -304,24 +306,25 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
                 headerText: branding
             )
         )
-        
+
         let data = try FinalCutPro.FCPXML.ReportPDFExport.makePDFData(from: report)
-        
+
         #if canImport(PDFKit)
-        guard let document = PDFDocument(data: data) else {
-            XCTFail("Expected valid PDF document")
-            return
-        }
-        
-        XCTAssertEqual(report.exportBrandingText, branding)
-        XCTAssertTrue(document.page(at: 0)?.string?.contains(branding) == true)
-        
+        let document = try #require(PDFDocument(data: data))
+
+        #expect(report.exportBrandingText == branding)
+        let coverContainsBranding = document.page(at: 0)?.string?.contains(branding) == true
+        #expect(coverContainsBranding)
+
         let contentPageIndex = document.pageCount > 2 ? 2 : 1
-        XCTAssertTrue(document.page(at: contentPageIndex)?.string?.contains(branding) == true)
+        let contentContainsBranding =
+            document.page(at: contentPageIndex)?.string?.contains(branding) == true
+        #expect(contentContainsBranding)
         #endif
     }
-    
-    func testCopyrightLabelAppearsOnPDFCoverAndCenteredFooter() throws {
+
+    @Test("Copyright label appears on PDF cover and centered footer")
+    func copyrightLabelAppearsOnPDFCoverAndCenteredFooter() throws {
         let branding = FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.brandingText
         let copyright = "© 2026 Example Studios"
         let report = FinalCutPro.FCPXML.Report(
@@ -342,29 +345,31 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
             workbookCoverSheet: .openFCPXMLKitDefault,
             copyrightLabel: copyright
         )
-        
-        XCTAssertEqual(report.copyrightLabel, copyright)
-        
+
+        #expect(report.copyrightLabel == copyright)
+
         let data = try FinalCutPro.FCPXML.ReportPDFExport.makePDFData(from: report)
-        
+
         #if canImport(PDFKit)
-        guard let document = PDFDocument(data: data) else {
-            XCTFail("Expected valid PDF document")
-            return
-        }
-        
+        let document = try #require(PDFDocument(data: data))
+
         let coverText = document.page(at: 0)?.string ?? ""
-        XCTAssertTrue(coverText.contains(branding))
-        XCTAssertTrue(coverText.contains(copyright))
-        
+        let coverHasBranding = coverText.contains(branding)
+        let coverHasCopyright = coverText.contains(copyright)
+        #expect(coverHasBranding)
+        #expect(coverHasCopyright)
+
         let contentPageIndex = document.pageCount > 2 ? 2 : 1
         let contentText = document.page(at: contentPageIndex)?.string ?? ""
-        XCTAssertTrue(contentText.contains(branding))
-        XCTAssertTrue(contentText.contains(copyright))
+        let contentHasBranding = contentText.contains(branding)
+        let contentHasCopyright = contentText.contains(copyright)
+        #expect(contentHasBranding)
+        #expect(contentHasCopyright)
         #endif
     }
-    
-    func testRoleInventoryReportIncludesTableOfContentsWithoutLinks() throws {
+
+    @Test("Role inventory report includes table of contents without links")
+    func roleInventoryReportIncludesTableOfContentsWithoutLinks() throws {
         let clipRow = FinalCutPro.FCPXML.RoleClipReportRow(
             roleSubrole: "Dialogue",
             clipName: "Clip A",
@@ -377,7 +382,7 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
             sourceOut: "01:00:05:00",
             sourceDuration: "00:00:05:00"
         )
-        
+
         let report = FinalCutPro.FCPXML.Report(
             projectName: "TOC Project",
             markers: FinalCutPro.FCPXML.MarkersReportSection(rows: [
@@ -403,31 +408,33 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
                 ]
             )
         )
-        
+
         let data = try FinalCutPro.FCPXML.ReportPDFExport.makePDFData(from: report)
-        
+
         #if canImport(PDFKit)
-        guard let document = PDFDocument(data: data) else {
-            XCTFail("Expected valid PDF document")
-            return
-        }
-        
-        guard let tocPage = document.page(at: 1), let tocText = tocPage.string else {
-            XCTFail("Expected table of contents page")
-            return
-        }
-        
-        XCTAssertTrue(tocText.contains("Table of Contents"))
-        XCTAssertTrue(tocText.contains("Sheet"))
-        XCTAssertTrue(tocText.contains("Page"))
-        XCTAssertTrue(tocText.contains("Selected Roles Inventory"))
-        XCTAssertTrue(tocText.contains("Dialogue"))
-        XCTAssertTrue(tocText.contains("Markers"))
-        XCTAssertFalse(tocText.contains("...."))
+        let document = try #require(PDFDocument(data: data))
+        let tocPage = try #require(document.page(at: 1))
+        let tocText = try #require(tocPage.string)
+
+        let hasTOC = tocText.contains("Table of Contents")
+        let hasSheet = tocText.contains("Sheet")
+        let hasPage = tocText.contains("Page")
+        let hasInventory = tocText.contains("Selected Roles Inventory")
+        let hasDialogue = tocText.contains("Dialogue")
+        let hasMarkers = tocText.contains("Markers")
+        let hasDotLeaders = tocText.contains("....")
+        #expect(hasTOC)
+        #expect(hasSheet)
+        #expect(hasPage)
+        #expect(hasInventory)
+        #expect(hasDialogue)
+        #expect(hasMarkers)
+        #expect(!hasDotLeaders)
         #endif
     }
-    
-    func testFullReportIncludesAllWorkbookSectionsInPDF() throws {
+
+    @Test("Full report includes all workbook sections in PDF")
+    func fullReportIncludesAllWorkbookSectionsInPDF() throws {
         let effectRow = FinalCutPro.FCPXML.EffectReportRow(
             effect: "Blur",
             settings: "Amount 50",
@@ -438,7 +445,7 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
             timelineIn: "00:00:01:00",
             timelineOut: "00:00:05:00"
         )
-        
+
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Full Report",
             markers: FinalCutPro.FCPXML.MarkersReportSection(rows: [
@@ -521,17 +528,13 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
                 ]
             )
         )
-        
+
         let data = try FinalCutPro.FCPXML.ReportPDFExport.makePDFData(from: report)
-        
+
         #if canImport(PDFKit)
-        guard let document = PDFDocument(data: data),
-              let tocText = document.page(at: 1)?.string
-        else {
-            XCTFail("Expected table of contents page")
-            return
-        }
-        
+        let document = try #require(PDFDocument(data: data))
+        let tocText = try #require(document.page(at: 1)?.string)
+
         let expectedSheets = [
             FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName,
             FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName,
@@ -543,21 +546,27 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
             FinalCutPro.FCPXML.SummaryReportSection.defaultSheetName,
             FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName,
         ]
-        
+
         for sheet in expectedSheets {
-            XCTAssertTrue(tocText.contains(sheet), "Expected TOC to include \(sheet)")
+            let containsSheet = tocText.contains(sheet)
+            #expect(containsSheet, "Expected TOC to include \(sheet)")
         }
-        
+
         var combinedContent = ""
         for pageIndex in 2..<document.pageCount {
             combinedContent += document.page(at: pageIndex)?.string ?? ""
         }
-        
-        XCTAssertTrue(combinedContent.contains("Hero"))
-        XCTAssertTrue(combinedContent.contains("Lower Third"))
-        XCTAssertTrue(combinedContent.contains("Cross Dissolve"))
-        XCTAssertTrue(combinedContent.contains("Blur"))
-        XCTAssertTrue(combinedContent.contains("/Volumes/Media/missing.mov"))
+
+        let hasHero = combinedContent.contains("Hero")
+        let hasLowerThird = combinedContent.contains("Lower Third")
+        let hasCrossDissolve = combinedContent.contains("Cross Dissolve")
+        let hasBlur = combinedContent.contains("Blur")
+        let hasMissingMedia = combinedContent.contains("/Volumes/Media/missing.mov")
+        #expect(hasHero)
+        #expect(hasLowerThird)
+        #expect(hasCrossDissolve)
+        #expect(hasBlur)
+        #expect(hasMissingMedia)
         #endif
     }
 }

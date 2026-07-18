@@ -9,14 +9,16 @@
 //	Parsing/Model coverage: audio source playback, analysis markers, tracking-shape, collection folder.
 //
 
-import XCTest
-@testable import OpenFCPXMLKit
-import SwiftTimecode
 import CoreMedia
+import Foundation
+import SwiftTimecode
+import Testing
+@testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLParsingCoverageTests: XCTestCase {
-    func testAudioChannelSourceVolumeMuteAndFilterRoundTrip() {
+@Suite("Parsing coverage")
+struct FCPXMLParsingCoverageTests {
+    @Test("Audio channel source volume, mute, and filter round-trip")
+    func audioChannelSourceVolumeMuteAndFilterRoundTrip() {
         let source = FinalCutPro.FCPXML.AudioChannelSource(
             sourceChannels: "1, 2",
             role: FinalCutPro.FCPXML.AudioRole(role: "Dialogue")
@@ -33,26 +35,32 @@ final class FCPXMLParsingCoverageTests: XCTestCase {
         )
         source.element.addChild(mute.element)
 
-        XCTAssertEqual(source.volumeAdjustment?.amount ?? 0, -3, accuracy: 0.001)
-        XCTAssertEqual(source.loudnessAdjustment?.amount ?? 0, 0.5, accuracy: 0.001)
-        XCTAssertEqual(source.audioFilters.count, 1)
-        XCTAssertEqual(source.audioFilters.first?.effectID, "rEQ")
-        XCTAssertEqual(Array(source.mutes).count, 1)
-        XCTAssertNotNil(Array(source.mutes).first?.fadeIn)
+        let volumeMatch = abs((source.volumeAdjustment?.amount ?? 0) - (-3)) < 0.001
+        #expect(volumeMatch)
+        let loudnessMatch = abs((source.loudnessAdjustment?.amount ?? 0) - 0.5) < 0.001
+        #expect(loudnessMatch)
+        #expect(source.audioFilters.count == 1)
+        #expect(source.audioFilters.first?.effectID == "rEQ")
+        #expect(Array(source.mutes).count == 1)
+        #expect(Array(source.mutes).first?.fadeIn != nil)
     }
 
-    func testAudioRoleSourceVoiceIsolationAndEnabled() {
+    @Test("Audio role source voice isolation and enabled")
+    func audioRoleSourceVoiceIsolationAndEnabled() {
         let source = FinalCutPro.FCPXML.AudioRoleSource(role: FinalCutPro.FCPXML.AudioRole(role: "Dialogue"))
         source.enabled = false
         source.voiceIsolationAdjustment = FinalCutPro.FCPXML.VoiceIsolationAdjustment(amount: "0.8")
         source.noiseReductionAdjustment = FinalCutPro.FCPXML.NoiseReductionAdjustment(amount: 0.4)
 
-        XCTAssertFalse(source.enabled)
-        XCTAssertEqual(source.voiceIsolationAdjustment?.amount, "0.8")
-        XCTAssertEqual(source.noiseReductionAdjustment?.amount ?? 0, 0.4, accuracy: 0.001)
+        let isEnabled = source.enabled
+        #expect(!isEnabled)
+        #expect(source.voiceIsolationAdjustment?.amount == "0.8")
+        let noiseMatch = abs((source.noiseReductionAdjustment?.amount ?? 0) - 0.4) < 0.001
+        #expect(noiseMatch)
     }
 
-    func testAnalysisMarkerParseExtractAndReportType() throws {
+    @Test("Analysis marker parse, extract, and report type")
+    func analysisMarkerParseExtractAndReportType() throws {
         let xml = """
         <asset-clip name="Clip" ref="r1" offset="0s" start="0s" duration="5s">
             <analysis-marker start="1s" duration="2s">
@@ -62,51 +70,43 @@ final class FCPXMLParsingCoverageTests: XCTestCase {
         </asset-clip>
         """
         let document = try OFKXMLDefaultFactory().makeDocument(xmlString: xml)
-        guard let root = document.rootElement() else {
-            XCTFail("Missing root element")
-            return
-        }
-        guard let analysisElement = root.childElements.first(where: { $0.name == "analysis-marker" }),
-              let analysis = analysisElement.fcpAsAnalysisMarker
-        else {
-            XCTFail("Missing analysis-marker")
-            return
-        }
-        XCTAssertEqual(
-            analysis.shotTypes.map { $0.value },
-            [FinalCutPro.FCPXML.ShotType.Value.closeUp]
+        let root = try #require(document.rootElement())
+        let analysisElement = try #require(
+            root.childElements.first(where: { $0.name == "analysis-marker" })
         )
-        XCTAssertEqual(
-            analysis.stabilizationTypes.map { $0.value },
-            [FinalCutPro.FCPXML.StabilizationType.Value.excessiveShake]
+        let analysis = try #require(analysisElement.fcpAsAnalysisMarker)
+        #expect(
+            analysis.shotTypes.map { $0.value }
+                == [FinalCutPro.FCPXML.ShotType.Value.closeUp]
         )
-        XCTAssertEqual(analysis.displayName, "closeUp, excessiveShake")
+        #expect(
+            analysis.stabilizationTypes.map { $0.value }
+                == [FinalCutPro.FCPXML.StabilizationType.Value.excessiveShake]
+        )
+        #expect(analysis.displayName == "closeUp, excessiveShake")
 
-        guard let marker = analysisElement.fcpAsMarker else {
-            XCTFail("Marker wrap failed")
-            return
-        }
-        XCTAssertEqual(marker.element.fcpMarkerKind, FinalCutPro.FCPXML.Marker.MarkerKind.analysis)
-        switch marker.configuration {
-        case let .analysis(shots, stabs):
-            XCTAssertEqual(
-                shots.map { $0.value },
-                [FinalCutPro.FCPXML.ShotType.Value.closeUp]
+        let marker = try #require(analysisElement.fcpAsMarker)
+        #expect(marker.element.fcpMarkerKind == FinalCutPro.FCPXML.Marker.MarkerKind.analysis)
+        if case let .analysis(shots, stabs) = marker.configuration {
+            #expect(
+                shots.map { $0.value }
+                    == [FinalCutPro.FCPXML.ShotType.Value.closeUp]
             )
-            XCTAssertEqual(
-                stabs.map { $0.value },
-                [FinalCutPro.FCPXML.StabilizationType.Value.excessiveShake]
+            #expect(
+                stabs.map { $0.value }
+                    == [FinalCutPro.FCPXML.StabilizationType.Value.excessiveShake]
             )
-        default:
-            XCTFail("Expected analysis configuration")
+        } else {
+            Issue.record("Expected analysis configuration")
         }
-        XCTAssertEqual(
-            FinalCutPro.FCPXML.ReportFormatting.markerReportType(for: marker.configuration),
-            FinalCutPro.FCPXML.MarkerReportType.analysis
+        #expect(
+            FinalCutPro.FCPXML.ReportFormatting.markerReportType(for: marker.configuration)
+                == FinalCutPro.FCPXML.MarkerReportType.analysis
         )
     }
 
-    func testTrackingShapeAttributesRoundTrip() {
+    @Test("Tracking shape attributes round-trip")
+    func trackingShapeAttributesRoundTrip() {
         let shape = FinalCutPro.FCPXML.ObjectTracker.TrackingShape(
             id: "ts1",
             name: "Face",
@@ -114,21 +114,23 @@ final class FCPXMLParsingCoverageTests: XCTestCase {
             analysisMethod: .machineLearning,
             dataLocator: "rData"
         )
-        XCTAssertEqual(shape.id, "ts1")
-        XCTAssertEqual(shape.name, "Face")
-        XCTAssertTrue(shape.offsetEnabled)
-        XCTAssertEqual(shape.analysisMethod, .machineLearning)
-        XCTAssertEqual(shape.dataLocator, "rData")
+        #expect(shape.id == "ts1")
+        #expect(shape.name == "Face")
+        #expect(shape.offsetEnabled)
+        #expect(shape.analysisMethod == .machineLearning)
+        #expect(shape.dataLocator == "rData")
 
         shape.analysisMethod = .automatic
         shape.offsetEnabled = false
         shape.dataLocator = nil
-        XCTAssertEqual(shape.analysisMethod, .automatic)
-        XCTAssertFalse(shape.offsetEnabled)
-        XCTAssertNil(shape.dataLocator)
+        #expect(shape.analysisMethod == .automatic)
+        let offsetEnabled = shape.offsetEnabled
+        #expect(!offsetEnabled)
+        #expect(shape.dataLocator == nil)
     }
 
-    func testCollectionFolderSmartCollectionsCodable() throws {
+    @Test("Collection folder smart collections Codable")
+    func collectionFolderSmartCollectionsCodable() throws {
         let smart = FinalCutPro.FCPXML.SmartCollectionValue(
             name: "People",
             match: .any,
@@ -142,16 +144,17 @@ final class FCPXMLParsingCoverageTests: XCTestCase {
             name: "Library",
             smartCollections: [smart]
         )
-        XCTAssertEqual(folder.smartCollections.count, 1)
-        XCTAssertEqual(folder.smartCollections.first?.name, "People")
+        #expect(folder.smartCollections.count == 1)
+        #expect(folder.smartCollections.first?.name == "People")
 
         let data = try JSONEncoder().encode(folder)
         let decoded = try JSONDecoder().decode(FinalCutPro.FCPXML.CollectionFolder.self, from: data)
-        XCTAssertEqual(decoded.smartCollections.first?.match, .any)
-        XCTAssertEqual(decoded.smartCollections.first?.matchShots.first?.shotTypes.first?.value, .closeUp)
+        #expect(decoded.smartCollections.first?.match == .any)
+        #expect(decoded.smartCollections.first?.matchShots.first?.shotTypes.first?.value == .closeUp)
     }
 
-    func testTextStyleParseRoundTripDTDAttributes() throws {
+    @Test("Text style parse round-trip DTD attributes")
+    func textStyleParseRoundTripDTDAttributes() throws {
         var style = FinalCutPro.FCPXML.TextStyle(value: "Hello")
         style.font = "Helvetica"
         style.fontSize = 24
@@ -161,13 +164,13 @@ final class FCPXMLParsingCoverageTests: XCTestCase {
         style.backgroundColor = "0 0 0 1"
 
         let element = FinalCutPro.FCPXML.TextStyle.makeElement(from: style)
-        let parsed = try XCTUnwrap(FinalCutPro.FCPXML.TextStyle.parse(from: element))
-        XCTAssertEqual(parsed.value, "Hello")
-        XCTAssertEqual(parsed.font, "Helvetica")
-        XCTAssertEqual(parsed.fontSize, 24)
-        XCTAssertEqual(parsed.isBold, true)
-        XCTAssertEqual(parsed.alignment, .center)
-        XCTAssertEqual(parsed.isUnderlined, true)
-        XCTAssertEqual(parsed.backgroundColor, "0 0 0 1")
+        let parsed = try #require(FinalCutPro.FCPXML.TextStyle.parse(from: element))
+        #expect(parsed.value == "Hello")
+        #expect(parsed.font == "Helvetica")
+        #expect(parsed.fontSize == 24)
+        #expect(parsed.isBold == true)
+        #expect(parsed.alignment == .center)
+        #expect(parsed.isUnderlined == true)
+        #expect(parsed.backgroundColor == "0 0 0 1")
     }
 }

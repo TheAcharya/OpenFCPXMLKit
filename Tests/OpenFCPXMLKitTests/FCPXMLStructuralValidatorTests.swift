@@ -8,12 +8,12 @@
 //	Tests for FCPXMLStructuralValidator — cross-platform structural validation.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLStructuralValidatorTests: XCTestCase {
-
+@Suite("Structural validator")
+struct FCPXMLStructuralValidatorTests {
     private let factory = FoundationXMLFactory()
     private let validator = FCPXMLStructuralValidator()
 
@@ -50,15 +50,17 @@ final class FCPXMLStructuralValidatorTests: XCTestCase {
 
     // MARK: - Valid Document
 
-    func testValidFCPXMLPasses() {
+    @Test("Valid FCPXML passes")
+    func validFCPXMLPasses() {
         let doc = makeValidDocument()
         let result = validator.validate(doc)
-        XCTAssertTrue(result.isValid, "Well-formed FCPXML should pass. Errors: \(result.detailedDescription)")
+        #expect(result.isValid, "Well-formed FCPXML should pass. Errors: \(result.detailedDescription)")
         // Should still have the structural-only warning
-        XCTAssertTrue(result.warnings.contains { $0.type == .structuralValidationOnly })
+        #expect(result.warnings.contains { $0.type == .structuralValidationOnly })
     }
 
-    func testValidDocumentWithLibraryPasses() {
+    @Test("Valid document with library passes")
+    func validDocumentWithLibraryPasses() {
         let root = factory.makeElement(name: "fcpxml")
         root.addAttribute(name: "version", value: "1.11")
         root.addChild(factory.makeElement(name: "resources"))
@@ -67,10 +69,11 @@ final class FCPXMLStructuralValidatorTests: XCTestCase {
         doc.setRootElement(root)
 
         let result = validator.validate(doc)
-        XCTAssertTrue(result.isValid, "FCPXML with library should pass. Errors: \(result.detailedDescription)")
+        #expect(result.isValid, "FCPXML with library should pass. Errors: \(result.detailedDescription)")
     }
 
-    func testValidDocumentWithEventPasses() {
+    @Test("Valid document with event passes")
+    func validDocumentWithEventPasses() {
         let root = factory.makeElement(name: "fcpxml")
         root.addAttribute(name: "version", value: "1.9")
         root.addChild(factory.makeElement(name: "resources"))
@@ -79,37 +82,37 @@ final class FCPXMLStructuralValidatorTests: XCTestCase {
         doc.setRootElement(root)
 
         let result = validator.validate(doc)
-        XCTAssertTrue(result.isValid, "FCPXML with event should pass. Errors: \(result.detailedDescription)")
+        #expect(result.isValid, "FCPXML with event should pass. Errors: \(result.detailedDescription)")
     }
 
     // MARK: - Missing Root Element
 
-    func testMissingRootElementFails() {
+    @Test("Missing root element fails")
+    func missingRootElementFails() {
         let doc = factory.makeDocument()
         doc.setRootElement(factory.makeElement(name: "notfcpxml"))
 
         let result = validator.validate(doc)
-        XCTAssertFalse(result.isValid)
-        XCTAssertTrue(result.errors.contains {
+        #expect(!result.isValid)
+        #expect(result.errors.contains {
             $0.type == .missingRequiredElement && $0.message.contains("fcpxml")
         })
     }
 
-    func testEmptyDocumentFails() {
+    @Test("Empty document fails")
+    func emptyDocumentFails() throws {
         let xmlString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><wrongroot/>"
-        guard let doc = try? factory.makeDocument(xmlString: xmlString) else {
-            XCTFail("Failed to parse XML")
-            return
-        }
+        let doc = try #require(try? factory.makeDocument(xmlString: xmlString))
 
         let result = validator.validate(doc)
-        XCTAssertFalse(result.isValid)
-        XCTAssertTrue(result.errors.contains { $0.type == .missingRequiredElement })
+        #expect(!result.isValid)
+        #expect(result.errors.contains { $0.type == .missingRequiredElement })
     }
 
     // MARK: - Missing Version Attribute
 
-    func testMissingVersionAttributeFails() {
+    @Test("Missing version attribute fails")
+    func missingVersionAttributeFails() {
         let root = factory.makeElement(name: "fcpxml")
         // No version attribute
         root.addChild(factory.makeElement(name: "resources"))
@@ -118,15 +121,16 @@ final class FCPXMLStructuralValidatorTests: XCTestCase {
         doc.setRootElement(root)
 
         let result = validator.validate(doc)
-        XCTAssertFalse(result.isValid)
-        XCTAssertTrue(result.errors.contains {
+        #expect(!result.isValid)
+        #expect(result.errors.contains {
             $0.type == .invalidAttributeValue && $0.message.contains("version")
         })
     }
 
     // MARK: - Invalid Version Attribute
 
-    func testEmptyVersionAttributeFails() {
+    @Test("Empty version attribute fails")
+    func emptyVersionAttributeFails() {
         let root = factory.makeElement(name: "fcpxml")
         root.addAttribute(name: "version", value: "")
         root.addChild(factory.makeElement(name: "resources"))
@@ -135,13 +139,14 @@ final class FCPXMLStructuralValidatorTests: XCTestCase {
         doc.setRootElement(root)
 
         let result = validator.validate(doc)
-        XCTAssertFalse(result.isValid)
-        XCTAssertTrue(result.errors.contains {
+        #expect(!result.isValid)
+        #expect(result.errors.contains {
             $0.type == .invalidAttributeValue && $0.message.contains("empty")
         })
     }
 
-    func testNonNumericVersionFails() {
+    @Test("Non-numeric version fails")
+    func nonNumericVersionFails() {
         let root = factory.makeElement(name: "fcpxml")
         root.addAttribute(name: "version", value: "abc")
         root.addChild(factory.makeElement(name: "resources"))
@@ -150,13 +155,17 @@ final class FCPXMLStructuralValidatorTests: XCTestCase {
         doc.setRootElement(root)
 
         let result = validator.validate(doc)
-        XCTAssertFalse(result.isValid)
-        XCTAssertTrue(result.errors.contains {
-            $0.type == .invalidAttributeValue && $0.message.contains("invalid")
-        }, "Non-numeric version should be flagged. Errors: \(result.errors)")
+        #expect(!result.isValid)
+        #expect(
+            result.errors.contains {
+                $0.type == .invalidAttributeValue && $0.message.contains("invalid")
+            },
+            "Non-numeric version should be flagged. Errors: \(result.errors)"
+        )
     }
 
-    func testKnownVersionPasses() {
+    @Test("Known version passes")
+    func knownVersionPasses() {
         // All known versions should pass structural validation
         for version in ["1.6", "1.10", "1.13", "1.14"] {
             let root = factory.makeElement(name: "fcpxml")
@@ -167,11 +176,12 @@ final class FCPXMLStructuralValidatorTests: XCTestCase {
             doc.setRootElement(root)
 
             let result = validator.validate(doc)
-            XCTAssertTrue(result.isValid, "Version \(version) should be valid. Errors: \(result.detailedDescription)")
+            #expect(result.isValid, "Version \(version) should be valid. Errors: \(result.detailedDescription)")
         }
     }
 
-    func testFutureNumericVersionPasses() {
+    @Test("Future numeric version passes")
+    func futureNumericVersionPasses() {
         // An unknown but properly formatted version (e.g., "2.0") should pass
         let root = factory.makeElement(name: "fcpxml")
         root.addAttribute(name: "version", value: "2.0")
@@ -181,12 +191,13 @@ final class FCPXMLStructuralValidatorTests: XCTestCase {
         doc.setRootElement(root)
 
         let result = validator.validate(doc)
-        XCTAssertTrue(result.isValid, "Future numeric version should be accepted. Errors: \(result.detailedDescription)")
+        #expect(result.isValid, "Future numeric version should be accepted. Errors: \(result.detailedDescription)")
     }
 
     // MARK: - Missing Resources
 
-    func testMissingResourcesFails() {
+    @Test("Missing resources fails")
+    func missingResourcesFails() {
         let root = factory.makeElement(name: "fcpxml")
         root.addAttribute(name: "version", value: "1.10")
         // No resources element
@@ -195,15 +206,16 @@ final class FCPXMLStructuralValidatorTests: XCTestCase {
         doc.setRootElement(root)
 
         let result = validator.validate(doc)
-        XCTAssertFalse(result.isValid)
-        XCTAssertTrue(result.errors.contains {
+        #expect(!result.isValid)
+        #expect(result.errors.contains {
             $0.type == .missingRequiredElement && $0.message.contains("resources")
         })
     }
 
     // MARK: - Missing Content Element
 
-    func testMissingContentElementFails() {
+    @Test("Missing content element fails")
+    func missingContentElementFails() {
         let root = factory.makeElement(name: "fcpxml")
         root.addAttribute(name: "version", value: "1.10")
         root.addChild(factory.makeElement(name: "resources"))
@@ -212,15 +224,16 @@ final class FCPXMLStructuralValidatorTests: XCTestCase {
         doc.setRootElement(root)
 
         let result = validator.validate(doc)
-        XCTAssertFalse(result.isValid)
-        XCTAssertTrue(result.errors.contains {
+        #expect(!result.isValid)
+        #expect(result.errors.contains {
             $0.type == .missingRequiredElement && $0.message.contains("library, event, or project")
         })
     }
 
     // MARK: - Unknown Element Names
 
-    func testUnknownElementNameDetected() {
+    @Test("Unknown element name detected")
+    func unknownElementNameDetected() {
         let root = factory.makeElement(name: "fcpxml")
         root.addAttribute(name: "version", value: "1.10")
         root.addChild(factory.makeElement(name: "resources"))
@@ -232,13 +245,14 @@ final class FCPXMLStructuralValidatorTests: XCTestCase {
         doc.setRootElement(root)
 
         let result = validator.validate(doc)
-        XCTAssertFalse(result.isValid)
-        XCTAssertTrue(result.errors.contains {
+        #expect(!result.isValid)
+        #expect(result.errors.contains {
             $0.type == .unknownElementName && $0.message.contains("fake-element")
         })
     }
 
-    func testMultipleUnknownElementsDetected() {
+    @Test("Multiple unknown elements detected")
+    func multipleUnknownElementsDetected() {
         let root = factory.makeElement(name: "fcpxml")
         root.addAttribute(name: "version", value: "1.10")
         root.addChild(factory.makeElement(name: "resources"))
@@ -250,31 +264,36 @@ final class FCPXMLStructuralValidatorTests: XCTestCase {
         doc.setRootElement(root)
 
         let result = validator.validate(doc)
-        XCTAssertFalse(result.isValid)
+        #expect(!result.isValid)
         let unknownErrors = result.errors.filter { $0.type == .unknownElementName }
-        XCTAssertEqual(unknownErrors.count, 2, "Should detect both unknown elements")
+        #expect(unknownErrors.count == 2, "Should detect both unknown elements")
     }
 
-    func testAllKnownElementsPass() {
+    @Test("All known elements pass")
+    func allKnownElementsPass() {
         // A document with only known element names should have no unknownElementName errors
         let doc = makeValidDocument()
         let result = validator.validate(doc)
         let unknownErrors = result.errors.filter { $0.type == .unknownElementName }
-        XCTAssertTrue(unknownErrors.isEmpty, "Known elements should not trigger unknown element errors")
+        #expect(unknownErrors.isEmpty, "Known elements should not trigger unknown element errors")
     }
 
     // MARK: - Structural Warning
 
-    func testStructuralWarningAlwaysPresent() {
+    @Test("Structural warning always present")
+    func structuralWarningAlwaysPresent() {
         let doc = makeValidDocument()
         let result = validator.validate(doc)
-        XCTAssertTrue(result.warnings.contains { $0.type == .structuralValidationOnly },
-                       "Structural-only warning should always be present")
+        #expect(
+            result.warnings.contains { $0.type == .structuralValidationOnly },
+            "Structural-only warning should always be present"
+        )
     }
 
     // MARK: - Multiple Errors
 
-    func testMultipleStructuralErrorsReported() {
+    @Test("Multiple structural errors reported")
+    func multipleStructuralErrorsReported() {
         // Missing version AND missing resources AND missing content element
         let root = factory.makeElement(name: "fcpxml")
         // No version, no resources, no content
@@ -282,8 +301,10 @@ final class FCPXMLStructuralValidatorTests: XCTestCase {
         doc.setRootElement(root)
 
         let result = validator.validate(doc)
-        XCTAssertFalse(result.isValid)
-        XCTAssertGreaterThanOrEqual(result.errors.count, 3,
-            "Should report at least 3 errors (version, resources, content). Got: \(result.errors)")
+        #expect(!result.isValid)
+        #expect(
+            result.errors.count >= 3,
+            "Should report at least 3 errors (version, resources, content). Got: \(result.errors)"
+        )
     }
 }

@@ -81,13 +81,13 @@ let noOp = NoOpServiceLogger()
 let quietService = FCPXMLService(logger: noOp)
 ```
 
-The service logs parsing, version conversion, DTD validation, save, media extraction, and media copy. CLI supports `--log`, `--log-level`, `--quiet` (see [16 — CLI](16-CLI.md)).
+The service logs parsing, version conversion, DTD validation, save, media extraction, and media copy. CLI supports `--log`, `--log-level`, `--quiet` (see [18 — CLI](18-CLI.md)).
 
 ---
 
 ## Error handling with modular components
 
-**ModularUtilities.processFCPXML** returns `Result<XMLDocument, Error>`:
+**ModularUtilities.processFCPXML** returns `Result<any OFKXMLDocument, FCPXMLError>`:
 
 ```swift
 let result = ModularUtilities.processFCPXML(from: url, using: service)
@@ -117,15 +117,12 @@ let timecodes = await ModularUtilities.convertTimecodes(
     frameRate: .fps24
 )
 
-// TaskGroup example
-await withTaskGroup(of: XMLDocument.self) { group in
-    for url in urls {
-        group.addTask { try await service.parseFCPXML(from: url) }
-    }
-    for await document in group {
-        let isValid = await service.validateDocument(document)
-        if isValid { /* process */ }
-    }
+// Prefer sequential or async APIs over TaskGroup when holding XML documents:
+// Foundation `XMLDocument` / SwiftTimecode types are not Sendable.
+for url in urls {
+    let document = try await service.parseFCPXML(from: url)
+    let isValid = await service.validateDocument(document)
+    if isValid { /* process */ }
 }
 ```
 

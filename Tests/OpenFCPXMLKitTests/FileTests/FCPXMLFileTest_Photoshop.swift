@@ -8,45 +8,51 @@
 //	File Tests: PhotoshopSample1.fcpxml, PhotoshopSample2.fcpxml.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFileTest_Photoshop: XCTestCase {
+@Suite("File test photoshop")
+struct FCPXMLFileTest_Photoshop {
 
-    func testPhotoshopSample1() throws {
-        let fcpxml = try loadFCPXMLSample(named: "PhotoshopSample1")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertEqual(fcpxml.version, .ver1_13)
+    @Test("PhotoshopSample1")
+    func photoshopSample1() throws {
+        let fcpxml = try requireFCPXMLSample(named: "PhotoshopSample1")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.version == .ver1_13)
         let events = fcpxml.allEvents()
-        XCTAssertFalse(events.isEmpty, "Expected at least one event")
+        let hasEvents = !events.isEmpty
+        #expect(hasEvents, "Expected at least one event")
         let projects = fcpxml.allProjects()
-        XCTAssertFalse(projects.isEmpty, "Expected at least one project")
+        let hasProjects = !projects.isEmpty
+        #expect(hasProjects, "Expected at least one project")
     }
 
-    func testPhotoshopSample2() throws {
-        let fcpxml = try loadFCPXMLSample(named: "PhotoshopSample2")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertEqual(fcpxml.version, .ver1_13)
+    @Test("PhotoshopSample2")
+    func photoshopSample2() throws {
+        let fcpxml = try requireFCPXMLSample(named: "PhotoshopSample2")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.version == .ver1_13)
         let events = fcpxml.allEvents()
-        XCTAssertFalse(events.isEmpty, "Expected at least one event")
+        let hasEvents = !events.isEmpty
+        #expect(hasEvents, "Expected at least one event")
         let projects = fcpxml.allProjects()
-        XCTAssertFalse(projects.isEmpty, "Expected at least one project")
+        let hasProjects = !projects.isEmpty
+        #expect(hasProjects, "Expected at least one project")
     }
 
-    func testLoadViaLoaderAndParseViaService() throws {
+    @Test("Load via loader and parse via service")
+    func loadViaLoaderAndParseViaService() throws {
         for name in ["PhotoshopSample1", "PhotoshopSample2"] {
             let url = urlForFCPXMLSample(named: name)
-            guard FileManager.default.fileExists(atPath: url.path) else {
-                throw XCTSkip("\(name).fcpxml not found")
-            }
+            _ = try requireFCPXMLSampleData(named: name)
             let loader = FCPXMLFileLoader()
             let doc = try loader.loadDocument(from: url)
-            XCTAssertEqual(doc.rootElement()?.name, "fcpxml", "\(name).fcpxml")
+            #expect(doc.rootElement()?.name == "fcpxml", "\(name).fcpxml")
             let service = FCPXMLService()
             let data = try Data(contentsOf: url)
             let parsed = try service.parseFCPXML(from: data)
-            XCTAssertEqual(parsed.rootElement()?.name, "fcpxml", "\(name).fcpxml")
+            #expect(parsed.rootElement()?.name == "fcpxml", "\(name).fcpxml")
         }
     }
 }

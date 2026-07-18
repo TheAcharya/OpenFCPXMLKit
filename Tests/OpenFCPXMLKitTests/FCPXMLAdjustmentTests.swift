@@ -1,54 +1,66 @@
 //
 //  FCPXMLAdjustmentTests.swift
-//  OpenFCPXMLKitTests
+//  OpenFCPXMLKit • https://github.com/TheAcharya/OpenFCPXMLKit
 //  © 2026 • Licensed under MIT License
 //
 
-import XCTest
+//
+//	Unit tests for typed adjustment models and clip integration.
+//
+
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-final class FCPXMLAdjustmentTests: XCTestCase {
+@Suite("Adjustment models")
+struct FCPXMLAdjustmentTests {
     
     // MARK: - Point Tests
     
-    func testPointInitialization() {
+    @Test("Point initialization")
+    func pointInitialization() {
         let point = FinalCutPro.FCPXML.Point(x: 100, y: 200)
         
-        XCTAssertEqual(point.x, 100)
-        XCTAssertEqual(point.y, 200)
+        #expect(point.x == 100)
+        #expect(point.y == 200)
     }
     
-    func testPointZero() {
+    @Test("Point zero")
+    func pointZero() {
         let zero = FinalCutPro.FCPXML.Point.zero
-        XCTAssertEqual(zero.x, 0)
-        XCTAssertEqual(zero.y, 0)
+        #expect(zero.x == 0)
+        #expect(zero.y == 0)
     }
     
-    func testPointFromString() {
+    @Test("Point from string")
+    func pointFromString() {
         let point = FinalCutPro.FCPXML.Point(fromString: "100 200")
-        XCTAssertNotNil(point)
-        XCTAssertEqual(point?.x, 100)
-        XCTAssertEqual(point?.y, 200)
+        #expect(point != nil)
+        #expect(point?.x == 100)
+        #expect(point?.y == 200)
         
         let invalidPoint = FinalCutPro.FCPXML.Point(fromString: "invalid")
-        XCTAssertNil(invalidPoint)
+        #expect(invalidPoint == nil)
     }
     
-    func testPointStringValue() {
+    @Test("Point string value")
+    func pointStringValue() {
         let point = FinalCutPro.FCPXML.Point(x: 100, y: 200)
-        XCTAssertEqual(point.stringValue, "100 200")
+        #expect(point.stringValue == "100 200")
     }
     
-    func testPointEquality() {
+    @Test("Point equality")
+    func pointEquality() {
         let point1 = FinalCutPro.FCPXML.Point(x: 100, y: 200)
         let point2 = FinalCutPro.FCPXML.Point(x: 100, y: 200)
         let point3 = FinalCutPro.FCPXML.Point(x: 200, y: 100)
         
-        XCTAssertEqual(point1, point2)
-        XCTAssertNotEqual(point1, point3)
+        #expect(point1 == point2)
+        #expect(point1 != point3)
     }
     
-    func testPointCodable() throws {
+    @Test("Point Codable")
+    func pointCodable() throws {
         let point = FinalCutPro.FCPXML.Point(x: 100, y: 200)
         
         let encoder = JSONEncoder()
@@ -57,26 +69,29 @@ final class FCPXMLAdjustmentTests: XCTestCase {
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(FinalCutPro.FCPXML.Point.self, from: data)
         
-        XCTAssertEqual(decoded.x, point.x)
-        XCTAssertEqual(decoded.y, point.y)
+        #expect(decoded.x == point.x)
+        #expect(decoded.y == point.y)
     }
     
     // MARK: - CropAdjustment Tests
     
-    func testCropAdjustmentInitialization() {
+    @Test("Crop adjustment initialization")
+    func cropAdjustmentInitialization() {
         let crop = FinalCutPro.FCPXML.CropAdjustment(mode: .crop)
         
-        XCTAssertEqual(crop.mode, .crop)
-        XCTAssertTrue(crop.isEnabled)
+        #expect(crop.mode == .crop)
+        #expect(crop.isEnabled)
     }
     
-    func testCropAdjustmentModes() {
-        XCTAssertEqual(FinalCutPro.FCPXML.CropAdjustment.Mode.trim.rawValue, "trim")
-        XCTAssertEqual(FinalCutPro.FCPXML.CropAdjustment.Mode.crop.rawValue, "crop")
-        XCTAssertEqual(FinalCutPro.FCPXML.CropAdjustment.Mode.pan.rawValue, "pan")
+    @Test("Crop adjustment modes")
+    func cropAdjustmentModes() {
+        #expect(FinalCutPro.FCPXML.CropAdjustment.Mode.trim.rawValue == "trim")
+        #expect(FinalCutPro.FCPXML.CropAdjustment.Mode.crop.rawValue == "crop")
+        #expect(FinalCutPro.FCPXML.CropAdjustment.Mode.pan.rawValue == "pan")
     }
     
-    func testCropRectInitialization() {
+    @Test("Crop rect initialization")
+    func cropRectInitialization() {
         let cropRect = FinalCutPro.FCPXML.CropAdjustment.CropRect(
             left: 10,
             top: 20,
@@ -84,13 +99,14 @@ final class FCPXMLAdjustmentTests: XCTestCase {
             bottom: 200
         )
         
-        XCTAssertEqual(cropRect.left, 10)
-        XCTAssertEqual(cropRect.top, 20)
-        XCTAssertEqual(cropRect.right, 100)
-        XCTAssertEqual(cropRect.bottom, 200)
+        #expect(cropRect.left == 10)
+        #expect(cropRect.top == 20)
+        #expect(cropRect.right == 100)
+        #expect(cropRect.bottom == 200)
     }
     
-    func testTrimRectInitialization() {
+    @Test("Trim rect initialization")
+    func trimRectInitialization() {
         let trimRect = FinalCutPro.FCPXML.CropAdjustment.TrimRect(
             left: 5,
             top: 10,
@@ -98,11 +114,12 @@ final class FCPXMLAdjustmentTests: XCTestCase {
             bottom: 100
         )
         
-        XCTAssertEqual(trimRect.left, 5)
-        XCTAssertEqual(trimRect.top, 10)
+        #expect(trimRect.left == 5)
+        #expect(trimRect.top == 10)
     }
     
-    func testPanRectInitialization() {
+    @Test("Pan rect initialization")
+    func panRectInitialization() {
         let panRect = FinalCutPro.FCPXML.CropAdjustment.PanRect(
             left: 0,
             top: 0,
@@ -110,11 +127,12 @@ final class FCPXMLAdjustmentTests: XCTestCase {
             bottom: 100
         )
         
-        XCTAssertEqual(panRect.left, 0)
-        XCTAssertEqual(panRect.right, 100)
+        #expect(panRect.left == 0)
+        #expect(panRect.right == 100)
     }
     
-    func testCropAdjustmentWithRects() {
+    @Test("Crop adjustment with rects")
+    func cropAdjustmentWithRects() {
         var crop = FinalCutPro.FCPXML.CropAdjustment(mode: .crop)
         crop.cropRect = FinalCutPro.FCPXML.CropAdjustment.CropRect(
             left: 10,
@@ -123,11 +141,12 @@ final class FCPXMLAdjustmentTests: XCTestCase {
             bottom: 200
         )
         
-        XCTAssertNotNil(crop.cropRect)
-        XCTAssertEqual(crop.cropRect?.left, 10)
+        #expect(crop.cropRect != nil)
+        #expect(crop.cropRect?.left == 10)
     }
     
-    func testCropAdjustmentCodable() throws {
+    @Test("Crop adjustment Codable")
+    func cropAdjustmentCodable() throws {
         var crop = FinalCutPro.FCPXML.CropAdjustment(mode: .crop)
         crop.cropRect = FinalCutPro.FCPXML.CropAdjustment.CropRect(
             left: 10,
@@ -142,23 +161,25 @@ final class FCPXMLAdjustmentTests: XCTestCase {
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(FinalCutPro.FCPXML.CropAdjustment.self, from: data)
         
-        XCTAssertEqual(decoded.mode, crop.mode)
-        XCTAssertEqual(decoded.cropRect?.left, crop.cropRect?.left)
+        #expect(decoded.mode == crop.mode)
+        #expect(decoded.cropRect?.left == crop.cropRect?.left)
     }
     
     // MARK: - TransformAdjustment Tests
     
-    func testTransformAdjustmentInitialization() {
+    @Test("Transform adjustment initialization")
+    func transformAdjustmentInitialization() {
         let transform = FinalCutPro.FCPXML.TransformAdjustment()
         
-        XCTAssertEqual(transform.position, .zero)
-        XCTAssertEqual(transform.scale, FinalCutPro.FCPXML.Point(x: 1, y: 1))
-        XCTAssertEqual(transform.rotation, 0)
-        XCTAssertEqual(transform.anchor, .zero)
-        XCTAssertTrue(transform.isEnabled)
+        #expect(transform.position == .zero)
+        #expect(transform.scale == FinalCutPro.FCPXML.Point(x: 1, y: 1))
+        #expect(transform.rotation == 0)
+        #expect(transform.anchor == .zero)
+        #expect(transform.isEnabled)
     }
     
-    func testTransformAdjustmentCustomValues() {
+    @Test("Transform adjustment custom values")
+    func transformAdjustmentCustomValues() {
         let position = FinalCutPro.FCPXML.Point(x: 100, y: 200)
         let scale = FinalCutPro.FCPXML.Point(x: 1.5, y: 1.5)
         let anchor = FinalCutPro.FCPXML.Point(x: 50, y: 50)
@@ -170,13 +191,14 @@ final class FCPXMLAdjustmentTests: XCTestCase {
             anchor: anchor
         )
         
-        XCTAssertEqual(transform.position, position)
-        XCTAssertEqual(transform.scale, scale)
-        XCTAssertEqual(transform.rotation, 45)
-        XCTAssertEqual(transform.anchor, anchor)
+        #expect(transform.position == position)
+        #expect(transform.scale == scale)
+        #expect(transform.rotation == 45)
+        #expect(transform.anchor == anchor)
     }
     
-    func testTransformAdjustmentCodable() throws {
+    @Test("Transform adjustment Codable")
+    func transformAdjustmentCodable() throws {
         let transform = FinalCutPro.FCPXML.TransformAdjustment(
             position: FinalCutPro.FCPXML.Point(x: 100, y: 200),
             scale: FinalCutPro.FCPXML.Point(x: 1.5, y: 1.5),
@@ -190,27 +212,30 @@ final class FCPXMLAdjustmentTests: XCTestCase {
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(FinalCutPro.FCPXML.TransformAdjustment.self, from: data)
         
-        XCTAssertEqual(decoded.position.x, transform.position.x)
-        XCTAssertEqual(decoded.rotation, transform.rotation)
+        #expect(decoded.position.x == transform.position.x)
+        #expect(decoded.rotation == transform.rotation)
     }
     
     // MARK: - BlendAdjustment Tests
     
-    func testBlendAdjustmentInitialization() {
+    @Test("Blend adjustment initialization")
+    func blendAdjustmentInitialization() {
         let blend = FinalCutPro.FCPXML.BlendAdjustment()
         
-        XCTAssertEqual(blend.amount, 1.0)
-        XCTAssertNil(blend.mode)
+        #expect(blend.amount == 1.0)
+        #expect(blend.mode == nil)
     }
     
-    func testBlendAdjustmentWithMode() {
+    @Test("Blend adjustment with mode")
+    func blendAdjustmentWithMode() {
         let blend = FinalCutPro.FCPXML.BlendAdjustment(mode: "multiply", amount: 0.5)
         
-        XCTAssertEqual(blend.mode, "multiply")
-        XCTAssertEqual(blend.amount, 0.5)
+        #expect(blend.mode == "multiply")
+        #expect(blend.amount == 0.5)
     }
     
-    func testBlendAdjustmentCodable() throws {
+    @Test("Blend adjustment Codable")
+    func blendAdjustmentCodable() throws {
         let blend = FinalCutPro.FCPXML.BlendAdjustment(mode: "overlay", amount: 0.75)
         
         let encoder = JSONEncoder()
@@ -219,25 +244,28 @@ final class FCPXMLAdjustmentTests: XCTestCase {
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(FinalCutPro.FCPXML.BlendAdjustment.self, from: data)
         
-        XCTAssertEqual(decoded.mode, blend.mode)
-        XCTAssertEqual(decoded.amount, blend.amount)
+        #expect(decoded.mode == blend.mode)
+        #expect(decoded.amount == blend.amount)
     }
     
     // MARK: - StabilizationAdjustment Tests
     
-    func testStabilizationAdjustmentInitialization() {
+    @Test("Stabilization adjustment initialization")
+    func stabilizationAdjustmentInitialization() {
         let stabilization = FinalCutPro.FCPXML.StabilizationAdjustment()
         
-        XCTAssertEqual(stabilization.type, .automatic)
+        #expect(stabilization.type == .automatic)
     }
     
-    func testStabilizationAdjustmentModes() {
-        XCTAssertEqual(FinalCutPro.FCPXML.StabilizationAdjustment.Mode.automatic.rawValue, "automatic")
-        XCTAssertEqual(FinalCutPro.FCPXML.StabilizationAdjustment.Mode.inertiaCam.rawValue, "inertiaCam")
-        XCTAssertEqual(FinalCutPro.FCPXML.StabilizationAdjustment.Mode.smoothCam.rawValue, "smoothCam")
+    @Test("Stabilization adjustment modes")
+    func stabilizationAdjustmentModes() {
+        #expect(FinalCutPro.FCPXML.StabilizationAdjustment.Mode.automatic.rawValue == "automatic")
+        #expect(FinalCutPro.FCPXML.StabilizationAdjustment.Mode.inertiaCam.rawValue == "inertiaCam")
+        #expect(FinalCutPro.FCPXML.StabilizationAdjustment.Mode.smoothCam.rawValue == "smoothCam")
     }
     
-    func testStabilizationAdjustmentCodable() throws {
+    @Test("Stabilization adjustment Codable")
+    func stabilizationAdjustmentCodable() throws {
         let stabilization = FinalCutPro.FCPXML.StabilizationAdjustment(type: .smoothCam)
         
         let encoder = JSONEncoder()
@@ -246,74 +274,82 @@ final class FCPXMLAdjustmentTests: XCTestCase {
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(FinalCutPro.FCPXML.StabilizationAdjustment.self, from: data)
         
-        XCTAssertEqual(decoded.type, stabilization.type)
+        #expect(decoded.type == stabilization.type)
     }
 
     // MARK: - RollingShutterAdjustment Tests
 
-    func testRollingShutterAdjustmentInitialization() {
+    @Test("Rolling shutter adjustment initialization")
+    func rollingShutterAdjustmentInitialization() {
         let rs = FinalCutPro.FCPXML.RollingShutterAdjustment()
-        XCTAssertTrue(rs.isEnabled)
-        XCTAssertEqual(rs.amount, .none)
+        #expect(rs.isEnabled)
+        #expect(rs.amount == .none)
         let rs2 = FinalCutPro.FCPXML.RollingShutterAdjustment(isEnabled: false, amount: .high)
-        XCTAssertFalse(rs2.isEnabled)
-        XCTAssertEqual(rs2.amount, .high)
+        #expect(!rs2.isEnabled)
+        #expect(rs2.amount == .high)
     }
 
-    func testRollingShutterAdjustmentCodable() throws {
+    @Test("Rolling shutter adjustment Codable")
+    func rollingShutterAdjustmentCodable() throws {
         let rs = FinalCutPro.FCPXML.RollingShutterAdjustment(isEnabled: true, amount: .medium)
         let data = try JSONEncoder().encode(rs)
         let decoded = try JSONDecoder().decode(FinalCutPro.FCPXML.RollingShutterAdjustment.self, from: data)
-        XCTAssertEqual(decoded.isEnabled, rs.isEnabled)
-        XCTAssertEqual(decoded.amount, rs.amount)
+        #expect(decoded.isEnabled == rs.isEnabled)
+        #expect(decoded.amount == rs.amount)
     }
 
     // MARK: - ConformAdjustment Tests
 
-    func testConformAdjustmentInitialization() {
+    @Test("Conform adjustment initialization")
+    func conformAdjustmentInitialization() {
         let conform = FinalCutPro.FCPXML.ConformAdjustment()
-        XCTAssertEqual(conform.type, .fit)
+        #expect(conform.type == .fit)
         let fill = FinalCutPro.FCPXML.ConformAdjustment(type: .fill)
-        XCTAssertEqual(fill.type, .fill)
+        #expect(fill.type == .fill)
     }
 
-    func testConformAdjustmentCodable() throws {
+    @Test("Conform adjustment Codable")
+    func conformAdjustmentCodable() throws {
         let conform = FinalCutPro.FCPXML.ConformAdjustment(type: .none)
         let data = try JSONEncoder().encode(conform)
         let decoded = try JSONDecoder().decode(FinalCutPro.FCPXML.ConformAdjustment.self, from: data)
-        XCTAssertEqual(decoded.type, .none)
+        #expect(decoded.type == .none)
     }
     
     // MARK: - VolumeAdjustment Tests
     
-    func testVolumeAdjustmentInitialization() {
+    @Test("Volume adjustment initialization")
+    func volumeAdjustmentInitialization() {
         let volume = FinalCutPro.FCPXML.VolumeAdjustment(amount: 3.0)
         
-        XCTAssertEqual(volume.amount, 3.0)
+        #expect(volume.amount == 3.0)
     }
     
-    func testVolumeAdjustmentFromDecibelString() {
+    @Test("Volume adjustment from decibel string")
+    func volumeAdjustmentFromDecibelString() {
         let volume1 = FinalCutPro.FCPXML.VolumeAdjustment(fromDecibelString: "3dB")
-        XCTAssertNotNil(volume1)
-        XCTAssertEqual(volume1?.amount, 3.0)
+        #expect(volume1 != nil)
+        #expect(volume1?.amount == 3.0)
         
         let volume2 = FinalCutPro.FCPXML.VolumeAdjustment(fromDecibelString: "-6dB")
-        XCTAssertNotNil(volume2)
-        XCTAssertEqual(volume2?.amount, -6.0)
+        #expect(volume2 != nil)
+        #expect(volume2?.amount == -6.0)
         
         let volume3 = FinalCutPro.FCPXML.VolumeAdjustment(fromDecibelString: "invalid")
-        XCTAssertNil(volume3)
+        #expect(volume3 == nil)
     }
     
-    func testVolumeAdjustmentDecibelString() {
+    @Test("Volume adjustment decibel string")
+    func volumeAdjustmentDecibelString() {
         let volume = FinalCutPro.FCPXML.VolumeAdjustment(amount: 3.0)
-        XCTAssertEqual(volume.decibelString, "3.0dB")
+        #expect(volume.decibelString == "3.0dB")
         
         let negativeVolume = FinalCutPro.FCPXML.VolumeAdjustment(amount: -6.0)
-        XCTAssertEqual(negativeVolume.decibelString, "-6.0dB")
+        #expect(negativeVolume.decibelString == "-6.0dB")
     }
     
-    func testVolumeAdjustmentCodable() throws {
+    @Test("Volume adjustment Codable")
+    func volumeAdjustmentCodable() throws {
         let volume = FinalCutPro.FCPXML.VolumeAdjustment(amount: 3.0)
         
         let encoder = JSONEncoder()
@@ -322,19 +358,21 @@ final class FCPXMLAdjustmentTests: XCTestCase {
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(FinalCutPro.FCPXML.VolumeAdjustment.self, from: data)
         
-        XCTAssertEqual(decoded.amount, volume.amount)
+        #expect(decoded.amount == volume.amount)
     }
     
     // MARK: - LoudnessAdjustment Tests
     
-    func testLoudnessAdjustmentInitialization() {
+    @Test("Loudness adjustment initialization")
+    func loudnessAdjustmentInitialization() {
         let loudness = FinalCutPro.FCPXML.LoudnessAdjustment(amount: 0.5, uniformity: 0.8)
         
-        XCTAssertEqual(loudness.amount, 0.5)
-        XCTAssertEqual(loudness.uniformity, 0.8)
+        #expect(loudness.amount == 0.5)
+        #expect(loudness.uniformity == 0.8)
     }
     
-    func testLoudnessAdjustmentCodable() throws {
+    @Test("Loudness adjustment Codable")
+    func loudnessAdjustmentCodable() throws {
         let loudness = FinalCutPro.FCPXML.LoudnessAdjustment(amount: 0.5, uniformity: 0.8)
         
         let encoder = JSONEncoder()
@@ -343,192 +381,210 @@ final class FCPXMLAdjustmentTests: XCTestCase {
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(FinalCutPro.FCPXML.LoudnessAdjustment.self, from: data)
         
-        XCTAssertEqual(decoded.amount, loudness.amount)
-        XCTAssertEqual(decoded.uniformity, loudness.uniformity)
+        #expect(decoded.amount == loudness.amount)
+        #expect(decoded.uniformity == loudness.uniformity)
     }
 
     // MARK: - ReorientAdjustment (FCPXML 1.7+)
 
-    func testReorientAdjustmentInitialization() {
+    @Test("Reorient adjustment initialization")
+    func reorientAdjustmentInitialization() {
         let reorient = FinalCutPro.FCPXML.ReorientAdjustment(tilt: "1", pan: "2", roll: "0", convergence: "0.5")
-        XCTAssertEqual(reorient.tilt, "1")
-        XCTAssertEqual(reorient.pan, "2")
-        XCTAssertTrue(reorient.isEnabled)
+        #expect(reorient.tilt == "1")
+        #expect(reorient.pan == "2")
+        #expect(reorient.isEnabled)
     }
 
-    func testReorientAdjustmentCodable() throws {
+    @Test("Reorient adjustment Codable")
+    func reorientAdjustmentCodable() throws {
         let reorient = FinalCutPro.FCPXML.ReorientAdjustment(convergence: "0.5")
         let data = try JSONEncoder().encode(reorient)
         let decoded = try JSONDecoder().decode(FinalCutPro.FCPXML.ReorientAdjustment.self, from: data)
-        XCTAssertEqual(decoded.convergence, "0.5")
+        #expect(decoded.convergence == "0.5")
     }
 
     // MARK: - OrientationAdjustment (FCPXML 1.7+)
 
-    func testOrientationAdjustmentInitialization() {
+    @Test("Orientation adjustment initialization")
+    func orientationAdjustmentInitialization() {
         let orientation = FinalCutPro.FCPXML.OrientationAdjustment(mapping: .tinyPlanet)
-        XCTAssertEqual(orientation.mapping, .tinyPlanet)
+        #expect(orientation.mapping == .tinyPlanet)
     }
 
-    func testOrientationAdjustmentCodable() throws {
+    @Test("Orientation adjustment Codable")
+    func orientationAdjustmentCodable() throws {
         let orientation = FinalCutPro.FCPXML.OrientationAdjustment(fieldOfView: "90", mapping: .normal)
         let data = try JSONEncoder().encode(orientation)
         let decoded = try JSONDecoder().decode(FinalCutPro.FCPXML.OrientationAdjustment.self, from: data)
-        XCTAssertEqual(decoded.fieldOfView, "90")
+        #expect(decoded.fieldOfView == "90")
     }
 
     // MARK: - CinematicAdjustment (FCPXML 1.10+)
 
-    func testCinematicAdjustmentInitialization() {
+    @Test("Cinematic adjustment initialization")
+    func cinematicAdjustmentInitialization() {
         let cinematic = FinalCutPro.FCPXML.CinematicAdjustment(aperture: "2.8")
-        XCTAssertEqual(cinematic.aperture, "2.8")
+        #expect(cinematic.aperture == "2.8")
     }
 
     // MARK: - ColorConformAdjustment (FCPXML 1.11+)
 
-    func testColorConformAdjustmentInitialization() {
+    @Test("Color conform adjustment initialization")
+    func colorConformAdjustmentInitialization() {
         let colorConform = FinalCutPro.FCPXML.ColorConformAdjustment(
             conformType: .conformHLGtoSDR,
             peakNitsOfPQSource: "1000",
             peakNitsOfSDRToPQSource: "100"
         )
-        XCTAssertEqual(colorConform.conformType, .conformHLGtoSDR)
-        XCTAssertEqual(colorConform.peakNitsOfPQSource, "1000")
+        #expect(colorConform.conformType == .conformHLGtoSDR)
+        #expect(colorConform.peakNitsOfPQSource == "1000")
     }
 
-    func testColorConformAdjustmentCodable() throws {
+    @Test("Color conform adjustment Codable")
+    func colorConformAdjustmentCodable() throws {
         let colorConform = FinalCutPro.FCPXML.ColorConformAdjustment(
             peakNitsOfPQSource: "2000",
             peakNitsOfSDRToPQSource: "200"
         )
         let data = try JSONEncoder().encode(colorConform)
         let decoded = try JSONDecoder().decode(FinalCutPro.FCPXML.ColorConformAdjustment.self, from: data)
-        XCTAssertEqual(decoded.peakNitsOfSDRToPQSource, "200")
+        #expect(decoded.peakNitsOfSDRToPQSource == "200")
     }
 
     // MARK: - Stereo3DAdjustment (FCPXML 1.13+)
 
-    func testStereo3DAdjustmentInitialization() {
+    @Test("Stereo 3D adjustment initialization")
+    func stereo3DAdjustmentInitialization() {
         let stereo = FinalCutPro.FCPXML.Stereo3DAdjustment(swapEyes: true, depth: "0.5")
-        XCTAssertTrue(stereo.swapEyes)
-        XCTAssertEqual(stereo.depth, "0.5")
+        #expect(stereo.swapEyes)
+        #expect(stereo.depth == "0.5")
     }
 
     // MARK: - VoiceIsolationAdjustment (FCPXML 1.14)
 
-    func testVoiceIsolationAdjustmentInitialization() {
+    @Test("Voice isolation adjustment initialization")
+    func voiceIsolationAdjustmentInitialization() {
         let voice = FinalCutPro.FCPXML.VoiceIsolationAdjustment(amount: "0.8")
-        XCTAssertEqual(voice.amount, "0.8")
+        #expect(voice.amount == "0.8")
     }
 
-    func testVoiceIsolationAdjustmentCodable() throws {
+    @Test("Voice isolation adjustment Codable")
+    func voiceIsolationAdjustmentCodable() throws {
         let voice = FinalCutPro.FCPXML.VoiceIsolationAdjustment(amount: "1.0")
         let data = try JSONEncoder().encode(voice)
         let decoded = try JSONDecoder().decode(FinalCutPro.FCPXML.VoiceIsolationAdjustment.self, from: data)
-        XCTAssertEqual(decoded.amount, "1.0")
+        #expect(decoded.amount == "1.0")
     }
 
     // MARK: - Clip adjustment round-trip (new adjustments)
 
-    func testClipReorientAdjustmentRoundTrip() throws {
+    @Test("Clip reorient adjustment round-trip")
+    func clipReorientAdjustmentRoundTrip() throws {
         let clipEl = FoundationXMLFactory().makeElement(name: "clip")
         clipEl.addAttribute(name: "ref", value: "r1")
         let videoEl = FoundationXMLFactory().makeElement(name: "video")
         clipEl.addChild(videoEl)
-        guard let clip = FinalCutPro.FCPXML.Clip(element: clipEl) else { XCTFail("Clip init"); return }
+        let clip = try #require(FinalCutPro.FCPXML.Clip(element: clipEl))
         let reorient = FinalCutPro.FCPXML.ReorientAdjustment(pan: "10", roll: "5")
         clip.reorientAdjustment = reorient
-        XCTAssertNotNil(clip.reorientAdjustment)
-        XCTAssertEqual(clip.reorientAdjustment?.pan, "10")
+        #expect(clip.reorientAdjustment != nil)
+        #expect(clip.reorientAdjustment?.pan == "10")
         let adjustEl = clip.element.firstChildElement(named: "adjust-reorient")
-        XCTAssertNotNil(adjustEl)
-        XCTAssertEqual(adjustEl?.stringValue(forAttributeNamed: "pan"), "10")
+        #expect(adjustEl != nil)
+        #expect(adjustEl?.stringValue(forAttributeNamed: "pan") == "10")
     }
 
-    func testClipColorConformAdjustmentRoundTrip() throws {
+    @Test("Clip color conform adjustment round-trip")
+    func clipColorConformAdjustmentRoundTrip() throws {
         let clipEl = FoundationXMLFactory().makeElement(name: "clip")
         clipEl.addAttribute(name: "ref", value: "r1")
         let videoEl = FoundationXMLFactory().makeElement(name: "video")
         clipEl.addChild(videoEl)
-        guard let clip = FinalCutPro.FCPXML.Clip(element: clipEl) else { XCTFail("Clip init"); return }
+        let clip = try #require(FinalCutPro.FCPXML.Clip(element: clipEl))
         let colorConform = FinalCutPro.FCPXML.ColorConformAdjustment(
             peakNitsOfPQSource: "1000",
             peakNitsOfSDRToPQSource: "100"
         )
         clip.colorConformAdjustment = colorConform
-        XCTAssertEqual(clip.colorConformAdjustment?.conformType, .conformNone)
+        #expect(clip.colorConformAdjustment?.conformType == .conformNone)
         clip.colorConformAdjustment = nil
-        XCTAssertNil(clip.colorConformAdjustment)
+        #expect(clip.colorConformAdjustment == nil)
     }
 
-    func testClipStereo3DAdjustmentRoundTrip() throws {
+    @Test("Clip stereo 3D adjustment round-trip")
+    func clipStereo3DAdjustmentRoundTrip() throws {
         let clipEl = FoundationXMLFactory().makeElement(name: "clip")
         clipEl.addAttribute(name: "ref", value: "r1")
         let videoEl = FoundationXMLFactory().makeElement(name: "video")
         clipEl.addChild(videoEl)
-        guard let clip = FinalCutPro.FCPXML.Clip(element: clipEl) else { XCTFail("Clip init"); return }
+        let clip = try #require(FinalCutPro.FCPXML.Clip(element: clipEl))
         let stereo = FinalCutPro.FCPXML.Stereo3DAdjustment(convergence: "0.2", autoScale: false)
         clip.stereo3DAdjustment = stereo
-        XCTAssertEqual(clip.stereo3DAdjustment?.convergence, "0.2")
-        XCTAssertFalse(clip.stereo3DAdjustment?.autoScale ?? true)
+        #expect(clip.stereo3DAdjustment?.convergence == "0.2")
+        let autoScale = clip.stereo3DAdjustment?.autoScale ?? true
+        #expect(!autoScale)
     }
 
-    func testClipRollingShutterAdjustmentRoundTrip() throws {
+    @Test("Clip rolling shutter adjustment round-trip")
+    func clipRollingShutterAdjustmentRoundTrip() throws {
         let clipEl = FoundationXMLFactory().makeElement(name: "clip")
         clipEl.addAttribute(name: "ref", value: "r1")
         let videoEl = FoundationXMLFactory().makeElement(name: "video")
         clipEl.addChild(videoEl)
-        guard let clip = FinalCutPro.FCPXML.Clip(element: clipEl) else { XCTFail("Clip init"); return }
+        let clip = try #require(FinalCutPro.FCPXML.Clip(element: clipEl))
         let rs = FinalCutPro.FCPXML.RollingShutterAdjustment(isEnabled: true, amount: .high)
         clip.rollingShutterAdjustment = rs
-        XCTAssertNotNil(clip.rollingShutterAdjustment)
-        XCTAssertEqual(clip.rollingShutterAdjustment?.amount, .high)
+        #expect(clip.rollingShutterAdjustment != nil)
+        #expect(clip.rollingShutterAdjustment?.amount == .high)
         let adjustEl = clip.element.firstChildElement(named: "adjust-rollingShutter")
-        XCTAssertEqual(adjustEl?.stringValue(forAttributeNamed: "amount"), "high")
+        #expect(adjustEl?.stringValue(forAttributeNamed: "amount") == "high")
     }
 
-    func testClipConformAdjustmentRoundTrip() throws {
+    @Test("Clip conform adjustment round-trip")
+    func clipConformAdjustmentRoundTrip() throws {
         let clipEl = FoundationXMLFactory().makeElement(name: "clip")
         clipEl.addAttribute(name: "ref", value: "r1")
         let videoEl = FoundationXMLFactory().makeElement(name: "video")
         clipEl.addChild(videoEl)
-        guard let clip = FinalCutPro.FCPXML.Clip(element: clipEl) else { XCTFail("Clip init"); return }
+        let clip = try #require(FinalCutPro.FCPXML.Clip(element: clipEl))
         let conform = FinalCutPro.FCPXML.ConformAdjustment(type: .fill)
         clip.conformAdjustment = conform
-        XCTAssertEqual(clip.conformAdjustment?.type, .fill)
+        #expect(clip.conformAdjustment?.type == .fill)
         let adjustEl = clip.element.firstChildElement(named: "adjust-conform")
-        XCTAssertEqual(adjustEl?.stringValue(forAttributeNamed: "type"), "fill")
+        #expect(adjustEl?.stringValue(forAttributeNamed: "type") == "fill")
     }
 
     // MARK: - Equatable Tests
     
-    func testAdjustmentEquality() {
+    @Test("Adjustment equality")
+    func adjustmentEquality() {
         let crop1 = FinalCutPro.FCPXML.CropAdjustment(mode: .crop)
         let crop2 = FinalCutPro.FCPXML.CropAdjustment(mode: .crop)
         let crop3 = FinalCutPro.FCPXML.CropAdjustment(mode: .trim)
         
-        XCTAssertEqual(crop1, crop2)
-        XCTAssertNotEqual(crop1, crop3)
+        #expect(crop1 == crop2)
+        #expect(crop1 != crop3)
         
         let transform1 = FinalCutPro.FCPXML.TransformAdjustment()
         let transform2 = FinalCutPro.FCPXML.TransformAdjustment()
         let transform3 = FinalCutPro.FCPXML.TransformAdjustment(rotation: 45)
         
-        XCTAssertEqual(transform1, transform2)
-        XCTAssertNotEqual(transform1, transform3)
+        #expect(transform1 == transform2)
+        #expect(transform1 != transform3)
     }
     
     // MARK: - Hashable Tests
     
-    func testAdjustmentHashable() {
+    @Test("Adjustment hashable")
+    func adjustmentHashable() {
         let crop1 = FinalCutPro.FCPXML.CropAdjustment(mode: .crop)
         let crop2 = FinalCutPro.FCPXML.CropAdjustment(mode: .crop)
         
-        XCTAssertEqual(crop1.hashValue, crop2.hashValue)
+        #expect(crop1.hashValue == crop2.hashValue)
         
         let transform1 = FinalCutPro.FCPXML.TransformAdjustment()
         let transform2 = FinalCutPro.FCPXML.TransformAdjustment()
         
-        XCTAssertEqual(transform1.hashValue, transform2.hashValue)
+        #expect(transform1.hashValue == transform2.hashValue)
     }
 }

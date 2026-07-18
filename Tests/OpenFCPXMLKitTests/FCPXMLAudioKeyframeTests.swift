@@ -8,27 +8,25 @@
 //	Tests for audio keyframes in adjust-volume elements.
 //
 
-import XCTest
+import Foundation
+import Testing
 import CoreMedia
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLAudioKeyframeTests: XCTestCase {
+@Suite("Audio keyframes")
+struct FCPXMLAudioKeyframeTests {
     
     // MARK: - File Tests
     
-    func testAudioKeyframesFromTimelineWithSecondaryStorylineWithAudioKeyframes() throws {
-        let fcpxml = try loadFCPXMLSample(named: "TimelineWithSecondaryStorylineWithAudioKeyframes")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertEqual(fcpxml.version, .ver1_13)
+    @Test("Audio keyframes from timeline with secondary storyline with audio keyframes")
+    func audioKeyframesFromTimelineWithSecondaryStorylineWithAudioKeyframes() throws {
+        let fcpxml = try requireFCPXMLSample(named: "TimelineWithSecondaryStorylineWithAudioKeyframes")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.version == .ver1_13)
         
         let projects = fcpxml.allProjects()
-        guard let project = projects.first else {
-            XCTFail("No project found")
-            return
-        }
-        
-        let sequence = try XCTUnwrap(project.sequence)
+        let project = try #require(projects.first)
+        let sequence = project.sequence
         let spine = sequence.spine
         
         // Find adjust-volume with keyframeAnimation
@@ -53,15 +51,15 @@ final class FCPXMLAudioKeyframeTests: XCTestCase {
                         keyframeCount = keyframes.count
                         
                         // Verify keyframe structure
-                        XCTAssertGreaterThan(keyframes.count, 0, "Should have at least one keyframe")
+                        #expect(keyframes.count > 0, "Should have at least one keyframe")
                         
                         // Check first keyframe
                         if let firstKeyframe = keyframes.first {
                             let time = firstKeyframe.stringValue(forAttributeNamed: "time")
                             let value = firstKeyframe.stringValue(forAttributeNamed: "value")
-                            XCTAssertNotNil(time, "Keyframe should have time attribute")
-                            XCTAssertNotNil(value, "Keyframe should have value attribute")
-                            XCTAssertTrue(value?.contains("dB") == true, "Audio keyframe value should be in dB")
+                            #expect(time != nil, "Keyframe should have time attribute")
+                            #expect(value != nil, "Keyframe should have value attribute")
+                            #expect(value?.contains("dB") == true, "Audio keyframe value should be in dB")
                         }
                         
                         return
@@ -81,22 +79,19 @@ final class FCPXMLAudioKeyframeTests: XCTestCase {
             if foundAudioKeyframes { break }
         }
         
-        XCTAssertTrue(foundAudioKeyframes, "Should find audio keyframes with keyframeAnimation")
-        XCTAssertGreaterThan(keyframeCount, 0, "Should have keyframes")
-        XCTAssertTrue(fadeOutFound, "Should find fadeOut in audio keyframes")
+        #expect(foundAudioKeyframes, "Should find audio keyframes with keyframeAnimation")
+        #expect(keyframeCount > 0, "Should have keyframes")
+        #expect(fadeOutFound, "Should find fadeOut in audio keyframes")
     }
     
-    func testAudioKeyframesFromTimelineSample() throws {
-        let fcpxml = try loadFCPXMLSample(named: "TimelineSample")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
+    @Test("Audio keyframes from timeline sample")
+    func audioKeyframesFromTimelineSample() throws {
+        let fcpxml = try requireFCPXMLSample(named: "TimelineSample")
+        #expect(fcpxml.root.element.name == "fcpxml")
         
         let projects = fcpxml.allProjects()
-        guard let project = projects.first else {
-            XCTFail("No project found")
-            return
-        }
-        
-        let sequence = try XCTUnwrap(project.sequence)
+        let project = try #require(projects.first)
+        let sequence = project.sequence
         let spine = sequence.spine
         
         // Collect all audio keyframes
@@ -127,12 +122,13 @@ final class FCPXMLAudioKeyframeTests: XCTestCase {
             collectAudioKeyframes(in: element)
         }
         
-        XCTAssertGreaterThan(allKeyframes.count, 0, "Should find audio keyframes in TimelineSample")
+        #expect(allKeyframes.count > 0, "Should find audio keyframes in TimelineSample")
     }
     
     // MARK: - Parsing Tests
     
-    func testParseAudioKeyframeFromXML() throws {
+    @Test("Parse audio keyframe from XML")
+    func parseAudioKeyframeFromXML() throws {
         // Create a test XML structure
         let adjustVolume = FoundationXMLFactory().makeElement(name: "adjust-volume")
         let param = FoundationXMLFactory().makeElement(name: "param")
@@ -155,26 +151,24 @@ final class FCPXMLAudioKeyframeTests: XCTestCase {
         adjustVolume.addChild(param)
         
         // Parse keyframes
-        guard let paramElement = adjustVolume.firstChildElement(named: "param"),
-              paramElement.stringValue(forAttributeNamed: "name") == "amount",
-              let animationElement = paramElement.firstChildElement(named: "keyframeAnimation") else {
-            XCTFail("Failed to find param or keyframeAnimation")
-            return
-        }
+        let paramElement = try #require(adjustVolume.firstChildElement(named: "param"))
+        #expect(paramElement.stringValue(forAttributeNamed: "name") == "amount")
+        let animationElement = try #require(paramElement.firstChildElement(named: "keyframeAnimation"))
         
         let keyframes = animationElement.childElements.filter { $0.name == "keyframe" }
-        XCTAssertEqual(keyframes.count, 2, "Should have 2 keyframes")
+        #expect(keyframes.count == 2, "Should have 2 keyframes")
         
         let firstKeyframe = keyframes[0]
-        XCTAssertEqual(firstKeyframe.stringValue(forAttributeNamed: "time"), "6408403/720000s")
-        XCTAssertEqual(firstKeyframe.stringValue(forAttributeNamed: "value"), "-3dB")
+        #expect(firstKeyframe.stringValue(forAttributeNamed: "time") == "6408403/720000s")
+        #expect(firstKeyframe.stringValue(forAttributeNamed: "value") == "-3dB")
         
         let secondKeyframe = keyframes[1]
-        XCTAssertEqual(secondKeyframe.stringValue(forAttributeNamed: "time"), "7497726/720000s")
-        XCTAssertEqual(secondKeyframe.stringValue(forAttributeNamed: "value"), "-37dB")
+        #expect(secondKeyframe.stringValue(forAttributeNamed: "time") == "7497726/720000s")
+        #expect(secondKeyframe.stringValue(forAttributeNamed: "value") == "-37dB")
     }
     
-    func testParseAudioKeyframeWithFadeOut() throws {
+    @Test("Parse audio keyframe with fade out")
+    func parseAudioKeyframeWithFadeOut() throws {
         // Create a test XML structure with fadeOut
         let adjustVolume = FoundationXMLFactory().makeElement(name: "adjust-volume")
         let param = FoundationXMLFactory().makeElement(name: "param")
@@ -195,23 +189,21 @@ final class FCPXMLAudioKeyframeTests: XCTestCase {
         adjustVolume.addChild(param)
         
         // Parse fadeOut and keyframes
-        guard let paramElement = adjustVolume.firstChildElement(named: "param") else {
-            XCTFail("Failed to find param")
-            return
-        }
+        let paramElement = try #require(adjustVolume.firstChildElement(named: "param"))
         
         let fadeOutElement = paramElement.firstChildElement(named: "fadeOut")
-        XCTAssertNotNil(fadeOutElement, "Should find fadeOut")
-        XCTAssertEqual(fadeOutElement?.stringValue(forAttributeNamed: "type"), "easeIn")
-        XCTAssertEqual(fadeOutElement?.stringValue(forAttributeNamed: "duration"), "6112587/720000s")
+        #expect(fadeOutElement != nil, "Should find fadeOut")
+        #expect(fadeOutElement?.stringValue(forAttributeNamed: "type") == "easeIn")
+        #expect(fadeOutElement?.stringValue(forAttributeNamed: "duration") == "6112587/720000s")
         
         let animationElement = paramElement.firstChildElement(named: "keyframeAnimation")
-        XCTAssertNotNil(animationElement, "Should find keyframeAnimation")
+        #expect(animationElement != nil, "Should find keyframeAnimation")
         let keyframes = animationElement?.childElements.filter { $0.name == "keyframe" } ?? []
-        XCTAssertEqual(keyframes.count, 1, "Should have 1 keyframe")
+        #expect(keyframes.count == 1, "Should have 1 keyframe")
     }
     
-    func testParseAudioKeyframeWithFadeIn() throws {
+    @Test("Parse audio keyframe with fade in")
+    func parseAudioKeyframeWithFadeIn() throws {
         // Create a test XML structure with fadeIn
         let adjustVolume = FoundationXMLFactory().makeElement(name: "adjust-volume")
         let param = FoundationXMLFactory().makeElement(name: "param")
@@ -232,30 +224,24 @@ final class FCPXMLAudioKeyframeTests: XCTestCase {
         adjustVolume.addChild(param)
         
         // Parse fadeIn and keyframes
-        guard let paramElement = adjustVolume.firstChildElement(named: "param") else {
-            XCTFail("Failed to find param")
-            return
-        }
+        let paramElement = try #require(adjustVolume.firstChildElement(named: "param"))
         
         let fadeInElement = paramElement.firstChildElement(named: "fadeIn")
-        XCTAssertNotNil(fadeInElement, "Should find fadeIn")
-        XCTAssertEqual(fadeInElement?.stringValue(forAttributeNamed: "type"), "easeOut")
+        #expect(fadeInElement != nil, "Should find fadeIn")
+        #expect(fadeInElement?.stringValue(forAttributeNamed: "type") == "easeOut")
         
         let animationElement = paramElement.firstChildElement(named: "keyframeAnimation")
-        XCTAssertNotNil(animationElement, "Should find keyframeAnimation")
+        #expect(animationElement != nil, "Should find keyframeAnimation")
     }
     
     // MARK: - Keyframe Value Tests
     
-    func testAudioKeyframeDecibelValues() throws {
-        let fcpxml = try loadFCPXMLSample(named: "TimelineWithSecondaryStorylineWithAudioKeyframes")
+    @Test("Audio keyframe decibel values")
+    func audioKeyframeDecibelValues() throws {
+        let fcpxml = try requireFCPXMLSample(named: "TimelineWithSecondaryStorylineWithAudioKeyframes")
         let projects = fcpxml.allProjects()
-        guard let project = projects.first else {
-            XCTFail("No project found")
-            return
-        }
-        
-        let sequence = try XCTUnwrap(project.sequence)
+        let project = try #require(projects.first)
+        let sequence = project.sequence
         let spine = sequence.spine
         
         var foundDecibelValues: [String] = []
@@ -283,27 +269,24 @@ final class FCPXMLAudioKeyframeTests: XCTestCase {
             collectDecibelValues(in: element)
         }
         
-        XCTAssertGreaterThan(foundDecibelValues.count, 0, "Should find decibel values")
+        #expect(foundDecibelValues.count > 0, "Should find decibel values")
         
         // Verify all values are in dB format
         for value in foundDecibelValues {
-            XCTAssertTrue(value.contains("dB"), "Value '\(value)' should contain 'dB'")
+            #expect(value.contains("dB"), "Value '\(value)' should contain 'dB'")
         }
         
         // Verify specific decibel values exist
         let hasNegativeValues = foundDecibelValues.contains { $0.contains("-") }
-        XCTAssertTrue(hasNegativeValues, "Should have negative decibel values")
+        #expect(hasNegativeValues, "Should have negative decibel values")
     }
     
-    func testAudioKeyframeTimeValues() throws {
-        let fcpxml = try loadFCPXMLSample(named: "TimelineWithSecondaryStorylineWithAudioKeyframes")
+    @Test("Audio keyframe time values")
+    func audioKeyframeTimeValues() throws {
+        let fcpxml = try requireFCPXMLSample(named: "TimelineWithSecondaryStorylineWithAudioKeyframes")
         let projects = fcpxml.allProjects()
-        guard let project = projects.first else {
-            XCTFail("No project found")
-            return
-        }
-        
-        let sequence = try XCTUnwrap(project.sequence)
+        let project = try #require(projects.first)
+        let sequence = project.sequence
         let spine = sequence.spine
         
         var timeValues: [String] = []
@@ -331,26 +314,23 @@ final class FCPXMLAudioKeyframeTests: XCTestCase {
             collectTimeValues(in: element)
         }
         
-        XCTAssertGreaterThan(timeValues.count, 0, "Should find time values")
+        #expect(timeValues.count > 0, "Should find time values")
         
         // Verify time values are in FCPXML time format (fractional seconds)
         for time in timeValues {
-            XCTAssertTrue(time.contains("/"), "Time '\(time)' should be in fractional format")
-            XCTAssertTrue(time.contains("s"), "Time '\(time)' should end with 's'")
+            #expect(time.contains("/"), "Time '\(time)' should be in fractional format")
+            #expect(time.contains("s"), "Time '\(time)' should end with 's'")
         }
     }
     
     // MARK: - Multiple Keyframes Tests
     
-    func testMultipleAudioKeyframesInSequence() throws {
-        let fcpxml = try loadFCPXMLSample(named: "TimelineWithSecondaryStorylineWithAudioKeyframes")
+    @Test("Multiple audio keyframes in sequence")
+    func multipleAudioKeyframesInSequence() throws {
+        let fcpxml = try requireFCPXMLSample(named: "TimelineWithSecondaryStorylineWithAudioKeyframes")
         let projects = fcpxml.allProjects()
-        guard let project = projects.first else {
-            XCTFail("No project found")
-            return
-        }
-        
-        let sequence = try XCTUnwrap(project.sequence)
+        let project = try #require(projects.first)
+        let sequence = project.sequence
         let spine = sequence.spine
         
         var maxKeyframeCount = 0
@@ -374,20 +354,17 @@ final class FCPXMLAudioKeyframeTests: XCTestCase {
             findMaxKeyframeCount(in: element)
         }
         
-        XCTAssertGreaterThanOrEqual(maxKeyframeCount, 6, "Should have at least 6 keyframes in sequence")
+        #expect(maxKeyframeCount >= 6, "Should have at least 6 keyframes in sequence")
     }
     
     // MARK: - Context Tests
     
-    func testAudioKeyframesInSecondaryStoryline() throws {
-        let fcpxml = try loadFCPXMLSample(named: "TimelineWithSecondaryStorylineWithAudioKeyframes")
+    @Test("Audio keyframes in secondary storyline")
+    func audioKeyframesInSecondaryStoryline() throws {
+        let fcpxml = try requireFCPXMLSample(named: "TimelineWithSecondaryStorylineWithAudioKeyframes")
         let projects = fcpxml.allProjects()
-        guard let project = projects.first else {
-            XCTFail("No project found")
-            return
-        }
-        
-        let sequence = try XCTUnwrap(project.sequence)
+        let project = try #require(projects.first)
+        let sequence = project.sequence
         let spine = sequence.spine
         
         var foundInSecondaryStoryline = false
@@ -439,18 +416,15 @@ final class FCPXMLAudioKeyframeTests: XCTestCase {
             if foundInSecondaryStoryline { break }
         }
         
-        XCTAssertTrue(foundInSecondaryStoryline, "Should find audio keyframes in secondary storyline")
+        #expect(foundInSecondaryStoryline, "Should find audio keyframes in secondary storyline")
     }
     
-    func testAudioKeyframesInNestedClips() throws {
-        let fcpxml = try loadFCPXMLSample(named: "TimelineWithSecondaryStorylineWithAudioKeyframes")
+    @Test("Audio keyframes in nested clips")
+    func audioKeyframesInNestedClips() throws {
+        let fcpxml = try requireFCPXMLSample(named: "TimelineWithSecondaryStorylineWithAudioKeyframes")
         let projects = fcpxml.allProjects()
-        guard let project = projects.first else {
-            XCTFail("No project found")
-            return
-        }
-        
-        let sequence = try XCTUnwrap(project.sequence)
+        let project = try #require(projects.first)
+        let sequence = project.sequence
         let spine = sequence.spine
         
         var depth = 0
@@ -482,6 +456,6 @@ final class FCPXMLAudioKeyframeTests: XCTestCase {
             findMaxDepth(in: element)
         }
         
-        XCTAssertGreaterThan(maxDepth, 0, "Should find nested clips with audio keyframes")
+        #expect(maxDepth > 0, "Should find nested clips with audio keyframes")
     }
 }

@@ -8,202 +8,228 @@
 //	Tests for asset validation functionality.
 //
 
-import XCTest
+import Foundation
 import CoreMedia
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLAssetValidationTests: XCTestCase {
-    
-    var validator: AssetValidator!
-    var tempDirectory: URL!
-    
-    override func setUp() {
-        super.setUp()
-        validator = AssetValidator()
-        tempDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        try? FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
+@Suite("Asset validation")
+struct FCPXMLAssetValidationTests {
+    private var validator: AssetValidator { AssetValidator() }
+
+    private func makeTempDirectory() throws -> URL {
+        let tempDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
+        return tempDirectory
     }
-    
-    override func tearDown() {
-        try? FileManager.default.removeItem(at: tempDirectory)
-        super.tearDown()
-    }
-    
+
     // MARK: - Existence Tests
-    
-    func testValidateAssetNotFound() async {
+
+    @Test("Validate asset not found")
+    func validateAssetNotFound() async throws {
+        let tempDirectory = try makeTempDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDirectory) }
         let url = tempDirectory.appendingPathComponent("nonexistent.mp4")
         let result = await validator.validateAsset(at: url, forLane: 0)
-        
-        XCTAssertFalse(result.exists)
-        XCTAssertNil(result.mimeType)
-        XCTAssertFalse(result.isCompatible)
-        XCTAssertNotNil(result.reason)
+
+        #expect(!result.exists)
+        #expect(result.mimeType == nil)
+        #expect(!result.isCompatible)
+        #expect(result.reason != nil)
     }
-    
+
     // MARK: - Lane Compatibility Tests
-    
-    func testValidateAudioOnNegativeLane() async throws {
+
+    @Test("Validate audio on negative lane")
+    func validateAudioOnNegativeLane() async throws {
+        let tempDirectory = try makeTempDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDirectory) }
         // Create a dummy audio file (we'll use a text file with .mp3 extension for testing)
         let audioURL = tempDirectory.appendingPathComponent("audio.mp3")
         try "dummy audio".write(to: audioURL, atomically: true, encoding: .utf8)
-        
+
         let result = await validator.validateAsset(at: audioURL, forLane: -1)
-        
-        XCTAssertTrue(result.exists)
-        XCTAssertNotNil(result.mimeType)
-        XCTAssertTrue(result.mimeType?.hasPrefix("audio/") ?? false)
-        XCTAssertTrue(result.isCompatible)
-        XCTAssertNil(result.reason)
+
+        #expect(result.exists)
+        #expect(result.mimeType != nil)
+        #expect(result.mimeType?.hasPrefix("audio/") ?? false)
+        #expect(result.isCompatible)
+        #expect(result.reason == nil)
     }
-    
-    func testValidateVideoOnNegativeLaneFails() async throws {
+
+    @Test("Validate video on negative lane fails")
+    func validateVideoOnNegativeLaneFails() async throws {
+        let tempDirectory = try makeTempDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDirectory) }
         // Create a dummy video file
         let videoURL = tempDirectory.appendingPathComponent("video.mp4")
         try "dummy video".write(to: videoURL, atomically: true, encoding: .utf8)
-        
+
         let result = await validator.validateAsset(at: videoURL, forLane: -1)
-        
-        XCTAssertTrue(result.exists)
-        XCTAssertNotNil(result.mimeType)
-        XCTAssertTrue(result.mimeType?.hasPrefix("video/") ?? false)
-        XCTAssertFalse(result.isCompatible)
-        XCTAssertNotNil(result.reason)
-        XCTAssertTrue(result.reason?.contains("audio") ?? false)
+
+        #expect(result.exists)
+        #expect(result.mimeType != nil)
+        #expect(result.mimeType?.hasPrefix("video/") ?? false)
+        #expect(!result.isCompatible)
+        #expect(result.reason != nil)
+        #expect(result.reason?.contains("audio") ?? false)
     }
-    
-    func testValidateVideoOnPositiveLane() async throws {
+
+    @Test("Validate video on positive lane")
+    func validateVideoOnPositiveLane() async throws {
+        let tempDirectory = try makeTempDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDirectory) }
         let videoURL = tempDirectory.appendingPathComponent("video.mp4")
         try "dummy video".write(to: videoURL, atomically: true, encoding: .utf8)
-        
+
         let result = await validator.validateAsset(at: videoURL, forLane: 0)
-        
-        XCTAssertTrue(result.exists)
-        XCTAssertNotNil(result.mimeType)
-        XCTAssertTrue(result.mimeType?.hasPrefix("video/") ?? false)
-        XCTAssertTrue(result.isCompatible)
-        XCTAssertNil(result.reason)
+
+        #expect(result.exists)
+        #expect(result.mimeType != nil)
+        #expect(result.mimeType?.hasPrefix("video/") ?? false)
+        #expect(result.isCompatible)
+        #expect(result.reason == nil)
     }
-    
-    func testValidateImageOnPositiveLane() async throws {
+
+    @Test("Validate image on positive lane")
+    func validateImageOnPositiveLane() async throws {
+        let tempDirectory = try makeTempDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDirectory) }
         let imageURL = tempDirectory.appendingPathComponent("image.jpg")
         try "dummy image".write(to: imageURL, atomically: true, encoding: .utf8)
-        
+
         let result = await validator.validateAsset(at: imageURL, forLane: 1)
-        
-        XCTAssertTrue(result.exists)
-        XCTAssertNotNil(result.mimeType)
-        XCTAssertTrue(result.mimeType?.hasPrefix("image/") ?? false)
-        XCTAssertTrue(result.isCompatible)
-        XCTAssertNil(result.reason)
+
+        #expect(result.exists)
+        #expect(result.mimeType != nil)
+        #expect(result.mimeType?.hasPrefix("image/") ?? false)
+        #expect(result.isCompatible)
+        #expect(result.reason == nil)
     }
-    
-    func testValidateAudioOnPositiveLane() async throws {
+
+    @Test("Validate audio on positive lane")
+    func validateAudioOnPositiveLane() async throws {
+        let tempDirectory = try makeTempDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDirectory) }
         let audioURL = tempDirectory.appendingPathComponent("audio.mp3")
         try "dummy audio".write(to: audioURL, atomically: true, encoding: .utf8)
-        
+
         let result = await validator.validateAsset(at: audioURL, forLane: 0)
-        
-        XCTAssertTrue(result.exists)
-        XCTAssertNotNil(result.mimeType)
-        XCTAssertTrue(result.mimeType?.hasPrefix("audio/") ?? false)
-        XCTAssertTrue(result.isCompatible)
-        XCTAssertNil(result.reason)
+
+        #expect(result.exists)
+        #expect(result.mimeType != nil)
+        #expect(result.mimeType?.hasPrefix("audio/") ?? false)
+        #expect(result.isCompatible)
+        #expect(result.reason == nil)
     }
-    
+
     // MARK: - Sync Validation Tests
-    
-    func testValidateAssetSync() throws {
+
+    @Test("Validate asset sync")
+    func validateAssetSync() throws {
+        let tempDirectory = try makeTempDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDirectory) }
         let audioURL = tempDirectory.appendingPathComponent("audio.mp3")
         try "dummy audio".write(to: audioURL, atomically: true, encoding: .utf8)
-        
+
         let result = validator.validateAssetSync(at: audioURL, forLane: -1)
-        
-        XCTAssertTrue(result.exists)
-        XCTAssertNotNil(result.mimeType)
-        XCTAssertTrue(result.isCompatible)
+
+        #expect(result.exists)
+        #expect(result.mimeType != nil)
+        #expect(result.isCompatible)
     }
-    
+
     // MARK: - TimelineClip Integration Tests
-    
-    func testTimelineClipValidateAsset() async throws {
+
+    @Test("Timeline clip validate asset")
+    func timelineClipValidateAsset() async throws {
+        let tempDirectory = try makeTempDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDirectory) }
         let clip = TimelineClip(
             assetRef: "r1",
             offset: .zero,
             duration: CMTime(value: 10, timescale: 1),
             lane: -1
         )
-        
+
         let audioURL = tempDirectory.appendingPathComponent("audio.mp3")
         try "dummy audio".write(to: audioURL, atomically: true, encoding: .utf8)
-        
+
         let result = await clip.validateAsset(at: audioURL)
-        
-        XCTAssertTrue(result.exists)
-        XCTAssertTrue(result.isCompatible)
+
+        #expect(result.exists)
+        #expect(result.isCompatible)
     }
-    
-    func testTimelineClipIsAudioAsset() async throws {
+
+    @Test("Timeline clip is audio asset")
+    func timelineClipIsAudioAsset() async throws {
+        let tempDirectory = try makeTempDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDirectory) }
         let clip = TimelineClip(
             assetRef: "r1",
             offset: .zero,
             duration: CMTime(value: 10, timescale: 1),
             lane: 0
         )
-        
+
         let audioURL = tempDirectory.appendingPathComponent("audio.wav")
         try "dummy audio".write(to: audioURL, atomically: true, encoding: .utf8)
-        
+
         let isAudio = await clip.isAudioAsset(at: audioURL)
-        XCTAssertTrue(isAudio)
-        
+        #expect(isAudio)
+
         let videoURL = tempDirectory.appendingPathComponent("video.mp4")
         try "dummy video".write(to: videoURL, atomically: true, encoding: .utf8)
-        
+
         let isAudioVideo = await clip.isAudioAsset(at: videoURL)
-        XCTAssertFalse(isAudioVideo)
+        #expect(!isAudioVideo)
     }
-    
-    func testTimelineClipIsVideoAsset() async throws {
+
+    @Test("Timeline clip is video asset")
+    func timelineClipIsVideoAsset() async throws {
+        let tempDirectory = try makeTempDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDirectory) }
         let clip = TimelineClip(
             assetRef: "r1",
             offset: .zero,
             duration: CMTime(value: 10, timescale: 1),
             lane: 0
         )
-        
+
         let videoURL = tempDirectory.appendingPathComponent("video.mov")
         try "dummy video".write(to: videoURL, atomically: true, encoding: .utf8)
-        
+
         let isVideo = await clip.isVideoAsset(at: videoURL)
-        XCTAssertTrue(isVideo)
-        
+        #expect(isVideo)
+
         let audioURL = tempDirectory.appendingPathComponent("audio.mp3")
         try "dummy audio".write(to: audioURL, atomically: true, encoding: .utf8)
-        
+
         let isVideoAudio = await clip.isVideoAsset(at: audioURL)
-        XCTAssertFalse(isVideoAudio)
+        #expect(!isVideoAudio)
     }
-    
-    func testTimelineClipIsImageAsset() async throws {
+
+    @Test("Timeline clip is image asset")
+    func timelineClipIsImageAsset() async throws {
+        let tempDirectory = try makeTempDirectory()
+        defer { try? FileManager.default.removeItem(at: tempDirectory) }
         let clip = TimelineClip(
             assetRef: "r1",
             offset: .zero,
             duration: CMTime(value: 10, timescale: 1),
             lane: 0
         )
-        
+
         let imageURL = tempDirectory.appendingPathComponent("image.png")
         try "dummy image".write(to: imageURL, atomically: true, encoding: .utf8)
-        
+
         let isImage = await clip.isImageAsset(at: imageURL)
-        XCTAssertTrue(isImage)
-        
+        #expect(isImage)
+
         let videoURL = tempDirectory.appendingPathComponent("video.mp4")
         try "dummy video".write(to: videoURL, atomically: true, encoding: .utf8)
-        
+
         let isImageVideo = await clip.isImageAsset(at: videoURL)
-        XCTAssertFalse(isImageVideo)
+        #expect(!isImageVideo)
     }
 }

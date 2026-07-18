@@ -8,77 +8,85 @@
 //	Unit tests for extracted element context helpers.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLExtractedElementTests: XCTestCase {
-    func testDisplayClipNameForTitleUsesEffectResourceName() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "DisabledClips")
+@Suite("Extracted element")
+struct FCPXMLExtractedElementTests {
+    @Test("Display clip name for title uses effect resource name")
+    func displayClipNameForTitleUsesEffectResourceName() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "DisabledClips")
         let titles = await timeline.fcpExtract(types: [.title], scope: .mainTimeline)
-        
-        let title = try XCTUnwrap(titles.first)
-        XCTAssertEqual(title.displayClipName(), "Basic Title")
+
+        let title = try #require(titles.first)
+        #expect(title.displayClipName() == "Basic Title")
     }
-    
-    func testDisplayClipNameForMarkerUsesAncestorClipName() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "TitlesRoles")
+
+    @Test("Display clip name for marker uses ancestor clip name")
+    func displayClipNameForMarkerUsesAncestorClipName() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "TitlesRoles")
         let markers = await timeline.fcpExtract(types: [.marker], scope: .mainTimeline)
-        
-        let nestedMarker = try XCTUnwrap(
+
+        let nestedMarker = try #require(
             markers.first { $0.element.stringValue(forAttributeNamed: "value") == "Marker 2" }
         )
-        
-        XCTAssertEqual(nestedMarker.displayClipName(), "Basic Title")
+
+        #expect(nestedMarker.displayClipName() == "Basic Title")
     }
-    
-    func testAncestorClipElementForKeywordReturnsParentAssetClip() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "Keywords")
+
+    @Test("Ancestor clip element for keyword returns parent asset clip")
+    func ancestorClipElementForKeywordReturnsParentAssetClip() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "Keywords")
         let keywords = await timeline.fcpExtract(types: [.keyword], scope: .mainTimeline)
-        
-        let penguinKeyword = try XCTUnwrap(
+
+        let penguinKeyword = try #require(
             keywords.first { $0.element.fcpValue == "penguin" }
         )
-        
-        XCTAssertEqual(penguinKeyword.ancestorClipElement()?.fcpName, "Nature Makes You Happy")
+
+        #expect(penguinKeyword.ancestorClipElement()?.fcpName == "Nature Makes You Happy")
     }
-    
-    func testPreferredRoleForMarkerOnTitleUsesTitleInheritedRoles() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "TitlesRoles")
+
+    @Test("Preferred role for marker on title uses title inherited roles")
+    func preferredRoleForMarkerOnTitleUsesTitleInheritedRoles() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "TitlesRoles")
         let markers = await timeline.fcpExtract(types: [.marker], scope: .mainTimeline)
-        
-        let nestedMarker = try XCTUnwrap(
+
+        let nestedMarker = try #require(
             markers.first { $0.element.stringValue(forAttributeNamed: "value") == "Marker 2" }
         )
-        
+
         let preferred = nestedMarker.preferredRole(for: .markers, using: .builtIn)
-        XCTAssertEqual(preferred?.wrapped.role.lowercased(), "titles")
+        #expect(preferred?.wrapped.role.lowercased() == "titles")
     }
-    
-    func testPreferredRoleForMarkerOnAssetClipUsesDialogue() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "Keywords")
+
+    @Test("Preferred role for marker on asset clip uses dialogue")
+    func preferredRoleForMarkerOnAssetClipUsesDialogue() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "Keywords")
         let markers = await timeline.fcpExtract(types: [.marker], scope: .mainTimeline)
-        
-        let flowerMarker = try XCTUnwrap(
+
+        let flowerMarker = try #require(
             markers.first { $0.element.stringValue(forAttributeNamed: "value") == "Yellow Flower" }
         )
-        
+
         let preferred = flowerMarker.preferredRole(for: .markers, using: .builtIn)
-        XCTAssertEqual(preferred?.wrapped.role.lowercased(), "dialogue")
+        #expect(preferred?.wrapped.role.lowercased() == "dialogue")
     }
-    
-    func testKeywordInheritedRolesReturnsAncestorClipRoles() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "Keywords")
+
+    @Test("Keyword inherited roles returns ancestor clip roles")
+    func keywordInheritedRolesReturnsAncestorClipRoles() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "Keywords")
         let keywords = await timeline.fcpExtract(types: [.keyword], scope: .mainTimeline)
-        
-        let keyword = try XCTUnwrap(keywords.first)
+
+        let keyword = try #require(keywords.first)
         let roles = keyword.keywordInheritedRoles()
-        
-        XCTAssertFalse(roles.isEmpty)
-        XCTAssertTrue(roles.contains { $0.wrapped.role.lowercased() == "dialogue" })
+
+        #expect(!roles.isEmpty)
+        let hasDialogue = roles.contains { $0.wrapped.role.lowercased() == "dialogue" }
+        #expect(hasDialogue)
     }
-    
-    func testVisibleKeywordRangeOnMainTimelineReturnsTimelineBounds() async throws {
+
+    @Test("Visible keyword range on main timeline returns timeline bounds")
+    func visibleKeywordRangeOnMainTimelineReturnsTimelineBounds() async throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -102,48 +110,51 @@ final class FCPXMLExtractedElementTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let timeline = try XCTUnwrap(
+
+        let timeline = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "sequence")
         )
         let keywords = await timeline.fcpExtract(
             types: [.keyword],
             scope: .reportMainTimelineVisible()
         )
-        let keyword = try XCTUnwrap(keywords.first)
-        let range = try XCTUnwrap(keyword.visibleKeywordRangeOnMainTimeline())
-        
-        XCTAssertNotNil(range.timelineIn)
-        XCTAssertNotNil(range.timelineOut)
-        XCTAssertNotNil(range.duration)
+        let keyword = try #require(keywords.first)
+        let range = try #require(keyword.visibleKeywordRangeOnMainTimeline())
+
+        #expect(range.timelineOut > range.timelineIn)
+        #expect(range.duration.frameCount.wholeFrames > 0)
     }
-    
-    func testEffectHostClipElementForTitleReturnsTitleElement() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "DisabledClips")
+
+    @Test("Effect host clip element for title returns title element")
+    func effectHostClipElementForTitleReturnsTitleElement() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "DisabledClips")
         let titles = await timeline.fcpExtract(types: [.title], scope: .mainTimeline)
-        
-        let title = try XCTUnwrap(titles.first)
-        XCTAssertTrue(title.effectHostClipElement() === title.element)
+
+        let title = try #require(titles.first)
+        #expect(title.effectHostClipElement() === title.element)
     }
-    
-    func testMarkersExtractionPresetFindsNestedMarkersIncludingDisabled() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "DisabledClips")
+
+    @Test("Markers extraction preset finds nested markers including disabled")
+    func markersExtractionPresetFindsNestedMarkersIncludingDisabled() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "DisabledClips")
         let markers = await timeline.fcpExtract(
             preset: .markers,
             scope: .reportMainTimelineVisible()
         )
-        
-        XCTAssertGreaterThanOrEqual(markers.count, 4)
+
+        #expect(markers.count >= 4)
     }
-    
-    func testTitlesExtractionPresetIncludesDisabledTitlesOnMainTimeline() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "DisabledClips")
+
+    @Test("Titles extraction preset includes disabled titles on main timeline")
+    func titlesExtractionPresetIncludesDisabledTitlesOnMainTimeline() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "DisabledClips")
         let titles = await timeline.fcpExtract(
             preset: .titles,
             scope: .reportMainTimelineVisible()
         )
-        
-        XCTAssertGreaterThanOrEqual(titles.count, 2)
-        XCTAssertTrue(titles.contains { $0.element.fcpGetEnabled(default: true) == false })
+
+        #expect(titles.count >= 2)
+        let hasDisabled = titles.contains { $0.element.fcpGetEnabled(default: true) == false }
+        #expect(hasDisabled)
     }
 }

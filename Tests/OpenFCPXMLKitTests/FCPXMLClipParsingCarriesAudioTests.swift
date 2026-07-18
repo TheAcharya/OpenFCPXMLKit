@@ -8,11 +8,13 @@
 //	Unit tests for fcpCarriesAudio clip parsing helper.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
-    func testFcpCarriesAudioTrueWhenAudioChildPresent() throws {
+@Suite("Clip parsing carries audio")
+struct FCPXMLClipParsingCarriesAudioTests {
+    @Test("fcpCarriesAudio true when audio child present")
+    func fcpCarriesAudioTrueWhenAudioChildPresent() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -35,37 +37,40 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let clip = try XCTUnwrap(
+
+        let clip = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "clip")
         )
-        
-        XCTAssertTrue(clip.fcpCarriesAudio(resources: fcpxml.root.resources))
+
+        #expect(clip.fcpCarriesAudio(resources: fcpxml.root.resources))
     }
-    
-    func testFcpCarriesAudioTrueWhenAudioChannelSourcePresent() throws {
-        let fcpxml = try loadFCPXMLSample(named: "AudioOnly")
-        let clip = try XCTUnwrap(
+
+    @Test("fcpCarriesAudio true when audio channel source present")
+    func fcpCarriesAudioTrueWhenAudioChannelSourcePresent() throws {
+        let fcpxml = try requireFCPXMLSample(named: "AudioOnly")
+        let clip = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "asset-clip")
         )
-        
-        XCTAssertTrue(clip.fcpCarriesAudio(resources: fcpxml.root.resources))
+
+        #expect(clip.fcpCarriesAudio(resources: fcpxml.root.resources))
     }
-    
-    func testFcpCarriesAudioTrueWhenReferencedAssetHasAudio() throws {
-        let fcpxml = try loadFCPXMLSample(named: "DisabledClips")
-        let disabledClip = try XCTUnwrap(
+
+    @Test("fcpCarriesAudio true when referenced asset has audio")
+    func fcpCarriesAudioTrueWhenReferencedAssetHasAudio() throws {
+        let fcpxml = try requireFCPXMLSample(named: "DisabledClips")
+        let disabledClip = try #require(
             firstDescendantElement(
                 in: fcpxml.root.element,
                 named: "asset-clip",
                 where: { $0.fcpGetEnabled(default: true) == false }
             )
         )
-        
-        XCTAssertTrue(disabledClip.fcpCarriesAudio(resources: fcpxml.root.resources))
+
+        #expect(disabledClip.fcpCarriesAudio(resources: fcpxml.root.resources))
     }
-    
-    func testFcpCarriesAudioFalseForVideoOnlyAsset() throws {
+
+    @Test("fcpCarriesAudio false for video-only asset")
+    func fcpCarriesAudioFalseForVideoOnlyAsset() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -87,15 +92,17 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let clip = try XCTUnwrap(
+
+        let clip = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "asset-clip")
         )
-        
-        XCTAssertFalse(clip.fcpCarriesAudio(resources: fcpxml.root.resources))
+
+        let carriesAudio = clip.fcpCarriesAudio(resources: fcpxml.root.resources)
+        #expect(!carriesAudio)
     }
-    
-    func testFcpCarriesAudioTrueForSyncClipWithNestedDialogueAudio() throws {
+
+    @Test("fcpCarriesAudio true for sync-clip with nested dialogue audio")
+    func fcpCarriesAudioTrueForSyncClipWithNestedDialogueAudio() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -124,15 +131,16 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let syncClip = try XCTUnwrap(
+
+        let syncClip = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "sync-clip")
         )
-        
-        XCTAssertTrue(syncClip.fcpCarriesAudio(resources: fcpxml.root.resources))
+
+        #expect(syncClip.fcpCarriesAudio(resources: fcpxml.root.resources))
     }
-    
-    func testFcpWorkbookClipNameAppendsShortMulticamAngle() throws {
+
+    @Test("fcpWorkbookClipName appends short multicam angle")
+    func fcpWorkbookClipNameAppendsShortMulticamAngle() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -163,15 +171,16 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let mcClip = try XCTUnwrap(
+
+        let mcClip = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "mc-clip")
         )
-        
-        XCTAssertEqual(mcClip.fcpWorkbookClipName(resources: fcpxml.root.resources), "10-1-3 Cam A")
+
+        #expect(mcClip.fcpWorkbookClipName(resources: fcpxml.root.resources) == "10-1-3 Cam A")
     }
-    
-    func testFcpWorkbookClipNameUsesFullAngleNameWhenAngleIncludesShotID() throws {
+
+    @Test("fcpWorkbookClipName uses full angle name when angle includes shot ID")
+    func fcpWorkbookClipNameUsesFullAngleNameWhenAngleIncludesShotID() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -202,15 +211,16 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let mcClip = try XCTUnwrap(
+
+        let mcClip = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "mc-clip")
         )
-        
-        XCTAssertEqual(mcClip.fcpWorkbookClipName(resources: fcpxml.root.resources), "5A-4-2 Cam B")
+
+        #expect(mcClip.fcpWorkbookClipName(resources: fcpxml.root.resources) == "5A-4-2 Cam B")
     }
-    
-    func testFcpWorkbookClipNameUsesInteriorAngleTimelineName() throws {
+
+    @Test("fcpWorkbookClipName uses interior angle timeline name")
+    func fcpWorkbookClipNameUsesInteriorAngleTimelineName() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -243,18 +253,19 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let mcClip = try XCTUnwrap(
+
+        let mcClip = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "mc-clip")
         )
-        
-        XCTAssertEqual(
-            mcClip.fcpWorkbookClipName(resources: fcpxml.root.resources),
-            "13pt 2of2-1-4 MOS Cam A"
+
+        #expect(
+            mcClip.fcpWorkbookClipName(resources: fcpxml.root.resources)
+                == "13pt 2of2-1-4 MOS Cam A"
         )
     }
-    
-    func testFcpWorkbookClipNamePrefersVideoOrAudioAngleByRequest() throws {
+
+    @Test("fcpWorkbookClipName prefers video or audio angle by request")
+    func fcpWorkbookClipNamePrefersVideoOrAudioAngleByRequest() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -289,22 +300,23 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let mcClip = try XCTUnwrap(
+
+        let mcClip = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "mc-clip")
         )
-        
-        XCTAssertEqual(
-            mcClip.fcpWorkbookClipName(resources: fcpxml.root.resources),
-            "1C-2-1 Cam C"
+
+        #expect(
+            mcClip.fcpWorkbookClipName(resources: fcpxml.root.resources)
+                == "1C-2-1 Cam C"
         )
-        XCTAssertEqual(
-            mcClip.fcpWorkbookClipName(resources: fcpxml.root.resources, preferAudioAngle: true),
-            "1C-2-1 Cam B"
+        #expect(
+            mcClip.fcpWorkbookClipName(resources: fcpxml.root.resources, preferAudioAngle: true)
+                == "1C-2-1 Cam B"
         )
     }
-    
-    func testFcpScanlineVideoInventoryRoleLabelForScanlineOverlay() throws {
+
+    @Test("fcpScanlineVideoInventoryRoleLabel for scanline overlay")
+    func fcpScanlineVideoInventoryRoleLabelForScanlineOverlay() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -326,18 +338,19 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let overlay = try XCTUnwrap(
+
+        let overlay = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "asset-clip")
         )
-        
-        XCTAssertEqual(
-            overlay.fcpScanlineVideoInventoryRoleLabel(),
-            "Vfx Scanline Di Final"
+
+        #expect(
+            overlay.fcpScanlineVideoInventoryRoleLabel()
+                == "Vfx Scanline Di Final"
         )
     }
-    
-    func testFcpIsExcludedFromRoleInventoryForDisabledRefClip() throws {
+
+    @Test("fcpIsExcludedFromRoleInventory for disabled ref-clip")
+    func fcpIsExcludedFromRoleInventoryForDisabledRefClip() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -365,15 +378,16 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let refClip = try XCTUnwrap(
+
+        let refClip = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "ref-clip")
         )
-        
-        XCTAssertTrue(refClip.fcpIsExcludedFromRoleInventory())
+
+        #expect(refClip.fcpIsExcludedFromRoleInventory())
     }
-    
-    func testConnectedDisabledRefClipIsNotExcludedFromRoleInventory() throws {
+
+    @Test("Connected disabled ref-clip is not excluded from role inventory")
+    func connectedDisabledRefClipIsNotExcludedFromRoleInventory() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -403,16 +417,18 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let refClip = try XCTUnwrap(
+
+        let refClip = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "ref-clip")
         )
-        
-        XCTAssertFalse(refClip.fcpIsExcludedFromRoleInventory())
-        XCTAssertTrue(refClip.fcpIsExcludedFromRoleInventoryAudio())
+
+        let isExcluded = refClip.fcpIsExcludedFromRoleInventory()
+        #expect(!isExcluded)
+        #expect(refClip.fcpIsExcludedFromRoleInventoryAudio())
     }
-    
-    func testFcpIsNestedConnectedInventoryHostTrueForAssetClipOnNegativeLaneInsideSyncClip() throws {
+
+    @Test("fcpIsNestedConnectedInventoryHost true for asset-clip on negative lane inside sync-clip")
+    func fcpIsNestedConnectedInventoryHostTrueForAssetClipOnNegativeLaneInsideSyncClip() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -436,15 +452,16 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let nestedClip = try XCTUnwrap(
+
+        let nestedClip = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "asset-clip")
         )
-        
-        XCTAssertTrue(nestedClip.fcpIsNestedConnectedInventoryHost())
+
+        #expect(nestedClip.fcpIsNestedConnectedInventoryHost())
     }
-    
-    func testFcpCarriesVideoFalseForAudioOnlyClip() throws {
+
+    @Test("fcpCarriesVideo false for audio-only clip")
+    func fcpCarriesVideoFalseForAudioOnlyClip() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -470,15 +487,17 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let audioClip = try XCTUnwrap(
+
+        let audioClip = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "clip")
         )
-        
-        XCTAssertFalse(audioClip.fcpCarriesVideo(resources: fcpxml.root.resources))
+
+        let carriesVideo = audioClip.fcpCarriesVideo(resources: fcpxml.root.resources)
+        #expect(!carriesVideo)
     }
-    
-    func testFcpUsesGenericVideoInventoryLabelForConnectedAssetClipWithoutVideoRole() throws {
+
+    @Test("fcpUsesGenericVideoInventoryLabel for connected asset-clip without video role")
+    func fcpUsesGenericVideoInventoryLabelForConnectedAssetClipWithoutVideoRole() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -503,18 +522,19 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let hostClip = try XCTUnwrap(
+
+        let hostClip = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "clip")
         )
-        let overlay = try XCTUnwrap(
+        let overlay = try #require(
             hostClip.childElements.first { $0.name == "asset-clip" && ($0.fcpLane ?? 0) == 1 }
         )
-        
-        XCTAssertTrue(overlay.fcpUsesGenericVideoInventoryLabel())
+
+        #expect(overlay.fcpUsesGenericVideoInventoryLabel())
     }
-    
-    func testFcpIsNestedConnectedInventoryHostTrueForAudioOnlyClipOnNegativeLaneInsideSyncClip() throws {
+
+    @Test("fcpIsNestedConnectedInventoryHost true for audio-only clip on negative lane inside sync-clip")
+    func fcpIsNestedConnectedInventoryHostTrueForAudioOnlyClipOnNegativeLaneInsideSyncClip() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -540,15 +560,16 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let nestedClip = try XCTUnwrap(
+
+        let nestedClip = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "clip")
         )
-        
-        XCTAssertTrue(nestedClip.fcpIsNestedConnectedInventoryHost())
+
+        #expect(nestedClip.fcpIsNestedConnectedInventoryHost())
     }
-    
-    func testFcpIsNestedConnectedInventoryHostFalseForVideoClipOnNegativeLaneInsideSyncClip() throws {
+
+    @Test("fcpIsNestedConnectedInventoryHost false for video clip on negative lane inside sync-clip")
+    func fcpIsNestedConnectedInventoryHostFalseForVideoClipOnNegativeLaneInsideSyncClip() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -574,15 +595,17 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let nestedClip = try XCTUnwrap(
+
+        let nestedClip = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "clip")
         )
-        
-        XCTAssertFalse(nestedClip.fcpIsNestedConnectedInventoryHost())
+
+        let isNestedHost = nestedClip.fcpIsNestedConnectedInventoryHost()
+        #expect(!isNestedHost)
     }
-    
-    func testFcpIsNestedConnectedInventoryHostFalseForConnectedSyncClipOnSpine() throws {
+
+    @Test("fcpIsNestedConnectedInventoryHost false for connected sync-clip on spine")
+    func fcpIsNestedConnectedInventoryHostFalseForConnectedSyncClipOnSpine() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -606,15 +629,17 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let connectedSync = try XCTUnwrap(
+
+        let connectedSync = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "sync-clip")
         )
-        
-        XCTAssertFalse(connectedSync.fcpIsNestedConnectedInventoryHost())
+
+        let isNestedHost = connectedSync.fcpIsNestedConnectedInventoryHost()
+        #expect(!isNestedHost)
     }
-    
-    func testFcpIsNestedConnectedInventoryHostFalseForAudioOnlyClipWithChannelSources() throws {
+
+    @Test("fcpIsNestedConnectedInventoryHost false for audio-only clip with channel sources")
+    func fcpIsNestedConnectedInventoryHostFalseForAudioOnlyClipWithChannelSources() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -641,12 +666,13 @@ final class FCPXMLClipParsingCarriesAudioTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let nestedClip = try XCTUnwrap(
+
+        let nestedClip = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "clip")
         )
-        
-        XCTAssertTrue(nestedClip.fcpHasActiveInventoryAudioChannelSources())
-        XCTAssertFalse(nestedClip.fcpIsNestedConnectedInventoryHost())
+
+        #expect(nestedClip.fcpHasActiveInventoryAudioChannelSources())
+        let isNestedHost = nestedClip.fcpIsNestedConnectedInventoryHost()
+        #expect(!isNestedHost)
     }
 }

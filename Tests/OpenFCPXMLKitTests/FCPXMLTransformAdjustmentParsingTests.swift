@@ -8,13 +8,15 @@
 //	Unit tests for parsing adjust-transform XML into TransformAdjustment.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-final class FCPXMLTransformAdjustmentParsingTests: XCTestCase {
+@Suite("Transform adjustment parsing")
+struct FCPXMLTransformAdjustmentParsingTests {
     private typealias TransformAdjustment = FinalCutPro.FCPXML.TransformAdjustment
-    
-    func testTransformAdjustmentFromAdjustElementParsesAllAttributes() {
+
+    @Test("TransformAdjustment from adjust element parses all attributes")
+    func transformAdjustmentFromAdjustElementParsesAllAttributes() {
         let element = makeAdjustTransformElement(
             position: "100 200",
             scale: "1.5 1.5",
@@ -22,32 +24,35 @@ final class FCPXMLTransformAdjustmentParsingTests: XCTestCase {
             anchor: "50 50",
             enabled: "0"
         )
-        
+
         let adjustment = TransformAdjustment(from: element)
-        
-        XCTAssertEqual(adjustment.position.x, 100)
-        XCTAssertEqual(adjustment.position.y, 200)
-        XCTAssertEqual(adjustment.scale.x, 1.5)
-        XCTAssertEqual(adjustment.scale.y, 1.5)
-        XCTAssertEqual(adjustment.rotation, 45)
-        XCTAssertEqual(adjustment.anchor.x, 50)
-        XCTAssertEqual(adjustment.anchor.y, 50)
-        XCTAssertFalse(adjustment.isEnabled)
+
+        #expect(adjustment.position.x == 100)
+        #expect(adjustment.position.y == 200)
+        #expect(adjustment.scale.x == 1.5)
+        #expect(adjustment.scale.y == 1.5)
+        #expect(adjustment.rotation == 45)
+        #expect(adjustment.anchor.x == 50)
+        #expect(adjustment.anchor.y == 50)
+        let isEnabled = adjustment.isEnabled
+        #expect(!isEnabled)
     }
-    
-    func testTransformAdjustmentFromAdjustElementUsesDefaultsForMissingAttributes() {
+
+    @Test("TransformAdjustment from adjust element uses defaults for missing attributes")
+    func transformAdjustmentFromAdjustElementUsesDefaultsForMissingAttributes() {
         let element = makeAdjustTransformElement()
-        
+
         let adjustment = TransformAdjustment(from: element)
-        
-        XCTAssertEqual(adjustment.position, .zero)
-        XCTAssertEqual(adjustment.scale, FinalCutPro.FCPXML.Point(x: 1, y: 1))
-        XCTAssertEqual(adjustment.rotation, 0)
-        XCTAssertEqual(adjustment.anchor, .zero)
-        XCTAssertTrue(adjustment.isEnabled)
+
+        #expect(adjustment.position == .zero)
+        #expect(adjustment.scale == FinalCutPro.FCPXML.Point(x: 1, y: 1))
+        #expect(adjustment.rotation == 0)
+        #expect(adjustment.anchor == .zero)
+        #expect(adjustment.isEnabled)
     }
-    
-    func testClipTransformAdjustmentGetterMatchesFromInitializer() throws {
+
+    @Test("Clip transformAdjustment getter matches from initializer")
+    func clipTransformAdjustmentGetterMatchesFromInitializer() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -70,35 +75,38 @@ final class FCPXMLTransformAdjustmentParsingTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let clipElement = try XCTUnwrap(
+
+        let clipElement = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "clip")
         )
-        let transformElement = try XCTUnwrap(
+        let transformElement = try #require(
             clipElement.firstChildElement(named: "adjust-transform")
         )
         let parsed = TransformAdjustment(from: transformElement)
-        let clip = try XCTUnwrap(clipElement.fcpAsClip)
-        
-        XCTAssertEqual(clip.transformAdjustment, parsed)
+        let clip = try #require(clipElement.fcpAsClip)
+
+        #expect(clip.transformAdjustment == parsed)
     }
-    
-    func testPhotoshopSampleParsesNonDefaultTransformPosition() throws {
-        let fcpxml = try loadFCPXMLSample(named: "PhotoshopSample1")
-        
+
+    @Test("Photoshop sample parses non-default transform position")
+    func photoshopSampleParsesNonDefaultTransformPosition() throws {
+        let fcpxml = try requireFCPXMLSample(named: "PhotoshopSample1")
+
         guard let transformElement = firstDescendantElement(
             in: fcpxml.root.element,
             named: "adjust-transform"
         ) else {
-            throw XCTSkip("PhotoshopSample1 has no adjust-transform")
+            try Test.cancel("PhotoshopSample1 has no adjust-transform")
         }
-        
+
         let adjustment = TransformAdjustment(from: transformElement)
-        
-        XCTAssertEqual(adjustment.position.x, -25.463, accuracy: 0.001)
-        XCTAssertEqual(adjustment.position.y, 4.81481, accuracy: 0.001)
+
+        let xMatch = abs(adjustment.position.x - (-25.463)) < 0.001
+        let yMatch = abs(adjustment.position.y - 4.81481) < 0.001
+        #expect(xMatch)
+        #expect(yMatch)
     }
-    
+
     private func makeAdjustTransformElement(
         position: String? = nil,
         scale: String? = nil,
@@ -107,13 +115,13 @@ final class FCPXMLTransformAdjustmentParsingTests: XCTestCase {
         enabled: String? = nil
     ) -> any OFKXMLElement {
         let element = OFKXMLDefaultFactory().makeElement(name: "adjust-transform")
-        
+
         if let position { element.addAttribute(name: "position", value: position) }
         if let scale { element.addAttribute(name: "scale", value: scale) }
         if let rotation { element.addAttribute(name: "rotation", value: rotation) }
         if let anchor { element.addAttribute(name: "anchor", value: anchor) }
         if let enabled { element.addAttribute(name: "enabled", value: enabled) }
-        
+
         return element
     }
 }

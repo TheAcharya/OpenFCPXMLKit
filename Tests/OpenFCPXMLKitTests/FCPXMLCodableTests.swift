@@ -8,15 +8,17 @@
 //	Tests for FCPXML Codable support (JSON/PLIST conversion).
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLCodableTests: XCTestCase {
-    
+@Suite("FCPXML Codable")
+struct FCPXMLCodableTests {
+
     // MARK: - Basic Codable Tests
-    
-    func testFCPXMLCodableEncodingDecoding() throws {
+
+    @Test("FCPXML Codable encoding/decoding")
+    func fcpxmlCodableEncodingDecoding() throws {
         // Create a simple FCPXML document
         let xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -26,48 +28,52 @@ final class FCPXMLCodableTests: XCTestCase {
             </resources>
         </fcpxml>
         """
-        
-        let data = xmlString.data(using: .utf8)!
+
+        let data = try #require(xmlString.data(using: .utf8))
         let original = try FinalCutPro.FCPXML(fileContent: data)
-        
+
         // Encode to JSON
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted]
         let jsonData = try encoder.encode(original)
-        
+
         // Decode from JSON
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(FinalCutPro.FCPXML.self, from: jsonData)
-        
+
         // Verify the decoded document matches
-        XCTAssertEqual(original.xml.rootElement()?.name, decoded.xml.rootElement()?.name)
-        XCTAssertEqual(original.xml.rootElement()?.stringValue(forAttributeNamed: "version"),
-                      decoded.xml.rootElement()?.stringValue(forAttributeNamed: "version"))
+        #expect(original.xml.rootElement()?.name == decoded.xml.rootElement()?.name)
+        #expect(
+            original.xml.rootElement()?.stringValue(forAttributeNamed: "version")
+                == decoded.xml.rootElement()?.stringValue(forAttributeNamed: "version")
+        )
     }
-    
-    func testRootCodableEncodingDecoding() throws {
+
+    @Test("Root Codable encoding/decoding")
+    func rootCodableEncodingDecoding() throws {
         // Create a simple root element
         let root = FinalCutPro.FCPXML.Root()
         root.element.addAttribute(name: "version", value: "1.9")
         root.resources = FoundationXMLFactory().makeElement(name: "resources")
-        
+
         // Encode to JSON
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted]
         let jsonData = try encoder.encode(root)
-        
+
         // Decode from JSON
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(FinalCutPro.FCPXML.Root.self, from: jsonData)
-        
+
         // Verify the decoded root matches
-        XCTAssertEqual(root.element.name, decoded.element.name)
-        XCTAssertEqual(root.version, decoded.version)
+        #expect(root.element.name == decoded.element.name)
+        #expect(root.version == decoded.version)
     }
-    
+
     // MARK: - JSON Conversion Tests
-    
-    func testJSONStringConversion() throws {
+
+    @Test("JSON string conversion")
+    func jsonStringConversion() throws {
         let xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
         <fcpxml version="1.9">
@@ -76,23 +82,24 @@ final class FCPXMLCodableTests: XCTestCase {
             </resources>
         </fcpxml>
         """
-        
-        let data = xmlString.data(using: .utf8)!
+
+        let data = try #require(xmlString.data(using: .utf8))
         let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
-        
+
         // Convert to JSON string
         let jsonString = try fcpxml.jsonString()
-        
+
         // Verify it's valid JSON
-        XCTAssertFalse(jsonString.isEmpty)
-        XCTAssertTrue(jsonString.contains("xmlString"))
-        
+        #expect(!jsonString.isEmpty)
+        #expect(jsonString.contains("xmlString"))
+
         // Convert back
         let decoded = try FinalCutPro.FCPXML.from(jsonString: jsonString)
-        XCTAssertEqual(fcpxml.xml.rootElement()?.name, decoded.xml.rootElement()?.name)
+        #expect(fcpxml.xml.rootElement()?.name == decoded.xml.rootElement()?.name)
     }
-    
-    func testJSONDataConversion() throws {
+
+    @Test("JSON data conversion")
+    func jsonDataConversion() throws {
         let xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
         <fcpxml version="1.9">
@@ -101,27 +108,28 @@ final class FCPXMLCodableTests: XCTestCase {
             </resources>
         </fcpxml>
         """
-        
-        let data = xmlString.data(using: .utf8)!
+
+        let data = try #require(xmlString.data(using: .utf8))
         let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
-        
+
         // Convert to JSON data
         let jsonData = try fcpxml.jsonData()
-        
+
         // Verify it's valid JSON
-        XCTAssertFalse(jsonData.isEmpty)
-        
+        #expect(!jsonData.isEmpty)
+
         // Parse JSON to verify structure
         let jsonObject = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any]
-        XCTAssertNotNil(jsonObject)
-        XCTAssertNotNil(jsonObject?["xmlString"] as? String)
-        
+        #expect(jsonObject != nil)
+        #expect(jsonObject?["xmlString"] as? String != nil)
+
         // Convert back
         let decoded = try FinalCutPro.FCPXML.from(jsonData: jsonData)
-        XCTAssertEqual(fcpxml.xml.rootElement()?.name, decoded.xml.rootElement()?.name)
+        #expect(fcpxml.xml.rootElement()?.name == decoded.xml.rootElement()?.name)
     }
-    
-    func testJSONRoundTrip() throws {
+
+    @Test("JSON round-trip preserves structure")
+    func jsonRoundTrip() throws {
         let xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
         <fcpxml version="1.9">
@@ -141,32 +149,35 @@ final class FCPXMLCodableTests: XCTestCase {
             </library>
         </fcpxml>
         """
-        
-        let data = xmlString.data(using: .utf8)!
+
+        let data = try #require(xmlString.data(using: .utf8))
         let original = try FinalCutPro.FCPXML(fileContent: data)
-        
+
         // Round trip through JSON
         let jsonData = try original.jsonData()
         let decoded = try FinalCutPro.FCPXML.from(jsonData: jsonData)
-        
+
         // Verify structure is preserved
         let originalRoot = original.xml.rootElement()
         let decodedRoot = decoded.xml.rootElement()
-        
-        XCTAssertEqual(originalRoot?.name, decodedRoot?.name)
-        XCTAssertEqual(originalRoot?.stringValue(forAttributeNamed: "version"),
-                      decodedRoot?.stringValue(forAttributeNamed: "version"))
-        
+
+        #expect(originalRoot?.name == decodedRoot?.name)
+        #expect(
+            originalRoot?.stringValue(forAttributeNamed: "version")
+                == decodedRoot?.stringValue(forAttributeNamed: "version")
+        )
+
         // Verify resources exist
         let originalResources = originalRoot?.firstChildElement(named: "resources")
         let decodedResources = decodedRoot?.firstChildElement(named: "resources")
-        XCTAssertNotNil(originalResources)
-        XCTAssertNotNil(decodedResources)
+        #expect(originalResources != nil)
+        #expect(decodedResources != nil)
     }
-    
+
     // MARK: - PLIST Conversion Tests
-    
-    func testPlistStringConversion() throws {
+
+    @Test("PLIST string conversion")
+    func plistStringConversion() throws {
         let xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
         <fcpxml version="1.9">
@@ -175,23 +186,25 @@ final class FCPXMLCodableTests: XCTestCase {
             </resources>
         </fcpxml>
         """
-        
-        let data = xmlString.data(using: .utf8)!
+
+        let data = try #require(xmlString.data(using: .utf8))
         let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
-        
+
         // Convert to PLIST string
         let plistString = try fcpxml.plistString()
-        
+
         // Verify it's valid PLIST XML
-        XCTAssertFalse(plistString.isEmpty)
-        XCTAssertTrue(plistString.contains("<?xml") || plistString.contains("<plist"))
-        
+        #expect(!plistString.isEmpty)
+        let looksLikePlist = plistString.contains("<?xml") || plistString.contains("<plist")
+        #expect(looksLikePlist)
+
         // Convert back
         let decoded = try FinalCutPro.FCPXML.from(plistString: plistString)
-        XCTAssertEqual(fcpxml.xml.rootElement()?.name, decoded.xml.rootElement()?.name)
+        #expect(fcpxml.xml.rootElement()?.name == decoded.xml.rootElement()?.name)
     }
-    
-    func testPlistDataConversion() throws {
+
+    @Test("PLIST data conversion")
+    func plistDataConversion() throws {
         let xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
         <fcpxml version="1.9">
@@ -200,27 +213,28 @@ final class FCPXMLCodableTests: XCTestCase {
             </resources>
         </fcpxml>
         """
-        
-        let data = xmlString.data(using: .utf8)!
+
+        let data = try #require(xmlString.data(using: .utf8))
         let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
-        
+
         // Convert to PLIST data
         let plistData = try fcpxml.plistData()
-        
+
         // Verify it's valid PLIST
-        XCTAssertFalse(plistData.isEmpty)
-        
+        #expect(!plistData.isEmpty)
+
         // Parse PLIST to verify structure
         let plistObject = try PropertyListSerialization.propertyList(from: plistData, format: nil) as? [String: Any]
-        XCTAssertNotNil(plistObject)
-        XCTAssertNotNil(plistObject?["xmlString"] as? String)
-        
+        #expect(plistObject != nil)
+        #expect(plistObject?["xmlString"] as? String != nil)
+
         // Convert back
         let decoded = try FinalCutPro.FCPXML.from(plistData: plistData)
-        XCTAssertEqual(fcpxml.xml.rootElement()?.name, decoded.xml.rootElement()?.name)
+        #expect(fcpxml.xml.rootElement()?.name == decoded.xml.rootElement()?.name)
     }
-    
-    func testPlistRoundTrip() throws {
+
+    @Test("PLIST round-trip preserves structure")
+    func plistRoundTrip() throws {
         let xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
         <fcpxml version="1.9">
@@ -240,160 +254,175 @@ final class FCPXMLCodableTests: XCTestCase {
             </library>
         </fcpxml>
         """
-        
-        let data = xmlString.data(using: .utf8)!
+
+        let data = try #require(xmlString.data(using: .utf8))
         let original = try FinalCutPro.FCPXML(fileContent: data)
-        
+
         // Round trip through PLIST
         let plistData = try original.plistData()
         let decoded = try FinalCutPro.FCPXML.from(plistData: plistData)
-        
+
         // Verify structure is preserved
         let originalRoot = original.xml.rootElement()
         let decodedRoot = decoded.xml.rootElement()
-        
-        XCTAssertEqual(originalRoot?.name, decodedRoot?.name)
-        XCTAssertEqual(originalRoot?.stringValue(forAttributeNamed: "version"),
-                      decodedRoot?.stringValue(forAttributeNamed: "version"))
-        
+
+        #expect(originalRoot?.name == decodedRoot?.name)
+        #expect(
+            originalRoot?.stringValue(forAttributeNamed: "version")
+                == decodedRoot?.stringValue(forAttributeNamed: "version")
+        )
+
         // Verify resources exist
         let originalResources = originalRoot?.firstChildElement(named: "resources")
         let decodedResources = decodedRoot?.firstChildElement(named: "resources")
-        XCTAssertNotNil(originalResources)
-        XCTAssertNotNil(decodedResources)
+        #expect(originalResources != nil)
+        #expect(decodedResources != nil)
     }
-    
+
     // MARK: - Converter Utility Tests
-    
-    func testFCPXMLCodableConverterJSONString() throws {
+
+    @Test("FCPXMLCodableConverter JSON string")
+    func fcpxmlCodableConverterJSONString() throws {
         let xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
         <fcpxml version="1.9">
             <resources/>
         </fcpxml>
         """
-        
-        let data = xmlString.data(using: .utf8)!
+
+        let data = try #require(xmlString.data(using: .utf8))
         let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
-        
+
         let jsonString = try FCPXMLCodableConverter.jsonString(from: fcpxml)
-        XCTAssertFalse(jsonString.isEmpty)
-        
+        #expect(!jsonString.isEmpty)
+
         let decoded = try FCPXMLCodableConverter.fcpxml(from: jsonString)
-        XCTAssertEqual(fcpxml.xml.rootElement()?.name, decoded.xml.rootElement()?.name)
+        #expect(fcpxml.xml.rootElement()?.name == decoded.xml.rootElement()?.name)
     }
-    
-    func testFCPXMLCodableConverterJSONData() throws {
+
+    @Test("FCPXMLCodableConverter JSON data")
+    func fcpxmlCodableConverterJSONData() throws {
         let xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
         <fcpxml version="1.9">
             <resources/>
         </fcpxml>
         """
-        
-        let data = xmlString.data(using: .utf8)!
+
+        let data = try #require(xmlString.data(using: .utf8))
         let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
-        
+
         let jsonData = try FCPXMLCodableConverter.jsonData(from: fcpxml)
-        XCTAssertFalse(jsonData.isEmpty)
-        
+        #expect(!jsonData.isEmpty)
+
         let decoded = try FCPXMLCodableConverter.fcpxml(from: jsonData)
-        XCTAssertEqual(fcpxml.xml.rootElement()?.name, decoded.xml.rootElement()?.name)
+        #expect(fcpxml.xml.rootElement()?.name == decoded.xml.rootElement()?.name)
     }
-    
-    func testFCPXMLCodableConverterPlistString() throws {
+
+    @Test("FCPXMLCodableConverter PLIST string")
+    func fcpxmlCodableConverterPlistString() throws {
         let xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
         <fcpxml version="1.9">
             <resources/>
         </fcpxml>
         """
-        
-        let data = xmlString.data(using: .utf8)!
+
+        let data = try #require(xmlString.data(using: .utf8))
         let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
-        
+
         let plistString = try FCPXMLCodableConverter.plistString(from: fcpxml)
-        XCTAssertFalse(plistString.isEmpty)
-        
+        #expect(!plistString.isEmpty)
+
         let decoded = try FCPXMLCodableConverter.fcpxml(fromPlistString: plistString)
-        XCTAssertEqual(fcpxml.xml.rootElement()?.name, decoded.xml.rootElement()?.name)
+        #expect(fcpxml.xml.rootElement()?.name == decoded.xml.rootElement()?.name)
     }
-    
-    func testFCPXMLCodableConverterPlistData() throws {
+
+    @Test("FCPXMLCodableConverter PLIST data")
+    func fcpxmlCodableConverterPlistData() throws {
         let xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
         <fcpxml version="1.9">
             <resources/>
         </fcpxml>
         """
-        
-        let data = xmlString.data(using: .utf8)!
+
+        let data = try #require(xmlString.data(using: .utf8))
         let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
-        
+
         let plistData = try FCPXMLCodableConverter.plistData(from: fcpxml)
-        XCTAssertFalse(plistData.isEmpty)
-        
+        #expect(!plistData.isEmpty)
+
         let decoded = try FCPXMLCodableConverter.fcpxml(fromPlistData: plistData)
-        XCTAssertEqual(fcpxml.xml.rootElement()?.name, decoded.xml.rootElement()?.name)
+        #expect(fcpxml.xml.rootElement()?.name == decoded.xml.rootElement()?.name)
     }
-    
+
     // MARK: - Error Handling Tests
-    
-    func testInvalidJSONDecoding() {
+
+    @Test("Invalid JSON decoding throws")
+    func invalidJSONDecoding() throws {
         let invalidJSON = "{ invalid json }"
-        
-        XCTAssertThrowsError(try FinalCutPro.FCPXML.from(jsonString: invalidJSON)) { error in
-            XCTAssertTrue(error is DecodingError || error is FCPXMLCodableError)
+
+        do {
+            _ = try FinalCutPro.FCPXML.from(jsonString: invalidJSON)
+            Issue.record("Expected decoding to throw")
+        } catch {
+            let isExpectedType = error is DecodingError || error is FCPXMLCodableError
+            #expect(isExpectedType)
         }
     }
-    
-    func testInvalidPlistDecoding() {
+
+    @Test("Invalid PLIST decoding throws")
+    func invalidPlistDecoding() throws {
         let invalidPlist = "<?xml version=\"1.0\"?><invalid/>"
-        
-        XCTAssertThrowsError(try FinalCutPro.FCPXML.from(plistString: invalidPlist)) { error in
-            XCTAssertTrue(error is DecodingError || error is FCPXMLCodableError)
+
+        do {
+            _ = try FinalCutPro.FCPXML.from(plistString: invalidPlist)
+            Issue.record("Expected decoding to throw")
+        } catch {
+            let isExpectedType = error is DecodingError || error is FCPXMLCodableError
+            #expect(isExpectedType)
         }
     }
-    
-    func testInvalidXMLStringInJSON() {
+
+    @Test("Invalid XML string in JSON throws")
+    func invalidXMLStringInJSON() throws {
         // Create JSON with invalid XML string
         let invalidJSON = """
         {
             "xmlString": "not valid xml"
         }
         """
-        
-        XCTAssertThrowsError(try FinalCutPro.FCPXML.from(jsonString: invalidJSON)) { error in
-            XCTAssertTrue(error is FCPXMLCodableError || error is DecodingError)
-        }
-    }
-    
-    // MARK: - Integration Tests with Real Samples
-    
-    func testCodableWithFCPXMLSample() throws {
-        // Try to load a real FCPXML sample if available
-        let sampleName = "Structure"
-        
+
         do {
-            let fcpxml = try loadFCPXMLSample(named: sampleName)
-            
-            // Convert to JSON
-            let jsonData = try fcpxml.jsonData()
-            XCTAssertFalse(jsonData.isEmpty)
-            
-            // Convert back
-            let decoded = try FinalCutPro.FCPXML.from(jsonData: jsonData)
-            
-            // Verify basic structure
-            XCTAssertEqual(fcpxml.xml.rootElement()?.name, decoded.xml.rootElement()?.name)
-            XCTAssertEqual(fcpxml.version, decoded.version)
+            _ = try FinalCutPro.FCPXML.from(jsonString: invalidJSON)
+            Issue.record("Expected decoding to throw")
         } catch {
-            // Skip if sample not available
-            throw XCTSkip("Sample '\(sampleName)' not available: \(error)")
+            let isExpectedType = error is FCPXMLCodableError || error is DecodingError
+            #expect(isExpectedType)
         }
     }
-    
-    func testCodableWithImportOptions() throws {
+
+    // MARK: - Integration Tests with Real Samples
+
+    @Test("Codable with FCPXML Structure sample")
+    func codableWithFCPXMLSample() throws {
+        let fcpxml = try requireFCPXMLSample(named: "Structure")
+
+        // Convert to JSON
+        let jsonData = try fcpxml.jsonData()
+        #expect(!jsonData.isEmpty)
+
+        // Convert back
+        let decoded = try FinalCutPro.FCPXML.from(jsonData: jsonData)
+
+        // Verify basic structure
+        #expect(fcpxml.xml.rootElement()?.name == decoded.xml.rootElement()?.name)
+        #expect(fcpxml.version == decoded.version)
+    }
+
+    @Test("Codable with import options")
+    func codableWithImportOptions() throws {
         // Create FCPXML with import options
         let xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -405,30 +434,30 @@ final class FCPXMLCodableTests: XCTestCase {
             <resources/>
         </fcpxml>
         """
-        
-        let data = xmlString.data(using: .utf8)!
+
+        let data = try #require(xmlString.data(using: .utf8))
         let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
-        
+
         // Convert to JSON and back
         let jsonData = try fcpxml.jsonData()
         let decoded = try FinalCutPro.FCPXML.from(jsonData: jsonData)
-        
+
         // Verify import options are preserved
-        guard let originalRootElement = fcpxml.xml.rootElement(),
-              let decodedRootElement = decoded.xml.rootElement(),
-              let originalRoot = FinalCutPro.FCPXML.Root(element: originalRootElement),
-              let decodedRoot = FinalCutPro.FCPXML.Root(element: decodedRootElement) else {
-            XCTFail("Failed to create root elements")
-            return
-        }
-        
-        XCTAssertEqual(originalRoot.importOptions?.options.count,
-                      decodedRoot.importOptions?.options.count)
+        let originalRootElement = try #require(fcpxml.xml.rootElement())
+        let decodedRootElement = try #require(decoded.xml.rootElement())
+        let originalRoot = try #require(FinalCutPro.FCPXML.Root(element: originalRootElement))
+        let decodedRoot = try #require(FinalCutPro.FCPXML.Root(element: decodedRootElement))
+
+        #expect(
+            originalRoot.importOptions?.options.count
+                == decodedRoot.importOptions?.options.count
+        )
     }
-    
+
     // MARK: - Edge Cases
-    
-    func testEmptyFCPXMLDocument() throws {
+
+    @Test("Empty FCPXML document round-trip")
+    func emptyFCPXMLDocument() throws {
         // Create minimal valid FCPXML
         let xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -436,52 +465,54 @@ final class FCPXMLCodableTests: XCTestCase {
             <resources/>
         </fcpxml>
         """
-        
-        let data = xmlString.data(using: .utf8)!
+
+        let data = try #require(xmlString.data(using: .utf8))
         let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
-        
+
         // Should encode/decode successfully
         let jsonData = try fcpxml.jsonData()
         let decoded = try FinalCutPro.FCPXML.from(jsonData: jsonData)
-        
-        XCTAssertEqual(fcpxml.xml.rootElement()?.name, decoded.xml.rootElement()?.name)
+
+        #expect(fcpxml.xml.rootElement()?.name == decoded.xml.rootElement()?.name)
     }
-    
-    func testLargeFCPXMLDocument() throws {
+
+    @Test("Large FCPXML document round-trip")
+    func largeFCPXMLDocument() throws {
         // Create a larger FCPXML document
         var xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
         <fcpxml version="1.9">
             <resources>
         """
-        
+
         // Add multiple resources
         for i in 1...10 {
             xmlString += """
                 <format id="r\(i)" name="Format\(i)" frameDuration="1001/30000s" width="1920" height="1080"/>
             """
         }
-        
+
         xmlString += """
             </resources>
         </fcpxml>
         """
-        
-        let data = xmlString.data(using: .utf8)!
+
+        let data = try #require(xmlString.data(using: .utf8))
         let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
-        
+
         // Should encode/decode successfully
         let jsonData = try fcpxml.jsonData()
         let decoded = try FinalCutPro.FCPXML.from(jsonData: jsonData)
-        
+
         // Verify resources count
         let originalResources = fcpxml.xml.rootElement()?.firstChildElement(named: "resources")
         let decodedResources = decoded.xml.rootElement()?.firstChildElement(named: "resources")
-        
-        XCTAssertEqual(originalResources?.childElements.count, decodedResources?.childElements.count)
+
+        #expect(originalResources?.childElements.count == decodedResources?.childElements.count)
     }
-    
-    func testSpecialCharactersInXML() throws {
+
+    @Test("Special characters in XML are preserved")
+    func specialCharactersInXML() throws {
         // Create FCPXML with special characters
         let xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -491,25 +522,28 @@ final class FCPXMLCodableTests: XCTestCase {
             </resources>
         </fcpxml>
         """
-        
-        let data = xmlString.data(using: .utf8)!
+
+        let data = try #require(xmlString.data(using: .utf8))
         let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
-        
+
         // Should encode/decode successfully
         let jsonData = try fcpxml.jsonData()
         let decoded = try FinalCutPro.FCPXML.from(jsonData: jsonData)
-        
+
         // Verify special characters are preserved
         let originalFormat = fcpxml.xml.rootElement()?.firstChildElement(named: "resources")?.firstChildElement(named: "format")
         let decodedFormat = decoded.xml.rootElement()?.firstChildElement(named: "resources")?.firstChildElement(named: "format")
-        
-        XCTAssertEqual(originalFormat?.stringValue(forAttributeNamed: "name"),
-                      decodedFormat?.stringValue(forAttributeNamed: "name"))
+
+        #expect(
+            originalFormat?.stringValue(forAttributeNamed: "name")
+                == decodedFormat?.stringValue(forAttributeNamed: "name")
+        )
     }
-    
+
     // MARK: - Performance Tests
-    
-    func testCodablePerformance() throws {
+
+    @Test("Codable encode/decode completes")
+    func codablePerformance() throws {
         let xmlString = """
         <?xml version="1.0" encoding="UTF-8"?>
         <fcpxml version="1.9">
@@ -518,17 +552,12 @@ final class FCPXMLCodableTests: XCTestCase {
             </resources>
         </fcpxml>
         """
-        
-        let data = xmlString.data(using: .utf8)!
+
+        let data = try #require(xmlString.data(using: .utf8))
         let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
-        
-        measure {
-            do {
-                let jsonData = try fcpxml.jsonData()
-                _ = try FinalCutPro.FCPXML.from(jsonData: jsonData)
-            } catch {
-                XCTFail("Performance test failed: \(error)")
-            }
-        }
+
+        // XCTest `measure` has no Swift Testing equivalent; exercise the same round-trip.
+        let jsonData = try fcpxml.jsonData()
+        _ = try FinalCutPro.FCPXML.from(jsonData: jsonData)
     }
 }

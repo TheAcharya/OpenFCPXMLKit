@@ -142,7 +142,7 @@ OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 
 When `--report` is used without `--report-full` or section flags, the CLI exports role inventory only. Use `--report-full` for every optional sheet, or set individual `--report-*` section flags for a partial export (role inventory is always included). `--report-full` takes precedence when combined with section flags.
 
-Report building uses **Timeline Projection** once per timeline when inventory, markers, keywords, titles, transitions, effects, speed-change, media summary, or summary sections are enabled (Markers / Keywords / Titles / Transitions / Effects are Projection-first with Extraction fallback). See [20 — Timeline Projection](../../Documentation/Manual/20-Timeline-Projection.md).
+Report building uses **Timeline Projection** once per timeline when inventory, markers, keywords, titles, transitions, effects, speed-change, media summary, or summary sections are enabled (Markers / Keywords / Titles / Transitions / Effects are Projection-first with Extraction fallback). See [11 — Timeline Projection](../../Documentation/Manual/11-Timeline-Projection.md).
 
 Build progress follows **Projecting Timeline** (when Projection is needed), then **product / workbook order** (Selected Roles Inventory → Markers → Keywords → Titles & Generators → Transitions → Video & Audio Effects → Speed Change Effects → Summary → Media Summary), then **Saving Workbook**, and **Saving PDF** when `--create-pdf` is set. See [19 — Progress callbacks](../../Documentation/Manual/19-Reporting.md#progress-callbacks).
 
