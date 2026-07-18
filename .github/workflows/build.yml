@@ -51,12 +51,10 @@ jobs:
         set -o pipefail
         xcodebuild build -workspace ".swiftpm/xcode/package.xcworkspace" -scheme "$SCHEME" -destination "generic/platform=macOS,name=Any Mac" | xcbeautify --renderer github-actions
     - name: Unit Tests
-      # Avoid `xcodebuild | xcbeautify | awk`: a third pipe stage + huge Swift Testing
-      # compile output can fill buffers and stall the job with no new log lines.
-      # SPM `swift test` is the native Swift Testing path for this package.
-      run: |
-        set -o pipefail
-        swift test 2>&1 | xcbeautify --renderer github-actions
+      # Do not pipe through xcbeautify: Swift Testing emits a large compile
+      # diagnostic stream; piping it can stall the runner with no new log lines.
+      # Plain `swift test` is the reliable SPM / Swift Testing path for CI.
+      run: swift test
 
   # Strict concurrency: SWIFT_STRICT_CONCURRENCY=complete
   # (do not use OTHER_SWIFT_FLAGS here — it overrides per-target flags and

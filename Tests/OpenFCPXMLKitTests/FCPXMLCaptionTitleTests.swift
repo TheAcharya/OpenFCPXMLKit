@@ -255,7 +255,7 @@ struct FCPXMLCaptionTitleTests {
         #expect(!projects.isEmpty, "Expected at least one project")
 
         let project = try #require(projects.first)
-        let sequence = try #require(project.sequence)
+        let sequence = project.sequence
         let spine = sequence.spine
         let storyElements = Array(spine.storyElements)
 

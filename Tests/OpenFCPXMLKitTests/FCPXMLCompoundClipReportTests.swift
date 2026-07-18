@@ -34,7 +34,7 @@ struct FCPXMLCompoundClipReportTests {
         #expect(sources[0].displayName == Self.compoundClipName)
         #expect(sources[0].eventName == Self.eventName)
         #expect(sources[0].project == nil)
-        #expect(sources[0].sequence.spine != nil)
+        #expect(!Array(sources[0].sequence.spine.storyElements).isEmpty)
     }
 
     @Test("All report timeline sources uses project when compound is only on spine")

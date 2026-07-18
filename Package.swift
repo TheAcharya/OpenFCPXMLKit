@@ -65,13 +65,15 @@ let package = Package(
             exclude: ["README.md", "ExcelReportTest", "Submitted FCPXML"],
             sources: ["OpenFCPXMLKitTests"],
             resources: [.process("FCPXML Samples/FCPXML")]),
+        // ExcelReportTest READMEs are docs only (not test sources/resources).
         .testTarget(
             name: "ExcelReportTest",
             dependencies: [
                 "OpenFCPXMLKit",
                 .product(name: "XLKit", package: "XLKit"),
             ],
-            path: "Tests/ExcelReportTest"),
+            path: "Tests/ExcelReportTest",
+            exclude: ["README.md", "Output/README.md"]),
         // End-user CLI target
         .executableTarget(
             name: "OpenFCPXMLKitCLI",

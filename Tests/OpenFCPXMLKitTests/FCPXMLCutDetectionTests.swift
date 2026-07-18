@@ -202,7 +202,7 @@ struct FCPXMLCutDetectionTests {
 
         let project = try #require(projects.first)
 
-        let sequence = try #require(project.sequence)
+        let sequence = project.sequence
         let spine = sequence.spine
         let storyElements = Array(spine.storyElements)
         #expect(storyElements.count > 1, "CutSample should have multiple clips for cut detection")
