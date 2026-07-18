@@ -13,8 +13,12 @@ import Foundation
 extension FinalCutPro.FCPXML {
     /// One row in the Markers report sheet.
     ///
-    /// Column order for the Markers sheet:
+    /// Default column order:
     /// Marker Name, Type, Notes, Position, Clip Name, Role ▸ Subrole, Reel, Scene, Source Position.
+    ///
+    /// When ``MarkersReportSection/showsHiddenColumn`` is `true` (opt-in via
+    /// ``ReportOptions/includeMarkersOutsideClipBoundaries``), a trailing **Hidden** column is
+    /// appended (✓ = outside host media range; ✗ = inside).
     public struct MarkerReportRow: Sendable, Equatable {
         public var markerName: String
         public var type: MarkerReportType
@@ -25,6 +29,8 @@ extension FinalCutPro.FCPXML {
         public var reel: String
         public var scene: String
         public var sourcePosition: String
+        /// Outside host media range (hidden in FCP Tags/timeline). Used when the Hidden column is shown.
+        public var isHidden: Bool
         
         public init(
             markerName: String,
@@ -35,7 +41,8 @@ extension FinalCutPro.FCPXML {
             roleSubrole: String,
             reel: String = "",
             scene: String = "",
-            sourcePosition: String
+            sourcePosition: String,
+            isHidden: Bool = false
         ) {
             self.markerName = markerName
             self.type = type
@@ -46,15 +53,17 @@ extension FinalCutPro.FCPXML {
             self.reel = reel
             self.scene = scene
             self.sourcePosition = sourcePosition
+            self.isHidden = isHidden
         }
         
-        /// Column headers for the Markers sheet.
+        /// Column headers for the Markers sheet (no Hidden column).
         public static let columnHeaders: [String] = columnHeaders(timecodeFormat: .smpteFrames)
         
         public static func columnHeaders(
-            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames,
+            includeHiddenColumn: Bool = false
         ) -> [String] {
-            [
+            var headers = [
                 "Marker Name",
                 "Type",
                 "Notes",
@@ -65,11 +74,20 @@ extension FinalCutPro.FCPXML {
                 "Scene",
                 timecodeFormat.formattedColumnHeader("Source Position")
             ]
+            if includeHiddenColumn {
+                headers.append("Hidden")
+            }
+            return headers
         }
         
-        /// Values in ``columnHeaders`` order.
+        /// Values matching ``columnHeaders(timecodeFormat:includeHiddenColumn:)`` with Hidden omitted.
         public var columnValues: [String] {
-            [
+            columnValues(includeHiddenColumn: false)
+        }
+        
+        /// Values in header order, optionally including the Hidden checkmark column.
+        public func columnValues(includeHiddenColumn: Bool) -> [String] {
+            var values = [
                 markerName,
                 type.displayName,
                 notes,
@@ -80,6 +98,10 @@ extension FinalCutPro.FCPXML {
                 scene,
                 sourcePosition
             ]
+            if includeHiddenColumn {
+                values.append(ReportFormatting.enabledCheckmark(forEnabled: isHidden))
+            }
+            return values
         }
     }
     

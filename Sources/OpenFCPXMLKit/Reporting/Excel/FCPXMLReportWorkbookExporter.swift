@@ -168,7 +168,20 @@ enum FCPXMLReportWorkbookExporter {
             appendMediaSummary(mediaSummary, excludedColumns: excludedColumns, to: workbook)
         }
         
+        if report.protectSheets {
+            applySheetProtection(to: workbook)
+        }
+        
         return workbook
+    }
+    
+    /// Applies XLKit worksheet protection to every sheet (edit lock; no password).
+    ///
+    /// This discourages accidental edits. It is **not** workbook open-password encryption.
+    private static func applySheetProtection(to workbook: Workbook) {
+        for sheet in workbook.getSheets() {
+            sheet.protection = SheetProtection()
+        }
     }
     
     /// Minimum width for the cover sheet's header column, wider than the auto-fit estimate so the
@@ -203,10 +216,8 @@ enum FCPXMLReportWorkbookExporter {
         to workbook: Workbook
     ) {
         let filtered = filteredTabularSection(
-            headers: FinalCutPro.FCPXML.MarkerReportRow.columnHeaders(
-                timecodeFormat: timecodeFormat
-            ),
-            rows: markers.rows.map(\.columnValues),
+            headers: markers.columnHeaders(timecodeFormat: timecodeFormat),
+            rows: markers.rows.map { markers.columnValues(for: $0) },
             excludedColumns: excludedColumns
         )
         let headers = filtered.headers

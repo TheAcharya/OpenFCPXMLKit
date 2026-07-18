@@ -307,10 +307,8 @@ enum FCPXMLReportPDFExporter {
         to canvas: FCPXMLReportPDFCanvas.Builder
     ) {
         let filtered = filteredTabularSection(
-            headers: FinalCutPro.FCPXML.MarkerReportRow.columnHeaders(
-                timecodeFormat: timecodeFormat
-            ),
-            rows: markers.rows.map(\.columnValues),
+            headers: markers.columnHeaders(timecodeFormat: timecodeFormat),
+            rows: markers.rows.map { markers.columnValues(for: $0) },
             excludedColumns: excludedColumns
         )
         

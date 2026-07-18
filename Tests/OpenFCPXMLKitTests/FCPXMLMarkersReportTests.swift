@@ -9,6 +9,7 @@
 //
 
 import XCTest
+import SwiftTimecode
 @testable import OpenFCPXMLKit
 
 @available(macOS 26.0, *)
@@ -115,6 +116,86 @@ final class FCPXMLMarkersReportTests: XCTestCase, @unchecked Sendable {
         let rows = report.markers?.rows ?? []
         
         XCTAssertFalse(rows.contains { $0.markerName == "Chapter 4" })
+    }
+    
+    func testHiddenMarkersSampleExcludesOutOfBoundsByDefault() async throws {
+        let fcpxml = try loadFCPXMLSample(named: FCPXMLSampleName.hiddenMarkers.rawValue)
+        var options = FinalCutPro.FCPXML.ReportOptions.markersOnly
+        options.workbookCoverSheet = nil
+        
+        let report = try await fcpxml.buildReport(options: options)
+        let section = try XCTUnwrap(report.markers)
+        let names = Set(section.rows.map(\.markerName))
+        
+        XCTAssertEqual(names, ["Marker 1", "Marker 2"])
+        XCTAssertFalse(section.showsHiddenColumn)
+        XCTAssertFalse(
+            section.columnHeaders().contains("Hidden"),
+            "Hidden column must be omitted when outside-bounds markers are excluded"
+        )
+        XCTAssertEqual(section.rows.first?.columnValues.count, 9)
+    }
+    
+    func testHiddenMarkersSampleIncludesOutOfBoundsWithHiddenColumnWhenOptedIn() async throws {
+        let fcpxml = try loadFCPXMLSample(named: FCPXMLSampleName.hiddenMarkers.rawValue)
+        var options = FinalCutPro.FCPXML.ReportOptions.markersOnly
+        options.includeMarkersOutsideClipBoundaries = true
+        options.workbookCoverSheet = nil
+        
+        let report = try await fcpxml.buildReport(options: options)
+        let section = try XCTUnwrap(report.markers)
+        let byName = Dictionary(uniqueKeysWithValues: section.rows.map { ($0.markerName, $0) })
+        
+        XCTAssertTrue(section.showsHiddenColumn)
+        XCTAssertEqual(section.columnHeaders().last, "Hidden")
+        XCTAssertEqual(Set(byName.keys), ["Marker 1", "Marker 2", "Marker 3", "Marker 4"])
+        
+        XCTAssertEqual(byName["Marker 1"]?.isHidden, false)
+        XCTAssertEqual(byName["Marker 2"]?.isHidden, false)
+        XCTAssertEqual(byName["Marker 3"]?.isHidden, true)
+        XCTAssertEqual(byName["Marker 4"]?.isHidden, true)
+        
+        let values = section.columnValues(for: try XCTUnwrap(byName["Marker 3"]))
+        XCTAssertEqual(values.count, 10)
+        XCTAssertEqual(values.last, "✓")
+        XCTAssertEqual(
+            section.columnValues(for: try XCTUnwrap(byName["Marker 1"])).last,
+            "✗"
+        )
+    }
+    
+    func testMarkerClipBoundaryDetectsOutsideHostMediaRange() {
+        let hostStart = Fraction(double: 3600)
+        let hostDuration = Fraction(double: 35.12)
+        
+        XCTAssertFalse(
+            FinalCutPro.FCPXML.MarkerClipBoundary.isOutsideHostMediaRange(
+                markerStart: Fraction(double: 3610.68),
+                hostStart: hostStart,
+                hostDuration: hostDuration
+            )
+        )
+        XCTAssertTrue(
+            FinalCutPro.FCPXML.MarkerClipBoundary.isOutsideHostMediaRange(
+                markerStart: Fraction(double: 3641.76),
+                hostStart: hostStart,
+                hostDuration: hostDuration
+            )
+        )
+        XCTAssertTrue(
+            FinalCutPro.FCPXML.MarkerClipBoundary.isOutsideHostMediaRange(
+                markerStart: Fraction(double: 3599),
+                hostStart: hostStart,
+                hostDuration: hostDuration
+            )
+        )
+        XCTAssertFalse(
+            FinalCutPro.FCPXML.MarkerClipBoundary.isOutsideHostMediaRange(
+                markerStart: Fraction(double: 3641.76),
+                hostStart: hostStart,
+                hostDuration: nil
+            )
+        )
     }
     
     func testMarkerOnAudioOnlyClipYieldsSingleDialogueRow() async throws {

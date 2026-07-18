@@ -47,6 +47,15 @@ extension FinalCutPro.FCPXML {
         /// Chapter markers are omitted from the Markers sheet by default.
         public var includeChapterMarkersInMarkersReport: Bool
         
+        /// When building markers, include markers whose `start` is outside the host clip’s
+        /// media range (`[start, start + duration)`). Final Cut Pro hides those markers from
+        /// the timeline and Tags list.
+        ///
+        /// Default is `false` (FCP-visible markers only). When `true`, those markers are included
+        /// and the Markers sheet gains a **Hidden** column (✓ outside bounds / ✗ inside).
+        /// The Hidden column is not part of ``ReportColumn`` / `--exclude-column`.
+        public var includeMarkersOutsideClipBoundaries: Bool
+        
         /// Optional timeline name filter. When `nil`, the first project is preferred; if the
         /// document has no `<project>`, the first event-level compound clip (`ref-clip` →
         /// `media`/`sequence`) is used. Matching uses the project name or compound clip name.
@@ -110,6 +119,12 @@ extension FinalCutPro.FCPXML {
         /// Default `false` keeps a single Missing Media column (combined paths).
         public var mediaSummaryDistinguishProxyAndOriginal: Bool
         
+        /// When `true`, Excel export applies worksheet protection to every sheet in the workbook
+        /// (cover and content). This is an edit lock to discourage casual changes — **not**
+        /// file-open encryption. Anyone can turn protection off in Excel unless a password is
+        /// set later. PDF export ignores this flag. Default is `false`.
+        public var protectSheets: Bool
+        
         public init(
             includeMarkers: Bool = true,
             includeKeywords: Bool = false,
@@ -121,6 +136,7 @@ extension FinalCutPro.FCPXML {
             includeMediaSummary: Bool = false,
             includeRoleInventory: Bool = false,
             includeChapterMarkersInMarkersReport: Bool = false,
+            includeMarkersOutsideClipBoundaries: Bool = false,
             projectName: String? = nil,
             mediaBaseURL: URL? = nil,
             roleDisplayPreference: RoleDisplayPreference = .builtIn,
@@ -133,7 +149,8 @@ extension FinalCutPro.FCPXML {
             summaryOverlapAwareDurations: Bool = false,
             emitPerSourceInventoryRows: Bool = false,
             mediaResolutionPolicy: ReportMediaResolutionPolicy = .failSoft,
-            mediaSummaryDistinguishProxyAndOriginal: Bool = false
+            mediaSummaryDistinguishProxyAndOriginal: Bool = false,
+            protectSheets: Bool = false
         ) {
             self.includeMarkers = includeMarkers
             self.includeKeywords = includeKeywords
@@ -145,6 +162,7 @@ extension FinalCutPro.FCPXML {
             self.includeMediaSummary = includeMediaSummary
             self.includeRoleInventory = includeRoleInventory
             self.includeChapterMarkersInMarkersReport = includeChapterMarkersInMarkersReport
+            self.includeMarkersOutsideClipBoundaries = includeMarkersOutsideClipBoundaries
             self.projectName = projectName
             self.mediaBaseURL = mediaBaseURL
             self.roleDisplayPreference = roleDisplayPreference
@@ -158,6 +176,7 @@ extension FinalCutPro.FCPXML {
             self.emitPerSourceInventoryRows = emitPerSourceInventoryRows
             self.mediaResolutionPolicy = mediaResolutionPolicy
             self.mediaSummaryDistinguishProxyAndOriginal = mediaSummaryDistinguishProxyAndOriginal
+            self.protectSheets = protectSheets
         }
         
         /// Trims and drops empty copyright labels so exporters can treat “unset” uniformly.

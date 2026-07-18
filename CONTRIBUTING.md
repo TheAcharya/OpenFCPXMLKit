@@ -2,6 +2,8 @@
 
 Please note that this project is not under active or regular development, so response times to pull requests may be slow. The codebase is also highly complex, so please take time to understand its structure and logic before proposing changes.
 
+Before opening a PR, read **[ARCHITECTURE.md](ARCHITECTURE.md)** (how the system is shaped) and **[GUARDRAILS.md](GUARDRAILS.md)** (must / must-not constraints — layer boundaries, naming, tests, FCPXML compatibility).
+
 We appreciate your input! If you'd like to contribute, whether by:
 
 - Submitting a fix

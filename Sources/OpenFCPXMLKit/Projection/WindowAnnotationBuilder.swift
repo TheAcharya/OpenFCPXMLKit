@@ -300,6 +300,7 @@ extension FinalCutPro.FCPXML {
             absoluteStart: Fraction
         ) -> [WindowMarkerAnnotation] {
             let hostStart = element.fcpStart ?? .zero
+            let hostDuration = element.fcpDuration
             let reel = element._fcpMetadataChildStringValue(forKey: .reel) ?? ""
             let scene = element._fcpMetadataChildStringValue(forKey: .scene) ?? ""
 
@@ -312,6 +313,11 @@ extension FinalCutPro.FCPXML {
                 let sourcePosition = marker.start
                 let relative = ProjectionTiming.subtracting(sourcePosition, hostStart)
                 let timelinePosition = ProjectionTiming.adding(absoluteStart, relative)
+                let isOutside = MarkerClipBoundary.isOutsideHostMediaRange(
+                    markerStart: sourcePosition,
+                    hostStart: element.fcpStart,
+                    hostDuration: hostDuration
+                )
 
                 result.append(
                     WindowMarkerAnnotation(
@@ -321,7 +327,8 @@ extension FinalCutPro.FCPXML {
                         timelinePosition: timelinePosition,
                         sourcePosition: sourcePosition,
                         reel: reel,
-                        scene: scene
+                        scene: scene,
+                        isOutsideClipBoundaries: isOutside
                     )
                 )
             }

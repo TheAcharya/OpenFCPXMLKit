@@ -15,7 +15,7 @@ The package includes an experimental command-line tool **OpenFCPXMLKit-CLI**. It
 
 ## Commands and options
 
-Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--report`, or `--create-project`. For `--convert-version`, `--media-copy`, `--report` (and default process), `<output-dir>` is required and is **created if missing**. For `--create-project`, the single positional argument is `<output-dir>` (also created if missing). `--extension-type` requires `--convert-version`. REPORT modifiers (`--report-full`, section flags, `--timecode-format`, `--media-resolution`, etc.) require `--report`.
+Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--report`, or `--create-project`. For `--convert-version`, `--media-copy`, `--report` (and default process), `<output-dir>` is required and is **created if missing**. For `--create-project`, the single positional argument is `<output-dir>` (also created if missing). `--extension-type` requires `--convert-version`. REPORT modifiers (`--report-full`, section flags, `--include-markers-outside-clip-boundaries`, `--protect-sheets`, `--timecode-format`, `--media-resolution`, `--label-copyright`, `--create-pdf`, etc.) require `--report`.
 
 ### GENERAL
 
@@ -50,6 +50,8 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD, with optional PDF 
 | **--label-copyright &lt;text&gt;** | Optional copyright / attribution line (with `--report`). Excel cover sheet **A2** below Created-by; PDF cover below Created-by (same subtitle font/size); PDF running footer centre (same footer font/size). |
 | **--exclude-role &lt;role&gt;** | Exclude a role or subrole from the role inventory (repeatable). Excluding a main role also excludes its subroles. |
 | **--exclude-disabled-clips** | Omit disabled clips (`enabled="0"`) from all timeline-based report sections (with `--report`). |
+| **--include-markers-outside-clip-boundaries** | Include markers outside the host clip’s media range (hidden in FCP Tags/timeline) and add a **Hidden** column (✓/✗) on the Markers sheet (with `--report`). Default omits those markers. Not available via `--exclude-column`. |
+| **--protect-sheets** | Protect every sheet in the Excel workbook against casual edits (with `--report`). Cover + all content sheets. **Edit lock only** — not file-open encryption; Excel still opens freely and protection can be turned off. PDF export is unaffected (use Preview → Encrypt for a PDF open password). |
 | **--exclude-column &lt;column&gt;** | Exclude a workbook column from every applicable report sheet (repeatable; with `--report`). |
 | **--timecode-format &lt;format&gt;** | Timeline time display format for report cells in Excel and PDF (with `--report`). Values: `HH:MM:SS:FF` (default; SMPTE with frames, `;` before frames for drop-frame), `Frames`, `Feet+Frames`, `HH:MM:SS`. |
 
@@ -73,6 +75,23 @@ All REPORT flags except `--report` itself require `--report`.
 
 ```bash
 OpenFCPXMLKit-CLI --report --exclude-role Music --exclude-role Dialogue --exclude-role "SRT ▸ de-DE" /path/to/project.fcpxmld /path/to/output-dir
+```
+
+#### Markers outside clip boundaries
+
+`--include-markers-outside-clip-boundaries` is a **boolean flag** (no value). By default the Markers sheet matches Final Cut Pro’s Tags list: markers whose `start` is outside the host clip’s media range are omitted and no **Hidden** column is shown. Pass the flag to include those markers and append **Hidden** (✓ = outside bounds, ✗ = inside). The Hidden column cannot be removed with `--exclude-column`.
+
+```bash
+OpenFCPXMLKit-CLI --report --report-markers --include-markers-outside-clip-boundaries \
+  /path/to/project.fcpxmld /path/to/output-dir
+```
+
+#### Excel sheet protection
+
+`--protect-sheets` is a **boolean flag** (no value). When set, every worksheet in the exported `.xlsx` (cover and content) gets XLKit sheet protection so casual cell edits are blocked. This is **not** workbook encryption: anyone can open the file, and Excel can remove protection without a password. PDF export ignores this flag — use macOS Preview’s **Encrypt** command if you need a PDF open password.
+
+```bash
+OpenFCPXMLKit-CLI --report --protect-sheets /path/to/project.fcpxmld /path/to/output-dir
 ```
 
 #### Disabled clip exclusion

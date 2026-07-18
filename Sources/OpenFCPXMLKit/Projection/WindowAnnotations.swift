@@ -81,6 +81,8 @@ extension FinalCutPro.FCPXML {
         public var sourcePosition: Fraction
         public var reel: String
         public var scene: String
+        /// `true` when `sourcePosition` is outside the host’s media range (hidden in FCP Tags/timeline).
+        public var isOutsideClipBoundaries: Bool
 
         public init(
             name: String,
@@ -89,7 +91,8 @@ extension FinalCutPro.FCPXML {
             timelinePosition: Fraction,
             sourcePosition: Fraction,
             reel: String = "",
-            scene: String = ""
+            scene: String = "",
+            isOutsideClipBoundaries: Bool = false
         ) {
             self.name = name
             self.kind = kind
@@ -98,6 +101,7 @@ extension FinalCutPro.FCPXML {
             self.sourcePosition = sourcePosition
             self.reel = reel
             self.scene = scene
+            self.isOutsideClipBoundaries = isOutsideClipBoundaries
         }
     }
 

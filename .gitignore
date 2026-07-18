@@ -22,11 +22,14 @@ Package.resolved
 # Xcode
 xcuserdata/
 
-# Local Excel report integration fixture and generated workbooks (not committed).
-Tests/ExcelReportTest/Sample.fcpxmld/
-Tests/ExcelReportTest/Sample.fcpxml
+# Local Excel report integration fixtures and generated workbooks (not committed).
+Tests/ExcelReportTest/*.fcpxmld/
+Tests/ExcelReportTest/*.fcpxml
+Tests/ExcelReportTest/Output/*.fcpxmld/
+Tests/ExcelReportTest/Output/*.fcpxml
 Tests/ExcelReportTest/Output/*.xlsx
 Tests/ExcelReportTest/Output/*.pdf
+Tests/ExcelReportTest/Output/~$*
 
 # Private user-submitted FCPXML inbox (never commit contents — only README / .gitkeep).
 Tests/Submitted FCPXML/Inbox/**

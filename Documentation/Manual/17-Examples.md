@@ -287,6 +287,23 @@ let report = try await fcpxml.buildReport(options: options)
 // Excel cover A2 + PDF cover/footer centre
 ```
 
+Markers outside clip boundaries + Excel sheet protection:
+
+```swift
+var options = FinalCutPro.FCPXML.ReportOptions.markersOnly
+options.includeMarkersOutsideClipBoundaries = true  // Hidden column (✓/✗)
+options.protectSheets = true                        // Excel edit lock (not encryption)
+let report = try await fcpxml.buildReport(options: options)
+try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: xlsxURL)
+```
+
+```bash
+OpenFCPXMLKit-CLI --report --report-markers \
+  --include-markers-outside-clip-boundaries \
+  --protect-sheets \
+  /path/to/project.fcpxmld /path/to/output-dir
+```
+
 ---
 
 ## Project a timeline (MediaUsageWindow)

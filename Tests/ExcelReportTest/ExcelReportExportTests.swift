@@ -175,6 +175,107 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
         #endif
     }
     
+    /// Writes `Output/OFK-OutsideClipBoundaries.xlsx` / `.pdf` with
+    /// `--include-markers-outside-clip-boundaries` parity (Hidden column on Markers).
+    @MainActor
+    func testExportMarkersIncludingOutsideClipBoundaries() async throws {
+        let fixtureURL = try ExcelReportFixture.requireFixtureURL()
+        let outputDir = ExcelReportFixture.outputDirectoryURL()
+        try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
+        
+        var defaultOptions = FinalCutPro.FCPXML.ReportOptions.markersOnly
+        defaultOptions.includeChapterMarkersInMarkersReport = true
+        let defaultMarkersReport = try await loadReport(
+            options: defaultOptions,
+            fixtureURL: fixtureURL
+        )
+        let defaultMarkers = try XCTUnwrap(defaultMarkersReport.markers)
+        XCTAssertFalse(
+            defaultMarkers.showsHiddenColumn,
+            "Default Markers sheet must omit the Hidden column"
+        )
+        XCTAssertFalse(defaultMarkers.columnHeaders().contains("Hidden"))
+        
+        var includeOptions = FinalCutPro.FCPXML.ReportOptions.markersOnly
+        includeOptions.includeChapterMarkersInMarkersReport = true
+        includeOptions.includeMarkersOutsideClipBoundaries = true
+        // Keep role inventory off for a focused Markers workbook, but still write a cover sheet.
+        let includeReport = try await loadReport(options: includeOptions, fixtureURL: fixtureURL)
+        let includeMarkers = try XCTUnwrap(includeReport.markers)
+        
+        XCTAssertTrue(includeMarkers.showsHiddenColumn)
+        XCTAssertEqual(includeMarkers.columnHeaders().last, "Hidden")
+        XCTAssertGreaterThanOrEqual(
+            includeMarkers.rows.count,
+            defaultMarkers.rows.count,
+            "Opt-in must not drop in-bounds markers and may add out-of-bounds rows"
+        )
+        
+        let hiddenValues = Set(
+            includeMarkers.rows.map { includeMarkers.columnValues(for: $0).last ?? "" }
+        )
+        XCTAssertTrue(
+            hiddenValues.isSubset(of: ["✓", "✗"]),
+            "Hidden column cells must be ✓ or ✗"
+        )
+        if includeMarkers.rows.count > defaultMarkers.rows.count {
+            XCTAssertTrue(
+                includeMarkers.rows.contains(where: \.isHidden),
+                "Extra rows from opt-in should be marked Hidden"
+            )
+        }
+        
+        let xlsxURL = try await writeWorkbook(
+            includeReport,
+            named: ExcelReportFixture.outsideClipBoundariesOutputXLSXFileName,
+            to: outputDir
+        )
+        try assertWorkbookExists(at: xlsxURL)
+        
+        let pdfURL = outputDir.appendingPathComponent(
+            ExcelReportFixture.outsideClipBoundariesOutputPDFFileName
+        )
+        if FileManager.default.fileExists(atPath: pdfURL.path) {
+            try FileManager.default.removeItem(at: pdfURL)
+        }
+        try FinalCutPro.FCPXML.ReportPDFExport.export(includeReport, to: pdfURL)
+        
+        let pdfData = try Data(contentsOf: pdfURL)
+        XCTAssertEqual(String(data: pdfData.prefix(4), encoding: .ascii), "%PDF")
+        XCTAssertGreaterThan(pdfData.count, 5_000)
+    }
+    
+    /// Writes `Output/OFK-ProtectedSheets.xlsx` with worksheet protection on every sheet
+    /// (CLI `--protect-sheets` parity). Excel only — PDF is unaffected.
+    @MainActor
+    func testExportProtectedSheetsWorkbook() async throws {
+        let fixtureURL = try ExcelReportFixture.requireFixtureURL()
+        let outputDir = ExcelReportFixture.outputDirectoryURL()
+        try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
+        
+        var options = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
+        options.protectSheets = true
+        let report = try await loadReport(options: options, fixtureURL: fixtureURL)
+        XCTAssertTrue(report.protectSheets)
+        
+        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
+        let sheets = workbook.getSheets()
+        XCTAssertFalse(sheets.isEmpty)
+        for sheet in sheets {
+            XCTAssertNotNil(
+                sheet.protection,
+                "Sheet '\(sheet.name)' should be protected"
+            )
+        }
+        
+        let xlsxURL = try await writeWorkbook(
+            report,
+            named: ExcelReportFixture.protectedSheetsOutputXLSXFileName,
+            to: outputDir
+        )
+        try assertWorkbookExists(at: xlsxURL)
+    }
+    
     @MainActor
     private func writeWorkbook(
         _ report: FinalCutPro.FCPXML.Report,

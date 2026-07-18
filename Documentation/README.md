@@ -31,11 +31,11 @@ The manual is split into **chapters** for easier navigation and maintenance:
 | [15 — Errors & Utilities](Manual/15-Errors-Utilities.md) | Error types, ErrorHandling, ProgressBar, FCPXMLUID |
 | [16 — CLI](Manual/16-CLI.md) | Experimental command-line interface (OpenFCPXMLKit-CLI) |
 | [17 — Examples](Manual/17-Examples.md) | End-to-end workflows and code examples |
-| [19 — Reporting, Excel & PDF Export](Manual/19-Reporting.md) | Report builder, ReportOptions, Projection-first sections, Excel/PDF export |
+| [19 — Reporting, Excel & PDF Export](Manual/19-Reporting.md) | Report builder, ReportOptions (`copyrightLabel`, `includeMarkersOutsideClipBoundaries`, `protectSheets`, …), Projection-first sections, Excel/PDF export |
 
-The manual covers the **entire public API** with examples: core operations, async/await, file I/O, validation, timeline creation and manipulation, metadata, media processing, typed models, version conversion, **Timeline Projection**, reporting and Excel/PDF export, CLI, and utilities. **Chapter 18** describes the cross-platform XML abstraction. **Chapter 19** covers reporting. **Chapter 20** covers Projection (`MediaUsageWindow`, project-once for reports). Architecture philosophy: [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7.
+The manual covers the **entire public API** with examples: core operations, async/await, file I/O, validation, timeline creation and manipulation, metadata, media processing, typed models, version conversion, **Timeline Projection**, reporting and Excel/PDF export, CLI, and utilities. **Chapter 18** describes the cross-platform XML abstraction. **Chapter 19** covers reporting. **Chapter 20** covers Projection (`MediaUsageWindow`, project-once for reports). Architecture philosophy: [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7. Hard constraints: [GUARDRAILS.md](../GUARDRAILS.md).
 
-**Test count (keep in sync):** **1076** listed in `swift test --list-tests` — **1072** in `OpenFCPXMLKitTests` (1069 XCTest + 3 `@Test`) + **4** optional `ExcelReportTest`; **59** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML/](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
+**Test count (keep in sync):** **1084** listed in `swift test --list-tests` — **1078** in `OpenFCPXMLKitTests` (1075 XCTest + 3 `@Test`) + **6** optional `ExcelReportTest`; **60** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML/](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
 
 ---
 
@@ -46,3 +46,4 @@ The manual covers the **entire public API** with examples: core operations, asyn
 - **[Tests/README.md](../Tests/README.md)** — Test suite layout and categories (including §12a Submitted FCPXML).
 - **[Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md)** — Private inbox workflow for parsing / reporting edge cases (local only).
 - **[ARCHITECTURE.md](../ARCHITECTURE.md)** — Layer stack, Projection, reporting.
+- **[GUARDRAILS.md](../GUARDRAILS.md)** — Must / must-not constraints (layers, naming, tests, reporting honesty).
