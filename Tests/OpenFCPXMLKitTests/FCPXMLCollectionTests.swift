@@ -115,3 +115,4 @@ struct FCPXMLCollectionTests {
         #expect(decoded.keywordCollections[0].name == folder.keywordCollections[0].name)
     }
 }
+

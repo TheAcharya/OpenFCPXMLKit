@@ -46,3 +46,4 @@ enum FCPXMLTestSampleError: Error, CustomStringConvertible, Equatable {
         }
     }
 }
+

@@ -588,3 +588,4 @@ struct FCPXMLAdjustmentTests {
         #expect(transform1.hashValue == transform2.hashValue)
     }
 }
+

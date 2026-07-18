@@ -153,3 +153,4 @@ struct FCPXMLFileTest_AuditionSample {
         #expect(parsed.rootElement()?.name == "fcpxml")
     }
 }
+

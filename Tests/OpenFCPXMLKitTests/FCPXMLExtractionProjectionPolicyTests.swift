@@ -145,3 +145,4 @@ struct FCPXMLExtractionProjectionPolicyTests {
         #expect(effectsWith >= effectsWithout)
     }
 }
+

@@ -339,3 +339,4 @@ External: Final Cut Pro XML (fcp.cafe/developers/fcpxml/), SwiftTimecode (github
 Regular tasks: update dependencies as needed; review and update documentation; monitor test coverage; address warnings or deprecations; keep build configuration current.
 
 Long-term: plan for future Swift versions; consider new FCPXML versions; monitor SwiftTimecode updates; plan for platform changes; maintain backward compatibility where possible.
+

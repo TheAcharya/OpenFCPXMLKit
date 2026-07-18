@@ -167,3 +167,4 @@ struct FCPXMLDTDValidatorTests {
         let _ = ValidationWarning.WarningType.unusedAsset
     }
 }
+

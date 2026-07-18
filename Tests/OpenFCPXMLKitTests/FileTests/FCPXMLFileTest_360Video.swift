@@ -148,3 +148,4 @@ struct FCPXMLFileTest_360Video {
         #expect(format.stereoscopic == "mono")
     }
 }
+

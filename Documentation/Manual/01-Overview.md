@@ -79,3 +79,4 @@ Extension APIs that cannot take parameters use **FCPXMLUtility.defaultForExtensi
 ## Next
 
 - [02 — Loading & Parsing](02-Loading-Parsing.md) — Load files/bundles, parse, FCPXML versions, element types.
+

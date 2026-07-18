@@ -249,3 +249,4 @@ struct FCPXMLFileTest_SmartCollection {
         #expect(reparsedCollection.match == originalCollection.match)
     }
 }
+

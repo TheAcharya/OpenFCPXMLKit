@@ -556,3 +556,4 @@ struct FCPXMLSmartCollectionTests {
         #expect(smartCollections[0].name == "Video Clips")
     }
 }
+

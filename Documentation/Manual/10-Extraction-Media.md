@@ -82,3 +82,4 @@ for entry in copyResult.failed { /* error */ }
 - [19 — Reporting, Excel & PDF Export](19-Reporting.md) — build reports from Projection + Extraction and export to `.xlsx` or `.pdf`.
 
 [← Manual Index](00-Index.md)
+

@@ -361,3 +361,4 @@ struct FCPXMLReportFormattingTests {
         """
     }
 }
+

@@ -71,3 +71,4 @@ struct FCPXMLCMTimeCodableTests {
         #expect(secondsMatch)
     }
 }
+

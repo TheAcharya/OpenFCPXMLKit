@@ -196,3 +196,4 @@ let parentFolder = FinalCutPro.FCPXML.CollectionFolder(
 - [14 — XML Extensions](14-XML-Extensions.md) — OFKXMLDocument and OFKXMLElement FCPXML APIs.
 
 [← Manual Index](00-Index.md)
+

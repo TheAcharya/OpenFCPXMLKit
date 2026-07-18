@@ -109,3 +109,4 @@ struct FCPXMLRoleInventoryReportTests {
         #expect(!options.excludeDisabledClips)
     }
 }
+

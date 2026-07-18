@@ -98,3 +98,4 @@ struct FCPXMLSpeedChangeFormattingTests {
         return try #require(FinalCutPro.FCPXML.TimeMap(element: element))
     }
 }
+

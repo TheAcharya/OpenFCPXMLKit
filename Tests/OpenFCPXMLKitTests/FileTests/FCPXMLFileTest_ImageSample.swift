@@ -81,3 +81,4 @@ struct FCPXMLFileTest_ImageSample {
         #expect(parsed.rootElement()?.name == "fcpxml")
     }
 }
+

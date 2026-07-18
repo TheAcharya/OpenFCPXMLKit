@@ -94,3 +94,4 @@ struct FCPXMLSpeedChangeEffectsReportTests {
         #expect(!options.includeRoleInventory)
     }
 }
+

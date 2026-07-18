@@ -248,3 +248,4 @@ struct FCPXMLAudioEnhancementTests {
         #expect(matchEQElement != nil)
     }
 }
+

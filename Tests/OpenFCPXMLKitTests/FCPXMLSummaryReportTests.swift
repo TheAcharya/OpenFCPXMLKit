@@ -103,3 +103,4 @@ struct FCPXMLSummaryReportTests {
         #expect(!options.includeRoleInventory)
     }
 }
+

@@ -127,3 +127,4 @@ struct FCPXMLExtractionNestFidelityTests {
         #expect(!activeMarkers.isEmpty)
     }
 }
+

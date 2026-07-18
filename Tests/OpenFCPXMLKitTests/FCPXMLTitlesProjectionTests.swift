@@ -104,3 +104,4 @@ struct FCPXMLTitlesProjectionTests {
         #expect(allEnabled)
     }
 }
+

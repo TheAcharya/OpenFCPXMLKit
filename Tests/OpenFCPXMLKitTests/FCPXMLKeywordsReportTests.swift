@@ -65,3 +65,4 @@ struct FCPXMLKeywordsReportTests {
         FCPXMLReportingReportTestSupport.assertSortedTimelinePositions(positions)
     }
 }
+

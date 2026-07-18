@@ -79,3 +79,4 @@ private extension FinalCutPro.FCPXML.ReportOptions {
         return copy
     }
 }
+

@@ -158,3 +158,4 @@ struct FCPXMLTitleDisplayTests {
         return try #require(titleElement.fcpAsTitle)
     }
 }
+

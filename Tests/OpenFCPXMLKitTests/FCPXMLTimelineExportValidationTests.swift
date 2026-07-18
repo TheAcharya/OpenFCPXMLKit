@@ -837,3 +837,4 @@ struct FCPXMLTimelineExportValidationTests {
         }
     }
 }
+

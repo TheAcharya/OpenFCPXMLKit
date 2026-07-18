@@ -56,3 +56,4 @@ struct FCPXMLFileTest_Photoshop {
         }
     }
 }
+

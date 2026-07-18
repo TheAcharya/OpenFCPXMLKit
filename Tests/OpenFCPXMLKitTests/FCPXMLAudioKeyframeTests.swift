@@ -459,3 +459,4 @@ struct FCPXMLAudioKeyframeTests {
         #expect(maxDepth > 0, "Should find nested clips with audio keyframes")
     }
 }
+

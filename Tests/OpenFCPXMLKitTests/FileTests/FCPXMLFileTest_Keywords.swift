@@ -77,3 +77,4 @@ struct FCPXMLFileTest_Keywords {
         #expect(foundCollectionsOrFolders, "Expected keyword collections or folders in events")
     }
 }
+

@@ -159,3 +159,4 @@ For private complex exports used only while debugging Projection/reporting, use 
 - [20 — Examples](20-Examples.md) — end-to-end workflows.
 
 [← Manual Index](00-Index.md)
+

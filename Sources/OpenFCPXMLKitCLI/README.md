@@ -210,3 +210,4 @@ All Swift in `Sources/OpenFCPXMLKitCLI/` is a single module; no extra imports ar
 **Scripts:** Invoke the CLI directly (e.g. `"$TOOL_PATH" "$FCPXML_PATH" --validate`). Use a path to the binary with no trailing slash.
 
 **Regenerating embedded DTDs:** If the FCPXML DTDs in `Sources/OpenFCPXMLKit/FCPXML DTDs/` change, run `./Scripts/generate_embedded_dtds.sh` or `swift run GenerateEmbeddedDTDs` from the package root to regenerate `Sources/OpenFCPXMLKitCLI/Generated/EmbeddedDTDs.swift`, then rebuild.
+

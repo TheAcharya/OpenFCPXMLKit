@@ -75,3 +75,4 @@ struct FCPXMLTransitionsProjectionTests {
         #expect(allHaveTransition)
     }
 }
+

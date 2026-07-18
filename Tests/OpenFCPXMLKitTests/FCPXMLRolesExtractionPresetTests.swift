@@ -77,3 +77,4 @@ struct FCPXMLRolesExtractionPresetTests {
         #expect(hasDialogue)
     }
 }
+

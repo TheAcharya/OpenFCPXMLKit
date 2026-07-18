@@ -40,3 +40,4 @@ Complete manual and usage guide for **OpenFCPXMLKit**, a Swift 6 framework for F
 - **CLI reference:** [../../Sources/OpenFCPXMLKitCLI/README.md](../../Sources/OpenFCPXMLKitCLI/README.md)
 - **Tests:** [../../Tests/README.md](../../Tests/README.md) — suite layout (**1084** listed tests, all Swift Testing); [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) for private local investigation (never commit private FCPXML)
 - **FCPXML reference:** [fcp.cafe/developers/fcpxml](https://fcp.cafe/developers/fcpxml)
+

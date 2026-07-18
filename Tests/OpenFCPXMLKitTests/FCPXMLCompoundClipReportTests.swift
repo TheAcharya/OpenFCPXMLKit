@@ -251,3 +251,4 @@ struct FCPXMLCompoundClipReportTests {
         """
     }
 }
+

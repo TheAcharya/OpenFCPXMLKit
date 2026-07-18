@@ -125,3 +125,4 @@ struct FCPXMLTransformAdjustmentParsingTests {
         return element
     }
 }
+

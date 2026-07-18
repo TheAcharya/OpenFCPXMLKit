@@ -99,3 +99,4 @@ This does **not** replace promoting anonymised fixtures into `FCPXML Samples/`.
 - [ ] No `<bookmark>` elements
 - [ ] Identifying names scrubbed or genericised
 - [ ] Regression covered by a **public** anonymised sample + test when appropriate
+

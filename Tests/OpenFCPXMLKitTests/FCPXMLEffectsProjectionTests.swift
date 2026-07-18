@@ -74,3 +74,4 @@ struct FCPXMLEffectsProjectionTests {
         #expect(hasRows)
     }
 }
+

@@ -60,3 +60,4 @@ enum FCPXMLReportingReportFixture {
         fcpxml.allProjects().first?.name ?? ""
     }
 }
+

@@ -24,3 +24,4 @@ struct FCPXMLFileTest_Annotations {
         #expect(hasProjects)
     }
 }
+

@@ -21,3 +21,4 @@ struct FCPXMLFileTest_StandaloneAssetClip {
         #expect(fcpxml.root.resources.childElements.count >= 1)
     }
 }
+

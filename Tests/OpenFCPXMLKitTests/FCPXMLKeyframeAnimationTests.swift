@@ -264,3 +264,4 @@ struct FCPXMLKeyframeAnimationTests {
         #expect(parameter.keyframeAnimation?.keyframes.count == 2)
     }
 }
+

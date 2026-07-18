@@ -287,3 +287,4 @@ struct FCPXMLTimecodeTests {
         #expect(secondsMatch)
     }
 }
+

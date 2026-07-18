@@ -280,3 +280,4 @@ struct FCPXMLCaptionTitleTests {
         #expect(foundCaptions, "Should find captions in CaptionSample")
     }
 }
+

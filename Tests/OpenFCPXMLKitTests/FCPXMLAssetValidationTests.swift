@@ -233,3 +233,4 @@ struct FCPXMLAssetValidationTests {
         #expect(!isImageVideo)
     }
 }
+

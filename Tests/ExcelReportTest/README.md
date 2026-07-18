@@ -173,3 +173,4 @@ Good candidates for this target:
 - Full `--create-pdf` smoke checks on a known fixture
 
 Prefer **`OpenFCPXMLKitTests`** for logic that does not need a full local fixture (column resolution, layout, `ReportTimecodeFormat`, `ReportBuildPhase` order including `.projecting`, Projection window / annotation tests, synthetic workbook/PDF structure, Summary/Media Summary/Keywords/Effects colour rules, compound-clip-only timeline discovery, `ReportMediaResolutionPolicy`).
+

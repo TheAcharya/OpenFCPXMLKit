@@ -561,3 +561,4 @@ struct FCPXMLCodableTests {
         _ = try FinalCutPro.FCPXML.from(jsonData: jsonData)
     }
 }
+

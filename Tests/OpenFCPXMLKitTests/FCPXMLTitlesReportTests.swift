@@ -65,3 +65,4 @@ struct FCPXMLTitlesReportTests {
         FCPXMLReportingReportTestSupport.assertSortedTimelinePositions(positions)
     }
 }
+

@@ -219,3 +219,4 @@ For source layout, extending the CLI, and regenerating embedded DTDs, see **[Ope
 - [20 — Examples](20-Examples.md) — End-to-end workflows and code examples.
 
 [← Manual Index](00-Index.md)
+

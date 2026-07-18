@@ -230,3 +230,4 @@ struct FCPXMLCutDetectionTests {
         return nil
     }
 }
+

@@ -41,3 +41,4 @@ struct FCPXMLFileTest_Complex {
         #expect(resources.childElements.count > 0, "Expected resource children")
     }
 }
+

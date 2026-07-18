@@ -311,3 +311,4 @@ struct FCPXMLMarkersReportTests {
         """
     }
 }
+

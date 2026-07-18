@@ -98,3 +98,4 @@ struct FCPXMLRoleDisplayPreferenceTests {
         #expect(!builtIn.markerRolePriority.contains("score composer"))
     }
 }
+

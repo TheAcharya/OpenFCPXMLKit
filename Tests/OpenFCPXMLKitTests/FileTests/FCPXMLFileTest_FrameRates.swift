@@ -44,3 +44,4 @@ struct FCPXMLFileTest_FrameRates {
         #expect(fcpxml.root.element.name == "fcpxml")
     }
 }
+

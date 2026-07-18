@@ -23,3 +23,4 @@ struct FCPXMLFileTest_HiddenMarkers {
         #expect(hasProjects)
     }
 }
+

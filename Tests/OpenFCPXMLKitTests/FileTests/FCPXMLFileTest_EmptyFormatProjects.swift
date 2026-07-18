@@ -106,3 +106,4 @@ struct FCPXMLFileTest_EmptyFormatProjects {
         #expect(spineChildCount == 0, "\(sampleName): spine should have no story elements")
     }
 }
+

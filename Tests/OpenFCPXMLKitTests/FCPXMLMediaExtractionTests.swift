@@ -301,3 +301,4 @@ struct FCPXMLMediaExtractionTests {
         #expect(result.skipped.count == 0)
     }
 }
+

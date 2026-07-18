@@ -174,3 +174,4 @@ struct FCPXMLParsingCoverageTests {
         #expect(parsed.backgroundColor == "0 0 0 1")
     }
 }
+

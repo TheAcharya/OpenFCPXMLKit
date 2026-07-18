@@ -78,3 +78,4 @@ struct FCPXMLPerformanceTests {
         #expect(elapsed < projectBudget)
     }
 }
+

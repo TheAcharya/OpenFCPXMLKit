@@ -159,3 +159,4 @@ struct FCPXMLAssetDurationMeasurementTests {
     // These tests verify the API contract and basic functionality.
 }
 #endif
+

@@ -1990,3 +1990,4 @@ struct OpenFCPXMLKitTests {
         }
     }
 } 
+

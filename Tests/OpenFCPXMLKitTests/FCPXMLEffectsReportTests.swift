@@ -82,3 +82,4 @@ struct FCPXMLEffectsReportTests {
         #expect(rows == sorted)
     }
 }
+

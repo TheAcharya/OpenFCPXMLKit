@@ -99,3 +99,4 @@ struct FCPXMLRoleInventoryColumnLayoutTests {
         )
     }
 }
+

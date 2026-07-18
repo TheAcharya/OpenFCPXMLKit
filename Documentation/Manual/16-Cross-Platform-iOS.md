@@ -71,3 +71,4 @@ let version = root?.stringValue(forAttributeNamed: "version")
 - [05 — Validation & Cut Detection](05-Validation-CutDetection.md) — Semantic, DTD, and structural validation.
 
 [← Manual Index](00-Index.md)
+

@@ -535,3 +535,4 @@ struct FCPXMLReportColumnExclusionTests {
         return "\(letters)\(row)"
     }
 }
+

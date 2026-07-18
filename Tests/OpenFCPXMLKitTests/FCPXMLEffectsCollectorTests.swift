@@ -317,3 +317,4 @@ struct FCPXMLEffectsCollectorTests {
         )
     }
 }
+

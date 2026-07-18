@@ -367,3 +367,4 @@ For FCPXML format details see [fcp.cafe/developers/fcpxml](https://fcp.cafe/deve
 - [Manual Index](00-Index.md) — return to the table of contents.
 
 [← Manual Index](00-Index.md)
+

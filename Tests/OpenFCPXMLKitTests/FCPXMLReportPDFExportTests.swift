@@ -570,3 +570,4 @@ struct FCPXMLReportPDFExportTests {
         #endif
     }
 }
+

@@ -42,3 +42,4 @@ struct FCPXMLFileTest_AllSamples {
         }
     }
 }
+

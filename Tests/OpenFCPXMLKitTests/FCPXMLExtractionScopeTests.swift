@@ -72,3 +72,4 @@ struct FCPXMLExtractionScopeTests {
         #expect(globalMarkers.count > localMarkers.count)
     }
 }
+

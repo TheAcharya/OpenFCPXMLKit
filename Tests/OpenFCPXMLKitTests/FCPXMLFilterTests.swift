@@ -482,3 +482,4 @@ struct FCPXMLFilterTests {
         #expect(effect1 != effect3)
     }
 }
+

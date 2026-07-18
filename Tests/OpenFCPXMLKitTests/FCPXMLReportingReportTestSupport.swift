@@ -315,3 +315,4 @@ enum FCPXMLReportingReportTestSupport {
         #expect(value == "✓" || value == "✗", sourceLocation: sourceLocation)
     }
 }
+

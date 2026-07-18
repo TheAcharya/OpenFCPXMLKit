@@ -676,3 +676,4 @@ struct FCPXMLClipParsingCarriesAudioTests {
         #expect(!isNestedHost)
     }
 }
+

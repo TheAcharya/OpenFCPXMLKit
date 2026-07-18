@@ -317,3 +317,4 @@ private final class MockProgressReporter: ProgressReporter, @unchecked Sendable 
         // No-op for tests
     }
 }
+

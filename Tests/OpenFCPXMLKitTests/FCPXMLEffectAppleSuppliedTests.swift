@@ -85,3 +85,4 @@ struct FCPXMLEffectAppleSuppliedTests {
         #expect(transition.isAppleSuppliedPrimaryEffect(in: resources))
     }
 }
+

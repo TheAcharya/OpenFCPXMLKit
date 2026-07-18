@@ -32,3 +32,4 @@ struct FCPXMLFileTest_Occlusion {
         #expect(fcpxml.root.element.name == "fcpxml")
     }
 }
+

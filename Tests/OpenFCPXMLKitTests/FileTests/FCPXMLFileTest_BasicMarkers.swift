@@ -38,3 +38,4 @@ struct FCPXMLFileTest_BasicMarkers {
         #expect(hasProjects)
     }
 }
+

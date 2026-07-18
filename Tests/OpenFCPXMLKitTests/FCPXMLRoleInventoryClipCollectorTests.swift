@@ -1070,3 +1070,4 @@ struct FCPXMLRoleInventoryClipCollectorTests {
         #expect(laterRow.timelineOut == "00:03:29:15")
     }
 }
+

@@ -61,3 +61,4 @@ OpenFCPXMLKit-CLI --report --report-full --create-pdf \
 - The CLI names files after the **project or compound-clip name** inside the FCPXML; test output uses these constant names instead.  
 - Fixture bundles used for local investigation (e.g. `Sample.fcpxmld`) may also live here; discovery prefers root `Sample.*`, then falls back to `Output/`.  
 - Do not commit large generated workbooks or PDFs unless you intentionally add golden files for regression testing.
+

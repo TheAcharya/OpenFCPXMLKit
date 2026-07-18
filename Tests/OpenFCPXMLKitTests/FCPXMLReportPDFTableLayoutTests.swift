@@ -185,3 +185,4 @@ struct FCPXMLReportPDFTableLayoutTests {
         #expect(prepared.rows.first?.first == "1")
     }
 }
+

@@ -42,3 +42,4 @@ struct FCPXMLStructureTests {
         #expect(fcpxml.version.major >= 1 && fcpxml.version.minor >= 5)
     }
 }
+

@@ -39,3 +39,4 @@ struct FCPXMLSubmittedFCPXMLSmokeTests {
         }
     }
 }
+

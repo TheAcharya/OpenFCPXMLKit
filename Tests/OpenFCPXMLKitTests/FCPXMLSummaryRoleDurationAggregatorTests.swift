@@ -308,3 +308,4 @@ struct FCPXMLSummaryRoleDurationAggregatorTests {
         #expect(ambientMatch)
     }
 }
+

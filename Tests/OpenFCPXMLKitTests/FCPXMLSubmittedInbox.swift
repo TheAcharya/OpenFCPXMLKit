@@ -50,3 +50,4 @@ enum FCPXMLSubmittedInbox {
             }
     }
 }
+

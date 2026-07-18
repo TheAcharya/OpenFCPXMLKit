@@ -398,3 +398,4 @@ struct FCPXMLProjectionCoverageTests {
         """
     }
 }
+

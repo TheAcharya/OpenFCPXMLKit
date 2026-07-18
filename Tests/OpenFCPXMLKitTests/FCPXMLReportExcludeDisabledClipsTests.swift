@@ -78,3 +78,4 @@ struct FCPXMLReportExcludeDisabledClipsTests {
         #expect(withCount >= withoutCount)
     }
 }
+

@@ -82,3 +82,4 @@ struct FCPXMLFileTest_Multicam {
         }
     }
 }
+

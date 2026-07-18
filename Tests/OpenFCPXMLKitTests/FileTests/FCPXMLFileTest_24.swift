@@ -46,3 +46,4 @@ struct FCPXMLFileTest_24 {
         #expect(parsed.rootElement()?.name == "fcpxml")
     }
 }
+

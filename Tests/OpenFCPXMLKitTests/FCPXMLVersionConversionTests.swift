@@ -341,3 +341,4 @@ struct FCPXMLVersionConversionTests {
         #expect(FileManager.default.fileExists(atPath: bundleURL.appendingPathComponent("Info.fcpxml").path))
     }
 }
+

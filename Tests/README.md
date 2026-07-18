@@ -575,3 +575,4 @@ Add tests for new behaviour or edge cases; place them in the right file and MARK
 ## 19. Credits
 
 Inspired and modeled after [swift-daw-file-tools](https://github.com/orchetect/swift-daw-file-tools)'s Test Suites.
+

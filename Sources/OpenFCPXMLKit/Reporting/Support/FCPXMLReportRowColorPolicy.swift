@@ -211,3 +211,4 @@ enum FCPXMLReportRowColorPolicy {
         return trimmed
     }
 }
+

@@ -152,3 +152,4 @@ struct FCPXMLFormatAssetTests {
         #expect(asset.mediaReps[1].kind == .proxyMedia)
     }
 }
+

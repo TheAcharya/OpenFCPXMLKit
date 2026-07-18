@@ -95,3 +95,4 @@ struct FCPXMLMIMETypeDetectionTests {
         #expect(mimeType == "image/gif")
     }
 }
+

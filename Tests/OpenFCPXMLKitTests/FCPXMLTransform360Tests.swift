@@ -188,3 +188,4 @@ struct FCPXMLTransform360Tests {
         #expect(transformElement?.stringValue(forAttributeNamed: "coordinates") == "spherical")
     }
 }
+

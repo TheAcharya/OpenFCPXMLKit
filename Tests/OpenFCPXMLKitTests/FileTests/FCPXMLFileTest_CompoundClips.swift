@@ -40,3 +40,4 @@ struct FCPXMLFileTest_CompoundClips {
         #expect(hasMediaResources, "Expected media resources for compound clips")
     }
 }
+

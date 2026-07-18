@@ -22,3 +22,4 @@ struct FCPXMLFileTest_SyncClip {
         #expect(hasProjects)
     }
 }
+

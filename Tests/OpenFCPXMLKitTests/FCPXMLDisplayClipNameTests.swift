@@ -206,3 +206,4 @@ struct FCPXMLDisplayClipNameTests {
         #expect(caption.displayClipName() != "1-X-1")
     }
 }
+

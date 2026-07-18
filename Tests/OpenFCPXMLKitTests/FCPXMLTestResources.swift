@@ -125,3 +125,4 @@ enum FCPXMLSampleName: String, CaseIterable {
     case transitionMarkers2 = "TransitionMarkers2"
     case twoClipsMarkers = "TwoClipsMarkers"
 }
+

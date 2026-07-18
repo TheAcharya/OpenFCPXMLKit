@@ -89,3 +89,4 @@ let package = Package(
             swiftSettings: [.unsafeFlags(["-parse-as-library"])]),
     ]
 )
+

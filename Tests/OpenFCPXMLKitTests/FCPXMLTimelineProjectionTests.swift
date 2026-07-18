@@ -1039,3 +1039,4 @@ struct FCPXMLTimelineProjectionTests {
         }
     }
 }
+

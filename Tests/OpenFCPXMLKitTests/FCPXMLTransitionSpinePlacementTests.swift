@@ -86,3 +86,4 @@ struct FCPXMLTransitionSpinePlacementTests {
         #expect(transition.isAppleSuppliedPrimaryEffect(in: fcpxml.root.resources))
     }
 }
+

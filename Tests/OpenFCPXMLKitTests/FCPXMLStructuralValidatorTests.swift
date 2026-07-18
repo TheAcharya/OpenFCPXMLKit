@@ -308,3 +308,4 @@ struct FCPXMLStructuralValidatorTests {
         )
     }
 }
+

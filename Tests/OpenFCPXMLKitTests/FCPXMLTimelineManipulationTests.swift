@@ -1388,3 +1388,4 @@ struct FCPXMLTimelineManipulationTests {
         #expect(foundAudioKeyframes, "Should find audio keyframes with keyframeAnimation")
     }
 }
+
