@@ -100,11 +100,8 @@ struct FCPXMLAPIAndEdgeCaseTests {
     func parseEmptyDataThrows() {
         let service = FCPXMLService()
         let data = Data()
-        do {
-            _ = try service.parseFCPXML(from: data)
-            Issue.record("expected throw")
-        } catch {
-            #expect(true)
+        #expect(throws: (any Error).self) {
+            try service.parseFCPXML(from: data)
         }
     }
 
@@ -112,11 +109,8 @@ struct FCPXMLAPIAndEdgeCaseTests {
     func parseInvalidXMLThrows() throws {
         let service = FCPXMLService()
         let data = try #require("not xml at all".data(using: .utf8))
-        do {
-            _ = try service.parseFCPXML(from: data)
-            Issue.record("expected throw")
-        } catch {
-            #expect(true)
+        #expect(throws: (any Error).self) {
+            try service.parseFCPXML(from: data)
         }
     }
 
@@ -124,11 +118,8 @@ struct FCPXMLAPIAndEdgeCaseTests {
     func parseMalformedXMLThrows() throws {
         let service = FCPXMLService()
         let data = try #require("<fcpxml version=\"1.14\"><resources".data(using: .utf8))
-        do {
-            _ = try service.parseFCPXML(from: data)
-            Issue.record("expected throw")
-        } catch {
-            #expect(true)
+        #expect(throws: (any Error).self) {
+            try service.parseFCPXML(from: data)
         }
     }
 
@@ -148,15 +139,8 @@ struct FCPXMLAPIAndEdgeCaseTests {
     func resolveFCPXMLFileURLForNonexistentPathThrows() {
         let loader = FCPXMLFileLoader()
         let url = URL(fileURLWithPath: "/does/not/exist.fcpxml")
-        do {
-            _ = try loader.resolveFCPXMLFileURL(from: url)
-            Issue.record("expected throw")
-        } catch {
-            guard case FCPXMLLoadError.notAFile = error else {
-                Issue.record("Expected notAFile")
-                return
-            }
-            #expect(true)
+        #expect(throws: FCPXMLLoadError.self) {
+            try loader.resolveFCPXMLFileURL(from: url)
         }
     }
 

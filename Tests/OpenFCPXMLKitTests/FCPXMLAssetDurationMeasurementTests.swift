@@ -93,9 +93,8 @@ struct FCPXMLAssetDurationMeasurementTests {
 
     @Test("Measurer initialization")
     func measurerInitialization() {
-        let measurer = AssetDurationMeasurer()
-        _ = measurer
-        #expect(true)
+        // Smoke: default construction must not trap.
+        _ = AssetDurationMeasurer()
     }
 
     @Test("Measure duration with non-existent file")

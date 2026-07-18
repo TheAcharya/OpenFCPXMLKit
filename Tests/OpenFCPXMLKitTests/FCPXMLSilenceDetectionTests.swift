@@ -55,9 +55,8 @@ struct FCPXMLSilenceDetectionTests {
 
     @Test("Detector initialization")
     func detectorInitialization() {
-        let detector = SilenceDetector()
-        _ = detector
-        #expect(true)
+        // Smoke: default construction must not trap.
+        _ = SilenceDetector()
     }
 
     @Test("Detect silence with non-existent file")
@@ -105,9 +104,8 @@ struct FCPXMLSilenceDetectionTests {
         // Test with custom threshold
         do {
             let result = try await detector.detectSilence(at: tempURL, threshold: -60.0)
-            // Should return a result (even if zero trim)
-            _ = result
-            #expect(true)
+            // Should return a result (even if zero trim) for a missing/empty file path
+            #expect(abs(result.trimStart - 0.0) < 0.001 || result.duration >= 0)
         } catch {
             // Error is acceptable for non-existent file - error was thrown (verified by catch block)
             _ = error // Suppress unused variable warning

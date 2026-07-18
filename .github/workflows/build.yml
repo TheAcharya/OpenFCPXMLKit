@@ -54,7 +54,10 @@ jobs:
       # Do not pipe through xcbeautify: Swift Testing emits a large compile
       # diagnostic stream; piping it can stall the runner with no new log lines.
       # Plain `swift test` is the reliable SPM / Swift Testing path for CI.
-      run: swift test
+      # `--no-parallel` is required: Swift Testing defaults to in-process parallel
+      # runs; concurrent access to non-Sendable Foundation XML deadlocks the suite
+      # (1000+ tests start, none finish). XCTest on main did not hit this.
+      run: swift test --no-parallel
 
   # Strict concurrency: SWIFT_STRICT_CONCURRENCY=complete
   # (do not use OTHER_SWIFT_FLAGS here — it overrides per-target flags and

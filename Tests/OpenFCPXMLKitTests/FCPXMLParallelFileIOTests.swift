@@ -247,23 +247,21 @@ struct FCPXMLParallelFileIOTests {
 
     @Test("Executor with custom priority")
     func executorWithCustomPriority() {
+        // Construction must succeed; retain for use so the call is not dead code.
         let executor = ParallelFileIOExecutor(taskPriority: .userInitiated)
-        _ = executor
-        #expect(true)
+        #expect(executor.taskPriority == .userInitiated)
     }
 
     @Test("Executor with file handle disabled")
     func executorWithFileHandleDisabled() {
         let executor = ParallelFileIOExecutor(useFileHandleOptimization: false)
-        _ = executor
-        #expect(true)
+        #expect(!executor.useFileHandleOptimization)
     }
 
     @Test("Executor with preallocation disabled")
     func executorWithPreallocationDisabled() {
         let executor = ParallelFileIOExecutor(preallocateFileSpace: false)
-        _ = executor
-        #expect(true)
+        #expect(!executor.preallocateFileSpace)
     }
 
     // MARK: - Edge Cases
