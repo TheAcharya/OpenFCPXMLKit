@@ -6,7 +6,7 @@ Complete manual and usage guide for OpenFCPXMLKit, a Swift 6 framework for Final
 
 ## Structured manual (chapters)
 
-The manual is now organized into **chapters** for easier navigation and full API coverage with examples.
+The manual is organized into **chapters** for easier navigation and full API coverage with examples.
 
 **→ [Manual Index (start here)](Manual/00-Index.md)**
 
@@ -22,16 +22,16 @@ From the index you can reach all chapters:
 - **08** — Timeline Manipulation (ripple insert, auto lane, clip queries)
 - **09** — Timeline Metadata (markers, keywords, ratings, timestamps)
 - **10** — Extraction & Media (scope, presets, media copy)
-- **20** — Timeline Projection (`TimelineProjector`, `MediaUsageWindow`, report project-once)
-- **11** — Media Processing (MIME, asset validation, silence, duration, parallel I/O)
-- **12** — Typed Models (adjustments, filters, captions, keyframes, Live Drawing, collections)
-- **13** — XML Extensions (XMLDocument, XMLElement)
-- **14** — High-Level Model (FinalCutPro.FCPXML)
-- **15** — Errors & Utilities
-- **16** — CLI (OpenFCPXMLKit-CLI)
-- **17** — Examples (workflows and code)
-- **18** — Cross-Platform & iOS (OFKXML abstraction, Foundation vs AEXML)
-- **19** — Reporting, Excel & PDF Export (Projection-first sections, ReportTimecodeFormat, ReportBuildPhase, `mediaResolutionPolicy`, XLKit workbook, CoreGraphics PDF)
+- **11** — Timeline Projection (`TimelineProjector`, `MediaUsageWindow`, report project-once)
+- **12** — Media Processing (MIME, asset validation, silence, duration, parallel I/O)
+- **13** — Typed Models (adjustments, filters, captions, keyframes, Live Drawing, collections)
+- **14** — XML Extensions (OFKXMLDocument, OFKXMLElement)
+- **15** — High-Level Model (FinalCutPro.FCPXML)
+- **16** — Cross-Platform & iOS (OFKXML abstraction, Foundation vs AEXML)
+- **17** — Errors & Utilities
+- **18** — CLI (OpenFCPXMLKit-CLI)
+- **19** — Reporting, Excel & PDF Export (Projection-first sections, ReportTimecodeFormat, ReportBuildPhase, XLKit workbook, CoreGraphics PDF)
+- **20** — Examples (workflows and code)
 
 ---
 
@@ -40,3 +40,4 @@ From the index you can reach all chapters:
 - **Documentation index:** [README.md](README.md)
 - **CLI reference:** [../Sources/OpenFCPXMLKitCLI/README.md](../Sources/OpenFCPXMLKitCLI/README.md)
 - **Project README:** [../README.md](../README.md)
+- **Tests:** [../Tests/README.md](../Tests/README.md) — **1084** listed tests (all Swift Testing)

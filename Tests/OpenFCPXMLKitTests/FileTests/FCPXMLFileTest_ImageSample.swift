@@ -8,77 +8,76 @@
 //	File Tests: ImageSample.fcpxml — still image asset with video element.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFileTest_ImageSample: XCTestCase {
+@Suite("File test image sample")
+struct FCPXMLFileTest_ImageSample {
 
-    func testParse() throws {
-        let fcpxml = try loadFCPXMLSample(named: "ImageSample")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertEqual(fcpxml.version, .ver1_13)
+    @Test("Parse ImageSample")
+    func parse() throws {
+        let fcpxml = try requireFCPXMLSample(named: "ImageSample")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.version == .ver1_13)
         let events = fcpxml.allEvents()
-        XCTAssertFalse(events.isEmpty, "Expected at least one event")
+        let hasEvents = !events.isEmpty
+        #expect(hasEvents, "Expected at least one event")
         let projects = fcpxml.allProjects()
-        XCTAssertFalse(projects.isEmpty, "Expected at least one project")
+        let hasProjects = !projects.isEmpty
+        #expect(hasProjects, "Expected at least one project")
     }
 
-    func testStillImageAsset() throws {
-        let fcpxml = try loadFCPXMLSample(named: "ImageSample")
+    @Test("Still image asset")
+    func stillImageAsset() throws {
+        let fcpxml = try requireFCPXMLSample(named: "ImageSample")
         let resources = fcpxml.root.resources
         let assets = resources.childElements.filter { $0.name == "asset" }
-        XCTAssertFalse(assets.isEmpty, "Expected asset resource")
-        
-        guard let assetElement = assets.first else {
-            XCTFail("No asset element found")
-            return
-        }
-        
-        let asset = try XCTUnwrap(assetElement.fcpAsAsset)
-        // Still images have duration="0s" which should parse as zero seconds
-        if let duration = asset.duration {
-            XCTAssertEqual(duration.doubleValue, 0.0, accuracy: 0.001, "Still image should have 0 duration")
-        } else {
-            XCTFail("Asset should have duration attribute")
-        }
-        XCTAssertTrue(asset.hasVideo, "Still image should have video")
-        XCTAssertFalse(asset.hasAudio, "Still image should not have audio")
+        let hasAssets = !assets.isEmpty
+        #expect(hasAssets, "Expected asset resource")
+
+        let assetElement = try #require(assets.first, "No asset element found")
+
+        let asset = try #require(assetElement.fcpAsAsset)
+        let duration = try #require(asset.duration, "Asset should have duration attribute")
+        let durationIsZero = abs(duration.doubleValue) < 0.001
+        #expect(durationIsZero, "Still image should have 0 duration")
+        #expect(asset.hasVideo, "Still image should have video")
+        let hasAudio = asset.hasAudio
+        #expect(!hasAudio, "Still image should not have audio")
     }
 
-    func testVideoElementReferencesStill() throws {
-        let fcpxml = try loadFCPXMLSample(named: "ImageSample")
+    @Test("Video element references still")
+    func videoElementReferencesStill() throws {
+        let fcpxml = try requireFCPXMLSample(named: "ImageSample")
         let projects = fcpxml.allProjects()
-        guard let project = projects.first else {
-            XCTFail("No project found")
-            return
-        }
-        
-        let sequence = try XCTUnwrap(project.sequence)
+        let project = try #require(projects.first, "No project found")
+
+        let sequence = project.sequence
         let spine = sequence.spine
         let storyElements = Array(spine.storyElements)
-        XCTAssertFalse(storyElements.isEmpty, "Expected story elements in spine")
-        
-        guard let videoElement = storyElements.first(where: { $0.name == "video" }) else {
-            XCTFail("No video element found")
-            return
-        }
-        
+        let hasStoryElements = !storyElements.isEmpty
+        #expect(hasStoryElements, "Expected story elements in spine")
+
+        let videoElement = try #require(
+            storyElements.first(where: { $0.name == "video" }),
+            "No video element found"
+        )
+
         let ref = videoElement.stringValue(forAttributeNamed: "ref")
-        XCTAssertNotNil(ref, "Video element should reference an asset")
+        #expect(ref != nil, "Video element should reference an asset")
     }
 
-    func testLoadViaLoaderAndParseViaService() throws {
+    @Test("Load via loader and parse via service")
+    func loadViaLoaderAndParseViaService() throws {
         let url = urlForFCPXMLSample(named: "ImageSample")
-        guard FileManager.default.fileExists(atPath: url.path) else {
-            throw XCTSkip("ImageSample.fcpxml not found")
-        }
+        _ = try requireFCPXMLSampleData(named: "ImageSample")
         let loader = FCPXMLFileLoader()
         let doc = try loader.loadDocument(from: url)
-        XCTAssertEqual(doc.rootElement()?.name, "fcpxml")
+        #expect(doc.rootElement()?.name == "fcpxml")
         let service = FCPXMLService()
         let data = try Data(contentsOf: url)
         let parsed = try service.parseFCPXML(from: data)
-        XCTAssertEqual(parsed.rootElement()?.name, "fcpxml")
+        #expect(parsed.rootElement()?.name == "fcpxml")
     }
 }

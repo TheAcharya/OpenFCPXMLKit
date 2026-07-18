@@ -1,37 +1,46 @@
 //
 //  FCPXMLTransform360Tests.swift
-//  OpenFCPXMLKitTests
+//  OpenFCPXMLKit • https://github.com/TheAcharya/OpenFCPXMLKit
 //  © 2026 • Licensed under MIT License
 //
 
-import XCTest
+//
+//	Unit tests for Transform360 adjustment models and clip integration.
+//
+
+import Foundation
+import Testing
 import SwiftTimecode
 @testable import OpenFCPXMLKit
 
-final class FCPXMLTransform360Tests: XCTestCase {
+@Suite("Transform360 adjustments")
+struct FCPXMLTransform360Tests {
     
     // MARK: - Transform360CoordinateType Tests
     
-    func testTransform360CoordinateTypeCases() {
-        XCTAssertEqual(FinalCutPro.FCPXML.Transform360CoordinateType.spherical.rawValue, "spherical")
-        XCTAssertEqual(FinalCutPro.FCPXML.Transform360CoordinateType.cartesian.rawValue, "cartesian")
+    @Test("Transform360 coordinate type cases")
+    func transform360CoordinateTypeCases() {
+        #expect(FinalCutPro.FCPXML.Transform360CoordinateType.spherical.rawValue == "spherical")
+        #expect(FinalCutPro.FCPXML.Transform360CoordinateType.cartesian.rawValue == "cartesian")
     }
     
     // MARK: - Transform360Adjustment Tests
     
-    func testTransform360Initialization() {
+    @Test("Transform360 initialization")
+    func transform360Initialization() {
         let adjustment = FinalCutPro.FCPXML.Transform360Adjustment(
             coordinateType: .spherical,
             isEnabled: true,
             autoOrient: true
         )
         
-        XCTAssertEqual(adjustment.coordinateType, .spherical)
-        XCTAssertTrue(adjustment.isEnabled)
-        XCTAssertTrue(adjustment.autoOrient)
+        #expect(adjustment.coordinateType == .spherical)
+        #expect(adjustment.isEnabled)
+        #expect(adjustment.autoOrient)
     }
     
-    func testTransform360WithSphericalCoordinates() {
+    @Test("Transform360 with spherical coordinates")
+    func transform360WithSphericalCoordinates() {
         var adjustment = FinalCutPro.FCPXML.Transform360Adjustment(
             coordinateType: .spherical
         )
@@ -40,12 +49,13 @@ final class FCPXMLTransform360Tests: XCTestCase {
         adjustment.longitude = 90.0
         adjustment.distance = 10.0
         
-        XCTAssertEqual(adjustment.latitude, 45.0)
-        XCTAssertEqual(adjustment.longitude, 90.0)
-        XCTAssertEqual(adjustment.distance, 10.0)
+        #expect(adjustment.latitude == 45.0)
+        #expect(adjustment.longitude == 90.0)
+        #expect(adjustment.distance == 10.0)
     }
     
-    func testTransform360WithCartesianCoordinates() {
+    @Test("Transform360 with cartesian coordinates")
+    func transform360WithCartesianCoordinates() {
         var adjustment = FinalCutPro.FCPXML.Transform360Adjustment(
             coordinateType: .cartesian
         )
@@ -54,12 +64,13 @@ final class FCPXMLTransform360Tests: XCTestCase {
         adjustment.yPosition = 2.0
         adjustment.zPosition = 3.0
         
-        XCTAssertEqual(adjustment.xPosition, 1.0)
-        XCTAssertEqual(adjustment.yPosition, 2.0)
-        XCTAssertEqual(adjustment.zPosition, 3.0)
+        #expect(adjustment.xPosition == 1.0)
+        #expect(adjustment.yPosition == 2.0)
+        #expect(adjustment.zPosition == 3.0)
     }
     
-    func testTransform360WithOrientation() {
+    @Test("Transform360 with orientation")
+    func transform360WithOrientation() {
         var adjustment = FinalCutPro.FCPXML.Transform360Adjustment(
             coordinateType: .spherical
         )
@@ -68,12 +79,13 @@ final class FCPXMLTransform360Tests: XCTestCase {
         adjustment.yOrientation = 20.0
         adjustment.zOrientation = 30.0
         
-        XCTAssertEqual(adjustment.xOrientation, 10.0)
-        XCTAssertEqual(adjustment.yOrientation, 20.0)
-        XCTAssertEqual(adjustment.zOrientation, 30.0)
+        #expect(adjustment.xOrientation == 10.0)
+        #expect(adjustment.yOrientation == 20.0)
+        #expect(adjustment.zOrientation == 30.0)
     }
     
-    func testTransform360WithConvergenceAndInteraxial() {
+    @Test("Transform360 with convergence and interaxial")
+    func transform360WithConvergenceAndInteraxial() {
         var adjustment = FinalCutPro.FCPXML.Transform360Adjustment(
             coordinateType: .spherical
         )
@@ -81,11 +93,12 @@ final class FCPXMLTransform360Tests: XCTestCase {
         adjustment.convergence = 0.5
         adjustment.interaxial = 2.0
         
-        XCTAssertEqual(adjustment.convergence, 0.5)
-        XCTAssertEqual(adjustment.interaxial, 2.0)
+        #expect(adjustment.convergence == 0.5)
+        #expect(adjustment.interaxial == 2.0)
     }
     
-    func testTransform360Codable() throws {
+    @Test("Transform360 Codable")
+    func transform360Codable() throws {
         var adjustment = FinalCutPro.FCPXML.Transform360Adjustment(
             coordinateType: .spherical
         )
@@ -98,14 +111,15 @@ final class FCPXMLTransform360Tests: XCTestCase {
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(FinalCutPro.FCPXML.Transform360Adjustment.self, from: data)
         
-        XCTAssertEqual(decoded.coordinateType, adjustment.coordinateType)
-        XCTAssertEqual(decoded.latitude, adjustment.latitude)
-        XCTAssertEqual(decoded.longitude, adjustment.longitude)
+        #expect(decoded.coordinateType == adjustment.coordinateType)
+        #expect(decoded.latitude == adjustment.latitude)
+        #expect(decoded.longitude == adjustment.longitude)
     }
     
     // MARK: - Clip Integration Tests
     
-    func testClipTransform360AdjustmentSpherical() throws {
+    @Test("Clip Transform360 adjustment spherical")
+    func clipTransform360AdjustmentSpherical() throws {
         let xmlString = """
         <clip duration="5s">
             <adjust-360-transform coordinates="spherical" latitude="45.0" longitude="90.0" distance="10.0"/>
@@ -113,25 +127,19 @@ final class FCPXMLTransform360Tests: XCTestCase {
         """
         
         let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
-        guard let clipElement = xmlDoc.rootElement() else {
-            XCTFail("Failed to parse XML")
-            return
-        }
-        
-        guard let clip = FinalCutPro.FCPXML.Clip(element: clipElement) else {
-            XCTFail("Failed to create Clip")
-            return
-        }
+        let clipElement = try #require(xmlDoc.rootElement())
+        let clip = try #require(FinalCutPro.FCPXML.Clip(element: clipElement))
         
         let adjustment = clip.transform360Adjustment
-        XCTAssertNotNil(adjustment)
-        XCTAssertEqual(adjustment?.coordinateType, .spherical)
-        XCTAssertEqual(adjustment?.latitude, 45.0)
-        XCTAssertEqual(adjustment?.longitude, 90.0)
-        XCTAssertEqual(adjustment?.distance, 10.0)
+        #expect(adjustment != nil)
+        #expect(adjustment?.coordinateType == .spherical)
+        #expect(adjustment?.latitude == 45.0)
+        #expect(adjustment?.longitude == 90.0)
+        #expect(adjustment?.distance == 10.0)
     }
     
-    func testClipTransform360AdjustmentCartesian() throws {
+    @Test("Clip Transform360 adjustment cartesian")
+    func clipTransform360AdjustmentCartesian() throws {
         let xmlString = """
         <clip duration="5s">
             <adjust-360-transform coordinates="cartesian" xPosition="1.0" yPosition="2.0" zPosition="3.0"/>
@@ -139,25 +147,19 @@ final class FCPXMLTransform360Tests: XCTestCase {
         """
         
         let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
-        guard let clipElement = xmlDoc.rootElement() else {
-            XCTFail("Failed to parse XML")
-            return
-        }
-        
-        guard let clip = FinalCutPro.FCPXML.Clip(element: clipElement) else {
-            XCTFail("Failed to create Clip")
-            return
-        }
+        let clipElement = try #require(xmlDoc.rootElement())
+        let clip = try #require(FinalCutPro.FCPXML.Clip(element: clipElement))
         
         let adjustment = clip.transform360Adjustment
-        XCTAssertNotNil(adjustment)
-        XCTAssertEqual(adjustment?.coordinateType, .cartesian)
-        XCTAssertEqual(adjustment?.xPosition, 1.0)
-        XCTAssertEqual(adjustment?.yPosition, 2.0)
-        XCTAssertEqual(adjustment?.zPosition, 3.0)
+        #expect(adjustment != nil)
+        #expect(adjustment?.coordinateType == .cartesian)
+        #expect(adjustment?.xPosition == 1.0)
+        #expect(adjustment?.yPosition == 2.0)
+        #expect(adjustment?.zPosition == 3.0)
     }
     
-    func testClipTransform360RoundTrip() {
+    @Test("Clip Transform360 round-trip")
+    func clipTransform360RoundTrip() {
         let clip = FinalCutPro.FCPXML.Clip(duration: Fraction(5, 1))
         
         var adjustment = FinalCutPro.FCPXML.Transform360Adjustment(
@@ -173,16 +175,16 @@ final class FCPXMLTransform360Tests: XCTestCase {
         clip.transform360Adjustment = adjustment
         
         let retrieved = clip.transform360Adjustment
-        XCTAssertNotNil(retrieved)
-        XCTAssertEqual(retrieved?.coordinateType, .spherical)
-        XCTAssertEqual(retrieved?.latitude, 45.0)
-        XCTAssertEqual(retrieved?.longitude, 90.0)
-        XCTAssertEqual(retrieved?.xOrientation, 10.0)
-        XCTAssertEqual(retrieved?.convergence, 0.5)
+        #expect(retrieved != nil)
+        #expect(retrieved?.coordinateType == .spherical)
+        #expect(retrieved?.latitude == 45.0)
+        #expect(retrieved?.longitude == 90.0)
+        #expect(retrieved?.xOrientation == 10.0)
+        #expect(retrieved?.convergence == 0.5)
         
         // Verify XML structure
         let transformElement = clip.element.firstChildElement(named: "adjust-360-transform")
-        XCTAssertNotNil(transformElement)
-        XCTAssertEqual(transformElement?.stringValue(forAttributeNamed: "coordinates"), "spherical")
+        #expect(transformElement != nil)
+        #expect(transformElement?.stringValue(forAttributeNamed: "coordinates") == "spherical")
     }
 }

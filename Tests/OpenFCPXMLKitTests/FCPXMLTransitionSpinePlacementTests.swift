@@ -8,79 +8,81 @@
 //	Unit tests for transition spine placement classification.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLTransitionSpinePlacementTests: XCTestCase {
+@Suite("Transition spine placement")
+struct FCPXMLTransitionSpinePlacementTests {
     private typealias Transition = FinalCutPro.FCPXML.Transition
-    
-    func testSpinePlacementPrimaryForMainStorylineTransition() throws {
-        let fcpxml = try loadFCPXMLSample(named: "TransitionMarkers1")
-        let transitionElement = try XCTUnwrap(
+
+    @Test("Spine placement primary for main storyline transition")
+    func spinePlacementPrimaryForMainStorylineTransition() throws {
+        let fcpxml = try requireFCPXMLSample(named: "TransitionMarkers1")
+        let transitionElement = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "transition")
         )
-        let transition = try XCTUnwrap(transitionElement.fcpAsTransition)
-        
-        XCTAssertEqual(
-            transition.spinePlacement(breadcrumbs: []),
-            .primary
+        let transition = try #require(transitionElement.fcpAsTransition)
+
+        #expect(
+            transition.spinePlacement(breadcrumbs: [])
+                == .primary
         )
     }
-    
-    func testSpinePlacementSecondaryForLaneSpineTransition() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "TimelineSample")
+
+    @Test("Spine placement secondary for lane spine transition")
+    func spinePlacementSecondaryForLaneSpineTransition() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "TimelineSample")
         let transitions = await timeline.fcpExtract(types: [.transition], scope: .mainTimeline)
-        
-        let secondaryTransition = try XCTUnwrap(
+
+        let secondaryTransition = try #require(
             transitions.first { extracted in
                 extracted.element.parentElement?.fcpLane != nil
                     && extracted.element.parentElement?.fcpLane != 0
             }
         )
-        
-        guard let transition = secondaryTransition.element.fcpAsTransition else {
-            XCTFail("Expected transition model")
-            return
-        }
-        
-        XCTAssertEqual(
-            transition.spinePlacement(breadcrumbs: secondaryTransition.breadcrumbs),
-            .secondary
+
+        let transition = try #require(secondaryTransition.element.fcpAsTransition)
+
+        #expect(
+            transition.spinePlacement(breadcrumbs: secondaryTransition.breadcrumbs)
+                == .secondary
         )
     }
-    
-    func testSpinePlacementStaticHelperDetectsParentLaneSpine() {
+
+    @Test("Spine placement static helper detects parent lane spine")
+    func spinePlacementStaticHelperDetectsParentLaneSpine() {
         let parentSpine = OFKXMLDefaultFactory().makeElement(name: "spine")
         parentSpine.fcpLane = 1
-        
+
         let placement = Transition.spinePlacement(
             parentElement: parentSpine,
             breadcrumbs: []
         )
-        
-        XCTAssertEqual(placement, .secondary)
+
+        #expect(placement == .secondary)
     }
-    
-    func testSpinePlacementStaticHelperDetectsAncestorLaneSpine() {
+
+    @Test("Spine placement static helper detects ancestor lane spine")
+    func spinePlacementStaticHelperDetectsAncestorLaneSpine() {
         let laneSpine = OFKXMLDefaultFactory().makeElement(name: "spine")
         laneSpine.fcpLane = 2
-        
+
         let placement = Transition.spinePlacement(
             parentElement: nil,
             breadcrumbs: [laneSpine]
         )
-        
-        XCTAssertEqual(placement, .secondary)
+
+        #expect(placement == .secondary)
     }
-    
-    func testIsAppleSuppliedPrimaryEffectTrueForFxPlugCrossDissolve() throws {
-        let fcpxml = try loadFCPXMLSample(named: "TransitionMarkers1")
-        let transitionElement = try XCTUnwrap(
+
+    @Test("isAppleSuppliedPrimaryEffect true for FxPlug Cross Dissolve")
+    func isAppleSuppliedPrimaryEffectTrueForFxPlugCrossDissolve() throws {
+        let fcpxml = try requireFCPXMLSample(named: "TransitionMarkers1")
+        let transitionElement = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "transition")
         )
-        let transition = try XCTUnwrap(transitionElement.fcpAsTransition)
-        
-        XCTAssertTrue(transition.isAppleSuppliedPrimaryEffect(in: fcpxml.root.resources))
+        let transition = try #require(transitionElement.fcpAsTransition)
+
+        #expect(transition.isAppleSuppliedPrimaryEffect(in: fcpxml.root.resources))
     }
 }

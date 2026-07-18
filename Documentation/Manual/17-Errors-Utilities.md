@@ -1,4 +1,4 @@
-# 15 — Errors & Utilities
+# 17 — Errors & Utilities
 
 [← Manual Index](00-Index.md)
 
@@ -79,4 +79,6 @@ When exporting with **FCPXMLExporter**, pass `eventUid` and `projectUid` (or omi
 
 ## Next
 
-- [16 — CLI](16-CLI.md) — Experimental command-line interface.
+- [18 — CLI](18-CLI.md) — Experimental command-line interface.
+
+[← Manual Index](00-Index.md)

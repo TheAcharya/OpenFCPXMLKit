@@ -9,101 +9,111 @@
 //	Roles / Effects / Markers / Titles presets against compound, sync, multicam, occlusion nests.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLExtractionNestFidelityTests: XCTestCase {
-    func testRolesPresetFindsRolesInSyncNests() async throws {
+@Suite("Extraction nest fidelity")
+struct FCPXMLExtractionNestFidelityTests {
+    @Test("Roles preset finds roles in sync nests")
+    func rolesPresetFindsRolesInSyncNests() async throws {
         for sample in ["SyncClipRoles", "SyncClipRoles2"] {
-            let timeline = try timelineElement(fromSampleNamed: sample)
+            let timeline = try requireTimelineElement(fromSampleNamed: sample)
             let roles = await timeline.fcpExtract(
                 preset: .roles(),
                 scope: .reportMainTimelineVisible()
             )
-            XCTAssertFalse(roles.isEmpty, "Expected roles in \(sample)")
+            #expect(!roles.isEmpty, "Expected roles in \(sample)")
         }
     }
 
-    func testRolesPresetFindsRolesInCompoundClipSampleViaDeepScope() async throws {
+    @Test("Roles preset finds roles in compound clip sample via deep scope")
+    func rolesPresetFindsRolesInCompoundClipSampleViaDeepScope() async throws {
         // Standalone compound / ref-clip timelines are covered by FCPXMLCompoundClipReportTests.
         // Here: RolesList + compound nest sample for preset discovery.
-        let timeline = try timelineElement(fromSampleNamed: "RolesList")
+        let timeline = try requireTimelineElement(fromSampleNamed: "RolesList")
         let roles = await timeline.fcpExtract(
             preset: .roles(),
             scope: .reportMainTimelineVisible()
         )
-        XCTAssertFalse(roles.isEmpty, "RolesList should yield roles")
+        #expect(!roles.isEmpty, "RolesList should yield roles")
     }
 
-    func testTitlesPresetOnTitlesRolesAndOcclusionSamples() async throws {
-        let titlesRoles = try timelineElement(fromSampleNamed: "TitlesRoles")
+    @Test("Titles preset on TitlesRoles and Occlusion samples")
+    func titlesPresetOnTitlesRolesAndOcclusionSamples() async throws {
+        let titlesRoles = try requireTimelineElement(fromSampleNamed: "TitlesRoles")
         let titles = await titlesRoles.fcpExtract(preset: .titles, scope: .init())
-        XCTAssertFalse(titles.isEmpty, "TitlesRoles should yield titles")
-        XCTAssertFalse(
-            titles.contains { $0.value(forContext: .effectiveOcclusion) == .fullyOccluded }
-        )
+        #expect(!titles.isEmpty, "TitlesRoles should yield titles")
+        let titlesHasFullyOccluded = titles.contains {
+            $0.value(forContext: .effectiveOcclusion) == .fullyOccluded
+        }
+        #expect(!titlesHasFullyOccluded)
 
-        let occlusion = try timelineElement(fromSampleNamed: "Occlusion3")
+        let occlusion = try requireTimelineElement(fromSampleNamed: "Occlusion3")
         let occludedTitles = await occlusion.fcpExtract(preset: .titles, scope: .init())
-        XCTAssertFalse(
-            occludedTitles.contains { $0.value(forContext: .effectiveOcclusion) == .fullyOccluded },
-            "Titles preset must drop fully occluded hosts"
-        )
+        let occludedHasFullyOccluded = occludedTitles.contains {
+            $0.value(forContext: .effectiveOcclusion) == .fullyOccluded
+        }
+        #expect(!occludedHasFullyOccluded, "Titles preset must drop fully occluded hosts")
     }
 
-    func testMarkersPresetOnMulticamAuditionAndBasicMarkersSamples() async throws {
+    @Test("Markers preset on multicam audition and basic markers samples")
+    func markersPresetOnMulticamAuditionAndBasicMarkersSamples() async throws {
         for sample in ["MulticamMarkers", "AuditionMarkers", "BasicMarkers"] {
-            let timeline = try timelineElement(fromSampleNamed: sample)
+            let timeline = try requireTimelineElement(fromSampleNamed: sample)
             let markers = await timeline.fcpExtract(preset: .markers, scope: .init())
-            XCTAssertFalse(markers.isEmpty, "Expected markers in \(sample)")
+            #expect(!markers.isEmpty, "Expected markers in \(sample)")
         }
     }
 
-    func testMarkersPresetKeepsTitleMarkersWhenMarkerSelfOcclusionIsFalsePositive() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "BasicMarkers")
+    @Test("Markers preset keeps title markers when marker self-occlusion is false positive")
+    func markersPresetKeepsTitleMarkersWhenMarkerSelfOcclusionIsFalsePositive() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "BasicMarkers")
         let markers = await timeline.fcpExtract(preset: .markers, scope: .init())
         // Markers themselves may report fullyOccluded due to title local starts;
         // the preset must still return them when the host title is visible.
-        XCTAssertEqual(markers.count, 4)
-        XCTAssertTrue(
-            markers.contains { $0.value(forContext: .effectiveOcclusion) == .fullyOccluded }
-        )
+        #expect(markers.count == 4)
+        let hasFullyOccludedMarker = markers.contains {
+            $0.value(forContext: .effectiveOcclusion) == .fullyOccluded
+        }
+        #expect(hasFullyOccludedMarker)
     }
 
-    func testMarkersPresetDropsMarkersOnFullyOccludedHosts() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "Occlusion3")
+    @Test("Markers preset drops markers on fully occluded hosts")
+    func markersPresetDropsMarkersOnFullyOccludedHosts() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "Occlusion3")
         let markers = await timeline.fcpExtract(preset: .markers, scope: .init())
         for marker in markers {
             if let host = marker.ancestorClipElement() {
                 let hostContext = marker.extractedContext(forClip: host)
-                XCTAssertNotEqual(
-                    hostContext.value(forContext: .effectiveOcclusion),
-                    .fullyOccluded,
+                #expect(
+                    hostContext.value(forContext: .effectiveOcclusion) != .fullyOccluded,
                     "Marker '\(marker.name)' host must not be fully occluded"
                 )
             }
         }
     }
 
-    func testEffectsPresetOnSyncAndMulticamNests() async throws {
+    @Test("Effects preset on sync and multicam nests")
+    func effectsPresetOnSyncAndMulticamNests() async throws {
         for sample in ["SyncClipRoles", "MulticamSample"] {
-            let timeline = try timelineElement(fromSampleNamed: sample)
+            let timeline = try requireTimelineElement(fromSampleNamed: sample)
             let effects = await FinalCutPro.FCPXML.EffectsExtractionPreset().perform(
                 on: timeline,
                 scope: .init()
             )
-            XCTAssertFalse(
-                effects.contains {
-                    $0.host.value(forContext: .effectiveOcclusion) == .fullyOccluded
-                },
+            let hasFullyOccludedHost = effects.contains {
+                $0.host.value(forContext: .effectiveOcclusion) == .fullyOccluded
+            }
+            #expect(
+                !hasFullyOccludedHost,
                 "Effects hosts must not be fully occluded (\(sample))"
             )
         }
     }
 
-    func testMulticamActiveMaskDoesNotExtractInactiveAngleOnlyMarkers() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "MulticamMarkers")
+    @Test("Multicam active mask does not extract inactive angle-only markers")
+    func multicamActiveMaskDoesNotExtractInactiveAngleOnlyMarkers() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "MulticamMarkers")
 
         var activeScope = FinalCutPro.FCPXML.ExtractionScope()
         activeScope.mcClipAngles = .active
@@ -113,7 +123,7 @@ final class FCPXMLExtractionNestFidelityTests: XCTestCase {
         allScope.mcClipAngles = .all
         let allMarkers = await timeline.fcpExtract(preset: .markers, scope: allScope)
 
-        XCTAssertGreaterThanOrEqual(allMarkers.count, activeMarkers.count)
-        XCTAssertFalse(activeMarkers.isEmpty)
+        #expect(allMarkers.count >= activeMarkers.count)
+        #expect(!activeMarkers.isEmpty)
     }
 }

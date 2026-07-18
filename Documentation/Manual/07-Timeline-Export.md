@@ -66,7 +66,7 @@ let xmlString = try exporter.export(timeline: timeline, assets: [asset])
 
 Optional parameters for FCP-style document identity and library location:
 
-- **eventUid** — Event `uid` attribute; if `nil`, a new UID is generated (see **FCPXMLUID** in [15 — Errors & Utilities](15-Errors-Utilities.md)).
+- **eventUid** — Event `uid` attribute; if `nil`, a new UID is generated (see **FCPXMLUID** in [17 — Errors & Utilities](17-Errors-Utilities.md)).
 - **projectUid** — Project `uid` attribute; if `nil`, a new UID is generated.
 - **libraryLocation** — Library `location` attribute (e.g. file URL of the library bundle).
 - **includeDefaultSmartCollections** — If `true`, adds FCP-style default smart collections under the library (Projects, All Video, Audio Only, Stills, Favorites). Default: `false`. Set to `true` when creating new projects for FCP import.

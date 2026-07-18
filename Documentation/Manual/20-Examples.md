@@ -1,10 +1,12 @@
-# 17 — Examples
+# 20 — Examples
 
 [← Manual Index](00-Index.md)
 
 ---
 
 ## Open an FCPXML file
+
+Prefer the cross-platform loader / OFKXML document APIs (see [14 — XML Extensions](14-XML-Extensions.md) and [16 — Cross-Platform & iOS](16-Cross-Platform-iOS.md)). On macOS, Foundation `XMLDocument(contentsOfFCPXML:)` remains available as a convenience.
 
 ```swift
 let fileURL = URL(fileURLWithPath: "/Users/username/Documents/sample.fcpxml")
@@ -16,13 +18,17 @@ do {
     return
 }
 
-let fcpxmlDoc: XMLDocument
+let loader = FCPXMLFileLoader()
+let fcpxmlDoc: any OFKXMLDocument
 do {
-    fcpxmlDoc = try XMLDocument(contentsOfFCPXML: fileURL)
+    fcpxmlDoc = try loader.loadFCPXMLDocument(from: fileURL)
 } catch {
     print("Error loading FCPXML.")
     return
 }
+
+// High-level wrapper (optional):
+// let fcpxml = FinalCutPro.FCPXML(fileContent: fcpxmlDoc)
 ```
 
 ---
@@ -39,7 +45,9 @@ print("Events: \(eventNames)")
 ## Create and add events
 
 ```swift
-let newEvent = XMLElement().fcpxEvent(name: "My New Event")
+let newEvent = OFKXMLDefaultFactory()
+    .makeElement(name: "event")
+    .fcpxEvent(name: "My New Event")
 fcpxmlDoc.add(events: [newEvent])
 print("Updated events: \(fcpxmlDoc.fcpxEventNames)")
 ```
@@ -329,7 +337,7 @@ let videoSeconds = FinalCutPro.FCPXML.TimelineOccupancyIndex(windows: windows)
 print("Union video occupancy:", videoSeconds, "s across", windows.count, "windows")
 ```
 
-Full Projection API: [20 — Timeline Projection](20-Timeline-Projection.md). Reporting project-once is automatic inside `buildReport` when sections need windows.
+Full Projection API: [11 — Timeline Projection](11-Timeline-Projection.md). Reporting project-once is automatic inside `buildReport` when sections need windows.
 
 ---
 
@@ -346,10 +354,16 @@ OpenFCPXMLKit-CLI --report --report-full \
   /path/to/project.fcpxmld /path/to/output-dir
 ```
 
-See [19 — Reporting, Excel & PDF Export](19-Reporting.md) and [20 — Timeline Projection](20-Timeline-Projection.md) for the full reporting and Projection APIs.
+See [19 — Reporting, Excel & PDF Export](19-Reporting.md) and [11 — Timeline Projection](11-Timeline-Projection.md) for the full reporting and Projection APIs.
 
 ---
 
 For FCPXML format details see [fcp.cafe/developers/fcpxml](https://fcp.cafe/developers/fcpxml). For project overview and installation see the main [README](../../README.md).
+
+[← Manual Index](00-Index.md)
+
+## Next
+
+- [Manual Index](00-Index.md) — return to the table of contents.
 
 [← Manual Index](00-Index.md)

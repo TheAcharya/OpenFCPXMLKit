@@ -36,7 +36,7 @@ let package = Package(
         // Cross-platform XML parsing (AEXML backend for iOS and other non-macOS platforms)
         .package(url: "https://github.com/tadija/AEXML", from: "4.7.0"),
         // Excel file creation
-        .package(url: "https://github.com/TheAcharya/XLKit", from: "1.1.6"),
+        .package(url: "https://github.com/TheAcharya/XLKit", from: "1.1.7"),
     ],
     // Targets: core library, tests, user CLI, and DTD generator utility.
     targets: [

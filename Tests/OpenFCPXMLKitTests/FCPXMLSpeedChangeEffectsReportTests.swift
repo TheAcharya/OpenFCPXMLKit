@@ -8,13 +8,14 @@
 //	Speed Change Effects report tests.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLSpeedChangeEffectsReportTests: XCTestCase, @unchecked Sendable {
-    
-    func testBuildSpeedChangeEffectsReportFromInlineFCPXML() async throws {
+@Suite("Speed change effects report")
+struct FCPXMLSpeedChangeEffectsReportTests {
+
+    @Test("Build speed change effects report from inline FCPXML")
+    func buildSpeedChangeEffectsReportFromInlineFCPXML() async throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -41,50 +42,55 @@ final class FCPXMLSpeedChangeEffectsReportTests: XCTestCase, @unchecked Sendable
             </library>
         </fcpxml>
         """)
-        
+
         let report = try await fcpxml.buildReport(
             options: FinalCutPro.FCPXML.ReportOptions.speedChangeEffectsOnly
         )
-        
+
         let rows = report.speedChangeEffects?.rows ?? []
-        XCTAssertEqual(rows.count, 1)
-        XCTAssertEqual(rows[0].effect, "Retime -100.0%")
-        XCTAssertEqual(rows[0].settings, "-100.0%")
-        XCTAssertEqual(rows[0].clipName, "Clip A")
-        XCTAssertEqual(rows[0].enabled, "")
-        XCTAssertEqual(rows[0].isApple, "")
+        #expect(rows.count == 1)
+        #expect(rows[0].effect == "Retime -100.0%")
+        #expect(rows[0].settings == "-100.0%")
+        #expect(rows[0].clipName == "Clip A")
+        #expect(rows[0].enabled == "")
+        #expect(rows[0].isApple == "")
         FCPXMLReportingReportTestSupport.assertValidTimecode(rows[0].timelineIn)
         FCPXMLReportingReportTestSupport.assertValidTimecode(rows[0].timelineOut)
     }
-    
-    func testBuildSpeedChangeEffectsReportFromFixture() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
-        let report = try await fcpxml.buildReport(
-            options: try FCPXMLReportingReportFixture.reportOptions {
-                $0.includeSpeedChangeEffects = true
-            }
-        )
-        
-        XCTAssertNotNil(report.speedChangeEffects)
-        
+
+    @Test("Build speed change effects report from fixture")
+    func buildSpeedChangeEffectsReportFromFixture() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
+        var options = FinalCutPro.FCPXML.ReportOptions()
+        options.projectName = FCPXMLReportingReportFixture.primaryProjectName(in: fcpxml)
+        options.includeSpeedChangeEffects = true
+
+        let report = try await fcpxml.buildReport(options: options)
+
+        #expect(report.speedChangeEffects != nil)
+
         let rows = report.speedChangeEffects?.rows ?? []
-        XCTAssertFalse(rows.isEmpty)
-        
+        let rowsEmpty = rows.isEmpty
+        #expect(!rowsEmpty)
+
         for row in rows {
-            XCTAssertTrue(row.effect.hasPrefix("Retime "))
-            XCTAssertFalse(row.settings.isEmpty)
-            XCTAssertFalse(row.clipName.isEmpty)
+            #expect(row.effect.hasPrefix("Retime "))
+            let settingsEmpty = row.settings.isEmpty
+            let clipNameEmpty = row.clipName.isEmpty
+            #expect(!settingsEmpty)
+            #expect(!clipNameEmpty)
             FCPXMLReportingReportTestSupport.assertValidTimecode(row.timelineIn)
             FCPXMLReportingReportTestSupport.assertValidTimecode(row.timelineOut)
         }
     }
-    
-    func testSpeedChangeEffectsOnlyPresetEnablesSectionOnly() {
+
+    @Test("Speed change effects only preset enables section only")
+    func speedChangeEffectsOnlyPresetEnablesSectionOnly() {
         let options = FinalCutPro.FCPXML.ReportOptions.speedChangeEffectsOnly
-        
-        XCTAssertTrue(options.includeSpeedChangeEffects)
-        XCTAssertFalse(options.includeEffects)
-        XCTAssertFalse(options.includeMarkers)
-        XCTAssertFalse(options.includeRoleInventory)
+
+        #expect(options.includeSpeedChangeEffects)
+        #expect(!options.includeEffects)
+        #expect(!options.includeMarkers)
+        #expect(!options.includeRoleInventory)
     }
 }

@@ -1,29 +1,33 @@
 //
-//  FCPXMLTestUtilities.swift
+//  FCPXMLTestSampleLoading.swift
 //  OpenFCPXMLKit • https://github.com/TheAcharya/OpenFCPXMLKit
 //  © 2026 • Licensed under MIT License
 //
 
 //
-//	Test helper functions for loading FCPXML samples.
+//	Framework-agnostic FCPXML sample loading (no XCTest / Testing imports).
 //
 
 import Foundation
-import XCTest
 @testable import OpenFCPXMLKit
 
-/// Loads FCPXML sample data by name. Throws XCTSkip if file is missing.
-func loadFCPXMLSampleData(named name: String) throws -> Data {
+/// Returns whether a bundled public sample `.fcpxml` exists on disk.
+func fcpxmlSampleExists(named name: String) -> Bool {
+    FileManager.default.fileExists(atPath: urlForFCPXMLSample(named: name).path)
+}
+
+/// Loads FCPXML sample data by name. Throws ``FCPXMLTestSampleError/sampleNotFound`` if missing.
+func tryLoadFCPXMLSampleData(named name: String) throws -> Data {
     let url = urlForFCPXMLSample(named: name)
     guard FileManager.default.fileExists(atPath: url.path) else {
-        throw XCTSkip("Sample not found: \(name).fcpxml at \(url.path)")
+        throw FCPXMLTestSampleError.sampleNotFound(name: name, path: url.path)
     }
     return try Data(contentsOf: url)
 }
 
-/// Loads FCPXML as FinalCutPro.FCPXML from a sample by name. Throws XCTSkip if file missing.
-func loadFCPXMLSample(named name: String) throws -> FinalCutPro.FCPXML {
-    let data = try loadFCPXMLSampleData(named: name)
+/// Loads FCPXML as ``FinalCutPro/FCPXML`` from a sample by name.
+func tryLoadFCPXMLSample(named name: String) throws -> FinalCutPro.FCPXML {
+    let data = try tryLoadFCPXMLSampleData(named: name)
     return try FinalCutPro.FCPXML(fileContent: data)
 }
 
@@ -33,27 +37,26 @@ func parseInlineFCPXML(_ xml: String) throws -> FinalCutPro.FCPXML {
 }
 
 @available(macOS 26.0, *)
-func timelineElement(fromSampleNamed name: String) throws -> any OFKXMLElement {
-    let fcpxml = try loadFCPXMLSample(named: name)
+func tryTimelineElement(fromSampleNamed name: String) throws -> any OFKXMLElement {
+    let fcpxml = try tryLoadFCPXMLSample(named: name)
     guard let project = fcpxml.allProjects().first else {
-        throw XCTSkip("No project in sample \(name)")
+        throw FCPXMLTestSampleError.noProject(sampleName: name)
     }
     return project.sequence.element
 }
 
 @available(macOS 26.0, *)
-func firstProject(fromSampleNamed name: String) throws -> FinalCutPro.FCPXML.Project {
-    let fcpxml = try loadFCPXMLSample(named: name)
+func tryFirstProject(fromSampleNamed name: String) throws -> FinalCutPro.FCPXML.Project {
+    let fcpxml = try tryLoadFCPXMLSample(named: name)
     guard let project = fcpxml.allProjects().first else {
-        throw XCTSkip("No project in sample \(name)")
+        throw FCPXMLTestSampleError.noProject(sampleName: name)
     }
     return project
 }
 
 func interpolatedRole(_ rawValue: String) -> FinalCutPro.FCPXML.AnyInterpolatedRole {
     guard let role = FinalCutPro.FCPXML.AnyInterpolatedRole(rawValue: rawValue) else {
-        XCTFail("Could not create role from raw value: \(rawValue)")
-        return .assigned(.video(.init(role: rawValue)))
+        preconditionFailure("Could not create role from raw value: \(rawValue)")
     }
     return role
 }
@@ -74,14 +77,18 @@ func firstDescendantElement(
     return nil
 }
 
-func makeExtractedHost(
+func tryMakeExtractedHost(
     from fcpxml: FinalCutPro.FCPXML,
     elementName: String,
     where predicate: ((any OFKXMLElement) -> Bool)? = nil
 ) throws -> FinalCutPro.FCPXML.ExtractedElement {
-    let element = try XCTUnwrap(
-        firstDescendantElement(in: fcpxml.root.element, named: elementName, where: predicate)
-    )
+    guard let element = firstDescendantElement(
+        in: fcpxml.root.element,
+        named: elementName,
+        where: predicate
+    ) else {
+        throw FCPXMLTestSampleError.elementNotFound(elementName: elementName)
+    }
     return FinalCutPro.FCPXML.ExtractedElement(
         element: element,
         breadcrumbs: [],
@@ -115,7 +122,11 @@ let fcpxmlFrameRateSampleNames: [String] = [
 /// All sample names for smoke/iteration tests.
 func allFCPXMLSampleNames() -> [String] {
     let dir = fcpxmlSamplesDirectory()
-    guard let enumerator = FileManager.default.enumerator(at: dir, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles]) else {
+    guard let enumerator = FileManager.default.enumerator(
+        at: dir,
+        includingPropertiesForKeys: [.isRegularFileKey],
+        options: [.skipsHiddenFiles]
+    ) else {
         return []
     }
     var names: [String] = []

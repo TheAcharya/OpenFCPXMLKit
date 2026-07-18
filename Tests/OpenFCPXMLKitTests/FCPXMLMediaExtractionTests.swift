@@ -8,27 +8,18 @@
 //	Tests for media reference extraction and copy.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLMediaExtractionTests: XCTestCase, @unchecked Sendable {
-
-    private var service: FCPXMLService!
-
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        service = FCPXMLService()
-    }
-
-    override func tearDownWithError() throws {
-        service = nil
-        try super.tearDownWithError()
-    }
+@Suite("Media extraction")
+struct FCPXMLMediaExtractionTests {
+    private var service: FCPXMLService { FCPXMLService() }
 
     // MARK: - Copy (missing file → skipped)
 
-    func testCopyReferencedMedia_MissingFile_Skips() throws {
+    @Test("Copy referenced media skips missing file")
+    func copyReferencedMediaMissingFileSkips() throws {
         let nonexistent = URL(fileURLWithPath: "/nonexistent/\(UUID().uuidString)/missing.mov")
         let fcpxml = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -49,18 +40,19 @@ final class FCPXMLMediaExtractionTests: XCTestCase, @unchecked Sendable {
         try FileManager.default.createDirectory(at: destDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: destDir) }
         let result = service.copyReferencedMedia(from: document, to: destDir, baseURL: nil, progress: nil)
-        XCTAssertEqual(result.entries.count, 1)
-        let entry = try XCTUnwrap(result.entries.first)
+        #expect(result.entries.count == 1)
+        let entry = try #require(result.entries.first)
         if case .skipped(_, let reason) = entry {
-            XCTAssertEqual(reason, "File does not exist")
+            #expect(reason == "File does not exist")
         } else {
-            XCTFail("Expected skipped when source file does not exist, got \(entry)")
+            Issue.record("Expected skipped when source file does not exist, got \(entry)")
         }
     }
 
     // MARK: - Copy (real file → copied)
 
-    func testCopyReferencedMedia_RealFile_Copies() throws {
+    @Test("Copy referenced media copies real file")
+    func copyReferencedMediaRealFileCopies() throws {
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
@@ -93,13 +85,14 @@ final class FCPXMLMediaExtractionTests: XCTestCase, @unchecked Sendable {
         try FileManager.default.createDirectory(at: destDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: destDir) }
         let result = service.copyReferencedMedia(from: document, to: destDir, baseURL: nil, progress: nil)
-        XCTAssertEqual(result.copied.count, 1, "One file should be copied")
-        let (src, dest) = try XCTUnwrap(result.copied.first)
-        XCTAssertEqual(src.lastPathComponent, "test_media.mp4")
-        XCTAssertTrue(FileManager.default.fileExists(atPath: dest.path), "Copied file should exist at destination")
+        #expect(result.copied.count == 1, "One file should be copied")
+        let (src, dest) = try #require(result.copied.first)
+        #expect(src.lastPathComponent == "test_media.mp4")
+        #expect(FileManager.default.fileExists(atPath: dest.path), "Copied file should exist at destination")
     }
 
-    func testCopyReferencedMedia_RealFile_Async() async throws {
+    @Test("Copy referenced media real file async")
+    func copyReferencedMediaRealFileAsync() async throws {
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
@@ -126,14 +119,15 @@ final class FCPXMLMediaExtractionTests: XCTestCase, @unchecked Sendable {
         try FileManager.default.createDirectory(at: destDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: destDir) }
         let result = await service.copyReferencedMedia(from: document, to: destDir, baseURL: nil, progress: nil)
-        XCTAssertEqual(result.copied.count, 1)
-        XCTAssertTrue(FileManager.default.fileExists(atPath: result.copied[0].destination.path))
+        #expect(result.copied.count == 1)
+        #expect(FileManager.default.fileExists(atPath: result.copied[0].destination.path))
     }
 
     // MARK: - Extract then copy (flow used by CLI --media-copy)
 
     /// Verifies the extract-then-copy flow used by the CLI: extraction returns file refs (video/audio/image by extension), then copy succeeds.
-    func testExtractThenCopy_MultipleTypes_DetectedAndCopied() throws {
+    @Test("Extract then copy detects and copies multiple types")
+    func extractThenCopyMultipleTypesDetectedAndCopied() throws {
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
@@ -161,22 +155,23 @@ final class FCPXMLMediaExtractionTests: XCTestCase, @unchecked Sendable {
         let document = try service.parseFCPXML(from: data)
         let extraction = service.extractMediaReferences(from: document, baseURL: tempDir)
         let fileRefs = extraction.fileReferences
-        XCTAssertEqual(fileRefs.count, 2, "Two file references (video + audio)")
+        #expect(fileRefs.count == 2, "Two file references (video + audio)")
         let extensions = Set(fileRefs.compactMap { $0.url?.pathExtension.lowercased() })
-        XCTAssertTrue(extensions.contains("mov"), "Video reference (.mov) detected")
-        XCTAssertTrue(extensions.contains("wav"), "Audio reference (.wav) detected")
+        #expect(extensions.contains("mov"), "Video reference (.mov) detected")
+        #expect(extensions.contains("wav"), "Audio reference (.wav) detected")
 
         let destDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: destDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: destDir) }
         let copyResult = service.copyReferencedMedia(from: document, to: destDir, baseURL: tempDir, progress: nil)
-        XCTAssertEqual(copyResult.copied.count, 2, "Both files copied")
-        XCTAssertEqual(copyResult.failed.count, 0)
+        #expect(copyResult.copied.count == 2, "Both files copied")
+        #expect(copyResult.failed.count == 0)
     }
 
     // MARK: - URL Resolution Edge Cases
 
-    func testExtractMediaReferences_InvalidURL_HandledGracefully() throws {
+    @Test("Extract media references handles invalid URL gracefully")
+    func extractMediaReferencesInvalidURLHandledGracefully() throws {
         // Test that URLs without schemes are handled (Foundation's URL(string:) may create URLs even without schemes)
         // The important thing is that the MediaReference is created and can be handled appropriately
         let fcpxml = """
@@ -194,22 +189,24 @@ final class FCPXMLMediaExtractionTests: XCTestCase, @unchecked Sendable {
         """
         let data = Data(fcpxml.utf8)
         let document = try service.parseFCPXML(from: data)
-        
+
         // Extract without baseURL
         let result = service.extractMediaReferences(from: document, baseURL: nil)
-        
-        XCTAssertEqual(result.references.count, 1, "Should still create MediaReference")
-        let ref = try XCTUnwrap(result.references.first)
+
+        #expect(result.references.count == 1, "Should still create MediaReference")
+        let ref = try #require(result.references.first)
         // URL may or may not be nil depending on Foundation's URL parsing behavior
         // The important thing is that if it's not a file URL, it will be skipped during copy
-        XCTAssertEqual(ref.resourceID, "r2")
+        #expect(ref.resourceID == "r2")
         if let url = ref.url {
             // If URL exists, verify it's not a file URL (so it will be skipped)
-            XCTAssertFalse(url.isFileURL, "URL without scheme should not be a file URL")
+            let isFileURL = url.isFileURL
+            #expect(!isFileURL, "URL without scheme should not be a file URL")
         }
     }
 
-    func testExtractMediaReferences_RelativeURLWithoutBase_HandledGracefully() throws {
+    @Test("Extract media references handles relative URL without base gracefully")
+    func extractMediaReferencesRelativeURLWithoutBaseHandledGracefully() throws {
         // Test that relative URLs without baseURL are handled appropriately
         // Foundation's URL(string:) may create URLs, but they won't be file URLs
         let fcpxml = """
@@ -227,24 +224,26 @@ final class FCPXMLMediaExtractionTests: XCTestCase, @unchecked Sendable {
         """
         let data = Data(fcpxml.utf8)
         let document = try service.parseFCPXML(from: data)
-        
+
         // Extract without baseURL
         let result = service.extractMediaReferences(from: document, baseURL: nil)
-        
-        XCTAssertEqual(result.references.count, 1)
-        let ref = try XCTUnwrap(result.references.first)
+
+        #expect(result.references.count == 1)
+        let ref = try #require(result.references.first)
         // URL may exist but won't be a file URL, so it will be skipped during copy
         if let url = ref.url {
-            XCTAssertFalse(url.isFileURL, "Relative URL without baseURL should not resolve to file URL")
+            let isFileURL = url.isFileURL
+            #expect(!isFileURL, "Relative URL without baseURL should not resolve to file URL")
         }
     }
 
-    func testExtractMediaReferences_RelativeURLWithBase_ResolvesCorrectly() throws {
+    @Test("Extract media references resolves relative URL with base")
+    func extractMediaReferencesRelativeURLWithBaseResolvesCorrectly() throws {
         // Test that relative URLs with baseURL resolve correctly
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
-        
+
         let relativePath = "media/clip.mov"
         let fcpxml = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -261,17 +260,18 @@ final class FCPXMLMediaExtractionTests: XCTestCase, @unchecked Sendable {
         """
         let data = Data(fcpxml.utf8)
         let document = try service.parseFCPXML(from: data)
-        
+
         // Extract with baseURL - relative URL should resolve
         let result = service.extractMediaReferences(from: document, baseURL: tempDir)
-        
-        XCTAssertEqual(result.references.count, 1)
-        let ref = try XCTUnwrap(result.references.first)
-        XCTAssertNotNil(ref.url, "URL should be resolved when baseURL is provided")
-        XCTAssertEqual(ref.url?.lastPathComponent, "clip.mov")
+
+        #expect(result.references.count == 1)
+        let ref = try #require(result.references.first)
+        #expect(ref.url != nil, "URL should be resolved when baseURL is provided")
+        #expect(ref.url?.lastPathComponent == "clip.mov")
     }
 
-    func testCopyReferencedMedia_NilURL_Skips() throws {
+    @Test("Copy referenced media skips nil URL")
+    func copyReferencedMediaNilURLSkips() throws {
         // Test that references with nil URLs are skipped during copy
         let fcpxml = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -288,16 +288,16 @@ final class FCPXMLMediaExtractionTests: XCTestCase, @unchecked Sendable {
         """
         let data = Data(fcpxml.utf8)
         let document = try service.parseFCPXML(from: data)
-        
+
         let destDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: destDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: destDir) }
-        
+
         let result = service.copyReferencedMedia(from: document, to: destDir, baseURL: nil, progress: nil)
-        
+
         // Should have no entries because nil URL references are skipped
-        XCTAssertEqual(result.entries.count, 0, "References with nil URLs should be skipped during copy")
-        XCTAssertEqual(result.copied.count, 0)
-        XCTAssertEqual(result.skipped.count, 0)
+        #expect(result.entries.count == 0, "References with nil URLs should be skipped during copy")
+        #expect(result.copied.count == 0)
+        #expect(result.skipped.count == 0)
     }
 }

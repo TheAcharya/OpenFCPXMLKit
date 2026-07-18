@@ -8,59 +8,61 @@
 //	Tests for MIME type detection functionality.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLMIMETypeDetectionTests: XCTestCase {
-    
-    var detector: MIMETypeDetector!
-    
-    override func setUp() {
-        super.setUp()
-        detector = MIMETypeDetector()
-    }
-    
+@Suite("MIME type detection")
+struct FCPXMLMIMETypeDetectionTests {
+    private var detector: MIMETypeDetector { MIMETypeDetector() }
+
     // MARK: - Sync Detection Tests
-    
-    func testDetectMIMETypeFromVideoExtension() {
+
+    @Test("Detect MIME type from video extension")
+    func detectMIMETypeFromVideoExtension() {
         let url = URL(fileURLWithPath: "/test/video.mp4")
         let mimeType = detector.detectMIMETypeSync(at: url)
-        XCTAssertEqual(mimeType, "video/mp4")
+        #expect(mimeType == "video/mp4")
     }
-    
-    func testDetectMIMETypeFromAudioExtension() {
+
+    @Test("Detect MIME type from audio extension")
+    func detectMIMETypeFromAudioExtension() {
         let url = URL(fileURLWithPath: "/test/audio.mp3")
         let mimeType = detector.detectMIMETypeSync(at: url)
-        XCTAssertEqual(mimeType, "audio/mpeg")
+        #expect(mimeType == "audio/mpeg")
     }
-    
-    func testDetectMIMETypeFromImageExtension() {
+
+    @Test("Detect MIME type from image extension")
+    func detectMIMETypeFromImageExtension() {
         let url = URL(fileURLWithPath: "/test/image.jpg")
         let mimeType = detector.detectMIMETypeSync(at: url)
-        XCTAssertEqual(mimeType, "image/jpeg")
+        #expect(mimeType == "image/jpeg")
     }
-    
-    func testDetectMIMETypeFromMOV() {
+
+    @Test("Detect MIME type from MOV")
+    func detectMIMETypeFromMOV() {
         let url = URL(fileURLWithPath: "/test/video.mov")
         let mimeType = detector.detectMIMETypeSync(at: url)
-        XCTAssertEqual(mimeType, "video/quicktime")
+        #expect(mimeType == "video/quicktime")
     }
-    
-    func testDetectMIMETypeFromM4A() {
+
+    @Test("Detect MIME type from M4A")
+    func detectMIMETypeFromM4A() {
         let url = URL(fileURLWithPath: "/test/audio.m4a")
         let mimeType = detector.detectMIMETypeSync(at: url)
         // UTType may return "audio/x-m4a" or "audio/mp4", both are valid
-        XCTAssertTrue(mimeType?.hasPrefix("audio/") ?? false)
+        #expect(mimeType?.hasPrefix("audio/") ?? false)
     }
-    
-    func testDetectMIMETypeFromPNG() {
+
+    @Test("Detect MIME type from PNG")
+    func detectMIMETypeFromPNG() {
         let url = URL(fileURLWithPath: "/test/image.png")
         let mimeType = detector.detectMIMETypeSync(at: url)
-        XCTAssertEqual(mimeType, "image/png")
+        #expect(mimeType == "image/png")
     }
-    
-    func testDetectMIMETypeFromUnknownExtension() {
+
+    @Test("Detect MIME type from unknown extension")
+    func detectMIMETypeFromUnknownExtension() {
         let url = URL(fileURLWithPath: "/test/file.unknown")
         let mimeType = detector.detectMIMETypeSync(at: url)
         // Should return nil for truly unknown extensions
@@ -68,25 +70,28 @@ final class FCPXMLMIMETypeDetectionTests: XCTestCase {
         // This test just verifies the method doesn't crash
         _ = mimeType // May be nil or some value from UTType
     }
-    
+
     // MARK: - Async Detection Tests
-    
-    func testDetectMIMETypeAsync() async {
+
+    @Test("Detect MIME type async")
+    func detectMIMETypeAsync() async {
         let url = URL(fileURLWithPath: "/test/video.mp4")
         let mimeType = await detector.detectMIMEType(at: url)
-        XCTAssertEqual(mimeType, "video/mp4")
+        #expect(mimeType == "video/mp4")
     }
-    
-    func testDetectMIMETypeAsyncAudio() async {
+
+    @Test("Detect MIME type async audio")
+    func detectMIMETypeAsyncAudio() async {
         let url = URL(fileURLWithPath: "/test/audio.wav")
         let mimeType = await detector.detectMIMEType(at: url)
         // UTType may return "audio/vnd.wave" or "audio/wav", both are valid
-        XCTAssertTrue(mimeType?.hasPrefix("audio/") ?? false)
+        #expect(mimeType?.hasPrefix("audio/") ?? false)
     }
-    
-    func testDetectMIMETypeAsyncImage() async {
+
+    @Test("Detect MIME type async image")
+    func detectMIMETypeAsyncImage() async {
         let url = URL(fileURLWithPath: "/test/image.gif")
         let mimeType = await detector.detectMIMEType(at: url)
-        XCTAssertEqual(mimeType, "image/gif")
+        #expect(mimeType == "image/gif")
     }
 }

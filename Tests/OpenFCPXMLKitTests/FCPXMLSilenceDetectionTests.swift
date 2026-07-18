@@ -8,128 +8,133 @@
 //	Tests for silence detection functionality.
 //
 
-import XCTest
 import Foundation
+import Testing
 #if canImport(AVFoundation)
 import AVFoundation
 #endif
 @testable import OpenFCPXMLKit
 
 #if canImport(AVFoundation)
-@available(macOS 26.0, *)
-final class FCPXMLSilenceDetectionTests: XCTestCase {
-    
-    var detector: SilenceDetector!
-    
-    override func setUp() {
-        super.setUp()
-        detector = SilenceDetector()
-    }
-    
+@Suite("Silence detection")
+struct FCPXMLSilenceDetectionTests {
+    private var detector: SilenceDetector { SilenceDetector() }
+
     // MARK: - Result Type Tests
-    
-    func testSilenceDetectionResultProperties() {
+
+    @Test("Silence detection result properties")
+    func silenceDetectionResultProperties() {
         let result = SilenceDetectionResult(duration: 10.0, trimStart: 1.0, trimEnd: 2.0)
-        
-        XCTAssertEqual(result.duration, 10.0, accuracy: 0.001)
-        XCTAssertEqual(result.trimStart, 1.0, accuracy: 0.001)
-        XCTAssertEqual(result.trimEnd, 2.0, accuracy: 0.001)
-        XCTAssertEqual(result.audioDuration, 7.0, accuracy: 0.001) // 10 - 1 - 2
-        XCTAssertFalse(result.isEntirelySilent)
+
+        #expect(abs(result.duration - 10.0) < 0.001)
+        #expect(abs(result.trimStart - 1.0) < 0.001)
+        #expect(abs(result.trimEnd - 2.0) < 0.001)
+        #expect(abs(result.audioDuration - 7.0) < 0.001) // 10 - 1 - 2
+        #expect(!result.isEntirelySilent)
     }
-    
-    func testSilenceDetectionResultEntirelySilent() {
+
+    @Test("Silence detection result entirely silent")
+    func silenceDetectionResultEntirelySilent() {
         let result = SilenceDetectionResult(duration: 10.0, trimStart: 10.0, trimEnd: 0.0)
-        
-        XCTAssertTrue(result.isEntirelySilent)
-        XCTAssertEqual(result.audioDuration, 0.0, accuracy: 0.001)
+
+        #expect(result.isEntirelySilent)
+        #expect(abs(result.audioDuration - 0.0) < 0.001)
     }
-    
-    func testSilenceDetectionResultEquality() {
+
+    @Test("Silence detection result equality")
+    func silenceDetectionResultEquality() {
         let result1 = SilenceDetectionResult(duration: 10.0, trimStart: 1.0, trimEnd: 2.0)
         let result2 = SilenceDetectionResult(duration: 10.0, trimStart: 1.0, trimEnd: 2.0)
         let result3 = SilenceDetectionResult(duration: 10.0, trimStart: 1.0, trimEnd: 3.0)
-        
-        XCTAssertEqual(result1, result2)
-        XCTAssertNotEqual(result1, result3)
+
+        #expect(result1 == result2)
+        #expect(result1 != result3)
     }
-    
+
     // MARK: - API Tests
-    
-    func testDetectorInitialization() {
+
+    @Test("Detector initialization")
+    func detectorInitialization() {
         let detector = SilenceDetector()
-        XCTAssertNotNil(detector)
+        _ = detector
+        #expect(true)
     }
-    
-    func testDetectSilenceWithNonExistentFile() async throws {
+
+    @Test("Detect silence with non-existent file")
+    func detectSilenceWithNonExistentFile() async throws {
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
             .appendingPathExtension("wav")
-        
+
         // File doesn't exist - should throw or return zero trim
         do {
             let result = try await detector.detectSilence(at: tempURL)
             // If it doesn't throw, should return zero trim for non-audio file
-            XCTAssertEqual(result.trimStart, 0.0, accuracy: 0.001)
-            XCTAssertEqual(result.trimEnd, 0.0, accuracy: 0.001)
+            #expect(abs(result.trimStart - 0.0) < 0.001)
+            #expect(abs(result.trimEnd - 0.0) < 0.001)
         } catch {
             // Error is acceptable for non-existent file - error was thrown (verified by catch block)
             _ = error // Suppress unused variable warning
         }
     }
-    
-    func testDetectSilenceSyncWithNonExistentFile() throws {
+
+    @Test("Detect silence sync with non-existent file")
+    func detectSilenceSyncWithNonExistentFile() throws {
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
             .appendingPathExtension("wav")
-        
+
         // File doesn't exist - should throw or return zero trim
         do {
             let result = try detector.detectSilence(at: tempURL)
             // If it doesn't throw, should return zero trim for non-audio file
-            XCTAssertEqual(result.trimStart, 0.0, accuracy: 0.001)
-            XCTAssertEqual(result.trimEnd, 0.0, accuracy: 0.001)
+            #expect(abs(result.trimStart - 0.0) < 0.001)
+            #expect(abs(result.trimEnd - 0.0) < 0.001)
         } catch {
             // Error is acceptable for non-existent file - error was thrown (verified by catch block)
             _ = error // Suppress unused variable warning
         }
     }
-    
-    func testDetectSilenceWithCustomThreshold() async throws {
+
+    @Test("Detect silence with custom threshold")
+    func detectSilenceWithCustomThreshold() async throws {
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
             .appendingPathExtension("wav")
-        
+
         // Test with custom threshold
         do {
             let result = try await detector.detectSilence(at: tempURL, threshold: -60.0)
             // Should return a result (even if zero trim)
-            XCTAssertNotNil(result)
+            _ = result
+            #expect(true)
         } catch {
             // Error is acceptable for non-existent file - error was thrown (verified by catch block)
             _ = error // Suppress unused variable warning
         }
     }
-    
+
     // MARK: - Edge Cases
-    
-    func testSilenceDetectionResultNegativeValues() {
+
+    @Test("Silence detection result negative values")
+    func silenceDetectionResultNegativeValues() {
         // Test that negative values are handled correctly
         let result = SilenceDetectionResult(duration: 10.0, trimStart: -1.0, trimEnd: -2.0)
-        
+
         // audioDuration should handle negative values
-        XCTAssertEqual(result.audioDuration, 13.0, accuracy: 0.001) // 10 - (-1) - (-2) = 13
+        #expect(abs(result.audioDuration - 13.0) < 0.001) // 10 - (-1) - (-2) = 13
     }
-    
-    func testSilenceDetectionResultZeroDuration() {
+
+    @Test("Silence detection result zero duration")
+    func silenceDetectionResultZeroDuration() {
         let result = SilenceDetectionResult(duration: 0.0, trimStart: 0.0, trimEnd: 0.0)
-        
-        XCTAssertEqual(result.duration, 0.0, accuracy: 0.001)
-        XCTAssertEqual(result.audioDuration, 0.0, accuracy: 0.001)
+
+        #expect(abs(result.duration - 0.0) < 0.001)
+        #expect(abs(result.audioDuration - 0.0) < 0.001)
         // When trimStart (0) >= duration (0), it's considered entirely silent
-        XCTAssertTrue(result.isEntirelySilent)
+        #expect(result.isEntirelySilent)
     }
-    
+
     // Note: Full integration tests with actual audio files would require:
     // 1. Creating test audio files with known silence patterns
     // 2. Verifying detection accuracy

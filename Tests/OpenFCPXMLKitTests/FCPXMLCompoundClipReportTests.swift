@@ -11,136 +11,155 @@
 //	iOS 26+ as well as macOS and cover compound-clip discovery via the AEXML backend.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, iOS 26.0, *)
-final class FCPXMLCompoundClipReportTests: XCTestCase {
-    
+@Suite("Compound clip report")
+struct FCPXMLCompoundClipReportTests {
+
     private static let compoundClipName = "Standalone Compound Clip"
     private static let eventName = "Sample Event"
     private static let projectName = "Normal Project"
-    
+
     // MARK: - Discovery
-    
-    func testAllReportTimelineSourcesIncludesEventLevelCompoundClip() throws {
+
+    @Test("All report timeline sources includes event-level compound clip")
+    func allReportTimelineSourcesIncludesEventLevelCompoundClip() throws {
         let fcpxml = try parseInlineFCPXML(standaloneCompoundClipFixture)
-        
-        XCTAssertTrue(fcpxml.allProjects().isEmpty)
-        
+
+        #expect(fcpxml.allProjects().isEmpty)
+
         let sources = fcpxml.allReportTimelineSources()
-        XCTAssertEqual(sources.count, 1)
-        XCTAssertEqual(sources[0].displayName, Self.compoundClipName)
-        XCTAssertEqual(sources[0].eventName, Self.eventName)
-        XCTAssertNil(sources[0].project)
-        XCTAssertNotNil(sources[0].sequence.spine)
+        #expect(sources.count == 1)
+        #expect(sources[0].displayName == Self.compoundClipName)
+        #expect(sources[0].eventName == Self.eventName)
+        #expect(sources[0].project == nil)
+        #expect(sources[0].sequence.spine != nil)
     }
-    
-    func testAllReportTimelineSourcesUsesProjectWhenCompoundIsOnlyOnSpine() throws {
+
+    @Test("All report timeline sources uses project when compound is only on spine")
+    func allReportTimelineSourcesUsesProjectWhenCompoundIsOnlyOnSpine() throws {
         // Compound clip lives inside the project spine, not as an event-level browser clip.
         // Discovery must report the project timeline only (not double-count the media sequence).
         let fcpxml = try parseInlineFCPXML(projectWithEmbeddedCompoundFixture)
-        
+
         let sources = fcpxml.allReportTimelineSources()
-        XCTAssertEqual(sources.count, 1)
-        XCTAssertNotNil(sources[0].project)
-        XCTAssertEqual(sources[0].displayName, "Project Timeline")
+        #expect(sources.count == 1)
+        #expect(sources[0].project != nil)
+        #expect(sources[0].displayName == "Project Timeline")
     }
-    
+
     // MARK: - Report build
-    
-    func testBuildRoleInventoryFromStandaloneCompoundClip() async throws {
+
+    @Test("Build role inventory from standalone compound clip")
+    func buildRoleInventoryFromStandaloneCompoundClip() async throws {
         let fcpxml = try parseInlineFCPXML(standaloneCompoundClipFixture)
         var options = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
         options.workbookCoverSheet = nil
-        
+
         let report = try await fcpxml.buildReport(options: options)
-        
-        XCTAssertEqual(report.projectName, Self.compoundClipName)
-        XCTAssertEqual(report.eventName, Self.eventName)
-        
+
+        #expect(report.projectName == Self.compoundClipName)
+        #expect(report.eventName == Self.eventName)
+
         let rows = report.roleInventory?.selectedRoles ?? []
-        XCTAssertFalse(rows.isEmpty, "Expected role inventory rows from compound clip sequence")
-        
+        let rowsEmpty = rows.isEmpty
+        #expect(!rowsEmpty, "Expected role inventory rows from compound clip sequence")
+
         let clipNames = Set(rows.map(\.clipName))
-        XCTAssertTrue(clipNames.contains("Video Clip A"))
-        
+        #expect(clipNames.contains("Video Clip A"))
+
         let roles = Set(rows.map(\.roleSubrole))
-        XCTAssertTrue(
-            roles.contains(where: { $0.localizedCaseInsensitiveContains("dialogue") }),
+        let hasDialogue = roles.contains(where: { $0.localizedCaseInsensitiveContains("dialogue") })
+        #expect(
+            hasDialogue,
             "Expected dialogue role from compound clip timeline; got \(roles)"
         )
     }
-    
-    func testBuildMarkersFromStandaloneCompoundClip() async throws {
+
+    @Test("Build markers from standalone compound clip")
+    func buildMarkersFromStandaloneCompoundClip() async throws {
         let fcpxml = try parseInlineFCPXML(standaloneCompoundClipFixture)
         var options = FinalCutPro.FCPXML.ReportOptions.markersOnly
         options.workbookCoverSheet = nil
-        
+
         let report = try await fcpxml.buildReport(options: options)
         let rows = report.markers?.rows ?? []
-        
-        XCTAssertFalse(rows.isEmpty)
-        XCTAssertTrue(rows.contains { $0.markerName == "Marker One" })
+
+        let rowsEmpty = rows.isEmpty
+        #expect(!rowsEmpty)
+        #expect(rows.contains { $0.markerName == "Marker One" })
     }
-    
-    func testBuildSummaryFromStandaloneCompoundClip() async throws {
+
+    @Test("Build summary from standalone compound clip")
+    func buildSummaryFromStandaloneCompoundClip() async throws {
         let fcpxml = try parseInlineFCPXML(standaloneCompoundClipFixture)
         var options = FinalCutPro.FCPXML.ReportOptions.summaryOnly
         options.workbookCoverSheet = nil
-        
+
         let report = try await fcpxml.buildReport(options: options)
-        
-        XCTAssertEqual(report.summary?.projectSummary?.title, Self.compoundClipName)
+
+        #expect(report.summary?.projectSummary?.title == Self.compoundClipName)
         FCPXMLReportingReportTestSupport.assertValidTimecode(
             report.summary?.projectSummary?.duration ?? ""
         )
-        
+
         let roleDurations = report.summary?.roleDurations ?? []
-        XCTAssertFalse(roleDurations.isEmpty)
-        XCTAssertTrue(
-            roleDurations.contains(where: { $0.roleSubrole.localizedCaseInsensitiveContains("dialogue") }),
+        let roleDurationsEmpty = roleDurations.isEmpty
+        #expect(!roleDurationsEmpty)
+        let hasDialogue = roleDurations.contains(where: {
+            $0.roleSubrole.localizedCaseInsensitiveContains("dialogue")
+        })
+        #expect(
+            hasDialogue,
             "Expected dialogue role in summary role durations; got \(Set(roleDurations.map(\.roleSubrole)))"
         )
     }
-    
-    func testProjectNameFilterMatchesCompoundClipName() async throws {
+
+    @Test("Project name filter matches compound clip name")
+    func projectNameFilterMatchesCompoundClipName() async throws {
         let fcpxml = try parseInlineFCPXML(standaloneCompoundClipFixture)
         var options = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
         options.workbookCoverSheet = nil
         options.projectName = Self.compoundClipName
-        
+
         let report = try await fcpxml.buildReport(options: options)
-        XCTAssertEqual(report.projectName, Self.compoundClipName)
-        XCTAssertFalse(report.roleInventory?.selectedRoles.isEmpty ?? true)
+        #expect(report.projectName == Self.compoundClipName)
+        let selectedRolesEmpty = report.roleInventory?.selectedRoles.isEmpty ?? true
+        #expect(!selectedRolesEmpty)
     }
-    
-    func testProjectNameFilterThrowsWhenCompoundClipNameMissing() async throws {
+
+    @Test("Project name filter throws when compound clip name missing")
+    func projectNameFilterThrowsWhenCompoundClipNameMissing() async throws {
         let fcpxml = try parseInlineFCPXML(standaloneCompoundClipFixture)
         var options = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
         options.workbookCoverSheet = nil
         options.projectName = "Does Not Exist"
-        
+
         do {
             _ = try await fcpxml.buildReport(options: options)
-            XCTFail("Expected projectNotFound")
+            Issue.record("Expected projectNotFound")
         } catch FinalCutPro.FCPXML.ReportError.projectNotFound(let name) {
-            XCTAssertEqual(name, "Does Not Exist")
+            #expect(name == "Does Not Exist")
+        } catch {
+            Issue.record("Unexpected error: \(error)")
         }
     }
-    
-    func testNormalProjectReportStillWorks() async throws {
+
+    @Test("Normal project report still works")
+    func normalProjectReportStillWorks() async throws {
         let fcpxml = try parseInlineFCPXML(normalProjectFixture)
         var options = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
         options.workbookCoverSheet = nil
-        
+
         let report = try await fcpxml.buildReport(options: options)
-        XCTAssertEqual(report.projectName, Self.projectName)
-        XCTAssertFalse(report.roleInventory?.selectedRoles.isEmpty ?? true)
+        #expect(report.projectName == Self.projectName)
+        let selectedRolesEmpty = report.roleInventory?.selectedRoles.isEmpty ?? true
+        #expect(!selectedRolesEmpty)
     }
-    
+
     // MARK: - Fixtures
-    
+
     /// Mirrors FCP “Export XML” of a compound clip: no `<project>`, event holds `ref-clip`,
     /// timeline lives under `resources` → `media` → `sequence`.
     private var standaloneCompoundClipFixture: String {
@@ -174,7 +193,7 @@ final class FCPXMLCompoundClipReportTests: XCTestCase {
         </fcpxml>
         """
     }
-    
+
     private var normalProjectFixture: String {
         """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -200,7 +219,7 @@ final class FCPXMLCompoundClipReportTests: XCTestCase {
         </fcpxml>
         """
     }
-    
+
     private var projectWithEmbeddedCompoundFixture: String {
         """
         <?xml version="1.0" encoding="UTF-8"?>

@@ -8,53 +8,59 @@
 //	Video & Audio Effects report integration tests (optional local FCPXML fixture).
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLEffectsReportTests: XCTestCase, @unchecked Sendable {
-    
+@Suite("Effects report")
+struct FCPXMLEffectsReportTests {
+
     private func buildEffectsReport(
         from fcpxml: FinalCutPro.FCPXML
     ) async throws -> FinalCutPro.FCPXML.Report {
-        try await fcpxml.buildReport(
-            options: try FCPXMLReportingReportFixture.reportOptions {
-                $0.includeEffects = true
-            }
-        )
+        var options = FinalCutPro.FCPXML.ReportOptions()
+        options.projectName = FCPXMLReportingReportFixture.primaryProjectName(in: fcpxml)
+        options.includeEffects = true
+        return try await fcpxml.buildReport(options: options)
     }
-    
-    func testBuildEffectsReportFromFixture() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
+
+    @Test("Build effects report from fixture")
+    func buildEffectsReportFromFixture() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
         let report = try await buildEffectsReport(from: fcpxml)
-        
-        XCTAssertNotNil(report.effects)
-        
+
+        #expect(report.effects != nil)
+
         let rows = report.effects?.rows ?? []
-        XCTAssertFalse(rows.isEmpty)
-        XCTAssertEqual(FinalCutPro.FCPXML.EffectReportRow.columnHeaders.count, 8)
+        let rowsEmpty = rows.isEmpty
+        #expect(!rowsEmpty)
+        #expect(FinalCutPro.FCPXML.EffectReportRow.columnHeaders.count == 8)
     }
-    
-    func testEffectsReportRowsHaveValidShapeFromFixture() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
+
+    @Test("Effects report rows have valid shape from fixture")
+    func effectsReportRowsHaveValidShapeFromFixture() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
         let report = try await buildEffectsReport(from: fcpxml)
-        
+
         let rows = report.effects?.rows ?? []
-        XCTAssertFalse(rows.isEmpty)
-        
+        let rowsEmpty = rows.isEmpty
+        #expect(!rowsEmpty)
+
         for row in rows.prefix(20) {
-            XCTAssertFalse(row.clipName.isEmpty)
-            XCTAssertFalse(row.effect.isEmpty)
+            let clipNameEmpty = row.clipName.isEmpty
+            let effectEmpty = row.effect.isEmpty
+            #expect(!clipNameEmpty)
+            #expect(!effectEmpty)
             FCPXMLReportingReportTestSupport.assertCheckmarkOrCross(row.enabled)
             FCPXMLReportingReportTestSupport.assertValidTimecode(row.timelineIn)
             FCPXMLReportingReportTestSupport.assertValidTimecode(row.timelineOut)
         }
     }
-    
-    func testEffectsReportSortedByTimelinePosition() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
+
+    @Test("Effects report sorted by timeline position")
+    func effectsReportSortedByTimelinePosition() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
         let report = try await buildEffectsReport(from: fcpxml)
-        
+
         let rows = report.effects?.rows ?? []
         let sorted = rows.sorted {
             if $0.timelineIn != $1.timelineIn {
@@ -73,6 +79,6 @@ final class FCPXMLEffectsReportTests: XCTestCase, @unchecked Sendable {
             }
             return $0.settings.localizedStandardCompare($1.settings) == .orderedAscending
         }
-        XCTAssertEqual(rows, sorted)
+        #expect(rows == sorted)
     }
 }

@@ -9,15 +9,17 @@
 //	Engine hygiene: project-once, version-strip honesty, projection smoke budget.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLEngineHygieneTests: XCTestCase {
+@Suite("Engine hygiene")
+struct FCPXMLEngineHygieneTests {
 
     // MARK: - Version strip vs report honesty
 
-    func testConvertTo15StripsHeroEyeAndDoesNotReinventOnWrite() throws {
+    @Test("Convert to 1.5 strips heroEye and does not reinvent on write")
+    func convertTo15StripsHeroEyeAndDoesNotReinventOnWrite() throws {
         let factory = FoundationXMLFactory()
         let document = factory.makeDocument()
         let root = factory.makeElement(name: "fcpxml")
@@ -68,20 +70,20 @@ final class FCPXMLEngineHygieneTests: XCTestCase {
         library.addChild(event)
         root.addChild(library)
 
-        let originalFormat = try XCTUnwrap(FinalCutPro.FCPXML.Format(element: format))
-        XCTAssertEqual(originalFormat.heroEye, "left")
+        let originalFormat = try #require(FinalCutPro.FCPXML.Format(element: format))
+        #expect(originalFormat.heroEye == "left")
 
         let converter = FCPXMLVersionConverter()
         let converted = try converter.convert(document, to: .v1_5)
-        XCTAssertEqual(converted.rootElement()?.stringValue(forAttributeNamed: "version"), "1.5")
+        #expect(converted.rootElement()?.stringValue(forAttributeNamed: "version") == "1.5")
 
         let convertedFormat = converted.rootElement()?
             .childElements
             .first { $0.name == "resources" }?
             .childElements
             .first { $0.name == "format" }
-        XCTAssertNil(
-            convertedFormat?.attribute(forName: "heroEye"),
+        #expect(
+            convertedFormat?.attribute(forName: "heroEye") == nil,
             "1.5 write path must not retain Format heroEye (1.13+)"
         )
 
@@ -90,15 +92,16 @@ final class FCPXMLEngineHygieneTests: XCTestCase {
             .first { $0.name == "resources" }?
             .childElements
             .first { $0.name == "asset" }
-        XCTAssertNil(
-            convertedAsset?.attribute(forName: "heroEyeOverride"),
+        #expect(
+            convertedAsset?.attribute(forName: "heroEyeOverride") == nil,
             "1.5 write path must not retain Asset heroEyeOverride (1.13+)"
         )
     }
 
     // MARK: - Project-once
 
-    func testReportBuilderProjectsTimelineOnceForFullOptions() async throws {
+    @Test("ReportBuilder projects timeline once for full options")
+    func reportBuilderProjectsTimelineOnceForFullOptions() async throws {
         let fcpxml = try parseInlineFCPXML(Self.simpleAssetClipXML)
         let counter = CountingTimelineProjector()
         var options = FinalCutPro.FCPXML.ReportOptions.full
@@ -109,14 +112,14 @@ final class FCPXMLEngineHygieneTests: XCTestCase {
             timelineProjector: counter
         ).build(from: fcpxml)
 
-        XCTAssertEqual(
-            counter.projectCallCount,
-            1,
+        #expect(
+            counter.projectCallCount == 1,
             "Full report must project the timeline once, not per consuming sheet"
         )
     }
 
-    func testReportBuilderSkipsProjectionWhenNoConsumingSections() async throws {
+    @Test("ReportBuilder skips projection when no consuming sections")
+    func reportBuilderSkipsProjectionWhenNoConsumingSections() async throws {
         let fcpxml = try parseInlineFCPXML(Self.simpleAssetClipXML)
         let counter = CountingTimelineProjector()
         // No section that consumes Projection (Transitions now project; use an empty report).
@@ -137,29 +140,26 @@ final class FCPXMLEngineHygieneTests: XCTestCase {
             timelineProjector: counter
         ).build(from: fcpxml)
 
-        XCTAssertEqual(counter.projectCallCount, 0)
+        #expect(counter.projectCallCount == 0)
     }
 
-    func testProjectionSmokeBudgetOnComplexSampleWhenAvailable() async throws {
-        let fcpxml: FinalCutPro.FCPXML
-        do {
-            fcpxml = try loadFCPXMLSample(named: FCPXMLSampleName.complex.rawValue)
-        } catch {
-            throw XCTSkip("Complex.fcpxml not available")
-        }
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+    @Test("Projection smoke budget on Complex sample when available")
+    func projectionSmokeBudgetOnComplexSampleWhenAvailable() async throws {
+        try cancelIfSampleMissing(named: FCPXMLSampleName.complex.rawValue)
+        let fcpxml = try requireFCPXMLSample(named: FCPXMLSampleName.complex.rawValue)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let projector = FinalCutPro.FCPXML.TimelineProjector()
 
         let started = ContinuousClock.now
         let windows = try await projector.project(from: source, fcpxml: fcpxml)
         let elapsed = ContinuousClock.now - started
 
-        XCTAssertFalse(windows.isEmpty)
+        let windowsEmpty = windows.isEmpty
+        #expect(!windowsEmpty)
         // Soft CI budget: long-form OFK Complex projection should stay interactive.
         // Generous ceiling avoids flaky failures on loaded hosts.
-        XCTAssertLessThan(
-            elapsed,
-            .seconds(30),
+        #expect(
+            elapsed < .seconds(30),
             "Complex projection exceeded soft 30s budget (\(elapsed))"
         )
     }

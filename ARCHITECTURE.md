@@ -16,7 +16,7 @@ OpenFCPXMLKit is a **Swift 6** framework for Final Cut Pro FCPXML: parsing, crea
 - **Repository:** https://github.com/TheAcharya/OpenFCPXMLKit
 - **Dependencies:** SwiftTimecode 3.1.2+, SwiftExtensions 3.0.0+, SwiftSemanticVersion 1.0.0+, swift-log 1.14.0+, AEXML 4.7.0+, swift-argument-parser 1.8.2+ (CLI only), Foundation, CoreMedia.
 - **FCPXML:** Versions 1.5–1.14 (DTDs included); Final Cut Pro frame rates (23.976, 24, 25, 29.97, 30, 50, 59.94, 60).
-- **Tests:** **1084** tests listed in `swift test --list-tests` — **1078** in `OpenFCPXMLKitTests` (1075 XCTest `func test` + 3 Swift Testing `@Test`) and **6** optional `ExcelReportTest` integration tests; **60** sample `.fcpxml` files under `Tests/FCPXML Samples/FCPXML/`; private local inbox under `Tests/Submitted FCPXML/` (gitignored — never commit private FCPXML).
+- **Tests:** **1084** tests listed in `swift test list` — **1078** in `OpenFCPXMLKitTests` + **6** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** sample `.fcpxml` files under `Tests/FCPXML Samples/FCPXML/`; private local inbox under `Tests/Submitted FCPXML/` (gitignored — never commit private FCPXML).
 
 ---
 
@@ -93,7 +93,7 @@ Projection/       TimelineProjection → MediaUsageWindow
 Reporting/        Row models, builders, sheet-specific presentation rules
 ```
 
-**Timeline Projection:** Mid-layer under `Sources/OpenFCPXMLKit/Projection/` that projects sequences into playable **media usage windows** (channel, lane path, retiming): identity and `timeMap`/`conform-rate` retiming; nested spines / anchored children and J/L cuts; multicam active/all angles, ref-clip sequence unfold, audition mask, `video`/`audio` leaves, `ChannelKindFilter` / `srcEnable`. When any of Role Inventory, Markers, Keywords, Titles & Generators, Transitions, Effects, Speed Change, Media Summary, or Summary is enabled, `ReportBuilder` projects **once** per timeline and shares `ReportProjectionContext` (windows + `ProjectedClipAnnotations` + `TimelineOccupancyIndex`). Markers / Keywords / Titles / Transitions / Effects are **Projection-first** with Extraction fallback. Excel/PDF remain presentation-only. See Manual [20 — Timeline Projection](Documentation/Manual/20-Timeline-Projection.md).
+**Timeline Projection:** Mid-layer under `Sources/OpenFCPXMLKit/Projection/` that projects sequences into playable **media usage windows** (channel, lane path, retiming): identity and `timeMap`/`conform-rate` retiming; nested spines / anchored children and J/L cuts; multicam active/all angles, ref-clip sequence unfold, audition mask, `video`/`audio` leaves, `ChannelKindFilter` / `srcEnable`. When any of Role Inventory, Markers, Keywords, Titles & Generators, Transitions, Effects, Speed Change, Media Summary, or Summary is enabled, `ReportBuilder` projects **once** per timeline and shares `ReportProjectionContext` (windows + `ProjectedClipAnnotations` + `TimelineOccupancyIndex`). Markers / Keywords / Titles / Transitions / Effects are **Projection-first** with Extraction fallback. Excel/PDF remain presentation-only. See Manual [11 — Timeline Projection](Documentation/Manual/11-Timeline-Projection.md).
 
 **1. Model and Parsing** — Add or extend typed coverage first:
 
@@ -176,16 +176,53 @@ flowchart TB
 
     Pkg --> SRC["Sources/"]
     Pkg --> TST["Tests/"]
-    Pkg --> DOC["Documentation/ + ARCHITECTURE + GUARDRAILS"]
+    Pkg --> DOC["Documentation/ + ARCHITECTURE + GUARDRAILS + AGENT"]
 
     SRC --> LIB["OpenFCPXMLKit library"]
     SRC --> CLI["OpenFCPXMLKitCLI → OpenFCPXMLKit-CLI"]
     SRC --> GEN["GenerateEmbeddedDTDs"]
 
-    TST --> OKT["OpenFCPXMLKitTests — 1078 tests"]
-    TST --> ERT["ExcelReportTest — 6 optional integration tests"]
+    TST --> OKT["OpenFCPXMLKitTests — 1078 Swift Testing"]
+    TST --> ERT["ExcelReportTest — 6 optional Swift Testing"]
     TST --> SMP["FCPXML Samples/ — 60 .fcpxml files"]
-    TST --> SUB["Submitted FCPXML/ — private inbox (gitignored)"]
+    TST --> SUB["Submitted FCPXML/ — private inbox gitignored"]
+```
+
+#### Tests layout & harness
+
+```mermaid
+flowchart TB
+    subgraph HARNESS["Sample harness"]
+        direction TB
+        RES["FCPXMLTestResources — paths / sample names"]
+        LOAD["FCPXMLTestSampleLoading — tryLoad* · FCPXMLTestSampleError"]
+        REQ["FCPXMLTestingSampleSupport — require* · Test.cancel"]
+        RES --> LOAD --> REQ
+    end
+
+    subgraph OKT_TREE["OpenFCPXMLKitTests/"]
+        direction TB
+        UMB["OpenFCPXMLKitTests.swift — @Suite umbrella"]
+        FILE["FileTests/ — per-sample suites"]
+        LOGIC["LogicAndParsing/"]
+        PROJ["Projection + Extraction + Reporting suites"]
+        PERF["FCPXMLPerformanceTests — ContinuousClock budgets"]
+        UMB --- FILE
+        UMB --- LOGIC
+        UMB --- PROJ
+        UMB --- PERF
+    end
+
+    subgraph ERT_TREE["ExcelReportTest/"]
+        direction TB
+        FIX["ExcelReportFixture — requireFixtureURL"]
+        EXP["ExcelReportExportTests — 6 @Test exports"]
+        OUT["Output/ — gitignored xlsx/pdf"]
+        FIX --> EXP --> OUT
+    end
+
+    HARNESS --> OKT_TREE
+    FIX -.->|"optional reporting fixture"| HARNESS
 ```
 
 #### Library layer stack (bottom → top)
@@ -279,7 +316,9 @@ flowchart TB
     end
 ```
 
-**Cross-cutting library folders** (alongside the layer stack): Analysis, Annotations, Classes, Delegates, Errors, Extensions (+Modular, +Codable), Implementations, Protocols, Services, Utilities, Export, Timeline, Timing, Validation, FileIO, Media, Logging, Format.
+**Cross-cutting library folders** (alongside the layer stack): Analysis, Annotations, Classes, Delegates, Errors, Extensions (+Modular, +Codable), Implementations, Protocols, Services, Utilities, Export, Timeline, Timing, Validation, FileIO, Media, Logging, Format. Root: `Version.swift`.
+
+**Tests** (see §8 and the Tests layout mermaid above): Swift Testing only; harness under `OpenFCPXMLKitTests/`; optional `ExcelReportTest/`; public `FCPXML Samples/`; private `Submitted FCPXML/`.
 
 ### 3.2 Library folders
 
@@ -395,17 +434,20 @@ Source layout under **`Sources/OpenFCPXMLKit/`**:
 
 Binary name: **`OpenFCPXMLKit-CLI`**. Mutually exclusive modes: `--check-version`, `--convert-version`, `--extension-type` (fcpxmld | fcpxml), `--validate`, `--media-copy`, `--report`, `--create-project` (requires `--width`, `--height`, `--rate`, `--project-version`, output-dir).
 
-**`--report`** builds an Excel workbook from a normal project **or** a standalone compound-clip export (role inventory by default — **Selected Roles Inventory** + per-role sheets). `--report-full` adds every optional sheet. Per-section flags: `--report-markers`, `--report-keywords`, `--report-titles-generators`, `--report-transitions`, `--report-effects`, `--report-speed-change-effects`, `--report-summary`, `--report-media-summary`. **`--create-pdf`** also writes a `.pdf` from the same built `Report` (sections, column exclusions, timecode format). Filtering: `--exclude-role` (repeatable), `--exclude-column` (repeatable; global column omission), `--exclude-disabled-clips` (omit `enabled="0"` clips), `--include-markers-outside-clip-boundaries` (out-of-bounds markers + Markers **Hidden** column), `--protect-sheets` (Excel worksheet edit lock on every sheet — not encryption; PDF unaffected), `--report-project` (project or compound-clip name), `--label-copyright`. Timecode cells: `--timecode-format` (`HH:MM:SS:FF` default, `Frames`, `Feet+Frames`, `HH:MM:SS`). Progress labels follow `ReportBuildPhase.enabledPhases(for:)` (inventory first), then Saving Workbook, then Saving PDF when `--create-pdf` is set. Log options: `--log`, `--log-level`, `--quiet`. See `Sources/OpenFCPXMLKitCLI/README.md` and `Documentation/Manual/16-CLI.md`.
+**`--report`** builds an Excel workbook from a normal project **or** a standalone compound-clip export (role inventory by default — **Selected Roles Inventory** + per-role sheets). `--report-full` adds every optional sheet. Per-section flags: `--report-markers`, `--report-keywords`, `--report-titles-generators`, `--report-transitions`, `--report-effects`, `--report-speed-change-effects`, `--report-summary`, `--report-media-summary`. **`--create-pdf`** also writes a `.pdf` from the same built `Report` (sections, column exclusions, timecode format). Filtering: `--exclude-role` (repeatable), `--exclude-column` (repeatable; global column omission), `--exclude-disabled-clips` (omit `enabled="0"` clips), `--include-markers-outside-clip-boundaries` (out-of-bounds markers + Markers **Hidden** column), `--protect-sheets` (Excel worksheet edit lock on every sheet — not encryption; PDF unaffected), `--report-project` (project or compound-clip name), `--label-copyright`. Timecode cells: `--timecode-format` (`HH:MM:SS:FF` default, `Frames`, `Feet+Frames`, `HH:MM:SS`). Progress labels follow `ReportBuildPhase.enabledPhases(for:)` (inventory first), then Saving Workbook, then Saving PDF when `--create-pdf` is set. Log options: `--log`, `--log-level`, `--quiet`. See `Sources/OpenFCPXMLKitCLI/README.md` and `Documentation/Manual/18-CLI.md`.
 
 ---
 
 ## 8. Tests
 
-- **Count:** **1084** listed in `swift test --list-tests` — **1078** in `OpenFCPXMLKitTests` (1075 XCTest + 3 Swift Testing `@Test` in `FCPXMLReportRoleExclusionTests`) and **6** in optional `ExcelReportTest` (skips without a local `.fcpxml`/`.fcpxmld` fixture).
+- **Count:** **1084** listed in `swift test list` — **1078** in `OpenFCPXMLKitTests` + **6** in optional `ExcelReportTest` (all Swift Testing `@Test`; **no XCTest** in `Tests/`). ExcelReportTest **cancels** via `Test.cancel` without a local `.fcpxml`/`.fcpxmld` fixture.
+- **Framework:** Swift Testing exclusively (`@Suite` / `@Test` / `#expect` / `#require`). See GUARDRAILS Sign: `swift-testing-only`.
 - **Location:** `Tests/OpenFCPXMLKitTests/`; public samples in `Tests/FCPXML Samples/FCPXML/` (60 files, including `HiddenMarkers.fcpxml`); optional integration under `Tests/ExcelReportTest/`; private investigation inbox under `Tests/Submitted FCPXML/` (gitignored `Inbox/` / `Notes/` — never commit private FCPXML to GitHub; see `Tests/Submitted FCPXML/README.md`).
-- **Utilities:** `FCPXMLTestResources.swift`, `FCPXMLTestUtilities.swift` (path resolution, sample loading; `XCTSkip` when a sample is missing); `FCPXMLReportingReportFixture.swift` / `FCPXMLReportingReportTestSupport.swift` for optional reporting fixtures; `FCPXMLSubmittedFCPXMLSmokeTests` for optional Inbox parse smoke.
-- **Reporting tests:** `FCPXMLCompoundClipReportTests` (standalone compound-clip FCPXML / `allReportTimelineSources()`), `FCPXMLMarkersReportTests` / `FCPXMLFileTest_HiddenMarkers` (out-of-bounds markers + **Hidden** column), `FCPXMLReportTimecodeFormatTests` (DF/NDF, all four formats, format-aware headers, full-report shape), `FCPXMLReportBuildPhaseTests` (inventory-first `enabledPhases` / `onPhaseStarted` order), `FCPXMLRoleInventoryColumnLayoutTests`, `FCPXMLReportColumnExclusionTests` (including `ensuringRowColumn` / `allowsInjectedRowColumn`, suffixed Timeline In headers, Row on all sheets), `FCPXMLReportExcludeDisabledClipsTests`, `FCPXMLReportExcelExportTests` (workbook cell formatting; Summary **B1**; section-sheet Row columns; **`protectSheets`** sheet protection), `FCPXMLReportPDFExportTests` (cover notes / black header + `info.circle`, TOC, section parity, pagination, branding), `FCPXMLReportPDFSheetPlanTests` (TOC accent chips share sequential `colorIndex` with content-page tints), `FCPXMLReportPDFTableLayoutTests` (remaining columns expand to fill page width after exclusions; pinned Row; `allowInjectedRowColumn`; horizontal chunks still fill `contentWidth`), `FCPXMLReportFormattingTests` (SMPTE / Frames / Feet+Frames / HH:MM:SS formatting and numeric sort guardrails), plus role inventory, section, and related support tests. Optional `ExcelReportTest` writes `OFK-OutsideClipBoundaries` and `OFK-ProtectedSheets` among other outputs. See **Tests/README.md** §1 for the full file tree.
-- **Coverage:** Unit, integration, and performance tests; sync and async; all supported frame rates and FCPXML versions. See **Tests/README.md** for categories and how to run tests.
+- **Harness:** `FCPXMLTestResources.swift` (paths); `FCPXMLTestSampleLoading.swift` + `FCPXMLTestSampleError.swift` (`tryLoad*`); `FCPXMLTestingSampleSupport.swift` (`require*` — bundled samples **fail** if missing; optional fixtures use `Test.cancel`); `FCPXMLReportingReportFixture.swift` / `FCPXMLReportingReportTestSupport.swift` for optional reporting fixtures; `FCPXMLSubmittedFCPXMLSmokeTests` for optional Inbox parse smoke; `ExcelReportFixture` for the ExcelReportTest target.
+- **Performance:** `FCPXMLPerformanceTests` uses `ContinuousClock().measure` with generous sanity budgets (hang guards), not XCTest `measure` baselines.
+- **Reporting tests:** `FCPXMLCompoundClipReportTests` (standalone compound-clip FCPXML / `allReportTimelineSources()`), `FCPXMLMarkersReportTests` / `FCPXMLFileTest_HiddenMarkers` (out-of-bounds markers + **Hidden** column), `FCPXMLReportTimecodeFormatTests` (DF/NDF, all four formats, format-aware headers, full-report shape), `FCPXMLReportBuildPhaseTests` (inventory-first `enabledPhases` / `onPhaseStarted` order), `FCPXMLRoleInventoryColumnLayoutTests`, `FCPXMLReportColumnExclusionTests` (including `ensuringRowColumn` / `allowsInjectedRowColumn`, suffixed Timeline In headers, Row on all sheets), `FCPXMLReportExcludeDisabledClipsTests`, `FCPXMLReportExcelExportTests` (workbook cell formatting; Summary **B1**; section-sheet Row columns; **`protectSheets`** sheet protection), `FCPXMLReportPDFExportTests` (cover notes / black header + `info.circle`, TOC, section parity, pagination, branding), `FCPXMLReportPDFSheetPlanTests` (TOC accent chips share sequential `colorIndex` with content-page tints), `FCPXMLReportPDFTableLayoutTests` (remaining columns expand to fill page width after exclusions; pinned Row; `allowInjectedRowColumn`; horizontal chunks still fill `contentWidth`), `FCPXMLReportFormattingTests` (SMPTE / Frames / Feet+Frames / HH:MM:SS formatting and numeric sort guardrails), plus role inventory, section, Projection-first section tests, and related support tests. Optional `ExcelReportTest` writes `OFK-Default` / `OFK-Full` / `OFK-ExcludedColumns` / `OFK-Copyright` / `OFK-OutsideClipBoundaries` / `OFK-ProtectedSheets` among other outputs. See **Tests/README.md** for the full file tree.
+- **Coverage:** Unit, integration, and performance smoke tests; sync and async; all supported frame rates and FCPXML versions. See **Tests/README.md** for categories and how to run tests.
+- **Manual cross-links:** [11 — Timeline Projection](Documentation/Manual/11-Timeline-Projection.md), [16 — Cross-Platform & iOS](Documentation/Manual/16-Cross-Platform-iOS.md), [18 — CLI](Documentation/Manual/18-CLI.md), [19 — Reporting](Documentation/Manual/19-Reporting.md), [20 — Examples](Documentation/Manual/20-Examples.md).
 
 ---
 

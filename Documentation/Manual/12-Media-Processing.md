@@ -1,4 +1,4 @@
-# 11 — Media Processing
+# 12 — Media Processing
 
 [← Manual Index](00-Index.md)
 
@@ -107,4 +107,4 @@ let readResult = await executor.readFiles(urlsToRead)
 
 ## Next
 
-- [12 — Typed Models](12-Typed-Models.md) — Adjustments, filters, captions, keyframes, Live Drawing, collections.
+- [13 — Typed Models](13-Typed-Models.md) — Adjustments, filters, captions, keyframes, Live Drawing, collections.

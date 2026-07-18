@@ -1,4 +1,4 @@
-# 18 — Cross-Platform XML & iOS
+# 16 — Cross-Platform & iOS
 
 [← Manual Index](00-Index.md)
 
@@ -51,7 +51,8 @@ let version = root?.stringValue(forAttributeNamed: "version")
 
 ## Testing
 
-- The `OpenFCPXMLKitTests` suite runs on **macOS** and uses the Foundation backend. See [Tests/README.md](../../Tests/README.md) for the current `swift test --list-tests` count (includes optional `ExcelReportTest`).
+- The suite uses **Swift Testing** exclusively (`@Suite` / `@Test` / `#expect` / `#require`). **1084** tests are listed in `swift test --list-tests` (**1078** in `OpenFCPXMLKitTests` + **6** optional `ExcelReportTest`). See [Tests/README.md](../../Tests/README.md).
+- Tests run on **macOS** and exercise the Foundation XML backend. Optional fixtures cancel via `Test.cancel` when unset (ExcelReportTest Sample, `OFK_REPORTING_FCPXML_BUNDLE`, Submitted inbox).
 - Public fixtures: `Tests/FCPXML Samples/FCPXML/` (committed). Private investigation: [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) (`Inbox/` gitignored — never commit private FCPXML to GitHub).
 - **iOS** is supported for building the library (e.g. iOS Simulator); running the same tests on iOS is not required for CI because they depend on Foundation XML. AEXML parity and structural validation are covered by tests that run on macOS.
 
@@ -65,5 +66,8 @@ let version = root?.stringValue(forAttributeNamed: "version")
 
 ## Next
 
-- [13 — XML Extensions](13-XML-Extensions.md) — FCPXML extensions on OFKXMLElement and OFKXMLDocument.
+- [17 — Errors & Utilities](17-Errors-Utilities.md) — Error types, ProgressBar, FCPXMLUID.
+- [14 — XML Extensions](14-XML-Extensions.md) — FCPXML extensions on OFKXMLElement and OFKXMLDocument.
 - [05 — Validation & Cut Detection](05-Validation-CutDetection.md) — Semantic, DTD, and structural validation.
+
+[← Manual Index](00-Index.md)

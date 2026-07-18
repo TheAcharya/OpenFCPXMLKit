@@ -8,24 +8,27 @@
 //	File Tests: Occlusion.fcpxml, Occlusion2.fcpxml, Occlusion3.fcpxml.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFileTest_Occlusion: XCTestCase {
+@Suite("File test occlusion")
+struct FCPXMLFileTest_Occlusion {
 
-    func testParse_Occlusion() throws {
-        let fcpxml = try loadFCPXMLSample(named: "Occlusion")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
+    @Test("Parse Occlusion")
+    func parse_Occlusion() throws {
+        let fcpxml = try requireFCPXMLSample(named: "Occlusion")
+        #expect(fcpxml.root.element.name == "fcpxml")
     }
 
-    func testParse_Occlusion2() throws {
-        let fcpxml = try loadFCPXMLSample(named: "Occlusion2")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
+    @Test("Parse Occlusion2")
+    func parse_Occlusion2() throws {
+        let fcpxml = try requireFCPXMLSample(named: "Occlusion2")
+        #expect(fcpxml.root.element.name == "fcpxml")
     }
 
-    func testParse_Occlusion3() throws {
-        let fcpxml = try loadFCPXMLSample(named: "Occlusion3")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
+    @Test("Parse Occlusion3")
+    func parse_Occlusion3() throws {
+        let fcpxml = try requireFCPXMLSample(named: "Occlusion3")
+        #expect(fcpxml.root.element.name == "fcpxml")
     }
 }

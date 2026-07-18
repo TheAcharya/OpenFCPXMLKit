@@ -22,7 +22,7 @@ Everything lives under **`FinalCutPro.FCPXML`**:
 
 All **build** APIs are **async**. PDF export is **synchronous** once a `Report` exists.
 
-**Project-once Projection:** When Role Inventory, Markers, Keywords, Titles & Generators, Transitions, Effects, Speed Change Effects, Media Summary, or Summary is enabled, `ReportBuilder` projects the timeline **once** (progress phase `.projecting`) and shares `ReportProjectionContext` across those sections. Markers / Keywords / Titles / Transitions / Effects are Projection-first with Extraction fallback. See [20 — Timeline Projection](20-Timeline-Projection.md).
+**Project-once Projection:** When Role Inventory, Markers, Keywords, Titles & Generators, Transitions, Effects, Speed Change Effects, Media Summary, or Summary is enabled, `ReportBuilder` projects the timeline **once** (progress phase `.projecting`) and shares `ReportProjectionContext` across those sections. Markers / Keywords / Titles / Transitions / Effects are Projection-first with Extraction fallback. See [11 — Timeline Projection](11-Timeline-Projection.md).
 
 **Configuration parity:** Build the report **once** with `ReportOptions`, then export to Excel, PDF, or both. Section flags, `excludedColumns`, `excludedRoles`, `excludeDisabledClips`, `timecodeFormat`, `copyrightLabel`, `includeMarkersOutsideClipBoundaries`, and `projectName` all apply to both exporters (they shape the shared `Report`). **`protectSheets` is Excel-only** (worksheet edit lock — not encryption). PDF adds presentation-only features (cover page, TOC with sheet colour chips + tint washes, per-sheet content tints, pagination, remaining-column width expansion after exclusions, truncation) on top of the same `Report` data.
 
@@ -255,7 +255,7 @@ Use **RoleInventoryColumnLayout** (internal layout helper) or `RoleClipReportRow
 
 By default, markers whose `start` lies outside the host clip’s media range (`[start, start + duration)`) are **omitted** — Final Cut Pro hides them from the timeline and Tags list. Set `includeMarkersOutsideClipBoundaries` (CLI `--include-markers-outside-clip-boundaries`) to include them; the sheet then gains **Hidden** (✓ = outside bounds, ✗ = inside). **Hidden** is not a `ReportColumn` / `--exclude-column` target.
 
-This is **not** the FCPXML 1.13+ empty `hidden-clip-marker` element (see [12 — Typed Models](12-Typed-Models.md#hidden-clip-marker-fcpxml-113)). Boundary helper: `FCPXMLMarkerClipBoundary`; Projection annotations expose `isOutsideClipBoundaries`.
+This is **not** the FCPXML 1.13+ empty `hidden-clip-marker` element (see [13 — Typed Models](13-Typed-Models.md#hidden-clip-marker-fcpxml-113)). Boundary helper: `FCPXMLMarkerClipBoundary`; Projection annotations expose `isOutsideClipBoundaries`.
 
 **MarkerReportType**: `.standard`, `.incompleteToDo`, `.completedToDo`, `.chapter`.
 
@@ -602,7 +602,7 @@ The same reports are available through **OpenFCPXMLKit-CLI**:
 | `--exclude-column <name>` | Omit a column from every applicable sheet (repeatable) |
 | `--timecode-format <format>` | Timeline cell format: `HH:MM:SS:FF` (default), `Frames`, `Feet+Frames`, `HH:MM:SS` |
 
-See [16 — CLI](16-CLI.md#report) for full option reference and matching rules.
+See [18 — CLI](18-CLI.md#report) for full option reference and matching rules.
 
 ```bash
 # Role inventory only
@@ -642,8 +642,9 @@ For real-world exports that must stay off GitHub, drop them in [Tests/Submitted 
 
 ## Next
 
-- [20 — Timeline Projection](20-Timeline-Projection.md) — windows, options, occupancy, and how report builders consume Projection.
+- [20 — Examples](20-Examples.md) — End-to-end workflows and code examples.
+- [11 — Timeline Projection](11-Timeline-Projection.md) — windows, options, occupancy, and how report builders consume Projection.
 - [10 — Extraction & Media](10-Extraction-Media.md) — Extraction presets and media copy (fallback / discovery).
-- [16 — CLI](16-CLI.md) — building reports from the command line.
+- [18 — CLI](18-CLI.md) — building reports from the command line.
 
 [← Manual Index](00-Index.md)

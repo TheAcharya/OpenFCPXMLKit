@@ -2,7 +2,7 @@
 
 This directory contains the test suite for OpenFCPXMLKit, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration. The suite runs on **macOS** (Foundation XML backend). The library also supports **iOS 26+** (AEXML backend); CI builds for iOS Simulator; the same tests are not run on iOS because they rely on Foundation XML.
 
-- **Test count:** **1084** tests listed in `swift test --list-tests` — **1078** in `OpenFCPXMLKitTests` (1075 XCTest `func test` methods + 3 Swift Testing `@Test` in `FCPXMLReportRoleExclusionTests`) and **6** in `ExcelReportTest` (optional integration; skips without a local fixture)
+- **Test count:** **1084** tests listed in `swift test list` — **1078** in `OpenFCPXMLKitTests` + **6** in `ExcelReportTest` (all Swift Testing `@Test`; no XCTest remaining; ExcelReportTest cancels without a local fixture)
 - **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines, audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), Timeline Projection (`TimelineProjector` / `MediaUsageWindow` / `ReportProjectionContext`, project-once for report sections), Excel and PDF reporting (universal **Row** column on all tabular sheets via `ensuringRowColumn` / `allowsInjectedRowColumn`, role inventory columns, Summary sheet with project title in **B1**, Media Summary sheets, configurable `ReportTimecodeFormat` / DF·NDF notation, format-aware headers, Frames/Feet+Frames sort order, inventory-first `ReportBuildPhase` progress, global column exclusion, disabled-clip filtering, Markers out-of-bounds filter / optional **Hidden** column (`includeMarkersOutsideClipBoundaries`), Excel `protectSheets` worksheet protection, workbook export and cell formatting, PDF cover with black “About This PDF Export” header + `info.circle`, TOC with accent colour chips + content-tint washes keyed to sheet `colorIndex`, remaining columns expanded to fill A4 landscape width after exclusions, section pagination, shared `FCPXMLReportRowColorPolicy`, standalone compound-clip timelines via `allReportTimelineSources()` / `FCPXMLCompoundClipReportTests`), and all supported FCPXML versions and frame rates  
 - **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure; validation and cross-platform XML tests; optional Excel/PDF report integration tests under `ExcelReportTest/`; private investigation inbox under `Submitted FCPXML/` (gitignored contents)
 
@@ -63,7 +63,10 @@ Tests/
 └── OpenFCPXMLKitTests/
     ├── OpenFCPXMLKitTests.swift
     ├── FCPXMLTestResources.swift
-    ├── FCPXMLTestUtilities.swift
+    ├── FCPXMLTestSampleError.swift          # Framework-agnostic sample/fixture errors
+    ├── FCPXMLTestSampleLoading.swift        # tryLoad* / tryTimelineElement (framework-agnostic)
+    ├── FCPXMLTestingSampleSupport.swift     # Swift Testing require* / Test.cancel
+    ├── FCPXMLSubmittedInbox.swift           # Private inbox discovery
     ├── FCPXMLSubmittedFCPXMLSmokeTests.swift
     ├── FCPXMLReportingReportFixture.swift
     ├── FCPXMLReportingReportTestSupport.swift
@@ -170,14 +173,14 @@ Tests/
     └── FCPXMLVersionConversionTests.swift
 ```
 
-> **Naming convention:** Every test file and class (including non-test support files such as `FCPXMLTestResources`, `FCPXMLTestUtilities`, `FCPXMLReportingReportFixture`, and `FCPXMLReportingReportTestSupport`) is prefixed with **`FCPXML`** (for example `FCPXMLTimelineManipulationTests`). The sole exception is **`OpenFCPXMLKitTests`**, the module-named umbrella test class.
+> **Naming convention:** Every test file and class (including non-test support files such as `FCPXMLTestResources`, `FCPXMLTestSampleLoading`, `FCPXMLTestingSampleSupport`, `FCPXMLReportingReportFixture`, and `FCPXMLReportingReportTestSupport`) is prefixed with **`FCPXML`** (for example `FCPXMLTimelineManipulationTests`). The sole exception is **`OpenFCPXMLKitTests`**, the module-named umbrella test suite.
 
 **Shared utilities**
 
 - **FCPXMLTestResources.swift** — Path resolution from test file to package root and `Tests/FCPXML Samples/FCPXML/`; works from Xcode and `swift test` without bundle resources. Defines **FCPXMLSampleName** enum for known sample names.
-- **FCPXMLTestUtilities.swift** — `loadFCPXMLSampleData(named:)`, `loadFCPXMLSample(named:)`; `fcpxmlFrameRateSampleNames`, `allFCPXMLSampleNames()`; throw **XCTSkip** when a sample is missing.
+- **FCPXMLTestSampleLoading.swift** / **FCPXMLTestingSampleSupport.swift** — Framework-agnostic `tryLoad*` plus Swift Testing `require*` / `Test.cancel` for bundled samples and optional fixtures; `fcpxmlFrameRateSampleNames`, `allFCPXMLSampleNames()`.
 - **FCPXMLReportingReportFixture.swift** / **FCPXMLReportingReportTestSupport.swift** — Optional reporting integration fixture; shared assertions for timecode cell values, format-aware column headers, sort order, and checkmarks (`assertReportTimecodeValues`, `assertReportColumnHeadersMatchTimecodeFormat`).
-- **OpenFCPXMLKitTests.swift** — Main test class; shared dependencies (parser, timecode converter, document manager, error handler, FCPXMLUtility, FCPXMLService) injected in `setUpWithError`. MARK sections group tests by category.
+- **OpenFCPXMLKitTests.swift** — Main `@Suite`; shared dependencies (parser, timecode converter, document manager, error handler, FCPXMLUtility, FCPXMLService) created in `init()`. MARK comments group tests by category.
 
 ---
 
@@ -195,9 +198,9 @@ swift test --filter OpenFCPXMLKitTests             # By pattern
 To verify the documented test counts:
 
 ```bash
-swift test --list-tests 2>/dev/null | grep -c '\.'                        # 1084
-swift test --list-tests 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 1078
-swift test --list-tests 2>/dev/null | grep -c 'ExcelReportTest\.'       # 6
+swift test list 2>/dev/null | grep -c '\.'                        # 1084
+swift test list 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 1078
+swift test list 2>/dev/null | grep -c 'ExcelReportTest\.'       # 6
 ```
 
 ### Xcode
@@ -209,7 +212,7 @@ swift test --list-tests 2>/dev/null | grep -c 'ExcelReportTest\.'       # 6
 
 ### Linux
 
-Tests are discovered automatically by Swift PM. Run `swift test` in an environment that provides XCTest.
+Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing + package test targets).
 
 ---
 
@@ -219,7 +222,7 @@ Tests are discovered automatically by Swift PM. Run `swift test` in an environme
 
 | Category | What it covers |
 |----------|-----------------|
-| **Setup** | `setUpWithError` / `tearDownWithError`; parser, timecodeConverter, documentManager, errorHandler, FCPXMLUtility, FCPXMLService |
+| **Setup** | Dependencies created in `init()`: parser, timecodeConverter, documentManager, errorHandler, FCPXMLUtility, FCPXMLService |
 | **FCPXMLUtility** | Initialisation, element filtering by `FCPXMLElementType`, CMTime ↔ FCPXML time string, time conforming |
 | **FCPXMLService** | Initialisation, document creation, timecode/CMTime conversion |
 | **Modular components** | Parser, TimecodeConverter, DocumentManager, ErrorHandler (parse, validate, create, add resource, message formatting) |
@@ -351,7 +354,7 @@ File tests live under **OpenFCPXMLKitTests/FileTests/** and use samples from **T
 |------------|-----------|---------|
 | **FCPXMLFileTest_24** | 24.fcpxml | Root, version ver1_11, events, project, sequence format "r1", spine story elements; load via FCPXMLFileLoader + FCPXMLService |
 | **FCPXMLFileTest_360Video** | 360Video.fcpxml | Root, ver1_13, format projection/stereoscopic, adjust-colorConform, bookmarks, smart collections, round-trip |
-| **FCPXMLFileTest_AllSamples** | All .fcpxml in dir | Each loads via FCPXMLFileLoader and as FinalCutPro.FCPXML; root name "fcpxml"; skips if dir missing/empty |
+| **FCPXMLFileTest_AllSamples** | All .fcpxml in dir | Each loads via FCPXMLFileLoader and as FinalCutPro.FCPXML; root name "fcpxml"; cancels if dir missing/empty |
 | **FCPXMLFileTest_Annotations** | Annotations.fcpxml | Root, events, projects |
 | **FCPXMLFileTest_AuditionSample** | AuditionSample.fcpxml | Root, ver1_13, audition element, active/inactive clips, adjust-colorConform, conform-rate, keywords |
 | **FCPXMLFileTest_BasicMarkers** | BasicMarkers.fcpxml | Root, ver1_9, root equality, resources, library; allEvents, allProjects |
@@ -369,7 +372,7 @@ File tests live under **OpenFCPXMLKitTests/FileTests/** and use samples from **T
 | **FCPXMLFileTest_StandaloneAssetClip** | StandaloneAssetClip.fcpxml | Root, ≥1 resource |
 | **FCPXMLFileTest_SyncClip** | SyncClip.fcpxml | Root, non-empty projects |
 
-Tests that require a sample use `loadFCPXMLSample(named:)` or `loadFCPXMLSampleData(named:)`, which throw **XCTSkip** when the file is missing so the suite can run with a subset of samples.
+Tests that require a sample use `requireFCPXMLSample(named:)` / `requireFCPXMLSampleData(named:)` (bundled samples fail if missing). Optional fixtures use `Test.cancel`.
 
 ---
 
@@ -423,11 +426,11 @@ Tests that require a sample use `loadFCPXMLSample(named:)` or `loadFCPXMLSampleD
 
 ## 8. Performance tests
 
-Performance is measured with **measure { }** (XCTest); results show duration and relative standard deviation.
+Performance smoke tests use Swift Testing with `ContinuousClock().measure` and a generous sanity budget (not XCTest `measure` baselines).
 
-**OpenFCPXMLKitTests.swift** — testPerformanceFilterElements; testPerformanceTimecodeConversion; testPerformanceTimecodeConversionAllFrameRates; testPerformanceDocumentCreation; testPerformanceElementFilteringLargeDataset.
+**OpenFCPXMLKitTests.swift** — filter/timecode/document smoke performance cases exercised as ordinary `@Test`s.
 
-**FCPXMLPerformanceTests** — testPerformanceParseFCPXMLDataRepeatedly (50× per iteration); testPerformanceLoadSampleFileWhenAvailable (Structure.fcpxml 20×; skips if missing).
+**FCPXMLPerformanceTests** — parse FCPXML data repeatedly (50×); load Structure.fcpxml (20×; cancels if missing); project Complex sample (cancels if missing).
 
 **Guidelines** — Keep tests fast; avoid heavy I/O or very large documents unless the test is for that; use the same dependency injection as the rest of the suite.
 
@@ -451,18 +454,18 @@ Document manager tests create documents for **FCPXML 1.5 through 1.14** and asse
 - **Location:** `Tests/FCPXML Samples/FCPXML/` (sibling of OpenFCPXMLKitTests).
 - **Path resolution:** At runtime via **packageRoot(relativeToFile: #file)** so tests work from Xcode and `swift test` without bundle resources.
 - **FCPXMLTestResources.swift** — `packageRoot`, `fcpxmlSamplesDirectory()`, `urlForFCPXMLSample(named:)`.
-- **FCPXMLTestUtilities** — `loadFCPXMLSampleData(named:)`, `loadFCPXMLSample(named:)`; throw **XCTSkip** when the file is missing.
+- **FCPXMLTestSampleLoading** / **FCPXMLTestingSampleSupport** — `tryLoad*` / `require*`; bundled samples fail if missing; optional fixtures cancel.
 
 ---
 
 ## 12. Excel and PDF report integration tests
 
-The **`ExcelReportTest`** target (separate from `OpenFCPXMLKitTests`) builds real `.xlsx` and `.pdf` reports from a **local** FCPXML fixture (a normal project **or** a standalone compound-clip export). It is optional: without a fixture, tests skip and CI stays green.
+The **`ExcelReportTest`** target (separate from `OpenFCPXMLKitTests`) builds real `.xlsx` and `.pdf` reports from a **local** FCPXML fixture (a normal project **or** a standalone compound-clip export). It uses **Swift Testing**; without a fixture, tests **cancel** via `Test.cancel` and CI stays green.
 
 | Item | Detail |
 |------|--------|
 | **Location** | `Tests/ExcelReportTest/` |
-| **Test class** | `ExcelReportExportTests` (**6** tests) — writes `Output/OFK-Default.xlsx`, `Output/OFK-Full.xlsx`, `Output/OFK-Default.pdf`, `Output/OFK-ExcludedColumns.pdf`, `Output/OFK-Copyright.xlsx` / `.pdf`, `Output/OFK-OutsideClipBoundaries.xlsx` / `.pdf`, and `Output/OFK-ProtectedSheets.xlsx` |
+| **Test suite** | `@Suite("Excel report export")` / `ExcelReportExportTests` (**6** `@Test`s) — writes `Output/OFK-Default.xlsx`, `Output/OFK-Full.xlsx`, `Output/OFK-Default.pdf`, `Output/OFK-ExcludedColumns.pdf`, `Output/OFK-Copyright.xlsx` / `.pdf`, `Output/OFK-OutsideClipBoundaries.xlsx` / `.pdf`, and `Output/OFK-ProtectedSheets.xlsx` |
 | **Fixture** | Preferred `Sample.fcpxmld` / `Sample.fcpxml` under this folder or under `Output/`; else `OFK_REPORTING_FCPXML_BUNDLE`; else auto-discovery |
 | **Run** | `swift test --filter ExcelReportExportTests` |
 
@@ -480,7 +483,7 @@ Local-only drop zone for **private user FCPXML** used when investigating parsing
 |------|--------|
 | **Location** | `Tests/Submitted FCPXML/` |
 | **Drop files** | `Inbox/*.fcpxml` or `Inbox/*.fcpxmld/` |
-| **Smoke test** | `FCPXMLSubmittedFCPXMLSmokeTests` — parses inbox files when present; **XCTSkip** when empty (CI-safe) |
+| **Smoke test** | `FCPXMLSubmittedFCPXMLSmokeTests` — parses inbox files when present; **cancels** when empty (CI-safe) |
 | **Promote** | After fixing: add a **minimal anonymised** fixture under `FCPXML Samples/FCPXML/` + a public regression test |
 
 Full workflow (anonymise → reproduce → fix → promote): **[Submitted FCPXML/README.md](Submitted%20FCPXML/README.md)**.
@@ -491,13 +494,31 @@ Full workflow (anonymise → reproduce → fix → promote): **[Submitted FCPXML
 
 ## 13. Writing and organising tests
 
-**Naming** — Prefix every test file and class with **`FCPXML`** (e.g. `FCPXMLTimelineManipulationTests`, `FCPXMLFileTest_<Name>`), including non-test support files (`FCPXMLTestResources`, `FCPXMLTestUtilities`, `FCPXMLReportingReportFixture`, `FCPXMLReportingReportTestSupport`); the only exception is the module-named umbrella `OpenFCPXMLKitTests`. Name test methods `test<FeatureOrBehaviour>` (e.g. testAllSupportedFrameRates, testParserWithInvalidXML). Put new tests under the right MARK section and keep this README updated.
+**Framework** — The suite uses **Swift Testing** exclusively (`import Testing`, `@Suite` / `@Test` / `#expect` / `#require`). There is **no** `import XCTest` in `Tests/`. See GUARDRAILS `Sign: swift-testing-only`. Template: `FCPXMLReportRoleExclusionTests`.
 
-**Structure** — Arrange–act–assert. Async tests: `async throws` and `await`. Performance: `measure { }`; avoid blocking/heavy I/O unless the test is for that. Concurrency: main test class is @unchecked Sendable; shared properties in setUpWithError/tearDownWithError; prefer async/await; use withTaskGroup or async let where appropriate.
+**Sample harness** — Prefer framework-agnostic loaders, then Swift Testing wrappers:
 
-**Adding a file test** — New class under FileTests/ (e.g. FCPXMLFileTest_<Name>.swift). Use loadFCPXMLSample(named:) when the sample must exist, or urlForFCPXMLSample(named:) with FileManager.fileExists and XCTSkip when optional. Assert on root, version, allEvents(), allProjects(), resources, etc.
+| Layer | API | Behaviour |
+|-------|-----|-----------|
+| Core | `tryLoadFCPXMLSample(named:)`, `tryTimelineElement(fromSampleNamed:)`, … | Throws `FCPXMLTestSampleError` |
+| Swift Testing | `requireFCPXMLSample(named:)`, `requireTimelineElement(…)`, … | Bundled samples **fail** if missing; optional fixtures use `Test.cancel` (`requireSubmittedInboxItems`, `requireReportingFixtureFCPXML`, ExcelReportFixture) |
 
-**Adding logic/parsing tests** — Under LogicAndParsing/ for model types (Version, structure, parsing rules).
+Do **not** use `XCTSkip` (XCTest is not part of this suite). Use `try Test.cancel("…")` or `.enabled(if:)` / `.disabled(if:)` traits for optional fixtures.
+
+Swift Testing conventions:
+- `@Suite("Human-readable suite name")` + `struct FCPXML…Tests` (keep the `FCPXML` prefix)
+- `@Test("Human-readable case name")` + `#expect(...)` / `#require(...)`
+- Parameterize with `@Test(arguments:)` instead of hand-rolled loops when it clarifies cases
+- Async: `@Test … async throws` and `await`
+- Bundled samples (under `FCPXML Samples/`) should fail loudly if missing (`requireFCPXMLSample`); optional local fixtures cancel without failing CI
+
+**Naming** — Prefix every test file and type with **`FCPXML`** (e.g. `FCPXMLTimelineManipulationTests`, `FCPXMLFileTest_<Name>`), including non-test support files (`FCPXMLTestResources`, `FCPXMLTestSampleLoading`, `FCPXMLTestingSampleSupport`, `FCPXMLReportingReportFixture`, `FCPXMLReportingReportTestSupport`); the only exception is the module-named umbrella `OpenFCPXMLKitTests`. Swift Testing uses `@Test("…")` display names. Put new tests under the right `@Suite` and keep this README updated.
+
+**Structure** — Arrange–act–assert. Async tests: `async throws` and `await`. Performance: `ContinuousClock().measure` with a sanity budget. Concurrency: prefer async/await; avoid Task over non-Sendable XML types.
+
+**Adding a file test** — New type under FileTests/ (e.g. FCPXMLFileTest_<Name>.swift). Use `requireFCPXMLSample(named:)` when the sample must exist, or `cancelIfSampleMissing` / `urlForFCPXMLSample` when optional. Assert on root, version, allEvents(), allProjects(), resources, etc.
+
+**Adding logic/parsing tests** — Under LogicAndParsing/ for model types (Version, structure, parsing rules). Use Swift Testing.
 
 **Adding feature tests** — New file for major features (e.g. FCPXMLTimelineManipulationTests). Group related tests; descriptive names; sync and async where applicable; edge cases, errors, protocol conformance.
 
@@ -526,16 +547,16 @@ Add tests for new behaviour or edge cases; place them in the right file and MARK
 
 ## 17. Resources
 
-- **XCTest** (Apple documentation)
+- **[Swift Testing](https://developer.apple.com/documentation/testing)** (Apple documentation)
 - **Testing in Xcode** (Apple documentation)
 - **OpenFCPXMLKit README** (project root) — overview and API usage
 - **[ARCHITECTURE.md](../ARCHITECTURE.md)** — layer stack, Mermaid codebase map
 - **[GUARDRAILS.md](../GUARDRAILS.md)** — must / must-not (incl. never commit private FCPXML)
-- **Documentation/Manual** — full manual; [19 — Reporting, Excel & PDF Export](../Documentation/Manual/19-Reporting.md) for report API; [18 — Cross-Platform & iOS](../Documentation/Manual/18-Cross-Platform-iOS.md) for XML abstraction and iOS support
+- **Documentation/Manual** — full manual; [19 — Reporting, Excel & PDF Export](../Documentation/Manual/19-Reporting.md) for report API; [16 — Cross-Platform & iOS](../Documentation/Manual/16-Cross-Platform-iOS.md) for XML abstraction and iOS support; [11 — Timeline Projection](../Documentation/Manual/11-Timeline-Projection.md)
 - **Final Cut Pro XML (FCPXML)** — [fcp.cafe](https://fcp.cafe) for format reference
 - **SwiftTimecode** (GitHub) — timecode and frame rate types
 
-**Keep counts in sync:** `swift test --list-tests` → **1084** total (**1078** OpenFCPXMLKitTests + **6** ExcelReportTest); **60** public samples.
+**Keep counts in sync:** `swift test list` → **1084** total (**1078** OpenFCPXMLKitTests + **6** ExcelReportTest; all Swift Testing); **60** public samples.
 
 ---
 
@@ -547,7 +568,7 @@ Add tests for new behaviour or edge cases; place them in the right file and MARK
 
 **Couldn't find the DTD file / Error setting the DTD** — Validator looks for DTDs in (1) OpenFCPXMLKit module bundle (root and “FCPXML DTDs”), (2) all loaded bundles, (3) frameworks with “DTDs” subdirectory. DTDs are in `Sources/OpenFCPXMLKit/FCPXML DTDs/` and declared in Package.swift with `.process("FCPXML DTDs")`. If messages persist, build and run from package root (`swift build && swift test`). When the DTD is not found, the validator returns a result with a dtdValidation error; tests accept either success or that error.
 
-**Performance test relative standard deviation** — XCTest prints average and RSD for each `measure { }` run; informational. High RSD is common for very fast ops. To reduce variation: record a baseline in Xcode (Editor → Add Baseline) or increase iterations. The suite does not fail on RSD unless a baseline is set and exceeded.
+**Performance smoke budgets** — `FCPXMLPerformanceTests` uses `ContinuousClock().measure` with generous duration budgets so pathological hangs fail CI. These are hang guards, not XCTest-style baseline regressions.
 
 ---
 

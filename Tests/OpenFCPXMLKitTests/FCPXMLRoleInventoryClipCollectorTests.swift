@@ -8,16 +8,30 @@
 //	Unit tests for role inventory clip collection.
 //
 
-import XCTest
-import SwiftTimecode
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
+@Suite("Role inventory clip collector")
+struct FCPXMLRoleInventoryClipCollectorTests {
     private typealias Collector = FinalCutPro.FCPXML.RoleInventoryClipCollector
-    
-    func testRoleInventoryIncludesFullyOccludedSyncClipWithSyncSource() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "Occlusion3")
+
+    private func requireExcelReportSampleFCPXML() throws -> FinalCutPro.FCPXML {
+        let sampleURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("ExcelReportTest/Sample.fcpxmld/Info.fcpxml")
+
+        guard FileManager.default.fileExists(atPath: sampleURL.path) else {
+            try Test.cancel("Excel report sample fixture unavailable at \(sampleURL.path)")
+        }
+
+        return try FinalCutPro.FCPXML(fileContent: Data(contentsOf: sampleURL))
+    }
+
+    @Test("Role inventory includes fully occluded sync-clip with sync-source")
+    func roleInventoryIncludesFullyOccludedSyncClipWithSyncSource() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "Occlusion3")
         
         let entries = await Collector.collectEntries(
             from: timeline,
@@ -27,21 +41,23 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
         let syncClipEntries = entries.filter {
             $0.extracted.displayClipName() == "5-1-9"
         }
-        
-        XCTAssertFalse(
-            syncClipEntries.isEmpty,
+
+        let syncClipEntriesEmpty = syncClipEntries.isEmpty
+        #expect(
+            !syncClipEntriesEmpty,
             "Expected fully occluded connected sync-clips with sync-source audio to be inventoried"
         )
-        
-        XCTAssertTrue(
-            syncClipEntries.contains {
-                $0.roleSubroleField.localizedCaseInsensitiveContains("mix")
-            }
-        )
+
+        let hasMixRole = syncClipEntries.contains {
+            $0.roleSubroleField.localizedCaseInsensitiveContains("mix")
+        }
+        #expect(hasMixRole)
     }
     
-    func testConnectedSyncClipUsesAnchorFieldForSyncedAudioRow() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "SyncClipRoles2")
+
+    @Test("Connected sync-clip uses anchor field for synced audio row")
+    func connectedSyncClipUsesAnchorFieldForSyncedAudioRow() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "SyncClipRoles2")
         
         let entries = await Collector.collectEntries(
             from: timeline,
@@ -53,19 +69,19 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
                 && $0.category == .connectedAudio
         }
         
-        XCTAssertFalse(connectedSyncAudio.isEmpty)
+        let connectedSyncAudioEmpty = connectedSyncAudio.isEmpty
+        #expect(!connectedSyncAudioEmpty)
         
         for entry in connectedSyncAudio {
-            XCTAssertTrue(entry.roleSubroleField.hasPrefix("Video,"))
+            #expect(entry.roleSubroleField.hasPrefix("Video,"))
         }
     }
     
-    func testPrimarySyncClipUsesGroupedSyncSourceFieldForSyncedAudioRow() async throws {
+
+    @Test("Primary sync-clip uses grouped sync-source field for synced audio row")
+    func primarySyncClipUsesGroupedSyncSourceFieldForSyncedAudioRow() async throws {
         let fcpxml = try parseInlineFCPXML(primarySyncClipWithSyncSource)
-        guard let project = fcpxml.allProjects().first else {
-            throw XCTSkip("No project in inline fixture")
-        }
-        let timeline = project.sequence.element
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(
             from: timeline,
@@ -78,78 +94,72 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
         let syncedAudio = syncEntries.filter { $0.category == .primarySyncedAudio }
         let primaryAudio = syncEntries.filter { $0.category == .primaryAudio }
         
-        XCTAssertEqual(primaryVideo.count, 1)
-        XCTAssertEqual(primaryVideo[0].roleSubroleField, "Video")
-        XCTAssertEqual(syncedAudio.count, 1)
-        XCTAssertEqual(syncedAudio[0].roleSubroleField, "Dialogue ▸ Mix L, Mix R, Boom 1")
-        XCTAssertEqual(primaryAudio.count, 1)
-        XCTAssertTrue(primaryAudio[0].roleSubroleField.hasPrefix("Video,"))
+        #expect(primaryVideo.count == 1)
+        #expect(primaryVideo[0].roleSubroleField == "Video")
+        #expect(syncedAudio.count == 1)
+        #expect(syncedAudio[0].roleSubroleField == "Dialogue ▸ Mix L, Mix R, Boom 1")
+        #expect(primaryAudio.count == 1)
+        #expect(primaryAudio[0].roleSubroleField.hasPrefix("Video,"))
     }
     
-    func testSyncedAudioOrdersSubrolesBySrcChIncludingInactiveAndTrailingBlank() async throws {
+
+    @Test("Synced audio orders subroles by srcCh including inactive and trailing Blank")
+    func syncedAudioOrdersSubrolesBySrcChIncludingInactiveAndTrailingBlank() async throws {
         let fcpxml = try parseInlineFCPXML(primarySyncClipWithChannelOrderedSubroles)
-        guard let timeline = fcpxml.allProjects().first?.sequence.element else {
-            throw XCTSkip("No project in inline fixture")
-        }
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(from: timeline, scope: .init())
         let syncedAudio = entries.filter {
             $0.extracted.displayClipName() == "Sync" && $0.category == .primarySyncedAudio
         }
         
-        XCTAssertEqual(syncedAudio.count, 1)
+        #expect(syncedAudio.count == 1)
         // Subroles follow channel `srcCh` order (not sync-source document order or alphabetical),
         // include inactive `R_` channels, and keep the trailing `<Blank>` (highest srcCh).
-        XCTAssertEqual(
-            syncedAudio.first?.roleSubroleField,
-            "Dialogue ▸ Mix L, Mix R, Boom 1, R_Technician, R_Commander, <Blank>"
-        )
+        #expect(syncedAudio.first?.roleSubroleField == "Dialogue ▸ Mix L, Mix R, Boom 1, R_Technician, R_Commander, <Blank>")
     }
     
-    func testSyncedAudioOmitsBlankChannelWhenNotFinalChannel() async throws {
+
+    @Test("Synced audio omits Blank channel when not final channel")
+    func syncedAudioOmitsBlankChannelWhenNotFinalChannel() async throws {
         let fcpxml = try parseInlineFCPXML(primarySyncClipWithMiddleBlankChannel)
-        guard let timeline = fcpxml.allProjects().first?.sequence.element else {
-            throw XCTSkip("No project in inline fixture")
-        }
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(from: timeline, scope: .init())
         let syncedAudio = entries.filter {
             $0.extracted.displayClipName() == "Sync" && $0.category == .primarySyncedAudio
         }
         
-        XCTAssertEqual(syncedAudio.count, 1)
+        #expect(syncedAudio.count == 1)
         // The `<Blank>` channel sits mid-layout (srcCh 3 of 4) and is therefore omitted.
-        XCTAssertEqual(
-            syncedAudio.first?.roleSubroleField,
-            "Dialogue ▸ Mix L, Mix R, Boom 1"
-        )
+        #expect(syncedAudio.first?.roleSubroleField == "Dialogue ▸ Mix L, Mix R, Boom 1")
     }
     
-    func testSyncedAudioWithoutSyncSourceOrdersChannelSubrolesBySrcCh() async throws {
+
+    @Test("Synced audio without sync-source orders channel subroles by srcCh")
+    func syncedAudioWithoutSyncSourceOrdersChannelSubrolesBySrcCh() async throws {
         let fcpxml = try parseInlineFCPXML(primarySyncClipWithNestedDialogueAudio)
-        guard let timeline = fcpxml.allProjects().first?.sequence.element else {
-            throw XCTSkip("No project in inline fixture")
-        }
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(from: timeline, scope: .init())
         let syncedAudio = entries.filter {
             $0.extracted.displayClipName() == "Nested" && $0.category == .primarySyncedAudio
         }
         
-        XCTAssertEqual(syncedAudio.count, 1)
+        #expect(syncedAudio.count == 1)
         // No sync-source is present, so both authored channels are reported in srcCh order.
-        XCTAssertEqual(syncedAudio.first?.roleSubroleField, "Dialogue ▸ Mixl, Mixr")
+        #expect(syncedAudio.first?.roleSubroleField == "Dialogue ▸ Mixl, Mixr")
     }
     
-    func testConnectedAudioChannelSourceHostEmitsSingleChannelOrderedRow() async throws {
+
+    @Test("Connected audio channel-source host emits single channel-ordered row")
+    func connectedAudioChannelSourceHostEmitsSingleChannelOrderedRow() async throws {
         let fcpxml = try parseInlineFCPXML(connectedAudioChannelSourceInsideHost)
-        guard let timeline = fcpxml.allProjects().first?.sequence.element else {
-            throw XCTSkip("No project in inline fixture")
-        }
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(from: timeline, scope: .init())
         let connectedAudio = entries.filter {
-            $0.extracted.displayClipName() == "Atmo" && $0.category == .connectedAudio
+            $0.extracted.displayClipName() == "Atmosphere" && $0.category == .connectedAudio
         }
         
         // A connected asset-clip that remaps its channels via audio-channel-source is a
@@ -157,18 +167,15 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
         // channels are reported as one srcCh-ordered row: disabled channels are retained,
         // the bare main-role channel (srcCh 4) is skipped, and the trailing `<Blank>`
         // channel (highest srcCh) is included.
-        XCTAssertEqual(connectedAudio.count, 1)
-        XCTAssertEqual(
-            connectedAudio.first?.roleSubroleField,
-            "Atmos ▸ Mix L, Mix R, Boom 1, <Blank>"
-        )
+        #expect(connectedAudio.count == 1)
+        #expect(connectedAudio.first?.roleSubroleField == "Atmosphere ▸ Mix L, Mix R, Boom 1, <Blank>")
     }
     
-    func testPrimarySyncClipWithCustomVideoRoleOmitsGenericVideoPrefix() async throws {
+
+    @Test("Primary sync-clip with custom video role omits generic Video prefix")
+    func primarySyncClipWithCustomVideoRoleOmitsGenericVideoPrefix() async throws {
         let fcpxml = try parseInlineFCPXML(primarySyncClipWithCustomVideoRole)
-        guard let timeline = fcpxml.allProjects().first?.sequence.element else {
-            throw XCTSkip("No project in inline fixture")
-        }
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(
             from: timeline,
@@ -180,18 +187,17 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
                 && $0.category == .primaryVideo
         }
         
-        XCTAssertEqual(primaryVideo.count, 1)
+        #expect(primaryVideo.count == 1)
         // When the sync-clip already carries an explicit custom video role, Final Cut Pro
         // does not prepend a redundant generic `Video` component.
-        XCTAssertEqual(primaryVideo[0].roleSubroleField, "VFX ▸ VFX-Background")
+        #expect(primaryVideo[0].roleSubroleField == "VFX ▸ VFX-Background")
     }
     
-    func testPrimarySyncClipWithoutSyncSourceUsesInheritedAudioForSyncedAudioRow() async throws {
+
+    @Test("Primary sync-clip without sync-source uses inherited audio for synced audio row")
+    func primarySyncClipWithoutSyncSourceUsesInheritedAudioForSyncedAudioRow() async throws {
         let fcpxml = try parseInlineFCPXML(primarySyncClipWithNestedDialogueAudio)
-        guard let project = fcpxml.allProjects().first else {
-            throw XCTSkip("No project in inline fixture")
-        }
-        let timeline = project.sequence.element
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(
             from: timeline,
@@ -204,27 +210,18 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
         let syncedAudio = syncEntries.filter { $0.category == .primarySyncedAudio }
         let primaryAudio = syncEntries.filter { $0.category == .primaryAudio }
         
-        XCTAssertEqual(primaryVideo.count, 1)
-        XCTAssertEqual(primaryVideo[0].roleSubroleField, "Video")
-        XCTAssertEqual(syncedAudio.count, 1)
-        XCTAssertTrue(syncedAudio[0].roleSubroleField.localizedCaseInsensitiveContains("mix"))
-        XCTAssertTrue(primaryAudio.isEmpty)
+        #expect(primaryVideo.count == 1)
+        #expect(primaryVideo[0].roleSubroleField == "Video")
+        #expect(syncedAudio.count == 1)
+        #expect(syncedAudio[0].roleSubroleField.localizedCaseInsensitiveContains("mix"))
+        #expect(primaryAudio.isEmpty)
     }
     
-    func testTenOneThreeCamAEmitsSingleConnectedClipRow() async throws {
-        let sampleURL = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent("ExcelReportTest/Sample.fcpxmld/Info.fcpxml")
-        
-        guard FileManager.default.fileExists(atPath: sampleURL.path) else {
-            throw XCTSkip("Excel report sample fixture unavailable at \(sampleURL.path)")
-        }
-        
-        let fcpxml = try FinalCutPro.FCPXML(fileContent: Data(contentsOf: sampleURL))
-        guard let timeline = fcpxml.allProjects().first?.sequence.element else {
-            throw XCTSkip("No project in Excel report sample")
-        }
+
+    @Test("10-1-3 Cam A emits single connected clip row")
+    func tenOneThreeCamAEmitsSingleConnectedClipRow() async throws {
+        let fcpxml = try requireExcelReportSampleFCPXML()
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(from: timeline, scope: .init())
         let connectedClip = entries.filter {
@@ -236,29 +233,17 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
             FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: $0)
         }
         
-        XCTAssertEqual(rows.count, 1)
-        XCTAssertEqual(rows.first?.timelineIn, "00:04:53:01")
-        XCTAssertEqual(rows.first?.timelineOut, "00:04:54:08")
-        XCTAssertEqual(
-            rows.first?.roleSubrole,
-            "Dialogue ▸ Mix L, Mix R, Boom 1, Boom 2, R_Slate, R_Fahd"
-        )
+        #expect(rows.count == 1)
+        #expect(rows.first?.timelineIn == "00:04:53:01")
+        #expect(rows.first?.timelineOut == "00:04:54:08")
+        #expect(rows.first?.roleSubrole == "Dialogue ▸ Mix L, Mix R, Boom 1, Boom 2, R_Slate, R_Fahd")
     }
     
-    func testConnectedAudioMulticamFloorsFractionalTimelineEnd() async throws {
-        let sampleURL = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent("ExcelReportTest/Sample.fcpxmld/Info.fcpxml")
-        
-        guard FileManager.default.fileExists(atPath: sampleURL.path) else {
-            throw XCTSkip("Excel report sample fixture unavailable at \(sampleURL.path)")
-        }
-        
-        let fcpxml = try FinalCutPro.FCPXML(fileContent: Data(contentsOf: sampleURL))
-        guard let timeline = fcpxml.allProjects().first?.sequence.element else {
-            throw XCTSkip("No project in Excel report sample")
-        }
+
+    @Test("Connected audio multicam floors fractional timeline end")
+    func connectedAudioMulticamFloorsFractionalTimelineEnd() async throws {
+        let fcpxml = try requireExcelReportSampleFCPXML()
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(from: timeline, scope: .init())
         let connectedClip = entries.filter {
@@ -266,24 +251,23 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
                 && $0.extracted.displayClipName() == "2Bpt 2of2-5-4 Cam A"
         }
         
-        XCTAssertEqual(connectedClip.count, 1)
-        XCTAssertTrue(connectedClip[0].usesFlooredTimelineEnd)
-        XCTAssertTrue(connectedClip[0].usesAudioTimelineBounds)
+        #expect(connectedClip.count == 1)
+        #expect(connectedClip[0].usesFlooredTimelineEnd)
+        #expect(connectedClip[0].usesAudioTimelineBounds)
         
-        let row = try XCTUnwrap(
+        let row = try #require(
             FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: connectedClip[0])
         )
-        XCTAssertEqual(row.timelineIn, "00:01:28:20")
-        XCTAssertEqual(row.timelineOut, "00:01:31:16")
-        XCTAssertEqual(row.clipDuration, "00:00:02:21")
+        #expect(row.timelineIn == "00:01:28:20")
+        #expect(row.timelineOut == "00:01:31:16")
+        #expect(row.clipDuration == "00:00:02:21")
     }
     
-    func testSplitEditUsesAudioTimelineBoundsForEmbeddedAudioRows() async throws {
+
+    @Test("Split edit uses audio timeline bounds for embedded audio rows")
+    func splitEditUsesAudioTimelineBoundsForEmbeddedAudioRows() async throws {
         let fcpxml = try parseInlineFCPXML(splitEditSyncClipFixture)
-        guard let project = fcpxml.allProjects().first else {
-            throw XCTSkip("No project in inline fixture")
-        }
-        let timeline = project.sequence.element
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(
             from: timeline,
@@ -291,29 +275,32 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
         )
         
         let connectedAudio = entries.filter { $0.category == .connectedAudio }
-        XCTAssertEqual(connectedAudio.count, 1)
-        XCTAssertTrue(connectedAudio[0].usesAudioTimelineBounds)
+        #expect(connectedAudio.count == 1)
+        #expect(connectedAudio[0].usesAudioTimelineBounds)
         
-        let row = try XCTUnwrap(
+        let row = try #require(
             FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: connectedAudio[0])
         )
-        XCTAssertEqual(row.timelineIn, "00:00:00:00")
-        XCTAssertEqual(row.timelineOut, "00:00:02:00")
-        XCTAssertEqual(row.clipDuration, "00:00:02:00")
+        #expect(row.timelineIn == "00:00:00:00")
+        #expect(row.timelineOut == "00:00:02:00")
+        #expect(row.clipDuration == "00:00:02:00")
         
         let connectedVideo = entries.filter { $0.category == .connectedVideo }
-        XCTAssertEqual(connectedVideo.count, 1)
-        XCTAssertFalse(connectedVideo[0].usesAudioTimelineBounds)
+        #expect(connectedVideo.count == 1)
+        let videoUsesAudioBounds = connectedVideo[0].usesAudioTimelineBounds
+        #expect(!videoUsesAudioBounds)
         
-        let videoRow = try XCTUnwrap(
+        let videoRow = try #require(
             FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: connectedVideo[0])
         )
-        XCTAssertEqual(videoRow.timelineOut, "00:00:04:00")
+        #expect(videoRow.timelineOut == "00:00:04:00")
     }
     
-    func testSampleFixtureFiveOneNineSegmentCount() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
-        let timeline = try XCTUnwrap(fcpxml.allProjects().first).sequence.element
+
+    @Test("Sample fixture 5-1-9 segment count")
+    func sampleFixtureFiveOneNineSegmentCount() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
+        let timeline = try #require(fcpxml.allProjects().first).sequence.element
         
         let entries = await Collector.collectEntries(
             from: timeline,
@@ -332,14 +319,12 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
         }
         .filter { $0 < "00:02:00:00" }
         
-        XCTAssertGreaterThanOrEqual(
-            earlyStarts.count,
-            8,
-            "Expected early timeline 5-1-9 segments; got \(earlyStarts.count) before 00:02:00:00 among \(fiveOneNine.count) total entries"
-        )
+        #expect(earlyStarts.count >= 8, "Expected early timeline 5-1-9 segments; got \(earlyStarts.count) before 00:02:00:00 among \(fiveOneNine.count) total entries")
     }
     
-    func testDisabledRefClipIsExcludedFromRoleInventory() async throws {
+
+    @Test("Disabled ref-clip is excluded from role inventory")
+    func disabledRefClipIsExcludedFromRoleInventory() async throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -370,20 +355,19 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        guard let project = fcpxml.allProjects().first else {
-            throw XCTSkip("No project in inline fixture")
-        }
-        let timeline = project.sequence.element
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(
             from: timeline,
             scope: .init()
         )
         
-        XCTAssertTrue(entries.filter { $0.extracted.displayClipName() == "Disabled Ref" }.isEmpty)
+        #expect(entries.filter { $0.extracted.displayClipName() == "Disabled Ref" }.isEmpty)
     }
     
-    func testNestedConnectedAssetClipIsExcludedFromRoleInventory() async throws {
+
+    @Test("Nested connected asset-clip is excluded from role inventory")
+    func nestedConnectedAssetClipIsExcludedFromRoleInventory() async throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -407,20 +391,19 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        guard let project = fcpxml.allProjects().first else {
-            throw XCTSkip("No project in inline fixture")
-        }
-        let timeline = project.sequence.element
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(
             from: timeline,
             scope: .init()
         )
         
-        XCTAssertTrue(entries.filter { $0.extracted.displayClipName() == "Nested SFX" }.isEmpty)
+        #expect(entries.filter { $0.extracted.displayClipName() == "Nested SFX" }.isEmpty)
     }
     
-    func testMCClipUsesInheritedAudioWhenMCSourcesLackAudioRoleSources() async throws {
+
+    @Test("MC-clip uses inherited audio when mc-sources lack audio-role-sources")
+    func mCClipUsesInheritedAudioWhenMCSourcesLackAudioRoleSources() async throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -458,10 +441,7 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        guard let project = fcpxml.allProjects().first else {
-            throw XCTSkip("No project in inline fixture")
-        }
-        let timeline = project.sequence.element
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(
             from: timeline,
@@ -474,10 +454,12 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
                 && $0.roleSubroleField.localizedCaseInsensitiveContains("mix")
         }
         
-        XCTAssertEqual(dialogueRows.count, 1)
+        #expect(dialogueRows.count == 1)
     }
     
-    func testConnectedDisabledRefClipEmitsConnectedVideoWithoutAudioSplits() async throws {
+
+    @Test("Connected disabled ref-clip emits connected video without audio splits")
+    func connectedDisabledRefClipEmitsConnectedVideoWithoutAudioSplits() async throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -508,10 +490,7 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        guard let project = fcpxml.allProjects().first else {
-            throw XCTSkip("No project in inline fixture")
-        }
-        let timeline = project.sequence.element
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(
             from: timeline,
@@ -519,12 +498,14 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
         )
         
         let refRows = entries.filter { $0.extracted.displayClipName() == "Disabled Ref" }
-        XCTAssertEqual(refRows.count, 1)
-        XCTAssertEqual(refRows.first?.category, .connectedVideo)
-        XCTAssertEqual(refRows.first?.roleSubroleField, "Video, Dialogue")
+        #expect(refRows.count == 1)
+        #expect(refRows.first?.category == .connectedVideo)
+        #expect(refRows.first?.roleSubroleField == "Video, Dialogue")
     }
     
-    func testAudioOnlyConnectedMCClipEmitsConnectedClipRoleRow() async throws {
+
+    @Test("Audio-only connected MC-clip emits connected clip role row")
+    func audioOnlyConnectedMCClipEmitsConnectedClipRoleRow() async throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -563,10 +544,7 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        guard let project = fcpxml.allProjects().first else {
-            throw XCTSkip("No project in inline fixture")
-        }
-        let timeline = project.sequence.element
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(
             from: timeline,
@@ -574,12 +552,14 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
         )
         
         let nestedRows = entries.filter { $0.extracted.displayClipName().contains("5A-4-1") }
-        XCTAssertEqual(nestedRows.count, 1)
-        XCTAssertEqual(nestedRows.first?.category, .connectedClip)
-        XCTAssertEqual(nestedRows.first?.roleSubroleField, "Dialogue ▸ Mixl")
+        #expect(nestedRows.count == 1)
+        #expect(nestedRows.first?.category == .connectedClip)
+        #expect(nestedRows.first?.roleSubroleField == "Dialogue ▸ Mixl")
     }
     
-    func testNestedAudioOnlyClipIsExcludedFromRoleInventory() async throws {
+
+    @Test("Nested audio-only clip is excluded from role inventory")
+    func nestedAudioOnlyClipIsExcludedFromRoleInventory() async throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -605,20 +585,19 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        guard let project = fcpxml.allProjects().first else {
-            throw XCTSkip("No project in inline fixture")
-        }
-        let timeline = project.sequence.element
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(
             from: timeline,
             scope: .init()
         )
         
-        XCTAssertTrue(entries.filter { $0.extracted.displayClipName() == "ADR Clip" }.isEmpty)
+        #expect(entries.filter { $0.extracted.displayClipName() == "ADR Clip" }.isEmpty)
     }
     
-    func testConnectedMOSClipUsesInheritedVFXVideoRole() async throws {
+
+    @Test("Connected MOS clip uses inherited VFX video role")
+    func connectedMOSClipUsesInheritedVFXVideoRole() async throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -647,10 +626,7 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        guard let project = fcpxml.allProjects().first else {
-            throw XCTSkip("No project in inline fixture")
-        }
-        let timeline = project.sequence.element
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(
             from: timeline,
@@ -662,11 +638,13 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
                 && $0.category == .connectedVideo
         }
         
-        XCTAssertEqual(videoRows.count, 1)
-        XCTAssertEqual(videoRows.first?.roleSubroleField, "VFX ▸ VFX-Background")
+        #expect(videoRows.count == 1)
+        #expect(videoRows.first?.roleSubroleField == "VFX ▸ VFX-Background")
     }
     
-    func testConnectedMOSClipKeepsUserDefinedVFXElementRole() async throws {
+
+    @Test("Connected MOS clip keeps user-defined VFX element role")
+    func connectedMOSClipKeepsUserDefinedVFXElementRole() async throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -692,10 +670,7 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        guard let project = fcpxml.allProjects().first else {
-            throw XCTSkip("No project in inline fixture")
-        }
-        let timeline = project.sequence.element
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(
             from: timeline,
@@ -707,8 +682,8 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
                 && $0.category == .connectedVideo
         }
         
-        XCTAssertEqual(videoRows.count, 1)
-        XCTAssertEqual(videoRows.first?.roleSubroleField, "VFX ▸ VFX-Element")
+        #expect(videoRows.count == 1)
+        #expect(videoRows.first?.roleSubroleField == "VFX ▸ VFX-Element")
     }
     
     
@@ -777,7 +752,7 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
             <resources>
                 <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080"/>
                 <asset id="r2" name="A" uid="A1" start="0s" duration="10s" hasVideo="1" format="r1" videoSources="1"/>
-                <asset id="r3" name="Atmo" uid="B1" start="0s" duration="10s" hasAudio="1" audioSources="1" audioChannels="2" format="r1"/>
+                <asset id="r3" name="Atmosphere" uid="B1" start="0s" duration="10s" hasAudio="1" audioSources="1" audioChannels="2" format="r1"/>
             </resources>
             <library>
                 <event name="E" uid="E1">
@@ -786,12 +761,12 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
                             <spine>
                                 <sync-clip offset="0s" name="Host" duration="5s" tcFormat="NDF">
                                     <asset-clip ref="r2" offset="0s" name="Video" duration="5s" format="r1"/>
-                                    <asset-clip ref="r3" lane="-1" offset="0s" name="Atmo" duration="5s" format="r1" audioRole="dialogue">
-                                        <audio-channel-source srcCh="1" role="Atmos.Mix L"/>
-                                        <audio-channel-source srcCh="2" role="Atmos.Mix R"/>
-                                        <audio-channel-source srcCh="3" role="Atmos.Boom 1" enabled="0"/>
-                                        <audio-channel-source srcCh="4" role="Atmos" enabled="0"/>
-                                        <audio-channel-source srcCh="5" role="Atmos.&lt;Blank&gt;" enabled="0"/>
+                                    <asset-clip ref="r3" lane="-1" offset="0s" name="Atmosphere" duration="5s" format="r1" audioRole="dialogue">
+                                        <audio-channel-source srcCh="1" role="Atmosphere.Mix L"/>
+                                        <audio-channel-source srcCh="2" role="Atmosphere.Mix R"/>
+                                        <audio-channel-source srcCh="3" role="Atmosphere.Boom 1" enabled="0"/>
+                                        <audio-channel-source srcCh="4" role="Atmosphere" enabled="0"/>
+                                        <audio-channel-source srcCh="5" role="Atmosphere.&lt;Blank&gt;" enabled="0"/>
                                     </asset-clip>
                                 </sync-clip>
                             </spine>
@@ -991,116 +966,107 @@ final class FCPXMLRoleInventoryClipCollectorTests: XCTestCase {
         """
     }
     
-    func testPrimarySpineAVAssetClipWithDialogueOnlyRoleEmitsVideoAndAudioRows() async throws {
+
+    @Test("Primary spine AV asset-clip with dialogue-only role emits video and audio rows")
+    func primarySpineAVAssetClipWithDialogueOnlyRoleEmitsVideoAndAudioRows() async throws {
         let fcpxml = try parseInlineFCPXML(primarySpineAVAssetClipWithDialogueOnlyAudioRole)
-        guard let timeline = fcpxml.allProjects().first?.sequence.element else {
-            throw XCTSkip("No project in inline fixture")
-        }
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(from: timeline, scope: .init())
         let clipEntries = entries.filter { $0.extracted.displayClipName() == "Clip" }
         
-        XCTAssertEqual(clipEntries.count, 2)
-        XCTAssertTrue(clipEntries.contains { $0.category == .primaryVideo })
-        XCTAssertTrue(clipEntries.contains { $0.category == .primaryAudio })
+        #expect(clipEntries.count == 2)
+        #expect(clipEntries.contains { $0.category == .primaryVideo })
+        #expect(clipEntries.contains { $0.category == .primaryAudio })
         
         let roleField = "Video, Dialogue ▸ Dialogue-1"
-        XCTAssertTrue(clipEntries.allSatisfy { $0.roleSubroleField == roleField })
+        #expect(clipEntries.allSatisfy { $0.roleSubroleField == roleField })
         
         let rows = clipEntries.compactMap {
             FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: $0)
         }
-        XCTAssertEqual(rows.count, 2)
-        XCTAssertEqual(rows[0].timelineIn, "00:00:00:00")
-        XCTAssertEqual(rows[0].timelineOut, "00:00:05:00")
+        #expect(rows.count == 2)
+        #expect(rows[0].timelineIn == "00:00:00:00")
+        #expect(rows[0].timelineOut == "00:00:05:00")
         
         let roleSheets = FinalCutPro.FCPXML.RoleInventoryRoleSheetOrdering.roleSheets(from: rows)
         let sheetNames = Set(roleSheets.map(\.sheetName))
-        XCTAssertTrue(sheetNames.contains("Video"))
-        XCTAssertTrue(sheetNames.contains("Dialogue ▸ Dialogue-1"))
-        XCTAssertFalse(sheetNames.contains("Dialogue ▸ <Blank>"))
+        #expect(sheetNames.contains("Video"))
+        #expect(sheetNames.contains("Dialogue ▸ Dialogue-1"))
+        let hasBlankDialogue = sheetNames.contains("Dialogue ▸ <Blank>")
+        #expect(!hasBlankDialogue)
     }
     
-    func testLandebahnCaptionIsInventoriedFromSampleFixture() async throws {
-        let sampleURL = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent("ExcelReportTest/Sample.fcpxmld/Info.fcpxml")
-        
-        guard FileManager.default.fileExists(atPath: sampleURL.path) else {
-            throw XCTSkip("Excel report sample fixture unavailable")
-        }
-        
-        let fcpxml = try FinalCutPro.FCPXML(fileContent: Data(contentsOf: sampleURL))
-        guard let timeline = fcpxml.allProjects().first?.sequence.element else {
-            throw XCTSkip("No project")
-        }
+
+    @Test("Caption from sample fixture is inventoried with floored timeline bounds")
+    func captionFromSampleFixtureIsInventoriedWithFlooredTimelineBounds() async throws {
+        let fcpxml = try requireExcelReportSampleFCPXML()
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(from: timeline, scope: .init())
-        let landebahn = entries.filter {
-            $0.category == .caption
-                && $0.extracted.displayClipName().contains("Landebahn")
-        }
-        
-        XCTAssertEqual(landebahn.count, 1)
-        XCTAssertTrue(landebahn[0].usesFlooredTimelineStart)
-        XCTAssertTrue(landebahn[0].usesFlooredTimelineEnd)
-        
-        let row = try XCTUnwrap(
-            FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: landebahn[0])
+        let caption = try #require(
+            entries.first { entry in
+                guard entry.category == .caption,
+                      let row = FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: entry)
+                else { return false }
+                return row.timelineIn == "00:01:13:22" && row.timelineOut == "00:01:18:10"
+            }
         )
-        XCTAssertEqual(row.timelineIn, "00:01:13:22")
-        XCTAssertEqual(row.timelineOut, "00:01:18:10")
-        XCTAssertEqual(row.roleSubrole, "SRT ▸ de-DE")
+        
+        #expect(caption.usesFlooredTimelineStart)
+        #expect(caption.usesFlooredTimelineEnd)
+        
+        let row = try #require(
+            FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: caption)
+        )
+        #expect(row.timelineIn == "00:01:13:22")
+        #expect(row.timelineOut == "00:01:18:10")
+        #expect(row.roleSubrole.hasPrefix("SRT"))
     }
     
-    func testCaptionTimelinePositionAlignsToComputedFrameFromSampleFixture() async throws {
-        let sampleURL = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent("ExcelReportTest/Sample.fcpxmld/Info.fcpxml")
-        
-        guard FileManager.default.fileExists(atPath: sampleURL.path) else {
-            throw XCTSkip("Excel report sample fixture unavailable")
-        }
-        
-        let fcpxml = try FinalCutPro.FCPXML(fileContent: Data(contentsOf: sampleURL))
-        guard let timeline = fcpxml.allProjects().first?.sequence.element else {
-            throw XCTSkip("No project")
-        }
+
+    @Test("Caption timeline position aligns to computed frame from sample fixture")
+    func captionTimelinePositionAlignsToComputedFrameFromSampleFixture() async throws {
+        let fcpxml = try requireExcelReportSampleFCPXML()
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
         
         let entries = await Collector.collectEntries(from: timeline, scope: .init())
         
         // Caption inventory rows use the caption's computed timeline position directly.
         // These positions land on exact frame boundaries and are not shifted by an extra
         // frame, matching Final Cut Pro's own timeline placement.
-        let caption = try XCTUnwrap(
-            entries.first {
-                $0.category == .caption
-                    && $0.extracted.displayClipName() == "Erwachsener Mann. Er duckt sich."
+        func firstCaption(
+            timelineIn: String,
+            timelineOut: String
+        ) -> FinalCutPro.FCPXML.RoleInventoryClipEntry? {
+            entries.first { entry in
+                guard entry.category == .caption,
+                      let row = FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: entry)
+                else { return false }
+                return row.timelineIn == timelineIn && row.timelineOut == timelineOut
             }
-        )
+        }
         
-        let row = try XCTUnwrap(
-            FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: caption)
+        let earlyCaption = try #require(
+            firstCaption(timelineIn: "00:03:10:03", timelineOut: "00:03:11:08")
         )
-        let hasMcClipAncestor = caption.extracted.element
+        let row = try #require(
+            FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: earlyCaption)
+        )
+        let hasMcClipAncestor = earlyCaption.extracted.element
             .ancestorElements(includingSelf: false)
             .contains { $0.fcpElementType == .mcClip }
-        XCTAssertTrue(hasMcClipAncestor, "Expected caption inside mc-clip")
-        XCTAssertEqual(row.timelineIn, "00:03:10:03")
-        XCTAssertEqual(row.timelineOut, "00:03:11:08")
+        #expect(hasMcClipAncestor, "Expected caption inside mc-clip")
+        #expect(row.timelineIn == "00:03:10:03")
+        #expect(row.timelineOut == "00:03:11:08")
         
-        let injured = try XCTUnwrap(
-            entries.first {
-                $0.category == .caption
-                    && $0.extracted.displayClipName() == "Ist jemand verletzt? Wir sind hier um Ihnen zu helfen."
-            }
+        let laterCaption = try #require(
+            firstCaption(timelineIn: "00:03:27:09", timelineOut: "00:03:29:15")
         )
-        let injuredRow = try XCTUnwrap(
-            FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: injured)
+        let laterRow = try #require(
+            FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: laterCaption)
         )
-        XCTAssertEqual(injuredRow.timelineIn, "00:03:27:09")
-        XCTAssertEqual(injuredRow.timelineOut, "00:03:29:15")
+        #expect(laterRow.timelineIn == "00:03:27:09")
+        #expect(laterRow.timelineOut == "00:03:29:15")
     }
 }

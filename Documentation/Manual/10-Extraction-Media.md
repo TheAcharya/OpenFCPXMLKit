@@ -17,9 +17,9 @@ Extract elements from an FCPXML tree by type or using **presets**. **FinalCutPro
 - **TitlesExtractionPreset** (`.titles`) — Titles visible on the main timeline (`[ExtractedElement]`)
 - **EffectsExtractionPreset** (`.effects`) — Semantic clip effects visible on the main timeline (`[ExtractedEffect]`, with `kind`, `name`, `settings`, `isAppleSupplied`)
 
-Call **extract(types:scope:)** on an `FCPXMLElement` (or **fcpExtract(types:scope:)** on `XMLElement`) for `[FinalCutPro.FCPXML.ExtractedElement]`. Call **extract(preset:scope:)** for a preset's result type. APIs are async.
+Call **extract(types:scope:)** on an `FCPXMLElement` (or **fcpExtract(types:scope:)** on `OFKXMLElement`) for `[FinalCutPro.FCPXML.ExtractedElement]`. Call **extract(preset:scope:)** for a preset's result type. APIs are async.
 
-Titles and Effects **extraction presets** remain useful for discovery and tests. Report sections for Titles, Effects, Markers, Keywords, and Transitions prefer **Timeline Projection** annotations when available (Extraction fallback) — see [20 — Timeline Projection](20-Timeline-Projection.md) and [19 — Reporting, Excel & PDF Export](19-Reporting.md).
+Titles and Effects **extraction presets** remain useful for discovery and tests. Report sections for Titles, Effects, Markers, Keywords, and Transitions prefer **Timeline Projection** annotations when available (Extraction fallback) — see [11 — Timeline Projection](11-Timeline-Projection.md) and [19 — Reporting, Excel & PDF Export](19-Reporting.md).
 
 ```swift
 let element: FCPXMLElement = // ... e.g. from document
@@ -77,6 +77,8 @@ for entry in copyResult.failed { /* error */ }
 
 ## Next
 
-- [20 — Timeline Projection](20-Timeline-Projection.md) — playable media windows between Extraction and Reporting.
-- [11 — Media Processing](11-Media-Processing.md) — MIME type, asset validation, silence, duration, parallel I/O.
+- [11 — Timeline Projection](11-Timeline-Projection.md) — playable media windows between Extraction and Reporting.
+- [12 — Media Processing](12-Media-Processing.md) — MIME type, asset validation, silence, duration, parallel I/O.
 - [19 — Reporting, Excel & PDF Export](19-Reporting.md) — build reports from Projection + Extraction and export to `.xlsx` or `.pdf`.
+
+[← Manual Index](00-Index.md)

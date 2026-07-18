@@ -8,38 +8,42 @@
 //	Unit tests for time-map retime display formatting.
 //
 
-import XCTest
+import Testing
 import SwiftTimecode
 @testable import OpenFCPXMLKit
 
-final class FCPXMLSpeedChangeFormattingTests: XCTestCase {
+@Suite("Speed change formatting")
+struct FCPXMLSpeedChangeFormattingTests {
     private typealias SpeedChangeFormatting = FinalCutPro.FCPXML.SpeedChangeFormatting
-    
-    func testRetimeDisplayFormatsReverseSpeedFromTimeMap() throws {
+
+    @Test("Retime display formats reverse speed from timeMap")
+    func retimeDisplayFormatsReverseSpeedFromTimeMap() throws {
         let timeMap = try timeMap(from: """
         <timeMap>
             <timept time="158445100/2500s" value="158591200/2500s" interp="smooth2"/>
             <timept time="158591200/2500s" value="158445100/2500s" interp="smooth2"/>
         </timeMap>
         """)
-        
+
         let display = SpeedChangeFormatting.retimeDisplay(from: timeMap)
-        
-        XCTAssertEqual(display?.effect, "Retime -100.0%")
-        XCTAssertEqual(display?.settings, "-100.0%")
+
+        #expect(display?.effect == "Retime -100.0%")
+        #expect(display?.settings == "-100.0%")
     }
-    
-    func testRetimeDisplayReturnsNilForSingleTimePoint() throws {
+
+    @Test("Retime display returns nil for single time point")
+    func retimeDisplayReturnsNilForSingleTimePoint() throws {
         let timeMap = try timeMap(from: """
         <timeMap>
             <timept time="0s" value="0s" interp="smooth2"/>
         </timeMap>
         """)
-        
-        XCTAssertNil(SpeedChangeFormatting.retimeDisplay(from: timeMap))
+
+        #expect(SpeedChangeFormatting.retimeDisplay(from: timeMap) == nil)
     }
 
-    func testRetimeDisplayFormatsFromRetimingSegment() {
+    @Test("Retime display formats from RetimingSegment")
+    func retimeDisplayFormatsFromRetimingSegment() {
         let segment = FinalCutPro.FCPXML.RetimingSegment(
             timelineStart: .zero,
             timelineEnd: Fraction(2, 1),
@@ -49,20 +53,21 @@ final class FCPXMLSpeedChangeFormattingTests: XCTestCase {
             isReversed: false
         )
         let display = SpeedChangeFormatting.retimeDisplay(from: segment)
-        XCTAssertEqual(display?.effect, "Retime 50.0%")
-        XCTAssertEqual(display?.settings, "50.0%")
-        XCTAssertTrue(SpeedChangeFormatting.isSpeedChange(segment))
+        #expect(display?.effect == "Retime 50.0%")
+        #expect(display?.settings == "50.0%")
+        #expect(SpeedChangeFormatting.isSpeedChange(segment))
     }
 
-    func testIsSpeedChange_IdentityFalse() {
+    @Test("Identity retiming segment is not a speed change")
+    func isSpeedChange_IdentityFalse() {
         let identity = FinalCutPro.FCPXML.RetimingSegment.identity(
             timelineStart: .zero,
             duration: Fraction(1, 1),
             mediaStart: .zero
         )
-        XCTAssertFalse(SpeedChangeFormatting.isSpeedChange(identity))
+        #expect(!SpeedChangeFormatting.isSpeedChange(identity))
     }
-    
+
     private func timeMap(from xml: String) throws -> FinalCutPro.FCPXML.TimeMap {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
@@ -86,10 +91,10 @@ final class FCPXMLSpeedChangeFormattingTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let element = try XCTUnwrap(
+
+        let element = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "timeMap")
         )
-        return try XCTUnwrap(FinalCutPro.FCPXML.TimeMap(element: element))
+        return try #require(FinalCutPro.FCPXML.TimeMap(element: element))
     }
 }

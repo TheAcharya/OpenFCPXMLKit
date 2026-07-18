@@ -9,14 +9,15 @@
 //	Markers + Keywords report builders prefer Projection clip annotations.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLMarkersKeywordsProjectionTests: XCTestCase {
+@Suite("Markers keywords projection")
+struct FCPXMLMarkersKeywordsProjectionTests {
 
-    func testBasicMarkersReportUsesProjectionClipAnnotations() async throws {
-        let fcpxml = try loadFCPXMLSample(named: FCPXMLSampleName.basicMarkers.rawValue)
+    @Test("BasicMarkers report uses projection clip annotations")
+    func basicMarkersReportUsesProjectionClipAnnotations() async throws {
+        let fcpxml = try requireFCPXMLSample(named: FCPXMLSampleName.basicMarkers.rawValue)
         var options = FinalCutPro.FCPXML.ReportOptions.markersOnly
         options.includeChapterMarkersInMarkersReport = true
         // BasicMarkers title markers lie outside the title media range (FCP-hidden);
@@ -24,33 +25,43 @@ final class FCPXMLMarkersKeywordsProjectionTests: XCTestCase {
         options.includeMarkersOutsideClipBoundaries = true
 
         let report = try await fcpxml.buildReport(options: options)
-        let rows = try XCTUnwrap(report.markers?.rows)
-        XCTAssertFalse(rows.isEmpty, "BasicMarkers title markers must appear via Projection")
+        let rows = try #require(report.markers?.rows)
+        let hasRows = !rows.isEmpty
+        #expect(hasRows, "BasicMarkers title markers must appear via Projection")
 
         let names = Set(rows.map(\.markerName))
-        XCTAssertTrue(names.contains("Standard Marker"))
-        XCTAssertTrue(names.contains("To Do Marker, Incomplete") || names.contains(where: { $0.contains("To Do") }))
-        XCTAssertTrue(rows.contains { $0.type == .chapter })
-        XCTAssertTrue(rows.allSatisfy { !$0.position.isEmpty })
-        XCTAssertTrue(rows.contains { $0.roleSubrole == "Titles" })
+        #expect(names.contains("Standard Marker"))
+        let hasToDo = names.contains("To Do Marker, Incomplete") || names.contains(where: { $0.contains("To Do") })
+        #expect(hasToDo)
+        let hasChapter = rows.contains { $0.type == .chapter }
+        #expect(hasChapter)
+        let allHavePosition = rows.allSatisfy { !$0.position.isEmpty }
+        #expect(allHavePosition)
+        let hasTitlesRole = rows.contains { $0.roleSubrole == "Titles" }
+        #expect(hasTitlesRole)
     }
 
-    func testKeywordsSampleReportUsesProjectionWhenPresent() async throws {
-        let fcpxml = try loadFCPXMLSample(named: FCPXMLSampleName.keywords.rawValue)
+    @Test("Keywords sample report uses projection when present")
+    func keywordsSampleReportUsesProjectionWhenPresent() async throws {
+        let fcpxml = try requireFCPXMLSample(named: FCPXMLSampleName.keywords.rawValue)
         var options = FinalCutPro.FCPXML.ReportOptions.keywordsOnly
         options.includeMarkers = false
 
         let report = try await fcpxml.buildReport(options: options)
-        let rows = try XCTUnwrap(report.keywords?.rows)
-        XCTAssertFalse(rows.isEmpty)
-        XCTAssertTrue(rows.allSatisfy { !$0.keyword.isEmpty })
+        let rows = try #require(report.keywords?.rows)
+        let hasRows = !rows.isEmpty
+        #expect(hasRows)
+        let allHaveKeyword = rows.allSatisfy { !$0.keyword.isEmpty }
+        #expect(allHaveKeyword)
         // Most keywords have timeline In; some fixtures use value-only keywords without start.
-        XCTAssertTrue(rows.contains { !$0.timelineIn.isEmpty })
+        let hasTimelineIn = rows.contains { !$0.timelineIn.isEmpty }
+        #expect(hasTimelineIn)
     }
 
-    func testProjectionDetailedCollectsTitleMarkersWithoutMediaWindows() async throws {
-        let fcpxml = try loadFCPXMLSample(named: FCPXMLSampleName.basicMarkers.rawValue)
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+    @Test("Projection detailed collects title markers without media windows")
+    func projectionDetailedCollectsTitleMarkersWithoutMediaWindows() async throws {
+        let fcpxml = try requireFCPXMLSample(named: FCPXMLSampleName.basicMarkers.rawValue)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         var options = FinalCutPro.FCPXML.TimelineProjectionOptions()
         options.includeAnnotations = true
         options.excludeFullyOccluded = true
@@ -58,18 +69,16 @@ final class FCPXMLMarkersKeywordsProjectionTests: XCTestCase {
         let detailed = try await FinalCutPro.FCPXML.TimelineProjector()
             .projectDetailed(from: source, fcpxml: fcpxml, options: options)
 
-        XCTAssertTrue(
-            detailed.clipAnnotations.contains { !$0.markers.isEmpty },
-            "Title-hosted markers must be collected as clip annotations"
-        )
-        XCTAssertTrue(
-            detailed.clipAnnotations.contains { $0.hostElementType == "title" }
-        )
+        let hasMarkers = detailed.clipAnnotations.contains { !$0.markers.isEmpty }
+        #expect(hasMarkers, "Title-hosted markers must be collected as clip annotations")
+        let hasTitleHost = detailed.clipAnnotations.contains { $0.hostElementType == "title" }
+        #expect(hasTitleHost)
     }
 
-    func testMarkersOnlyConsumesTimelineProjection() {
+    @Test("Markers-only consumes timeline projection")
+    func markersOnlyConsumesTimelineProjection() {
         let options = FinalCutPro.FCPXML.ReportOptions.markersOnly
-        XCTAssertTrue(options.consumesTimelineProjection)
-        XCTAssertTrue(options.includeMarkers)
+        #expect(options.consumesTimelineProjection)
+        #expect(options.includeMarkers)
     }
 }

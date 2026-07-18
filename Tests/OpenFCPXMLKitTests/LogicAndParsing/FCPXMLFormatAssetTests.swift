@@ -10,126 +10,132 @@
 //
 
 import Foundation
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFormatAssetTests: XCTestCase {
+@Suite("Format and Asset resources")
+struct FCPXMLFormatAssetTests {
 
     private let factory = FoundationXMLFactory()
 
     // MARK: - Format heroEye (1.13+)
 
-    func testFormatHeroEyeRoundTrip() {
+    @Test("Format heroEye round trip")
+    func formatHeroEyeRoundTrip() {
         let format = FinalCutPro.FCPXML.Format(id: "f1")
-        XCTAssertNil(format.heroEye)
+        #expect(format.heroEye == nil)
 
         format.heroEye = "left"
-        XCTAssertEqual(format.heroEye, "left")
-        XCTAssertEqual(format.element.stringValue(forAttributeNamed: "heroEye"), "left")
+        #expect(format.heroEye == "left")
+        #expect(format.element.stringValue(forAttributeNamed: "heroEye") == "left")
 
         format.heroEye = "right"
-        XCTAssertEqual(format.heroEye, "right")
+        #expect(format.heroEye == "right")
 
         format.heroEye = nil
-        XCTAssertNil(format.heroEye)
-        XCTAssertNil(format.element.stringValue(forAttributeNamed: "heroEye"))
+        #expect(format.heroEye == nil)
+        #expect(format.element.stringValue(forAttributeNamed: "heroEye") == nil)
     }
 
-    func testFormatInitWithHeroEye() {
+    @Test("Format init with heroEye")
+    func formatInitWithHeroEye() {
         let format = FinalCutPro.FCPXML.Format(
             id: "f1",
             name: "Stereo",
             heroEye: "right"
         )
-        XCTAssertEqual(format.heroEye, "right")
+        #expect(format.heroEye == "right")
     }
 
-    func testFormatFromElementWithHeroEye() {
+    @Test("Format from element with heroEye")
+    func formatFromElementWithHeroEye() throws {
         let formatEl = factory.makeElement(name: "format")
         formatEl.addAttribute(name: "id", value: "f1")
         formatEl.addAttribute(name: "heroEye", value: "left")
-        guard let format = FinalCutPro.FCPXML.Format(element: formatEl) else {
-            XCTFail("Format init from element failed"); return
-        }
-        XCTAssertEqual(format.heroEye, "left")
+        let format = try #require(FinalCutPro.FCPXML.Format(element: formatEl))
+        #expect(format.heroEye == "left")
     }
 
     // MARK: - Asset heroEyeOverride (1.13+)
 
-    func testAssetHeroEyeOverrideRoundTrip() {
+    @Test("Asset heroEyeOverride round trip")
+    func assetHeroEyeOverrideRoundTrip() {
         let asset = FinalCutPro.FCPXML.Asset(id: "a1")
         asset.mediaRep = FinalCutPro.FCPXML.MediaRep(src: URL(fileURLWithPath: "/tmp/test.mov"))
-        XCTAssertNil(asset.heroEyeOverride)
+        #expect(asset.heroEyeOverride == nil)
 
         asset.heroEyeOverride = "left"
-        XCTAssertEqual(asset.heroEyeOverride, "left")
-        XCTAssertEqual(asset.element.stringValue(forAttributeNamed: "heroEyeOverride"), "left")
+        #expect(asset.heroEyeOverride == "left")
+        #expect(asset.element.stringValue(forAttributeNamed: "heroEyeOverride") == "left")
 
         asset.heroEyeOverride = "right"
-        XCTAssertEqual(asset.heroEyeOverride, "right")
+        #expect(asset.heroEyeOverride == "right")
 
         asset.heroEyeOverride = nil
-        XCTAssertNil(asset.heroEyeOverride)
+        #expect(asset.heroEyeOverride == nil)
     }
 
-    func testAssetInitWithHeroEyeOverride() {
+    @Test("Asset init with heroEyeOverride")
+    func assetInitWithHeroEyeOverride() {
         let asset = FinalCutPro.FCPXML.Asset(
             id: "a1",
             heroEyeOverride: "right",
             mediaRep: FinalCutPro.FCPXML.MediaRep(src: URL(fileURLWithPath: "/tmp/v.mov"))
         )
-        XCTAssertEqual(asset.heroEyeOverride, "right")
+        #expect(asset.heroEyeOverride == "right")
     }
 
-    func testAssetFromElementWithHeroEyeOverride() {
+    @Test("Asset from element with heroEyeOverride")
+    func assetFromElementWithHeroEyeOverride() throws {
         let assetEl = factory.makeElement(name: "asset")
         assetEl.addAttribute(name: "id", value: "a1")
         assetEl.addAttribute(name: "heroEyeOverride", value: "right")
         let mediaRepEl = factory.makeElement(name: "media-rep")
         mediaRepEl.addAttribute(name: "src", value: "file:///tmp/v.mov")
         assetEl.addChild(mediaRepEl)
-        guard let asset = FinalCutPro.FCPXML.Asset(element: assetEl) else {
-            XCTFail("Asset init from element failed"); return
-        }
-        XCTAssertEqual(asset.heroEyeOverride, "right")
+        let asset = try #require(FinalCutPro.FCPXML.Asset(element: assetEl))
+        #expect(asset.heroEyeOverride == "right")
     }
 
     // MARK: - Asset mediaReps (multiple media-rep)
 
-    func testAssetMediaRepsRoundTrip() {
+    @Test("Asset mediaReps round trip")
+    func assetMediaRepsRoundTrip() {
         let asset = FinalCutPro.FCPXML.Asset(id: "a1")
         let rep1 = FinalCutPro.FCPXML.MediaRep(kind: .originalMedia, src: URL(fileURLWithPath: "/tmp/original.mov"))
         let rep2 = FinalCutPro.FCPXML.MediaRep(kind: .proxyMedia, src: URL(fileURLWithPath: "/tmp/proxy.mov"))
         asset.mediaReps = [rep1, rep2]
-        XCTAssertEqual(asset.mediaReps.count, 2)
-        XCTAssertEqual(asset.mediaReps[0].kind, .originalMedia)
-        XCTAssertEqual(asset.mediaReps[1].kind, .proxyMedia)
+        #expect(asset.mediaReps.count == 2)
+        #expect(asset.mediaReps[0].kind == .originalMedia)
+        #expect(asset.mediaReps[1].kind == .proxyMedia)
         let mediaRepElements = asset.element.childElements.filter { $0.name == "media-rep" }
-        XCTAssertEqual(mediaRepElements.count, 2)
+        #expect(mediaRepElements.count == 2)
     }
 
-    func testAssetMediaRepBackwardCompatibility() {
+    @Test("Asset mediaRep backward compatibility")
+    func assetMediaRepBackwardCompatibility() {
         let asset = FinalCutPro.FCPXML.Asset(id: "a1")
         asset.mediaRep = FinalCutPro.FCPXML.MediaRep(src: URL(fileURLWithPath: "/tmp/single.mov"))
-        XCTAssertEqual(asset.mediaReps.count, 1)
-        XCTAssertEqual(asset.mediaRep.src?.path, "/tmp/single.mov")
+        #expect(asset.mediaReps.count == 1)
+        #expect(asset.mediaRep.src?.path == "/tmp/single.mov")
         let proxy = FinalCutPro.FCPXML.MediaRep(kind: .proxyMedia, src: URL(fileURLWithPath: "/tmp/proxy.mov"))
         asset.mediaReps = asset.mediaReps + [proxy]
-        XCTAssertEqual(asset.mediaReps.count, 2)
-        XCTAssertEqual(asset.mediaRep.src?.path, "/tmp/single.mov")
+        #expect(asset.mediaReps.count == 2)
+        #expect(asset.mediaRep.src?.path == "/tmp/single.mov")
     }
 
-    func testAssetInitWithMediaReps() {
+    @Test("Asset init with mediaReps")
+    func assetInitWithMediaReps() {
         let rep1 = FinalCutPro.FCPXML.MediaRep(kind: .originalMedia, src: URL(fileURLWithPath: "/tmp/o.mov"))
         let rep2 = FinalCutPro.FCPXML.MediaRep(kind: .proxyMedia, src: URL(fileURLWithPath: "/tmp/p.mov"))
         let asset = FinalCutPro.FCPXML.Asset(id: "a2", mediaReps: [rep1, rep2])
-        XCTAssertEqual(asset.mediaReps.count, 2)
-        XCTAssertEqual(asset.mediaReps[0].kind, .originalMedia)
-        XCTAssertEqual(asset.mediaReps[1].kind, .proxyMedia)
+        #expect(asset.mediaReps.count == 2)
+        #expect(asset.mediaReps[0].kind == .originalMedia)
+        #expect(asset.mediaReps[1].kind == .proxyMedia)
     }
 
-    func testAssetFromElementWithMultipleMediaReps() {
+    @Test("Asset from element with multiple mediaReps")
+    func assetFromElementWithMultipleMediaReps() throws {
         let assetEl = factory.makeElement(name: "asset")
         assetEl.addAttribute(name: "id", value: "a3")
         let rep1 = factory.makeElement(name: "media-rep")
@@ -140,11 +146,9 @@ final class FCPXMLFormatAssetTests: XCTestCase {
         rep2.addAttribute(name: "src", value: "file:///tmp/proxy.mov")
         assetEl.addChild(rep1)
         assetEl.addChild(rep2)
-        guard let asset = FinalCutPro.FCPXML.Asset(element: assetEl) else {
-            XCTFail("Asset init from element failed"); return
-        }
-        XCTAssertEqual(asset.mediaReps.count, 2)
-        XCTAssertEqual(asset.mediaReps[0].kind, .originalMedia)
-        XCTAssertEqual(asset.mediaReps[1].kind, .proxyMedia)
+        let asset = try #require(FinalCutPro.FCPXML.Asset(element: assetEl))
+        #expect(asset.mediaReps.count == 2)
+        #expect(asset.mediaReps[0].kind == .originalMedia)
+        #expect(asset.mediaReps[1].kind == .proxyMedia)
     }
 }

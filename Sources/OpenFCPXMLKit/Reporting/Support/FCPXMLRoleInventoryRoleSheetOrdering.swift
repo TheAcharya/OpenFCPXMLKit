@@ -24,7 +24,7 @@ extension FinalCutPro.FCPXML {
             
             /// Video-family groups receive a synthetic parent tab when only subrole
             /// sheets exist. Audio-family groups (the built-in dialogue, effects, and music
-            /// roles plus custom audio roles such as atmos) never get an empty parent tab,
+            /// roles plus custom audio roles such as atmosphere) never get an empty parent tab,
             /// matching Final Cut Pro.
             var synthesizesEmptyParentTab: Bool {
                 switch self {
@@ -37,7 +37,7 @@ extension FinalCutPro.FCPXML {
         }
         
         /// Built-in main roles in their conventional workbook order. Roles outside this list
-        /// (for example custom audio roles such as `atmos`) sort after the built-ins.
+        /// (for example custom audio roles such as `atmosphere`) sort after the built-ins.
         private static let builtInMainRoleOrder: [String] = [
             "gap",
             "srt",

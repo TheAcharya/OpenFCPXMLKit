@@ -1,62 +1,72 @@
 //
 //  FCPXMLCaptionTitleTests.swift
-//  OpenFCPXMLKitTests
+//  OpenFCPXMLKit • https://github.com/TheAcharya/OpenFCPXMLKit
 //  © 2026 • Licensed under MIT License
 //
 
-import XCTest
+//
+//	Tests for Caption/Title text styles and text-style-def integration.
+//
+
+import Foundation
 import SwiftTimecode
+import Testing
 @testable import OpenFCPXMLKit
 
-final class FCPXMLCaptionTitleTests: XCTestCase {
-    
+@Suite("Caption and title text styles")
+struct FCPXMLCaptionTitleTests {
+
     // MARK: - TextStyle Tests
-    
-    func testTextStyleInitialization() {
+
+    @Test("TextStyle initialization")
+    func textStyleInitialization() {
         let textStyle = FinalCutPro.FCPXML.TextStyle(
             referenceID: "ts1",
             value: "Hello World"
         )
-        
-        XCTAssertEqual(textStyle.referenceID, "ts1")
-        XCTAssertEqual(textStyle.value, "Hello World")
+
+        #expect(textStyle.referenceID == "ts1")
+        #expect(textStyle.value == "Hello World")
     }
-    
-    func testTextStyleWithFormatting() {
+
+    @Test("TextStyle with formatting")
+    func textStyleWithFormatting() {
         var textStyle = FinalCutPro.FCPXML.TextStyle()
         textStyle.font = "Helvetica"
         textStyle.fontSize = 24
         textStyle.fontColor = "1.0 1.0 1.0 1.0"
         textStyle.isBold = true
         textStyle.alignment = .center
-        
-        XCTAssertEqual(textStyle.font, "Helvetica")
-        XCTAssertEqual(textStyle.fontSize, 24)
-        XCTAssertEqual(textStyle.fontColor, "1.0 1.0 1.0 1.0")
-        XCTAssertEqual(textStyle.isBold, true)
-        XCTAssertEqual(textStyle.alignment, .center)
+
+        #expect(textStyle.font == "Helvetica")
+        #expect(textStyle.fontSize == 24)
+        #expect(textStyle.fontColor == "1.0 1.0 1.0 1.0")
+        #expect(textStyle.isBold == true)
+        #expect(textStyle.alignment == .center)
     }
-    
-    func testTextStyleCodable() throws {
+
+    @Test("TextStyle Codable round-trip")
+    func textStyleCodable() throws {
         var textStyle = FinalCutPro.FCPXML.TextStyle()
         textStyle.font = "Helvetica"
         textStyle.fontSize = 24
         textStyle.isBold = true
-        
+
         let encoder = JSONEncoder()
         let data = try encoder.encode(textStyle)
-        
+
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(FinalCutPro.FCPXML.TextStyle.self, from: data)
-        
-        XCTAssertEqual(decoded.font, textStyle.font)
-        XCTAssertEqual(decoded.fontSize, textStyle.fontSize)
-        XCTAssertEqual(decoded.isBold, textStyle.isBold)
+
+        #expect(decoded.font == textStyle.font)
+        #expect(decoded.fontSize == textStyle.fontSize)
+        #expect(decoded.isBold == textStyle.isBold)
     }
-    
+
     // MARK: - TextStyleDefinition Tests
-    
-    func testTextStyleDefinitionInitialization() {
+
+    @Test("TextStyleDefinition initialization")
+    func textStyleDefinitionInitialization() {
         var textStyle = FinalCutPro.FCPXML.TextStyle()
         textStyle.font = "Helvetica"
         textStyle.fontSize = 24
@@ -65,13 +75,14 @@ final class FCPXMLCaptionTitleTests: XCTestCase {
             name: "Default Style",
             textStyles: [textStyle]
         )
-        
-        XCTAssertEqual(styleDef.id, "ts1")
-        XCTAssertEqual(styleDef.name, "Default Style")
-        XCTAssertEqual(styleDef.textStyles.count, 1)
+
+        #expect(styleDef.id == "ts1")
+        #expect(styleDef.name == "Default Style")
+        #expect(styleDef.textStyles.count == 1)
     }
-    
-    func testTextStyleDefinitionCodable() throws {
+
+    @Test("TextStyleDefinition Codable round-trip")
+    func textStyleDefinitionCodable() throws {
         var textStyle = FinalCutPro.FCPXML.TextStyle()
         textStyle.font = "Helvetica"
         let styleDef = FinalCutPro.FCPXML.TextStyleDefinition(
@@ -79,21 +90,22 @@ final class FCPXMLCaptionTitleTests: XCTestCase {
             name: "Style",
             textStyles: [textStyle]
         )
-        
+
         let encoder = JSONEncoder()
         let data = try encoder.encode(styleDef)
-        
+
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(FinalCutPro.FCPXML.TextStyleDefinition.self, from: data)
-        
-        XCTAssertEqual(decoded.id, styleDef.id)
-        XCTAssertEqual(decoded.name, styleDef.name)
-        XCTAssertEqual(decoded.textStyles.count, styleDef.textStyles.count)
+
+        #expect(decoded.id == styleDef.id)
+        #expect(decoded.name == styleDef.name)
+        #expect(decoded.textStyles.count == styleDef.textStyles.count)
     }
-    
+
     // MARK: - Caption Integration Tests
-    
-    func testCaptionWithTextStyleDefinition() throws {
+
+    @Test("Caption with text-style-def from XML")
+    func captionWithTextStyleDefinition() throws {
         let xmlString = """
         <caption duration="5s">
             <text-style-def id="ts1" name="Caption Style">
@@ -101,56 +113,51 @@ final class FCPXMLCaptionTitleTests: XCTestCase {
             </text-style-def>
         </caption>
         """
-        
+
         let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
-        guard let captionElement = xmlDoc.rootElement() else {
-            XCTFail("Failed to parse XML")
-            return
-        }
-        
-        guard let caption = FinalCutPro.FCPXML.Caption(element: captionElement) else {
-            XCTFail("Failed to create Caption")
-            return
-        }
-        
+        let captionElement = try #require(xmlDoc.rootElement())
+        let caption = try #require(FinalCutPro.FCPXML.Caption(element: captionElement))
+
         let styleDefs = caption.typedTextStyleDefinitions
-        XCTAssertEqual(styleDefs.count, 1)
-        XCTAssertEqual(styleDefs[0].id, "ts1")
-        XCTAssertEqual(styleDefs[0].name, "Caption Style")
-        XCTAssertEqual(styleDefs[0].textStyles.count, 1)
-        XCTAssertEqual(styleDefs[0].textStyles[0].font, "Helvetica")
+        #expect(styleDefs.count == 1)
+        #expect(styleDefs[0].id == "ts1")
+        #expect(styleDefs[0].name == "Caption Style")
+        #expect(styleDefs[0].textStyles.count == 1)
+        #expect(styleDefs[0].textStyles[0].font == "Helvetica")
     }
-    
-    func testCaptionTextStyleDefinitionRoundTrip() {
+
+    @Test("Caption text-style-def round-trip")
+    func captionTextStyleDefinitionRoundTrip() {
         let caption = FinalCutPro.FCPXML.Caption(duration: Fraction(5, 1))
-        
+
         var textStyle = FinalCutPro.FCPXML.TextStyle()
         textStyle.font = "Helvetica"
         textStyle.fontSize = 24
         textStyle.fontColor = "1.0 1.0 1.0 1.0"
         textStyle.isBold = true
-        
+
         let styleDef = FinalCutPro.FCPXML.TextStyleDefinition(
             id: "ts1",
             name: "Caption Style",
             textStyles: [textStyle]
         )
-        
+
         caption.typedTextStyleDefinitions = [styleDef]
-        
+
         let retrieved = caption.typedTextStyleDefinitions
-        XCTAssertEqual(retrieved.count, 1)
-        XCTAssertEqual(retrieved[0].id, "ts1")
-        XCTAssertEqual(retrieved[0].textStyles[0].font, "Helvetica")
-        
+        #expect(retrieved.count == 1)
+        #expect(retrieved[0].id == "ts1")
+        #expect(retrieved[0].textStyles[0].font == "Helvetica")
+
         // Verify XML structure
         let styleDefElements = caption.element.childElements.filter { $0.name == "text-style-def" }
-        XCTAssertEqual(styleDefElements.count, 1)
+        #expect(styleDefElements.count == 1)
     }
-    
+
     // MARK: - Title Integration Tests
-    
-    func testTitleWithTextStyleDefinition() throws {
+
+    @Test("Title with text-style-def from XML")
+    func titleWithTextStyleDefinition() throws {
         let xmlString = """
         <title ref="r1" duration="5s">
             <text-style-def id="ts1" name="Title Style">
@@ -158,58 +165,53 @@ final class FCPXMLCaptionTitleTests: XCTestCase {
             </text-style-def>
         </title>
         """
-        
+
         let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
-        guard let titleElement = xmlDoc.rootElement() else {
-            XCTFail("Failed to parse XML")
-            return
-        }
-        
-        guard let title = FinalCutPro.FCPXML.Title(element: titleElement) else {
-            XCTFail("Failed to create Title")
-            return
-        }
-        
+        let titleElement = try #require(xmlDoc.rootElement())
+        let title = try #require(FinalCutPro.FCPXML.Title(element: titleElement))
+
         let styleDefs = title.typedTextStyleDefinitions
-        XCTAssertEqual(styleDefs.count, 1)
-        XCTAssertEqual(styleDefs[0].id, "ts1")
-        XCTAssertEqual(styleDefs[0].name, "Title Style")
-        XCTAssertEqual(styleDefs[0].textStyles.count, 1)
-        XCTAssertEqual(styleDefs[0].textStyles[0].font, "Helvetica")
-        XCTAssertEqual(styleDefs[0].textStyles[0].fontSize, 48)
+        #expect(styleDefs.count == 1)
+        #expect(styleDefs[0].id == "ts1")
+        #expect(styleDefs[0].name == "Title Style")
+        #expect(styleDefs[0].textStyles.count == 1)
+        #expect(styleDefs[0].textStyles[0].font == "Helvetica")
+        #expect(styleDefs[0].textStyles[0].fontSize == 48)
     }
-    
-    func testTitleTextStyleDefinitionRoundTrip() {
+
+    @Test("Title text-style-def round-trip")
+    func titleTextStyleDefinitionRoundTrip() {
         let title = FinalCutPro.FCPXML.Title(ref: "r1", duration: Fraction(5, 1))
-        
+
         var textStyle = FinalCutPro.FCPXML.TextStyle()
         textStyle.font = "Helvetica"
         textStyle.fontSize = 48
         textStyle.fontColor = "1.0 1.0 0.0 1.0"
         textStyle.alignment = .center
-        
+
         let styleDef = FinalCutPro.FCPXML.TextStyleDefinition(
             id: "ts1",
             name: "Title Style",
             textStyles: [textStyle]
         )
-        
+
         title.typedTextStyleDefinitions = [styleDef]
-        
+
         let retrieved = title.typedTextStyleDefinitions
-        XCTAssertEqual(retrieved.count, 1)
-        XCTAssertEqual(retrieved[0].id, "ts1")
-        XCTAssertEqual(retrieved[0].textStyles[0].font, "Helvetica")
-        XCTAssertEqual(retrieved[0].textStyles[0].alignment, .center)
-        
+        #expect(retrieved.count == 1)
+        #expect(retrieved[0].id == "ts1")
+        #expect(retrieved[0].textStyles[0].font == "Helvetica")
+        #expect(retrieved[0].textStyles[0].alignment == .center)
+
         // Verify XML structure
         let styleDefElements = title.element.childElements.filter { $0.name == "text-style-def" }
-        XCTAssertEqual(styleDefElements.count, 1)
+        #expect(styleDefElements.count == 1)
     }
 
     // MARK: - Text textStyles Children
 
-    func testTextTextStylesInitAndSetterReplaceTextStyleChildren() {
+    @Test("Text textStyles init and setter replace text-style children")
+    func textTextStylesInitAndSetterReplaceTextStyleChildren() {
         let first = FinalCutPro.FCPXML.TextStyle.makeElement(
             from: FinalCutPro.FCPXML.TextStyle(referenceID: "ts1", value: "One")
         )
@@ -225,43 +227,38 @@ final class FCPXMLCaptionTitleTests: XCTestCase {
             textStyles: [first, second]
         )
 
-        XCTAssertEqual(text.alignment, .center)
-        XCTAssertEqual(text.textStyles.count, 2)
-        XCTAssertEqual(
-            text.element.childElements.filter { $0.fcpElementType == .textStyle }.count,
-            2
+        #expect(text.alignment == .center)
+        #expect(text.textStyles.count == 2)
+        #expect(
+            text.element.childElements.filter { $0.fcpElementType == .textStyle }.count == 2
         )
-        XCTAssertEqual(text.textStyles.first?.fcpRef, "ts1")
+        #expect(text.textStyles.first?.fcpRef == "ts1")
 
         text.textStyles = [third]
 
-        XCTAssertEqual(text.textStyles.count, 1)
-        XCTAssertEqual(text.textStyles.first?.fcpRef, "ts3")
-        XCTAssertEqual(
-            text.element.childElements.filter { $0.fcpElementType == .textStyle }.count,
-            1,
+        #expect(text.textStyles.count == 1)
+        #expect(text.textStyles.first?.fcpRef == "ts3")
+        #expect(
+            text.element.childElements.filter { $0.fcpElementType == .textStyle }.count == 1,
             "Setter must replace existing text-style children, not append"
         )
     }
-    
+
     // MARK: - File Tests
-    
-    func testCaptionSample() throws {
-        let fcpxml = try loadFCPXMLSample(named: "CaptionSample")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertEqual(fcpxml.version, .ver1_13)
+
+    @Test("CaptionSample contains captions with text and style defs")
+    func captionSample() throws {
+        let fcpxml = try requireFCPXMLSample(named: "CaptionSample")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.version == .ver1_13)
         let projects = fcpxml.allProjects()
-        XCTAssertFalse(projects.isEmpty, "Expected at least one project")
-        
-        guard let project = projects.first else {
-            XCTFail("No project found")
-            return
-        }
-        
-        let sequence = try XCTUnwrap(project.sequence)
+        #expect(!projects.isEmpty, "Expected at least one project")
+
+        let project = try #require(projects.first)
+        let sequence = try #require(project.sequence)
         let spine = sequence.spine
         let storyElements = Array(spine.storyElements)
-        
+
         // Find captions in the spine
         var foundCaptions = false
         for element in storyElements {
@@ -273,12 +270,13 @@ final class FCPXMLCaptionTitleTests: XCTestCase {
                     for caption in captions {
                         let textElements = caption.childElements.filter { $0.name == "text" }
                         let styleDefElements = caption.childElements.filter { $0.name == "text-style-def" }
-                        XCTAssertFalse(textElements.isEmpty || styleDefElements.isEmpty, "Caption should have text and style definition")
+                        let hasTextAndStyle = !(textElements.isEmpty || styleDefElements.isEmpty)
+                        #expect(hasTextAndStyle, "Caption should have text and style definition")
                     }
                     break
                 }
             }
         }
-        XCTAssertTrue(foundCaptions, "Should find captions in CaptionSample")
+        #expect(foundCaptions, "Should find captions in CaptionSample")
     }
 }

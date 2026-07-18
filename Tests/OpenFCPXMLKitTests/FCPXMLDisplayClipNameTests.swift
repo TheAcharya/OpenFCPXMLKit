@@ -8,20 +8,22 @@
 //	Unit tests for workbook clip name resolution.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLDisplayClipNameTests: XCTestCase {
-    func testAssetClipUsesNameAttribute() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "Keywords")
+@Suite("Display clip name")
+struct FCPXMLDisplayClipNameTests {
+    @Test("Asset clip uses name attribute")
+    func assetClipUsesNameAttribute() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "Keywords")
         let clips = await timeline.fcpExtract(types: [.assetClip], scope: .mainTimeline)
-        let clip = try XCTUnwrap(clips.first)
-        
-        XCTAssertEqual(clip.displayClipName(), "Nature Makes You Happy")
+        let clip = try #require(clips.first)
+
+        #expect(clip.displayClipName() == "Nature Makes You Happy")
     }
-    
-    func testTitleUsesReferencedEffectNameNotNameAttribute() async throws {
+
+    @Test("Title uses referenced effect name not name attribute")
+    func titleUsesReferencedEffectNameNotNameAttribute() async throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -43,28 +45,30 @@ final class FCPXMLDisplayClipNameTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let timeline = try XCTUnwrap(
+
+        let timeline = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "sequence")
         )
         let titles = await timeline.fcpExtract(types: [.title], scope: .mainTimeline)
-        let title = try XCTUnwrap(titles.first)
-        
-        XCTAssertEqual(title.displayClipName(), "Basic Title")
-        XCTAssertNotEqual(title.displayClipName(), title.element.fcpName)
+        let title = try #require(titles.first)
+
+        #expect(title.displayClipName() == "Basic Title")
+        #expect(title.displayClipName() != title.element.fcpName)
     }
-    
-    func testMarkerOnKeywordUsesAncestorClipName() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "Keywords")
+
+    @Test("Marker on keyword uses ancestor clip name")
+    func markerOnKeywordUsesAncestorClipName() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "Keywords")
         let markers = await timeline.fcpExtract(types: [.marker], scope: .mainTimeline)
-        let marker = try XCTUnwrap(
+        let marker = try #require(
             markers.first { $0.element.stringValue(forAttributeNamed: "value") == "Yellow Flower" }
         )
-        
-        XCTAssertEqual(marker.displayClipName(), "Nature Makes You Happy")
+
+        #expect(marker.displayClipName() == "Nature Makes You Happy")
     }
-    
-    func testMCClipAppendsActiveAngleName() async throws {
+
+    @Test("MC clip appends active angle name")
+    func mcClipAppendsActiveAngleName() async throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -98,17 +102,18 @@ final class FCPXMLDisplayClipNameTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let timeline = try XCTUnwrap(
+
+        let timeline = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "sequence")
         )
         let mcClips = await timeline.fcpExtract(types: [.mcClip], scope: .mainTimeline)
-        let mcClip = try XCTUnwrap(mcClips.first)
-        
-        XCTAssertEqual(mcClip.displayClipName(), "10-1-3 Cam A")
+        let mcClip = try #require(mcClips.first)
+
+        #expect(mcClip.displayClipName() == "10-1-3 Cam A")
     }
-    
-    func testMCClipUsesAngleNameWhenAngleIncludesShotID() async throws {
+
+    @Test("MC clip uses angle name when angle includes shot ID")
+    func mcClipUsesAngleNameWhenAngleIncludesShotID() async throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -139,25 +144,27 @@ final class FCPXMLDisplayClipNameTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let timeline = try XCTUnwrap(
+
+        let timeline = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "sequence")
         )
         let mcClips = await timeline.fcpExtract(types: [.mcClip], scope: .mainTimeline)
-        let mcClip = try XCTUnwrap(mcClips.first)
-        
-        XCTAssertEqual(mcClip.displayClipName(), "5A-4-2 Cam B")
+        let mcClip = try #require(mcClips.first)
+
+        #expect(mcClip.displayClipName() == "5A-4-2 Cam B")
     }
-    
-    func testSyncClipUsesNameAttribute() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "SyncClipRoles")
+
+    @Test("Sync clip uses name attribute")
+    func syncClipUsesNameAttribute() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "SyncClipRoles")
         let syncClips = await timeline.fcpExtract(types: [.syncClip], scope: .mainTimeline)
-        let syncClip = try XCTUnwrap(syncClips.first)
-        
-        XCTAssertEqual(syncClip.displayClipName(), "Sync Clip 1")
+        let syncClip = try #require(syncClips.first)
+
+        #expect(syncClip.displayClipName() == "Sync Clip 1")
     }
-    
-    func testCaptionUsesTextBodyForWorkbookClipName() async throws {
+
+    @Test("Caption uses text body for workbook clip name")
+    func captionUsesTextBodyForWorkbookClipName() async throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -188,14 +195,14 @@ final class FCPXMLDisplayClipNameTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let timeline = try XCTUnwrap(
+
+        let timeline = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "sequence")
         )
         let captions = await timeline.fcpExtract(types: [.caption], scope: .mainTimeline)
-        let caption = try XCTUnwrap(captions.first)
-        
-        XCTAssertEqual(caption.displayClipName(), "Bleiben Sie stehen!")
-        XCTAssertNotEqual(caption.displayClipName(), "1-X-1")
+        let caption = try #require(captions.first)
+
+        #expect(caption.displayClipName() == "Bleiben Sie stehen!")
+        #expect(caption.displayClipName() != "1-X-1")
     }
 }

@@ -7,6 +7,24 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.1.2](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.1.2) - 2026-07-18
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Swift Testing migration:** The entire test suite is now **Swift Testing** only (`@Suite` / `@Test` / `#expect` / `#require`). There is no remaining `import XCTest` under `Tests/`. Shared harness: `FCPXMLTestSampleLoading` (`tryLoad*`) + `FCPXMLTestingSampleSupport` (`require*`); bundled samples fail if missing; optional fixtures (Submitted inbox, reporting / ExcelReportTest Sample) use `Test.cancel`. Performance smoke uses `ContinuousClock` sanity budgets instead of XCTest `measure`. Suite count unchanged: **1084** listed in `swift test list` (**1078** OpenFCPXMLKitTests + **6** ExcelReportTest). See GUARDRAILS Sign: `swift-testing-only`.
+- **Manual reorder:** Manual chapters renumbered to sequential **01–20** — Timeline Projection is **11**, Media Processing **12**, … Cross-Platform **16**, Errors **17**, CLI **18**, Reporting **19**, Examples **20**. Index, Documentation hub, README API links, ARCHITECTURE, AGENT, and `.cursorrules` updated to match.
+- **Documentation sync:** GUARDRAILS, ARCHITECTURE (incl. Tests harness Mermaid), AGENT, `.cursorrules`, README, Tests READMEs, and ExcelReportTest / Submitted FCPXML READMEs refreshed for Swift Testing, `swift test list`, and current Manual chapter numbers.
+
+### 🐛 Bug Fixes
+
+- None in this release.
+
+---
+
 ## [3.1.1](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.1.1) - 2026-07-18
 
 ### ✨ New Features

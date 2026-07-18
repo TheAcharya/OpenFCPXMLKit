@@ -8,62 +8,72 @@
 //	Unit tests for role extraction preset filtering and sorting.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLRolesExtractionPresetTests: XCTestCase {
-    func testRolesExtractionPresetReturnsEmptyWhenNoTypesSpecified() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "SyncClipRoles")
+@Suite("Roles extraction preset")
+struct FCPXMLRolesExtractionPresetTests {
+    @Test("Roles extraction preset returns empty when no types specified")
+    func rolesExtractionPresetReturnsEmptyWhenNoTypesSpecified() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "SyncClipRoles")
         let roles = await timeline.fcpExtract(preset: .roles(roleTypes: []))
-        
-        XCTAssertTrue(roles.isEmpty)
+
+        #expect(roles.isEmpty)
     }
-    
-    func testRolesExtractionPresetFiltersByAudioRoleType() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "SyncClipRoles")
+
+    @Test("Roles extraction preset filters by audio role type")
+    func rolesExtractionPresetFiltersByAudioRoleType() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "SyncClipRoles")
         let roles = await timeline.fcpExtract(preset: .roles(roleTypes: [.audio]))
-        
-        XCTAssertFalse(roles.isEmpty)
-        XCTAssertTrue(roles.allSatisfy { $0.roleType == .audio })
-        XCTAssertTrue(roles.contains { $0.role.lowercased() == "dialogue" })
+
+        #expect(!roles.isEmpty)
+        #expect(roles.allSatisfy { $0.roleType == .audio })
+        let hasDialogue = roles.contains { $0.role.lowercased() == "dialogue" }
+        #expect(hasDialogue)
     }
-    
-    func testRolesExtractionPresetFiltersByVideoRoleType() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "SyncClipRoles")
+
+    @Test("Roles extraction preset filters by video role type")
+    func rolesExtractionPresetFiltersByVideoRoleType() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "SyncClipRoles")
         let roles = await timeline.fcpExtract(preset: .roles(roleTypes: [.video]))
-        
-        XCTAssertFalse(roles.isEmpty)
-        XCTAssertTrue(roles.allSatisfy { $0.roleType == .video })
-        XCTAssertTrue(roles.contains { $0.role.lowercased() == "vfx" })
+
+        #expect(!roles.isEmpty)
+        #expect(roles.allSatisfy { $0.roleType == .video })
+        let hasVFX = roles.contains { $0.role.lowercased() == "vfx" }
+        #expect(hasVFX)
     }
-    
-    func testRolesExtractionPresetIncludesCaptionRoles() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "SyncClipRoles")
+
+    @Test("Roles extraction preset includes caption roles")
+    func rolesExtractionPresetIncludesCaptionRoles() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "SyncClipRoles")
         let roles = await timeline.fcpExtract(preset: .roles(roleTypes: [.caption]))
-        
-        XCTAssertFalse(roles.isEmpty)
-        XCTAssertTrue(roles.allSatisfy { $0.roleType == .caption })
-        XCTAssertTrue(roles.contains { $0.role.lowercased() == "srt" })
+
+        #expect(!roles.isEmpty)
+        #expect(roles.allSatisfy { $0.roleType == .caption })
+        let hasSRT = roles.contains { $0.role.lowercased() == "srt" }
+        #expect(hasSRT)
     }
-    
-    func testRolesExtractionPresetDeduplicatesAndSortsByTypeThenName() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "SyncClipRoles")
+
+    @Test("Roles extraction preset deduplicates and sorts by type then name")
+    func rolesExtractionPresetDeduplicatesAndSortsByTypeThenName() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "SyncClipRoles")
         let roles = await timeline.fcpExtract(preset: .roles())
-        
-        XCTAssertFalse(roles.isEmpty)
-        
+
+        #expect(!roles.isEmpty)
+
         let uniqueRoles = Set(roles.map(\.rawValue))
-        XCTAssertEqual(uniqueRoles.count, roles.count)
-        
+        #expect(uniqueRoles.count == roles.count)
+
         let sorted = roles.sortedByRoleTypeThenByName()
-        XCTAssertEqual(roles, sorted)
+        #expect(roles == sorted)
     }
-    
-    func testRolesExtractionPresetFromKeywordsSampleFindsDialogue() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "Keywords")
+
+    @Test("Roles extraction preset from Keywords sample finds dialogue")
+    func rolesExtractionPresetFromKeywordsSampleFindsDialogue() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "Keywords")
         let roles = await timeline.fcpExtract(preset: .roles(roleTypes: [.audio]))
-        
-        XCTAssertTrue(roles.contains { $0.role.lowercased() == "dialogue" })
+
+        let hasDialogue = roles.contains { $0.role.lowercased() == "dialogue" }
+        #expect(hasDialogue)
     }
 }

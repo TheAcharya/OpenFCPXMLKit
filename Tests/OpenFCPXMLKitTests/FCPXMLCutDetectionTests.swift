@@ -8,108 +8,82 @@
 //	Tests for cut detection: edit points, same-clip vs different-clips, boundary types.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLCutDetectionTests: XCTestCase, @unchecked Sendable {
-
-    private var service: FCPXMLService!
-    private var cutDetector: CutDetector!
+@Suite("Cut detection")
+struct FCPXMLCutDetectionTests {
+    private var service: FCPXMLService { FCPXMLService(cutDetector: CutDetector()) }
     private let factory = FoundationXMLFactory()
-
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        cutDetector = CutDetector()
-        service = FCPXMLService(cutDetector: cutDetector)
-    }
-
-    override func tearDownWithError() throws {
-        service = nil
-        cutDetector = nil
-        try super.tearDownWithError()
-    }
 
     // MARK: - Different-clips and transitions (24.fcpxml)
 
-    func testDifferentClipsAndTransitions_24fcpxml() throws {
-        let url = urlForFCPXMLSample(named: FCPXMLSampleName.frameRate24.rawValue)
-        guard FileManager.default.fileExists(atPath: url.path) else {
-            throw XCTSkip("Sample 24.fcpxml not found")
-        }
-        let data = try Data(contentsOf: url)
+    @Test("Different clips and transitions in 24.fcpxml")
+    func differentClipsAndTransitions_24fcpxml() throws {
+        let data = try requireFCPXMLSampleData(named: FCPXMLSampleName.frameRate24.rawValue)
         let document = try service.parseFCPXML(from: data)
         let result = service.detectCuts(in: document)
-        XCTAssertGreaterThan(result.totalEditPoints, 0, "24.fcpxml has multiple clips and transitions")
-        XCTAssertGreaterThanOrEqual(result.transitionCount, 0)
-        XCTAssertGreaterThanOrEqual(result.hardCutCount, 0)
+        #expect(result.totalEditPoints > 0, "24.fcpxml has multiple clips and transitions")
+        #expect(result.transitionCount >= 0)
+        #expect(result.hardCutCount >= 0)
         // At least one edit should be between different refs (r4 vs r6 etc.)
         let hasDifferentClips = result.editPoints.contains { $0.sourceRelationship == .differentClips }
-        XCTAssertTrue(hasDifferentClips || result.differentClipsCutCount >= 0)
+        #expect(hasDifferentClips || result.differentClipsCutCount >= 0)
     }
 
     // MARK: - Empty spine / single clip
 
-    func testDetectCuts_EmptySpine_ReturnsEmpty() throws {
-        let url = urlForFCPXMLSample(named: FCPXMLSampleName.standaloneAssetClip.rawValue)
-        guard FileManager.default.fileExists(atPath: url.path) else {
-            throw XCTSkip("StandaloneAssetClip sample not found")
-        }
-        let data = try Data(contentsOf: url)
+    @Test("Detect cuts empty spine returns empty")
+    func detectCuts_EmptySpine_ReturnsEmpty() throws {
+        let data = try requireFCPXMLSampleData(named: FCPXMLSampleName.standaloneAssetClip.rawValue)
         let document = try service.parseFCPXML(from: data)
         let result = service.detectCuts(in: document)
         // Standalone asset clip may have no project spine; result may be empty
-        XCTAssertEqual(result.editPoints.count, result.totalEditPoints)
+        #expect(result.editPoints.count == result.totalEditPoints)
     }
 
-    func testDetectCuts_SingleClip_NoCuts() throws {
-        let url = urlForFCPXMLSample(named: FCPXMLSampleName.structure.rawValue)
-        guard FileManager.default.fileExists(atPath: url.path) else {
-            throw XCTSkip("Structure sample not found")
-        }
-        let data = try Data(contentsOf: url)
+    @Test("Detect cuts single clip consistency")
+    func detectCuts_SingleClip_NoCuts() throws {
+        let data = try requireFCPXMLSampleData(named: FCPXMLSampleName.structure.rawValue)
         let document = try service.parseFCPXML(from: data)
         let result = service.detectCuts(in: document)
         // Structure might have one or more clips; we only assert consistency
-        XCTAssertEqual(result.sameClipCutCount + result.differentClipsCutCount, result.totalEditPoints)
+        #expect(result.sameClipCutCount + result.differentClipsCutCount == result.totalEditPoints)
     }
 
     // MARK: - detectCuts(inSpine:)
 
-    func testDetectCutsInSpine_DirectSpine() throws {
-        let url = urlForFCPXMLSample(named: FCPXMLSampleName.frameRate24.rawValue)
-        guard FileManager.default.fileExists(atPath: url.path) else {
-            throw XCTSkip("24.fcpxml not found")
-        }
-        let data = try Data(contentsOf: url)
+    @Test("Detect cuts in spine direct spine")
+    func detectCutsInSpine_DirectSpine() throws {
+        let data = try requireFCPXMLSampleData(named: FCPXMLSampleName.frameRate24.rawValue)
         let document = try service.parseFCPXML(from: data)
         guard let root = document.rootElement(), let spine = firstProjectSpine(in: root) else {
-            throw XCTSkip("No spine in document")
+            try Test.cancel("No spine in document")
         }
         let result = service.detectCuts(inSpine: spine)
-        XCTAssertEqual(result.editPoints.count, result.totalEditPoints)
+        #expect(result.editPoints.count == result.totalEditPoints)
     }
 
-    func testDetectCuts_EmptyResult_CountsZero() {
+    @Test("Detect cuts empty result counts zero")
+    func detectCuts_EmptyResult_CountsZero() {
         let result = CutDetectionResult.empty
-        XCTAssertEqual(result.totalEditPoints, 0)
-        XCTAssertEqual(result.hardCutCount, 0)
-        XCTAssertEqual(result.transitionCount, 0)
-        XCTAssertEqual(result.gapCutCount, 0)
-        XCTAssertEqual(result.sameClipCutCount, 0)
-        XCTAssertEqual(result.differentClipsCutCount, 0)
+        #expect(result.totalEditPoints == 0)
+        #expect(result.hardCutCount == 0)
+        #expect(result.transitionCount == 0)
+        #expect(result.gapCutCount == 0)
+        #expect(result.sameClipCutCount == 0)
+        #expect(result.differentClipsCutCount == 0)
     }
 
     // MARK: - Edge Cases: Multiple Elements Between Clips
 
-    func testDetectCuts_MultipleElementsBetweenClips_PrioritizesTransition() throws {
+    @Test("Detect cuts multiple elements between clips prioritizes transition")
+    func detectCuts_MultipleElementsBetweenClips_PrioritizesTransition() throws {
         // Create a spine with: [Clip A] [Gap] [Transition] [Clip B]
         // This tests the bug fix where multiple elements between clips weren't properly handled
         let document = service.createFCPXMLDocument(version: "1.10")
-        guard let root = document.rootElement() else {
-            XCTFail("Failed to get root element")
-            return
-        }
+        let root = try #require(document.rootElement())
 
         // Create a project with sequence
         let project = factory.makeElement(name: "project")
@@ -156,26 +130,21 @@ final class FCPXMLCutDetectionTests: XCTestCase, @unchecked Sendable {
         let result = service.detectCuts(inSpine: spine)
 
         // Should detect one edit point between Clip A and Clip B
-        XCTAssertEqual(result.totalEditPoints, 1, "Should detect one edit point")
+        #expect(result.totalEditPoints == 1, "Should detect one edit point")
 
-        guard let editPoint = result.editPoints.first else {
-            XCTFail("No edit point detected")
-            return
-        }
+        let editPoint = try #require(result.editPoints.first)
 
         // Should prioritize transition over gap
-        XCTAssertEqual(editPoint.editType, .transition, "Should detect transition, not gap")
-        XCTAssertEqual(editPoint.transitionName, "Cross Dissolve", "Should capture transition name")
-        XCTAssertEqual(editPoint.sourceRelationship, .differentClips, "Should be different clips")
+        #expect(editPoint.editType == .transition, "Should detect transition, not gap")
+        #expect(editPoint.transitionName == "Cross Dissolve", "Should capture transition name")
+        #expect(editPoint.sourceRelationship == .differentClips, "Should be different clips")
     }
 
-    func testDetectCuts_AdjacentClips_HardCut() throws {
+    @Test("Detect cuts adjacent clips hard cut")
+    func detectCuts_AdjacentClips_HardCut() throws {
         // Create a spine with: [Clip A] [Clip B] (no elements between)
         let document = service.createFCPXMLDocument(version: "1.10")
-        guard let root = document.rootElement() else {
-            XCTFail("Failed to get root element")
-            return
-        }
+        let root = try #require(document.rootElement())
 
         let project = factory.makeElement(name: "project")
         project.addAttribute(name: "name", value: "Test Project")
@@ -202,55 +171,47 @@ final class FCPXMLCutDetectionTests: XCTestCase, @unchecked Sendable {
 
         let result = service.detectCuts(inSpine: spine)
 
-        XCTAssertEqual(result.totalEditPoints, 1, "Should detect one edit point")
+        #expect(result.totalEditPoints == 1, "Should detect one edit point")
 
-        guard let editPoint = result.editPoints.first else {
-            XCTFail("No edit point detected")
-            return
-        }
+        let editPoint = try #require(result.editPoints.first)
 
         // Adjacent clips should be hard cut
-        XCTAssertEqual(editPoint.editType, .hardCut, "Adjacent clips should be hard cut")
-        XCTAssertNil(editPoint.transitionName, "Hard cut should have no transition name")
+        #expect(editPoint.editType == .hardCut, "Adjacent clips should be hard cut")
+        #expect(editPoint.transitionName == nil, "Hard cut should have no transition name")
     }
 
     // MARK: - Async
 
-    func testDetectCutsAsync() async throws {
-        let url = urlForFCPXMLSample(named: FCPXMLSampleName.frameRate24.rawValue)
-        guard FileManager.default.fileExists(atPath: url.path) else {
-            throw XCTSkip("24.fcpxml not found")
-        }
-        let data = try Data(contentsOf: url)
+    @Test("Detect cuts async")
+    func detectCutsAsync() async throws {
+        let data = try requireFCPXMLSampleData(named: FCPXMLSampleName.frameRate24.rawValue)
         let document = try await service.parseFCPXML(from: data)
         let result = await service.detectCuts(in: document)
-        XCTAssertGreaterThanOrEqual(result.totalEditPoints, 0)
+        #expect(result.totalEditPoints >= 0)
     }
 
     // MARK: - File Tests
 
-    func testCutSample() throws {
-        let fcpxml = try loadFCPXMLSample(named: "CutSample")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertEqual(fcpxml.version, .ver1_13)
+    @Test("Cut sample")
+    func cutSample() throws {
+        let fcpxml = try requireFCPXMLSample(named: "CutSample")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.version == .ver1_13)
         let projects = fcpxml.allProjects()
-        XCTAssertFalse(projects.isEmpty, "Expected at least one project")
+        #expect(!projects.isEmpty, "Expected at least one project")
 
-        guard let project = projects.first else {
-            XCTFail("No project found")
-            return
-        }
+        let project = try #require(projects.first)
 
-        let sequence = try XCTUnwrap(project.sequence)
+        let sequence = try #require(project.sequence)
         let spine = sequence.spine
         let storyElements = Array(spine.storyElements)
-        XCTAssertGreaterThan(storyElements.count, 1, "CutSample should have multiple clips for cut detection")
+        #expect(storyElements.count > 1, "CutSample should have multiple clips for cut detection")
 
         // Test cut detection on this sample
-        let data = try Data(contentsOf: urlForFCPXMLSample(named: "CutSample"))
+        let data = try requireFCPXMLSampleData(named: "CutSample")
         let document = try service.parseFCPXML(from: data)
         let result = service.detectCuts(in: document)
-        XCTAssertGreaterThan(result.totalEditPoints, 0, "CutSample should have edit points")
+        #expect(result.totalEditPoints > 0, "CutSample should have edit points")
     }
 
     // MARK: - Helpers

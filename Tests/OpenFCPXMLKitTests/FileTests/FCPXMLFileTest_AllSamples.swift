@@ -8,34 +8,37 @@
 //	File Tests: Smoke test — every available sample in FCPXML Samples parses successfully.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFileTest_AllSamples: XCTestCase {
+@Suite("File test all samples")
+struct FCPXMLFileTest_AllSamples {
 
-    func testAllAvailableSamplesParseSuccessfully() throws {
+    @Test("All available samples parse successfully")
+    func allAvailableSamplesParseSuccessfully() throws {
         let names = allFCPXMLSampleNames()
         guard !names.isEmpty else {
-            throw XCTSkip("FCPXML Samples directory not found or empty")
+            try Test.cancel("FCPXML Samples directory not found or empty")
         }
         let loader = FCPXMLFileLoader()
         for name in names {
             let url = urlForFCPXMLSample(named: name)
             let doc = try loader.loadDocument(from: url)
-            XCTAssertNotNil(doc.rootElement(), "\(name).fcpxml")
-            XCTAssertEqual(doc.rootElement()?.name, "fcpxml", "\(name).fcpxml")
+            #expect(doc.rootElement() != nil, "\(name).fcpxml")
+            #expect(doc.rootElement()?.name == "fcpxml", "\(name).fcpxml")
         }
     }
 
-    func testAllAvailableSamplesParseAsFinalCutProFCPXML() throws {
+    @Test("All available samples parse as FinalCutPro.FCPXML")
+    func allAvailableSamplesParseAsFinalCutProFCPXML() throws {
         let names = allFCPXMLSampleNames()
         guard !names.isEmpty else {
-            throw XCTSkip("FCPXML Samples directory not found or empty")
+            try Test.cancel("FCPXML Samples directory not found or empty")
         }
         for name in names {
-            let fcpxml = try loadFCPXMLSample(named: name)
-            XCTAssertEqual(fcpxml.root.element.name, "fcpxml", "\(name).fcpxml")
+            let fcpxml = try requireFCPXMLSample(named: name)
+            #expect(fcpxml.root.element.name == "fcpxml", "\(name).fcpxml")
         }
     }
 }

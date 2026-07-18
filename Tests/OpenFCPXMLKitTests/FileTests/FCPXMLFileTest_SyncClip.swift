@@ -8,15 +8,17 @@
 //	File Tests: SyncClip.fcpxml.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFileTest_SyncClip: XCTestCase {
+@Suite("File test sync clip")
+struct FCPXMLFileTest_SyncClip {
 
-    func testParse() throws {
-        let fcpxml = try loadFCPXMLSample(named: "SyncClip")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertFalse(fcpxml.allProjects().isEmpty)
+    @Test("Parse SyncClip sample")
+    func parse() throws {
+        let fcpxml = try requireFCPXMLSample(named: "SyncClip")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        let hasProjects = !fcpxml.allProjects().isEmpty
+        #expect(hasProjects)
     }
 }

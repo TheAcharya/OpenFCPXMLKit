@@ -1,4 +1,4 @@
-# 16 — CLI
+# 18 — CLI
 
 [← Manual Index](00-Index.md)
 
@@ -215,7 +215,7 @@ For source layout, extending the CLI, and regenerating embedded DTDs, see **[Ope
 
 ## Next
 
-- [17 — Examples](17-Examples.md) — End-to-end workflows and code examples.
 - [19 — Reporting, Excel & PDF Export](19-Reporting.md) — the reporting API behind `--report`.
+- [20 — Examples](20-Examples.md) — End-to-end workflows and code examples.
 
 [← Manual Index](00-Index.md)

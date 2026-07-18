@@ -8,30 +8,36 @@
 //	File Tests: Complex.fcpxml — resources, library, events, sequence. Mirrors DAW Complex.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFileTest_Complex: XCTestCase {
+@Suite("File test complex")
+struct FCPXMLFileTest_Complex {
 
-    func testParse() throws {
-        let fcpxml = try loadFCPXMLSample(named: "Complex")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertEqual(fcpxml.version, .ver1_11)
+    @Test("Parse Complex sample")
+    func parse() throws {
+        let fcpxml = try requireFCPXMLSample(named: "Complex")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.version == .ver1_11)
         let events = fcpxml.allEvents()
-        XCTAssertFalse(events.isEmpty)
+        let hasEvents = !events.isEmpty
+        #expect(hasEvents)
         let projects = fcpxml.allProjects()
-        XCTAssertFalse(projects.isEmpty)
+        let hasProjects = !projects.isEmpty
+        #expect(hasProjects)
     }
 
-    func testRootVersionAttribute() throws {
-        let fcpxml = try loadFCPXMLSample(named: "Complex")
-        XCTAssertTrue(fcpxml.version.major == 1 && fcpxml.version.minor >= 10)
+    @Test("Root version attribute")
+    func rootVersionAttribute() throws {
+        let fcpxml = try requireFCPXMLSample(named: "Complex")
+        let versionOK = fcpxml.version.major == 1 && fcpxml.version.minor >= 10
+        #expect(versionOK)
     }
 
-    func testResourcesExist() throws {
-        let fcpxml = try loadFCPXMLSample(named: "Complex")
+    @Test("Resources exist")
+    func resourcesExist() throws {
+        let fcpxml = try requireFCPXMLSample(named: "Complex")
         let resources = fcpxml.root.resources
-        XCTAssertGreaterThan(resources.childElements.count, 0, "Expected resource children")
+        #expect(resources.childElements.count > 0, "Expected resource children")
     }
 }

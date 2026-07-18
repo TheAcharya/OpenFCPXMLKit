@@ -8,209 +8,231 @@
 //	Markers report integration tests (optional local FCPXML fixture).
 //
 
-import XCTest
+import Foundation
 import SwiftTimecode
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLMarkersReportTests: XCTestCase, @unchecked Sendable {
-    
+@Suite("Markers report")
+struct FCPXMLMarkersReportTests {
+
     private func markersOptions(
         includeChapterMarkersInMarkersReport: Bool = false
     ) throws -> FinalCutPro.FCPXML.ReportOptions {
-        try FCPXMLReportingReportFixture.reportOptions {
-            $0.includeMarkers = true
-            $0.includeChapterMarkersInMarkersReport = includeChapterMarkersInMarkersReport
-        }
+        let fcpxml = try requireReportingFixtureFCPXML()
+        var options = FinalCutPro.FCPXML.ReportOptions()
+        options.projectName = FCPXMLReportingReportFixture.primaryProjectName(in: fcpxml)
+        options.includeMarkers = true
+        options.includeChapterMarkersInMarkersReport = includeChapterMarkersInMarkersReport
+        return options
     }
-    
-    func testBuildMarkersReportFromFixture() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
+
+    @Test("Build markers report from fixture")
+    func buildMarkersReportFromFixture() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
         let options = try markersOptions()
-        
+
         let report = try await fcpxml.buildReport(options: options)
-        
-        XCTAssertEqual(report.projectName, FCPXMLReportingReportFixture.primaryProjectName(in: fcpxml))
-        XCTAssertNotNil(report.markers)
-        
+
+        #expect(report.projectName == FCPXMLReportingReportFixture.primaryProjectName(in: fcpxml))
+        #expect(report.markers != nil)
+
         let rows = report.markers?.rows ?? []
-        XCTAssertFalse(rows.isEmpty)
-        XCTAssertEqual(FinalCutPro.FCPXML.MarkerReportRow.columnHeaders.count, 9)
+        let rowsEmpty = rows.isEmpty
+        #expect(!rowsEmpty)
+        #expect(FinalCutPro.FCPXML.MarkerReportRow.columnHeaders.count == 9)
     }
-    
-    func testMarkerReportRowsHaveValidShapeFromFixture() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
+
+    @Test("Marker report rows have valid shape from fixture")
+    func markerReportRowsHaveValidShapeFromFixture() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
         let report = try await fcpxml.buildReport(options: try markersOptions())
-        
+
         let rows = report.markers?.rows ?? []
-        XCTAssertFalse(rows.isEmpty)
-        
+        let rowsEmpty = rows.isEmpty
+        #expect(!rowsEmpty)
+
         for row in rows.prefix(20) {
-            XCTAssertFalse(row.markerName.isEmpty)
-            XCTAssertFalse(row.clipName.isEmpty)
+            let markerNameEmpty = row.markerName.isEmpty
+            let clipNameEmpty = row.clipName.isEmpty
+            #expect(!markerNameEmpty)
+            #expect(!clipNameEmpty)
             FCPXMLReportingReportTestSupport.assertValidTimecode(row.position)
         }
     }
-    
-    func testMarkersReportExcludesChapterMarkersByDefault() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
+
+    @Test("Markers report excludes chapter markers by default")
+    func markersReportExcludesChapterMarkersByDefault() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
         let report = try await fcpxml.buildReport(
             options: try markersOptions(includeChapterMarkersInMarkersReport: false)
         )
-        
+
         let rows = report.markers?.rows ?? []
-        XCTAssertFalse(rows.contains { $0.type == FinalCutPro.FCPXML.MarkerReportType.chapter })
+        let hasChapter = rows.contains { $0.type == FinalCutPro.FCPXML.MarkerReportType.chapter }
+        #expect(!hasChapter)
     }
-    
-    func testMarkersReportSortedByTimelinePosition() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
+
+    @Test("Markers report sorted by timeline position")
+    func markersReportSortedByTimelinePosition() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
         let report = try await fcpxml.buildReport(options: try markersOptions())
-        
+
         let positions = report.markers?.rows.map(\.position) ?? []
         FCPXMLReportingReportTestSupport.assertSortedTimelinePositions(positions)
     }
-    
-    func testMarkerOnAudioVideoClipFansOutToVideoAndDialogueRows() async throws {
+
+    @Test("Marker on audio-video clip fans out to video and dialogue rows")
+    func markerOnAudioVideoClipFansOutToVideoAndDialogueRows() async throws {
         let fcpxml = try parseInlineFCPXML(avAssetClipMarkerFixture)
         var options = FinalCutPro.FCPXML.ReportOptions.markersOnly
         options.workbookCoverSheet = nil
-        
+
         let report = try await fcpxml.buildReport(options: options)
         let rows = report.markers?.rows ?? []
-        
+
         let chapterRows = rows.filter { $0.markerName == "Chapter 1" }
-        XCTAssertEqual(chapterRows.count, 2)
-        XCTAssertEqual(chapterRows.map(\.roleSubrole), ["Video", "Dialogue"])
-        XCTAssertEqual(Set(chapterRows.map(\.position)).count, 1)
-        XCTAssertEqual(Set(chapterRows.map(\.clipName)), ["Clip"])
+        #expect(chapterRows.count == 2)
+        #expect(chapterRows.map(\.roleSubrole) == ["Video", "Dialogue"])
+        #expect(Set(chapterRows.map(\.position)).count == 1)
+        #expect(Set(chapterRows.map(\.clipName)) == ["Clip"])
     }
-    
-    func testFullPresetIncludesChapterMarkers() {
-        XCTAssertTrue(FinalCutPro.FCPXML.ReportOptions.full.includeChapterMarkersInMarkersReport)
-        XCTAssertFalse(
-            FinalCutPro.FCPXML.ReportOptions.markersOnly.includeChapterMarkersInMarkersReport
+
+    @Test("Full preset includes chapter markers")
+    func fullPresetIncludesChapterMarkers() {
+        #expect(FinalCutPro.FCPXML.ReportOptions.full.includeChapterMarkersInMarkersReport)
+        #expect(
+            !FinalCutPro.FCPXML.ReportOptions.markersOnly.includeChapterMarkersInMarkersReport
         )
     }
-    
-    func testChapterMarkerOnAudioVideoClipFansOutWhenIncluded() async throws {
+
+    @Test("Chapter marker on audio-video clip fans out when included")
+    func chapterMarkerOnAudioVideoClipFansOutWhenIncluded() async throws {
         let fcpxml = try parseInlineFCPXML(avAssetClipChapterMarkerFixture)
         var options = FinalCutPro.FCPXML.ReportOptions.markersOnly
         options.includeChapterMarkersInMarkersReport = true
         options.workbookCoverSheet = nil
-        
+
         let report = try await fcpxml.buildReport(options: options)
         let rows = report.markers?.rows ?? []
-        
+
         let chapterRows = rows.filter { $0.markerName == "Chapter 4" }
-        XCTAssertEqual(chapterRows.count, 2)
-        XCTAssertEqual(chapterRows.map(\.roleSubrole), ["Video", "Dialogue"])
-        XCTAssertTrue(chapterRows.allSatisfy { $0.type == .chapter })
+        #expect(chapterRows.count == 2)
+        #expect(chapterRows.map(\.roleSubrole) == ["Video", "Dialogue"])
+        #expect(chapterRows.allSatisfy { $0.type == .chapter })
     }
-    
-    func testChapterMarkerExcludedByDefaultMarkersPreset() async throws {
+
+    @Test("Chapter marker excluded by default markers preset")
+    func chapterMarkerExcludedByDefaultMarkersPreset() async throws {
         let fcpxml = try parseInlineFCPXML(avAssetClipChapterMarkerFixture)
         var options = FinalCutPro.FCPXML.ReportOptions.markersOnly
         options.workbookCoverSheet = nil
-        
+
         let report = try await fcpxml.buildReport(options: options)
         let rows = report.markers?.rows ?? []
-        
-        XCTAssertFalse(rows.contains { $0.markerName == "Chapter 4" })
+
+        let hasChapter4 = rows.contains { $0.markerName == "Chapter 4" }
+        #expect(!hasChapter4)
     }
-    
-    func testHiddenMarkersSampleExcludesOutOfBoundsByDefault() async throws {
-        let fcpxml = try loadFCPXMLSample(named: FCPXMLSampleName.hiddenMarkers.rawValue)
+
+    @Test("Hidden markers sample excludes out-of-bounds by default")
+    func hiddenMarkersSampleExcludesOutOfBoundsByDefault() async throws {
+        let fcpxml = try requireFCPXMLSample(named: FCPXMLSampleName.hiddenMarkers.rawValue)
         var options = FinalCutPro.FCPXML.ReportOptions.markersOnly
         options.workbookCoverSheet = nil
-        
+
         let report = try await fcpxml.buildReport(options: options)
-        let section = try XCTUnwrap(report.markers)
+        let section = try #require(report.markers)
         let names = Set(section.rows.map(\.markerName))
-        
-        XCTAssertEqual(names, ["Marker 1", "Marker 2"])
-        XCTAssertFalse(section.showsHiddenColumn)
-        XCTAssertFalse(
-            section.columnHeaders().contains("Hidden"),
+
+        #expect(names == ["Marker 1", "Marker 2"])
+        #expect(!section.showsHiddenColumn)
+        let hasHiddenHeader = section.columnHeaders().contains("Hidden")
+        #expect(
+            !hasHiddenHeader,
             "Hidden column must be omitted when outside-bounds markers are excluded"
         )
-        XCTAssertEqual(section.rows.first?.columnValues.count, 9)
+        #expect(section.rows.first?.columnValues.count == 9)
     }
-    
-    func testHiddenMarkersSampleIncludesOutOfBoundsWithHiddenColumnWhenOptedIn() async throws {
-        let fcpxml = try loadFCPXMLSample(named: FCPXMLSampleName.hiddenMarkers.rawValue)
+
+    @Test("Hidden markers sample includes out-of-bounds with Hidden column when opted in")
+    func hiddenMarkersSampleIncludesOutOfBoundsWithHiddenColumnWhenOptedIn() async throws {
+        let fcpxml = try requireFCPXMLSample(named: FCPXMLSampleName.hiddenMarkers.rawValue)
         var options = FinalCutPro.FCPXML.ReportOptions.markersOnly
         options.includeMarkersOutsideClipBoundaries = true
         options.workbookCoverSheet = nil
-        
+
         let report = try await fcpxml.buildReport(options: options)
-        let section = try XCTUnwrap(report.markers)
+        let section = try #require(report.markers)
         let byName = Dictionary(uniqueKeysWithValues: section.rows.map { ($0.markerName, $0) })
-        
-        XCTAssertTrue(section.showsHiddenColumn)
-        XCTAssertEqual(section.columnHeaders().last, "Hidden")
-        XCTAssertEqual(Set(byName.keys), ["Marker 1", "Marker 2", "Marker 3", "Marker 4"])
-        
-        XCTAssertEqual(byName["Marker 1"]?.isHidden, false)
-        XCTAssertEqual(byName["Marker 2"]?.isHidden, false)
-        XCTAssertEqual(byName["Marker 3"]?.isHidden, true)
-        XCTAssertEqual(byName["Marker 4"]?.isHidden, true)
-        
-        let values = section.columnValues(for: try XCTUnwrap(byName["Marker 3"]))
-        XCTAssertEqual(values.count, 10)
-        XCTAssertEqual(values.last, "✓")
-        XCTAssertEqual(
-            section.columnValues(for: try XCTUnwrap(byName["Marker 1"])).last,
-            "✗"
+
+        #expect(section.showsHiddenColumn)
+        #expect(section.columnHeaders().last == "Hidden")
+        #expect(Set(byName.keys) == ["Marker 1", "Marker 2", "Marker 3", "Marker 4"])
+
+        #expect(byName["Marker 1"]?.isHidden == false)
+        #expect(byName["Marker 2"]?.isHidden == false)
+        #expect(byName["Marker 3"]?.isHidden == true)
+        #expect(byName["Marker 4"]?.isHidden == true)
+
+        let values = section.columnValues(for: try #require(byName["Marker 3"]))
+        #expect(values.count == 10)
+        #expect(values.last == "✓")
+        #expect(
+            section.columnValues(for: try #require(byName["Marker 1"])).last
+                == "✗"
         )
     }
-    
-    func testMarkerClipBoundaryDetectsOutsideHostMediaRange() {
+
+    @Test("Marker clip boundary detects outside host media range")
+    func markerClipBoundaryDetectsOutsideHostMediaRange() {
         let hostStart = Fraction(double: 3600)
         let hostDuration = Fraction(double: 35.12)
-        
-        XCTAssertFalse(
-            FinalCutPro.FCPXML.MarkerClipBoundary.isOutsideHostMediaRange(
+
+        #expect(
+            !FinalCutPro.FCPXML.MarkerClipBoundary.isOutsideHostMediaRange(
                 markerStart: Fraction(double: 3610.68),
                 hostStart: hostStart,
                 hostDuration: hostDuration
             )
         )
-        XCTAssertTrue(
+        #expect(
             FinalCutPro.FCPXML.MarkerClipBoundary.isOutsideHostMediaRange(
                 markerStart: Fraction(double: 3641.76),
                 hostStart: hostStart,
                 hostDuration: hostDuration
             )
         )
-        XCTAssertTrue(
+        #expect(
             FinalCutPro.FCPXML.MarkerClipBoundary.isOutsideHostMediaRange(
                 markerStart: Fraction(double: 3599),
                 hostStart: hostStart,
                 hostDuration: hostDuration
             )
         )
-        XCTAssertFalse(
-            FinalCutPro.FCPXML.MarkerClipBoundary.isOutsideHostMediaRange(
+        #expect(
+            !FinalCutPro.FCPXML.MarkerClipBoundary.isOutsideHostMediaRange(
                 markerStart: Fraction(double: 3641.76),
                 hostStart: hostStart,
                 hostDuration: nil
             )
         )
     }
-    
-    func testMarkerOnAudioOnlyClipYieldsSingleDialogueRow() async throws {
+
+    @Test("Marker on audio-only clip yields single dialogue row")
+    func markerOnAudioOnlyClipYieldsSingleDialogueRow() async throws {
         let fcpxml = try parseInlineFCPXML(audioOnlyClipMarkerFixture)
         var options = FinalCutPro.FCPXML.ReportOptions.markersOnly
         options.workbookCoverSheet = nil
-        
+
         let report = try await fcpxml.buildReport(options: options)
         let rows = report.markers?.rows ?? []
-        
+
         let markerRows = rows.filter { $0.markerName == "Marker 1" }
-        XCTAssertEqual(markerRows.count, 1)
-        XCTAssertEqual(markerRows.first?.roleSubrole, "Dialogue")
+        #expect(markerRows.count == 1)
+        #expect(markerRows.first?.roleSubrole == "Dialogue")
     }
-    
+
     private var avAssetClipMarkerFixture: String {
         """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -236,7 +258,7 @@ final class FCPXMLMarkersReportTests: XCTestCase, @unchecked Sendable {
         </fcpxml>
         """
     }
-    
+
     private var avAssetClipChapterMarkerFixture: String {
         """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -262,7 +284,7 @@ final class FCPXMLMarkersReportTests: XCTestCase, @unchecked Sendable {
         </fcpxml>
         """
     }
-    
+
     private var audioOnlyClipMarkerFixture: String {
         """
         <?xml version="1.0" encoding="UTF-8"?>

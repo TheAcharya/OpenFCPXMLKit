@@ -8,73 +8,70 @@
 //	File Tests: AuditionSample.fcpxml — audition element with multiple asset-clips, adjust-colorConform, conform-rate, keywords.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFileTest_AuditionSample: XCTestCase {
+@Suite("File test audition sample")
+struct FCPXMLFileTest_AuditionSample {
 
-    func testParse() throws {
-        let fcpxml = try loadFCPXMLSample(named: "AuditionSample")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertEqual(fcpxml.version, .ver1_13)
+    @Test("Parse AuditionSample")
+    func parse() throws {
+        let fcpxml = try requireFCPXMLSample(named: "AuditionSample")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.version == .ver1_13)
         let events = fcpxml.allEvents()
-        XCTAssertFalse(events.isEmpty, "Expected at least one event")
+        let hasEvents = !events.isEmpty
+        #expect(hasEvents, "Expected at least one event")
         let projects = fcpxml.allProjects()
-        XCTAssertFalse(projects.isEmpty, "Expected at least one project")
+        let hasProjects = !projects.isEmpty
+        #expect(hasProjects, "Expected at least one project")
     }
 
-    func testAuditionElement() throws {
-        let fcpxml = try loadFCPXMLSample(named: "AuditionSample")
+    @Test("Audition element")
+    func auditionElement() throws {
+        let fcpxml = try requireFCPXMLSample(named: "AuditionSample")
         let projects = fcpxml.allProjects()
-        guard let project = projects.first else {
-            XCTFail("No project found")
-            return
-        }
-        
-        let sequence = try XCTUnwrap(project.sequence)
+        let project = try #require(projects.first, "No project found")
+
+        let sequence = project.sequence
         let spine = sequence.spine
         let storyElements = Array(spine.storyElements)
-        XCTAssertFalse(storyElements.isEmpty, "Expected story elements in spine")
-        
-        // Find the audition element
-        guard let auditionElement = storyElements.first(where: { $0.name == "audition" }) else {
-            XCTFail("No audition element found")
-            return
-        }
-        
-        let audition = try XCTUnwrap(auditionElement.fcpAsAudition)
+        let hasStoryElements = !storyElements.isEmpty
+        #expect(hasStoryElements, "Expected story elements in spine")
+
+        let auditionElement = try #require(
+            storyElements.first(where: { $0.name == "audition" }),
+            "No audition element found"
+        )
+
+        let audition = try #require(auditionElement.fcpAsAudition)
         let clips = audition.clips
-        XCTAssertGreaterThan(clips.count, 0, "Audition should contain clips")
-        
-        // First clip is the active audition
+        #expect(clips.count > 0, "Audition should contain clips")
+
         let activeClip = audition.activeClip
-        XCTAssertNotNil(activeClip, "Audition should have an active clip")
-        
-        // Should have inactive clips
+        #expect(activeClip != nil, "Audition should have an active clip")
+
         let inactiveClips = audition.inactiveClips
-        XCTAssertGreaterThan(inactiveClips.count, 0, "Audition should have inactive clips")
+        #expect(inactiveClips.count > 0, "Audition should have inactive clips")
     }
 
-    func testAuditionClipsHaveAdjustments() throws {
-        let fcpxml = try loadFCPXMLSample(named: "AuditionSample")
+    @Test("Audition clips have adjustments")
+    func auditionClipsHaveAdjustments() throws {
+        let fcpxml = try requireFCPXMLSample(named: "AuditionSample")
         let projects = fcpxml.allProjects()
-        guard let project = projects.first else {
-            XCTFail("No project found")
-            return
-        }
-        
-        let sequence = try XCTUnwrap(project.sequence)
+        let project = try #require(projects.first, "No project found")
+
+        let sequence = project.sequence
         let spine = sequence.spine
         let storyElements = Array(spine.storyElements)
-        
-        guard let auditionElement = storyElements.first(where: { $0.name == "audition" }),
-              let audition = auditionElement.fcpAsAudition else {
-            XCTFail("No audition element found")
-            return
-        }
-        
-        // Check that clips have adjust-colorConform (access via element since AssetClip doesn't have adjustment properties)
+
+        let auditionElement = try #require(
+            storyElements.first(where: { $0.name == "audition" }),
+            "No audition element found"
+        )
+        let audition = try #require(auditionElement.fcpAsAudition)
+
         var foundColorConform = false
         for clipElement in audition.clips {
             if clipElement.firstChildElement(named: "adjust-colorConform") != nil {
@@ -82,60 +79,55 @@ final class FCPXMLFileTest_AuditionSample: XCTestCase {
                 break
             }
         }
-        XCTAssertTrue(foundColorConform, "Asset clips in audition should have colorConform adjustment")
+        #expect(foundColorConform, "Asset clips in audition should have colorConform adjustment")
     }
 
-    func testConformRate() throws {
-        let fcpxml = try loadFCPXMLSample(named: "AuditionSample")
+    @Test("Conform rate")
+    func conformRate() throws {
+        let fcpxml = try requireFCPXMLSample(named: "AuditionSample")
         let projects = fcpxml.allProjects()
-        guard let project = projects.first else {
-            XCTFail("No project found")
-            return
-        }
-        
-        let sequence = try XCTUnwrap(project.sequence)
+        let project = try #require(projects.first, "No project found")
+
+        let sequence = project.sequence
         let spine = sequence.spine
         let storyElements = Array(spine.storyElements)
-        
-        guard let auditionElement = storyElements.first(where: { $0.name == "audition" }),
-              let audition = auditionElement.fcpAsAudition else {
-            XCTFail("No audition element found")
-            return
-        }
-        
-        // Find clip with conform-rate
+
+        let auditionElement = try #require(
+            storyElements.first(where: { $0.name == "audition" }),
+            "No audition element found"
+        )
+        let audition = try #require(auditionElement.fcpAsAudition)
+
         var foundConformRate = false
         for clip in audition.clips {
             guard let assetClip = clip.fcpAsAssetClip else { continue }
             if let conformRate = assetClip.conformRate {
                 foundConformRate = true
-                XCTAssertFalse(conformRate.scaleEnabled, "ConformRate scaleEnabled should be false")
-                XCTAssertEqual(conformRate.srcFrameRate?.rawValue, "29.97", "ConformRate srcFrameRate should be 29.97")
+                let scaleDisabled = !conformRate.scaleEnabled
+                #expect(scaleDisabled, "ConformRate scaleEnabled should be false")
+                #expect(conformRate.srcFrameRate?.rawValue == "29.97", "ConformRate srcFrameRate should be 29.97")
                 break
             }
         }
-        XCTAssertTrue(foundConformRate, "Should find a clip with conform-rate")
+        #expect(foundConformRate, "Should find a clip with conform-rate")
     }
 
-    func testKeywordsInAudition() throws {
-        let fcpxml = try loadFCPXMLSample(named: "AuditionSample")
+    @Test("Keywords in audition")
+    func keywordsInAudition() throws {
+        let fcpxml = try requireFCPXMLSample(named: "AuditionSample")
         let projects = fcpxml.allProjects()
-        guard let project = projects.first else {
-            XCTFail("No project found")
-            return
-        }
-        
-        let sequence = try XCTUnwrap(project.sequence)
+        let project = try #require(projects.first, "No project found")
+
+        let sequence = project.sequence
         let spine = sequence.spine
         let storyElements = Array(spine.storyElements)
-        
-        guard let auditionElement = storyElements.first(where: { $0.name == "audition" }),
-              let audition = auditionElement.fcpAsAudition else {
-            XCTFail("No audition element found")
-            return
-        }
-        
-        // Check for keywords in clips (access via fcpxAnnotations)
+
+        let auditionElement = try #require(
+            storyElements.first(where: { $0.name == "audition" }),
+            "No audition element found"
+        )
+        let audition = try #require(auditionElement.fcpAsAudition)
+
         var foundKeyword = false
         for clipElement in audition.clips {
             let annotations = clipElement.fcpxAnnotations
@@ -145,20 +137,19 @@ final class FCPXMLFileTest_AuditionSample: XCTestCase {
                 break
             }
         }
-        XCTAssertTrue(foundKeyword, "Should find keywords in audition clips")
+        #expect(foundKeyword, "Should find keywords in audition clips")
     }
 
-    func testLoadViaLoaderAndParseViaService() throws {
+    @Test("Load via loader and parse via service")
+    func loadViaLoaderAndParseViaService() throws {
         let url = urlForFCPXMLSample(named: "AuditionSample")
-        guard FileManager.default.fileExists(atPath: url.path) else {
-            throw XCTSkip("AuditionSample.fcpxml not found")
-        }
+        _ = try requireFCPXMLSampleData(named: "AuditionSample")
         let loader = FCPXMLFileLoader()
         let doc = try loader.loadDocument(from: url)
-        XCTAssertEqual(doc.rootElement()?.name, "fcpxml")
+        #expect(doc.rootElement()?.name == "fcpxml")
         let service = FCPXMLService()
         let data = try Data(contentsOf: url)
         let parsed = try service.parseFCPXML(from: data)
-        XCTAssertEqual(parsed.rootElement()?.name, "fcpxml")
+        #expect(parsed.rootElement()?.name == "fcpxml")
     }
 }

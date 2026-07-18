@@ -50,14 +50,15 @@
 //     Structural comparison focuses on element children, not text nodes.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
 // Both backends are available on macOS.
 #if canImport(FoundationXML) || os(macOS)
 
-@available(macOS 26.0, *)
-final class FCPXMLAEXMLSerializationParityTests: XCTestCase {
+@Suite("AEXML serialization parity")
+struct FCPXMLAEXMLSerializationParityTests {
 
     // MARK: - Factories
 
@@ -74,11 +75,13 @@ final class FCPXMLAEXMLSerializationParityTests: XCTestCase {
     // Parse FCPXML via AEXML → serialize → re-parse → compare structure.
     // This validates that AEXML can faithfully round-trip FCPXML documents.
 
-    func testAEXMLRoundTrip_BasicMarkers() throws {
+    @Test("AEXML round trip BasicMarkers")
+    func aexmlRoundTrip_BasicMarkers() throws {
         try assertAEXMLRoundTrip(sampleName: "BasicMarkers")
     }
 
-    func testAEXMLRoundTrip_24() throws {
+    @Test("AEXML round trip 24")
+    func aexmlRoundTrip_24() throws {
         try assertAEXMLRoundTrip(sampleName: "24")
     }
 
@@ -87,53 +90,40 @@ final class FCPXMLAEXMLSerializationParityTests: XCTestCase {
     // Parse the same FCPXML file through both backends and compare structural
     // equivalence: element names, attribute names + values, child element counts.
 
-    func testBackendParity_BasicMarkers() throws {
+    @Test("Backend parity BasicMarkers")
+    func backendParity_BasicMarkers() throws {
         try assertBackendParity(sampleName: "BasicMarkers")
     }
 
-    func testBackendParity_24() throws {
+    @Test("Backend parity 24")
+    func backendParity_24() throws {
         try assertBackendParity(sampleName: "24")
     }
 
     // MARK: - Round-Trip Implementation
 
     /// Parses a sample via AEXML, serializes, re-parses, and compares structure.
-    private func assertAEXMLRoundTrip(
-        sampleName: String,
-        file: StaticString = #filePath,
-        line: UInt = #line
-    ) throws {
-        let data = try loadFCPXMLSampleData(named: sampleName)
+    private func assertAEXMLRoundTrip(sampleName: String) throws {
+        let data = try requireFCPXMLSampleData(named: sampleName)
 
         // Parse original
         let originalDoc = try aeFactory.makeDocument(data: data, options: [])
-        guard let originalRoot = originalDoc.rootElement() else {
-            XCTFail("AEXML: No root element in \(sampleName).fcpxml", file: file, line: line)
-            return
-        }
+        let originalRoot = try #require(originalDoc.rootElement())
 
         // Serialize to data
         let serializedData = originalDoc.xmlData(options: [])
-        XCTAssertFalse(serializedData.isEmpty,
-                       "AEXML serialization produced empty data for \(sampleName)",
-                       file: file, line: line)
+        #expect(!serializedData.isEmpty, "AEXML serialization produced empty data for \(sampleName)")
 
         // Re-parse the serialized output
         let reparsedDoc = try aeFactory.makeDocument(data: serializedData, options: [])
-        guard let reparsedRoot = reparsedDoc.rootElement() else {
-            XCTFail("AEXML: No root element after round-trip of \(sampleName).fcpxml",
-                    file: file, line: line)
-            return
-        }
+        let reparsedRoot = try #require(reparsedDoc.rootElement())
 
         // Compare structure recursively
         let differences = compareElements(originalRoot, reparsedRoot, path: "")
         if !differences.isEmpty {
             let report = differences.joined(separator: "\n")
-            XCTFail(
-                "AEXML round-trip structural differences in \(sampleName).fcpxml "
-                + "(\(differences.count) difference(s)):\n\(report)",
-                file: file, line: line
+            Issue.record(
+                Comment(rawValue: "AEXML round-trip structural differences in \(sampleName).fcpxml (\(differences.count) difference(s)):\n\(report)")
             )
         }
     }
@@ -142,35 +132,23 @@ final class FCPXMLAEXMLSerializationParityTests: XCTestCase {
 
     /// Parses a sample through both Foundation and AEXML backends and compares
     /// structural equivalence.
-    private func assertBackendParity(
-        sampleName: String,
-        file: StaticString = #filePath,
-        line: UInt = #line
-    ) throws {
-        let data = try loadFCPXMLSampleData(named: sampleName)
+    private func assertBackendParity(sampleName: String) throws {
+        let data = try requireFCPXMLSampleData(named: sampleName)
 
         // Parse via Foundation
         let foundationDoc = try foundationFactory.makeDocument(data: data, options: [])
-        guard let foundationRoot = foundationDoc.rootElement() else {
-            XCTFail("Foundation: No root element in \(sampleName).fcpxml", file: file, line: line)
-            return
-        }
+        let foundationRoot = try #require(foundationDoc.rootElement())
 
         // Parse via AEXML
         let aeDoc = try aeFactory.makeDocument(data: data, options: [])
-        guard let aeRoot = aeDoc.rootElement() else {
-            XCTFail("AEXML: No root element in \(sampleName).fcpxml", file: file, line: line)
-            return
-        }
+        let aeRoot = try #require(aeDoc.rootElement())
 
         // Compare structure recursively
         let differences = compareElements(foundationRoot, aeRoot, path: "")
         if !differences.isEmpty {
             let report = differences.joined(separator: "\n")
-            XCTFail(
-                "Backend parity structural differences in \(sampleName).fcpxml "
-                + "(\(differences.count) difference(s)):\n\(report)",
-                file: file, line: line
+            Issue.record(
+                Comment(rawValue: "Backend parity structural differences in \(sampleName).fcpxml (\(differences.count) difference(s)):\n\(report)")
             )
         }
     }
@@ -285,17 +263,18 @@ final class FCPXMLAEXMLSerializationParityTests: XCTestCase {
     // MARK: - Additional Validation Tests
 
     /// Verifies that AEXML can parse all FCPXML samples without throwing.
-    func testAEXMLParsesAllSamples() throws {
+    @Test("AEXML parses all samples")
+    func aexmlParsesAllSamples() throws {
         let sampleNames = allFCPXMLSampleNames()
         guard !sampleNames.isEmpty else {
-            throw XCTSkip("No FCPXML samples found")
+            try Test.cancel("No FCPXML samples found")
         }
 
         var failures: [(name: String, error: String)] = []
 
         for name in sampleNames {
             do {
-                let data = try loadFCPXMLSampleData(named: name)
+                let data = try requireFCPXMLSampleData(named: name)
                 let doc = try aeFactory.makeDocument(data: data, options: [])
                 // Verify root element exists
                 guard doc.rootElement() != nil else {
@@ -311,23 +290,24 @@ final class FCPXMLAEXMLSerializationParityTests: XCTestCase {
             let report = failures
                 .map { "\($0.name): \($0.error)" }
                 .joined(separator: "\n")
-            XCTFail("AEXML failed to parse \(failures.count) sample(s):\n\(report)")
+            Issue.record("AEXML failed to parse \(failures.count) sample(s):\n\(report)")
         }
     }
 
     /// Verifies that AEXML and Foundation agree on basic document metadata
     /// (root element name, version attribute) for all samples.
-    func testRootElementParityAllSamples() throws {
+    @Test("Root element parity all samples")
+    func rootElementParityAllSamples() throws {
         let sampleNames = allFCPXMLSampleNames()
         guard !sampleNames.isEmpty else {
-            throw XCTSkip("No FCPXML samples found")
+            try Test.cancel("No FCPXML samples found")
         }
 
         var failures: [String] = []
 
         for name in sampleNames {
             do {
-                let data = try loadFCPXMLSampleData(named: name)
+                let data = try requireFCPXMLSampleData(named: name)
 
                 let foundationDoc = try foundationFactory.makeDocument(data: data, options: [])
                 let aeDoc = try aeFactory.makeDocument(data: data, options: [])
@@ -359,19 +339,23 @@ final class FCPXMLAEXMLSerializationParityTests: XCTestCase {
 
         if !failures.isEmpty {
             let report = failures.joined(separator: "\n")
-            XCTFail("Root element parity failures (\(failures.count)):\n\(report)")
+            Issue.record("Root element parity failures (\(failures.count)):\n\(report)")
         }
     }
 
     /// Verifies that AEXML's validate() throws dtdValidationUnavailable.
-    func testAEXMLValidateThrowsDTDUnavailable() throws {
+    @Test("AEXML validate throws DTD unavailable")
+    func aexmlValidateThrowsDTDUnavailable() throws {
         let doc = aeFactory.makeDocument() as! AEXMLBackendDocument
-        XCTAssertThrowsError(try doc.validate()) { error in
+        do {
+            try doc.validate()
+            Issue.record("expected throw")
+        } catch {
             guard let xmlError = error as? OFKXMLError else {
-                XCTFail("Expected OFKXMLError, got \(type(of: error))")
+                Issue.record("Expected OFKXMLError, got \(type(of: error))")
                 return
             }
-            XCTAssertEqual(xmlError, .dtdValidationUnavailable)
+            #expect(xmlError == .dtdValidationUnavailable)
         }
     }
 }

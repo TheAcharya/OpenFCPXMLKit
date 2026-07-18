@@ -9,18 +9,19 @@
 //	Occlusion + excludeDisabledClips consistency between Extraction and Projection.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLExtractionProjectionPolicyTests: XCTestCase {
+@Suite("Extraction projection policy")
+struct FCPXMLExtractionProjectionPolicyTests {
     private let projector = FinalCutPro.FCPXML.TimelineProjector()
     private typealias Collector = FinalCutPro.FCPXML.RoleInventoryClipCollector
 
-    func testExcludeDisabledClipsAlignsTitlesEffectsMarkersAndProjection() async throws {
-        let fcpxml = try loadFCPXMLSample(named: "DisabledClips")
-        let timeline = try XCTUnwrap(fcpxml.allProjects().first?.sequence.element)
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+    @Test("Exclude disabled clips aligns titles effects markers and projection")
+    func excludeDisabledClipsAlignsTitlesEffectsMarkersAndProjection() async throws {
+        let fcpxml = try requireFCPXMLSample(named: "DisabledClips")
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
 
         var includeScope = FinalCutPro.FCPXML.ExtractionScope()
         includeScope.includeDisabled = true
@@ -30,12 +31,15 @@ final class FCPXMLExtractionProjectionPolicyTests: XCTestCase {
 
         let titlesIncluded = await timeline.fcpExtract(preset: .titles, scope: includeScope)
         let titlesExcluded = await timeline.fcpExtract(preset: .titles, scope: excludeScope)
-        XCTAssertGreaterThan(titlesIncluded.count, titlesExcluded.count)
-        XCTAssertFalse(titlesExcluded.contains { $0.element.fcpGetEnabled(default: true) == false })
+        #expect(titlesIncluded.count > titlesExcluded.count)
+        let excludedHasDisabled = titlesExcluded.contains {
+            $0.element.fcpGetEnabled(default: true) == false
+        }
+        #expect(!excludedHasDisabled)
 
         let markersIncluded = await timeline.fcpExtract(preset: .markers, scope: includeScope)
         let markersExcluded = await timeline.fcpExtract(preset: .markers, scope: excludeScope)
-        XCTAssertGreaterThanOrEqual(markersIncluded.count, markersExcluded.count)
+        #expect(markersIncluded.count >= markersExcluded.count)
 
         let windowsIncluded = try await projector.project(
             from: source,
@@ -47,12 +51,13 @@ final class FCPXMLExtractionProjectionPolicyTests: XCTestCase {
             fcpxml: fcpxml,
             options: .forReport(excludeDisabledClips: true, auditions: .active, mcClipAngles: .active)
         )
-        XCTAssertGreaterThanOrEqual(windowsIncluded.count, windowsExcluded.count)
+        #expect(windowsIncluded.count >= windowsExcluded.count)
     }
 
-    func testReportProjectionOmitsFullyOccludedLeafWindowsOnOcclusion3() async throws {
-        let fcpxml = try loadFCPXMLSample(named: "Occlusion3")
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+    @Test("Report projection omits fully occluded leaf windows on Occlusion3")
+    func reportProjectionOmitsFullyOccludedLeafWindowsOnOcclusion3() async throws {
+        let fcpxml = try requireFCPXMLSample(named: "Occlusion3")
+        let source = try #require(fcpxml.allReportTimelineSources().first)
 
         let withOcclusion = try await projector.project(
             from: source,
@@ -70,8 +75,8 @@ final class FCPXMLExtractionProjectionPolicyTests: XCTestCase {
             )
         )
 
-        XCTAssertLessThanOrEqual(withOcclusion.count, withoutOcclusionFilter.count)
-        XCTAssertTrue(
+        #expect(withOcclusion.count <= withoutOcclusionFilter.count)
+        #expect(
             FinalCutPro.FCPXML.TimelineProjectionOptions.forReport(
                 excludeDisabledClips: true,
                 auditions: .active,
@@ -80,39 +85,43 @@ final class FCPXMLExtractionProjectionPolicyTests: XCTestCase {
         )
     }
 
-    func testTitlesHostsAreSubsetOfReportVisibilityPolicyOnOcclusion3() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "Occlusion3")
+    @Test("Titles hosts are subset of report visibility policy on Occlusion3")
+    func titlesHostsAreSubsetOfReportVisibilityPolicyOnOcclusion3() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "Occlusion3")
         let titles = await timeline.fcpExtract(preset: .titles, scope: .init())
 
-        XCTAssertFalse(titles.isEmpty)
+        #expect(!titles.isEmpty)
         for title in titles {
             let occlusion = title.value(forContext: .effectiveOcclusion)
-            XCTAssertNotEqual(occlusion, .fullyOccluded)
+            #expect(occlusion != .fullyOccluded)
         }
     }
 
-    func testRoleInventoryMayRetainFullyOccludedSyncSourceHosts() async throws {
+    @Test("Role inventory may retain fully occluded sync-source hosts")
+    func roleInventoryMayRetainFullyOccludedSyncSourceHosts() async throws {
         // Intentional inventory exception (documented): channel-source / sync-source hosts
         // can remain inventoriable when fully occluded; Titles/Effects/Markers do not.
-        let timeline = try timelineElement(fromSampleNamed: "Occlusion3")
+        let timeline = try requireTimelineElement(fromSampleNamed: "Occlusion3")
         let entries = await Collector.collectEntries(from: timeline, scope: .init())
 
         let retained = entries.filter {
             $0.extracted.value(forContext: .effectiveOcclusion) == .fullyOccluded
         }
-        XCTAssertFalse(
-            retained.isEmpty,
+        #expect(
+            !retained.isEmpty,
             "Role Inventory should retain at least one fully occluded sync-source host on Occlusion3"
         )
 
         let titles = await timeline.fcpExtract(preset: .titles, scope: .init())
-        XCTAssertFalse(
-            titles.contains { $0.value(forContext: .effectiveOcclusion) == .fullyOccluded }
-        )
+        let titlesHasFullyOccluded = titles.contains {
+            $0.value(forContext: .effectiveOcclusion) == .fullyOccluded
+        }
+        #expect(!titlesHasFullyOccluded)
     }
 
-    func testExcludeDisabledClipsOmitsDisabledMarkersAndEffectsFromReport() async throws {
-        let fcpxml = try loadFCPXMLSample(named: "DisabledClips")
+    @Test("Exclude disabled clips omits disabled markers and effects from report")
+    func excludeDisabledClipsOmitsDisabledMarkersAndEffectsFromReport() async throws {
+        let fcpxml = try requireFCPXMLSample(named: "DisabledClips")
 
         var including = FinalCutPro.FCPXML.ReportOptions()
         including.includeMarkers = true
@@ -129,10 +138,10 @@ final class FCPXMLExtractionProjectionPolicyTests: XCTestCase {
 
         let markersWith = reportWith.markers?.rows.count ?? 0
         let markersWithout = reportWithout.markers?.rows.count ?? 0
-        XCTAssertGreaterThanOrEqual(markersWith, markersWithout)
+        #expect(markersWith >= markersWithout)
 
         let effectsWith = reportWith.effects?.rows.count ?? 0
         let effectsWithout = reportWithout.effects?.rows.count ?? 0
-        XCTAssertGreaterThanOrEqual(effectsWith, effectsWithout)
+        #expect(effectsWith >= effectsWithout)
     }
 }

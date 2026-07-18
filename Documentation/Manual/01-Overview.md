@@ -50,7 +50,7 @@ All core behaviour is defined by **protocols** with both sync and async APIs. De
 
 Semantic validators (`FCPXMLValidator`, `FCPXMLDTDValidator`, `FCPXMLStructuralValidator`) are injectable concrete types, not protocol-backed.
 
-**Layer stack (bottom → top):** XML → Parsing → Model → Extraction → **Projection** → Reporting. Extend lower layers before adding report-only XML walks. See [20 — Timeline Projection](20-Timeline-Projection.md), [ARCHITECTURE.md](../../ARCHITECTURE.md) §2.7, and [GUARDRAILS.md](../../GUARDRAILS.md) for must / must-not constraints.
+**Layer stack (bottom → top):** XML → Parsing → Model → Extraction → **Projection** → Reporting. Extend lower layers before adding report-only XML walks. See [11 — Timeline Projection](11-Timeline-Projection.md), [ARCHITECTURE.md](../../ARCHITECTURE.md) §2.7, and [GUARDRAILS.md](../../GUARDRAILS.md) for must / must-not constraints.
 
 ## Logging
 

@@ -8,25 +8,27 @@
 //	File Tests: Keywords.fcpxml, EventsWithKeywords.fcpxml, KeywordsWithinFolders.fcpxml.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLFileTest_Keywords: XCTestCase {
+@Suite("File test keywords")
+struct FCPXMLFileTest_Keywords {
 
-    func testParse() throws {
-        let fcpxml = try loadFCPXMLSample(named: "Keywords")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
+    @Test("Parse Keywords sample")
+    func parse() throws {
+        let fcpxml = try requireFCPXMLSample(named: "Keywords")
+        #expect(fcpxml.root.element.name == "fcpxml")
     }
 
-    func testEventsWithKeywords() throws {
-        let fcpxml = try loadFCPXMLSample(named: "EventsWithKeywords")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertEqual(fcpxml.version, .ver1_13)
+    @Test("Events with keywords")
+    func eventsWithKeywords() throws {
+        let fcpxml = try requireFCPXMLSample(named: "EventsWithKeywords")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.version == .ver1_13)
         let events = fcpxml.allEvents()
-        XCTAssertFalse(events.isEmpty, "Expected at least one event")
-        
-        // Verify keywords exist in events
+        let hasEvents = !events.isEmpty
+        #expect(hasEvents, "Expected at least one event")
+
         var foundKeywords = false
         for event in events {
             let eventElement = event.element
@@ -43,17 +45,18 @@ final class FCPXMLFileTest_Keywords: XCTestCase {
                 break
             }
         }
-        XCTAssertTrue(foundKeywords, "Expected to find keywords in at least one event")
+        #expect(foundKeywords, "Expected to find keywords in at least one event")
     }
 
-    func testKeywordsWithinFolders() throws {
-        let fcpxml = try loadFCPXMLSample(named: "KeywordsWithinFolders")
-        XCTAssertEqual(fcpxml.root.element.name, "fcpxml")
-        XCTAssertEqual(fcpxml.version, .ver1_13)
+    @Test("Keywords within folders")
+    func keywordsWithinFolders() throws {
+        let fcpxml = try requireFCPXMLSample(named: "KeywordsWithinFolders")
+        #expect(fcpxml.root.element.name == "fcpxml")
+        #expect(fcpxml.version == .ver1_13)
         let events = fcpxml.allEvents()
-        XCTAssertFalse(events.isEmpty, "Expected at least one event")
-        
-        // Verify keyword collections and folders exist in events
+        let hasEvents = !events.isEmpty
+        #expect(hasEvents, "Expected at least one event")
+
         var foundKeywordCollections = false
         var foundCollectionFolders = false
         for event in events {
@@ -70,6 +73,7 @@ final class FCPXMLFileTest_Keywords: XCTestCase {
                 break
             }
         }
-        XCTAssertTrue(foundKeywordCollections || foundCollectionFolders, "Expected keyword collections or folders in events")
+        let foundCollectionsOrFolders = foundKeywordCollections || foundCollectionFolders
+        #expect(foundCollectionsOrFolders, "Expected keyword collections or folders in events")
     }
 }

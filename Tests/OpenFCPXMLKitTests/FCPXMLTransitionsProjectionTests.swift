@@ -9,29 +9,37 @@
 //	Transitions report builder prefers Projection transition annotations.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLTransitionsProjectionTests: XCTestCase {
+@Suite("Transitions projection")
+struct FCPXMLTransitionsProjectionTests {
 
-    func testTransitionMarkersReportUsesProjectionAnnotations() async throws {
-        let fcpxml = try loadFCPXMLSample(named: FCPXMLSampleName.transitionMarkers1.rawValue)
+    @Test("TransitionMarkers report uses projection annotations")
+    func transitionMarkersReportUsesProjectionAnnotations() async throws {
+        let fcpxml = try requireFCPXMLSample(named: FCPXMLSampleName.transitionMarkers1.rawValue)
         let options = FinalCutPro.FCPXML.ReportOptions.transitionsOnly
 
         let report = try await fcpxml.buildReport(options: options)
-        let rows = try XCTUnwrap(report.transitions?.rows)
-        XCTAssertFalse(rows.isEmpty, "TransitionMarkers1 must yield Transitions via Projection")
-        XCTAssertTrue(rows.contains { $0.category == "Primary transition" })
-        XCTAssertTrue(rows.allSatisfy { !$0.timelineIn.isEmpty })
-        XCTAssertTrue(rows.allSatisfy { !$0.timelineOut.isEmpty })
-        XCTAssertTrue(rows.allSatisfy { !$0.duration.isEmpty })
-        XCTAssertTrue(rows.allSatisfy { !$0.transition.isEmpty })
+        let rows = try #require(report.transitions?.rows)
+        let hasRows = !rows.isEmpty
+        #expect(hasRows, "TransitionMarkers1 must yield Transitions via Projection")
+        let hasPrimary = rows.contains { $0.category == "Primary transition" }
+        #expect(hasPrimary)
+        let allHaveIn = rows.allSatisfy { !$0.timelineIn.isEmpty }
+        let allHaveOut = rows.allSatisfy { !$0.timelineOut.isEmpty }
+        let allHaveDuration = rows.allSatisfy { !$0.duration.isEmpty }
+        let allHaveTransition = rows.allSatisfy { !$0.transition.isEmpty }
+        #expect(allHaveIn)
+        #expect(allHaveOut)
+        #expect(allHaveDuration)
+        #expect(allHaveTransition)
     }
 
-    func testProjectionDetailedCollectsTransitionAnnotations() async throws {
-        let fcpxml = try loadFCPXMLSample(named: FCPXMLSampleName.transitionMarkers1.rawValue)
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+    @Test("Projection detailed collects transition annotations")
+    func projectionDetailedCollectsTransitionAnnotations() async throws {
+        let fcpxml = try requireFCPXMLSample(named: FCPXMLSampleName.transitionMarkers1.rawValue)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         var options = FinalCutPro.FCPXML.TimelineProjectionOptions()
         options.includeAnnotations = true
         options.excludeFullyOccluded = true
@@ -39,30 +47,31 @@ final class FCPXMLTransitionsProjectionTests: XCTestCase {
         let detailed = try await FinalCutPro.FCPXML.TimelineProjector()
             .projectDetailed(from: source, fcpxml: fcpxml, options: options)
 
-        XCTAssertTrue(
-            detailed.clipAnnotations.contains { $0.transition != nil },
-            "Transition hosts must emit WindowTransitionAnnotation"
-        )
-        XCTAssertTrue(
-            detailed.clipAnnotations.contains {
-                $0.hostElementType == "transition" && $0.transition != nil
-            }
-        )
+        let hasTransition = detailed.clipAnnotations.contains { $0.transition != nil }
+        #expect(hasTransition, "Transition hosts must emit WindowTransitionAnnotation")
+        let hasTransitionHost = detailed.clipAnnotations.contains {
+            $0.hostElementType == "transition" && $0.transition != nil
+        }
+        #expect(hasTransitionHost)
     }
 
-    func testTransitionsOnlyConsumesTimelineProjection() {
+    @Test("Transitions-only consumes timeline projection")
+    func transitionsOnlyConsumesTimelineProjection() {
         let options = FinalCutPro.FCPXML.ReportOptions.transitionsOnly
-        XCTAssertTrue(options.consumesTimelineProjection)
-        XCTAssertTrue(options.includeTransitions)
+        #expect(options.consumesTimelineProjection)
+        #expect(options.includeTransitions)
     }
 
-    func testTransitionMarkers2ReportHasRowsWhenPresent() async throws {
-        let fcpxml = try loadFCPXMLSample(named: FCPXMLSampleName.transitionMarkers2.rawValue)
+    @Test("TransitionMarkers2 report has rows when present")
+    func transitionMarkers2ReportHasRowsWhenPresent() async throws {
+        let fcpxml = try requireFCPXMLSample(named: FCPXMLSampleName.transitionMarkers2.rawValue)
         let options = FinalCutPro.FCPXML.ReportOptions.transitionsOnly
 
         let report = try await fcpxml.buildReport(options: options)
-        let rows = try XCTUnwrap(report.transitions?.rows)
-        XCTAssertFalse(rows.isEmpty)
-        XCTAssertTrue(rows.allSatisfy { !$0.transition.isEmpty })
+        let rows = try #require(report.transitions?.rows)
+        let hasRows = !rows.isEmpty
+        #expect(hasRows)
+        let allHaveTransition = rows.allSatisfy { !$0.transition.isEmpty }
+        #expect(allHaveTransition)
     }
 }

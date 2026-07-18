@@ -1,4 +1,4 @@
-# 14 — High-Level Model
+# 15 — High-Level Model
 
 [← Manual Index](00-Index.md)
 
@@ -11,7 +11,7 @@ For quick inspection and high-level access without walking the XML tree, use **F
 **Initialization:**
 
 - `init(fileContent: Data)` — from raw FCPXML data
-- `init(fileContent: XMLDocument)` — from an existing document
+- `init(fileContent: any OFKXMLDocument)` — from an existing document
 
 **Properties and methods:**
 
@@ -41,4 +41,6 @@ For building Excel or PDF reports from either a project or a standalone compound
 
 ## Next
 
-- [15 — Errors & Utilities](15-Errors-Utilities.md) — Error types, ProgressBar.
+- [16 — Cross-Platform & iOS](16-Cross-Platform-iOS.md) — OFKXML abstraction, Foundation vs AEXML, iOS support.
+
+[← Manual Index](00-Index.md)

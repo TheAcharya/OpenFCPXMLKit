@@ -8,11 +8,13 @@
 //	Unit tests for title display text and font resolution.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-final class FCPXMLTitleDisplayTests: XCTestCase {
-    func testConcatenatedDisplayTextUsesPipeSeparator() throws {
+@Suite("Title display")
+struct FCPXMLTitleDisplayTests {
+    @Test("Concatenated display text uses pipe separator")
+    func concatenatedDisplayTextUsesPipeSeparator() throws {
         let title = try makeTitle(from: """
         <title ref="r1" name="Title">
             <text>
@@ -27,11 +29,12 @@ final class FCPXMLTitleDisplayTests: XCTestCase {
             </text-style-def>
         </title>
         """)
-        
-        XCTAssertEqual(title.concatenatedDisplayText(), "Hello  |  World")
+
+        #expect(title.concatenatedDisplayText() == "Hello  |  World")
     }
-    
-    func testConcatenatedDisplayTextSingleSegmentOmitsSeparator() throws {
+
+    @Test("Concatenated display text single segment omits separator")
+    func concatenatedDisplayTextSingleSegmentOmitsSeparator() throws {
         let title = try makeTitle(from: """
         <title ref="r1" name="Title">
             <text>
@@ -42,11 +45,12 @@ final class FCPXMLTitleDisplayTests: XCTestCase {
             </text-style-def>
         </title>
         """)
-        
-        XCTAssertEqual(title.concatenatedDisplayText(), "Solo")
+
+        #expect(title.concatenatedDisplayText() == "Solo")
     }
-    
-    func testTypedTextSegmentsPreservesStyleReferences() throws {
+
+    @Test("Typed text segments preserves style references")
+    func typedTextSegmentsPreservesStyleReferences() throws {
         let title = try makeTitle(from: """
         <title ref="r1" name="Title">
             <text>
@@ -61,14 +65,15 @@ final class FCPXMLTitleDisplayTests: XCTestCase {
             </text-style-def>
         </title>
         """)
-        
+
         let segments = title.typedTextSegments
-        XCTAssertEqual(segments.count, 2)
-        XCTAssertEqual(segments[0].styleReference, "ts1")
-        XCTAssertEqual(segments[1].styleReference, "ts2")
+        #expect(segments.count == 2)
+        #expect(segments[0].styleReference == "ts1")
+        #expect(segments[1].styleReference == "ts2")
     }
-    
-    func testDisplayFontSpecificationsJoinsMultipleFonts() throws {
+
+    @Test("Display font specifications joins multiple fonts")
+    func displayFontSpecificationsJoinsMultipleFonts() throws {
         let title = try makeTitle(from: """
         <title ref="r1" name="Title">
             <text>
@@ -83,33 +88,36 @@ final class FCPXMLTitleDisplayTests: XCTestCase {
             </text-style-def>
         </title>
         """)
-        
+
         let fonts = title.displayFontSpecifications()
-        XCTAssertTrue(fonts.contains("Helvetica 28.0"))
-        XCTAssertTrue(fonts.contains("Gill Sans 56.0"))
+        #expect(fonts.contains("Helvetica 28.0"))
+        #expect(fonts.contains("Gill Sans 56.0"))
     }
-    
-    func testDisplayFontSpecificationFromStyleElement() {
+
+    @Test("Display font specification from style element")
+    func displayFontSpecificationFromStyleElement() {
         let styleElement = OFKXMLDefaultFactory().makeElement(name: "text-style")
         styleElement.addAttribute(name: "font", value: "Helvetica")
         styleElement.addAttribute(name: "fontSize", value: "28")
         styleElement.addAttribute(name: "fontFace", value: "Regular")
-        
+
         let spec = FinalCutPro.FCPXML.TextStyle.displayFontSpecification(from: styleElement)
-        XCTAssertEqual(spec, "Helvetica 28.0, Regular")
+        #expect(spec == "Helvetica 28.0, Regular")
     }
-    
-    func testIsAppleSuppliedEffectTrueForBasicTitle() throws {
-        let fcpxml = try loadFCPXMLSample(named: "DisabledClips")
-        let titleElement = try XCTUnwrap(
+
+    @Test("Is Apple-supplied effect true for Basic Title")
+    func isAppleSuppliedEffectTrueForBasicTitle() throws {
+        let fcpxml = try requireFCPXMLSample(named: "DisabledClips")
+        let titleElement = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "title")
         )
-        let title = try XCTUnwrap(titleElement.fcpAsTitle)
-        
-        XCTAssertTrue(title.isAppleSuppliedEffect(resources: fcpxml.root.resources))
+        let title = try #require(titleElement.fcpAsTitle)
+
+        #expect(title.isAppleSuppliedEffect(resources: fcpxml.root.resources))
     }
-    
-    func testIsAppleSuppliedEffectFalseWhenRefMissing() throws {
+
+    @Test("Is Apple-supplied effect false when ref missing")
+    func isAppleSuppliedEffectFalseWhenRefMissing() throws {
         let title = try makeTitle(from: """
         <title name="Custom">
             <text>
@@ -117,10 +125,10 @@ final class FCPXMLTitleDisplayTests: XCTestCase {
             </text>
         </title>
         """)
-        
-        XCTAssertFalse(title.isAppleSuppliedEffect(resources: nil))
+
+        #expect(!title.isAppleSuppliedEffect(resources: nil))
     }
-    
+
     private func makeTitle(from xmlFragment: String) throws -> FinalCutPro.FCPXML.Title {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
@@ -143,10 +151,10 @@ final class FCPXMLTitleDisplayTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let titleElement = try XCTUnwrap(
+
+        let titleElement = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "title")
         )
-        return try XCTUnwrap(titleElement.fcpAsTitle)
+        return try #require(titleElement.fcpAsTitle)
     }
 }

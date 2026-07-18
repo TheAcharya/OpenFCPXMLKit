@@ -18,24 +18,25 @@ Complete manual and usage guide for **OpenFCPXMLKit**, a Swift 6 framework for F
 | [08 — Timeline Manipulation](08-Timeline-Manipulation.md) | Ripple insert, auto lane assignment, clip queries, lane range |
 | [09 — Timeline Metadata](09-Timeline-Metadata.md) | Markers, chapter markers, keywords, ratings, timestamps |
 | [10 — Extraction & Media](10-Extraction-Media.md) | Extraction scope and presets, media extraction and copy |
-| [20 — Timeline Projection](20-Timeline-Projection.md) | `TimelineProjector`, `MediaUsageWindow`, options, occupancy, report project-once |
-| [11 — Media Processing](11-Media-Processing.md) | MIME type, asset validation, silence detection, duration, parallel I/O |
-| [12 — Typed Models](12-Typed-Models.md) | Adjustments, filters, captions/titles, keyframe animation, Live Drawing, collections |
-| [13 — XML Extensions](13-XML-Extensions.md) | XMLDocument and XMLElement FCPXML extensions |
-| [14 — High-Level Model](14-High-Level-Model.md) | FinalCutPro.FCPXML, Root, events, projects |
-| [15 — Errors & Utilities](15-Errors-Utilities.md) | Error types, ErrorHandling, ProgressBar, FCPXMLUID |
-| [16 — CLI](16-CLI.md) | Experimental command-line interface (OpenFCPXMLKit-CLI) |
-| [17 — Examples](17-Examples.md) | End-to-end workflows and code examples |
-| [18 — Cross-Platform & iOS](18-Cross-Platform-iOS.md) | XML abstraction layer, OFKXML protocols, Foundation vs AEXML backends, iOS support |
-| [19 — Reporting, Excel & PDF Export](19-Reporting.md) | Report builder, ReportOptions (`mediaResolutionPolicy`, `copyrightLabel`, `includeMarkersOutsideClipBoundaries`, `protectSheets`, …), ReportTimecodeFormat, ReportBuildPhase (incl. projecting), report sections, universal **Row**, Projection-first Markers/Keywords/Titles/Transitions/Effects, XLKit Excel + CoreGraphics PDF |
+| [11 — Timeline Projection](11-Timeline-Projection.md) | `TimelineProjector`, `MediaUsageWindow`, options, occupancy, report project-once |
+| [12 — Media Processing](12-Media-Processing.md) | MIME type, asset validation, silence detection, duration, parallel I/O |
+| [13 — Typed Models](13-Typed-Models.md) | Adjustments, filters, captions/titles, keyframe animation, Live Drawing, collections |
+| [14 — XML Extensions](14-XML-Extensions.md) | OFKXMLDocument and OFKXMLElement FCPXML extensions (cross-platform) |
+| [15 — High-Level Model](15-High-Level-Model.md) | FinalCutPro.FCPXML, Root, events, projects |
+| [16 — Cross-Platform & iOS](16-Cross-Platform-iOS.md) | XML abstraction layer, OFKXML protocols, Foundation vs AEXML backends, iOS support |
+| [17 — Errors & Utilities](17-Errors-Utilities.md) | Error types, ErrorHandling, ProgressBar, FCPXMLUID |
+| [18 — CLI](18-CLI.md) | Experimental command-line interface (OpenFCPXMLKit-CLI) |
+| [19 — Reporting, Excel & PDF Export](19-Reporting.md) | Report builder, ReportOptions, ReportTimecodeFormat, ReportBuildPhase, Projection-first sections, Excel + PDF |
+| [20 — Examples](20-Examples.md) | End-to-end workflows and code examples |
 
 ---
 
 ## Quick links
 
-- **Project README:** [../README.md](../README.md) (repository root)
-- **Architecture:** [../ARCHITECTURE.md](../ARCHITECTURE.md) — layers and codebase map
-- **Guardrails:** [../GUARDRAILS.md](../GUARDRAILS.md) — must / must-not for contributors and agents
-- **CLI reference:** [../Sources/OpenFCPXMLKitCLI/README.md](../Sources/OpenFCPXMLKitCLI/README.md)
-- **Tests:** [../Tests/README.md](../Tests/README.md) — suite layout; [Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md) for private local investigation (never commit private FCPXML)
+- **Documentation hub:** [../README.md](../README.md)
+- **Project README:** [../../README.md](../../README.md)
+- **Architecture:** [../../ARCHITECTURE.md](../../ARCHITECTURE.md) — layers and codebase map
+- **Guardrails:** [../../GUARDRAILS.md](../../GUARDRAILS.md) — must / must-not for contributors and agents
+- **CLI reference:** [../../Sources/OpenFCPXMLKitCLI/README.md](../../Sources/OpenFCPXMLKitCLI/README.md)
+- **Tests:** [../../Tests/README.md](../../Tests/README.md) — suite layout (**1084** listed tests, all Swift Testing); [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) for private local investigation (never commit private FCPXML)
 - **FCPXML reference:** [fcp.cafe/developers/fcpxml](https://fcp.cafe/developers/fcpxml)

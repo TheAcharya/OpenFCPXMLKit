@@ -1,24 +1,32 @@
 //
 //  FCPXMLAudioEnhancementTests.swift
-//  OpenFCPXMLKitTests
+//  OpenFCPXMLKit • https://github.com/TheAcharya/OpenFCPXMLKit
 //  © 2026 • Licensed under MIT License
 //
 
-import XCTest
+//
+//	Unit tests for audio enhancement adjustments and clip integration.
+//
+
+import Foundation
+import Testing
 import SwiftTimecode
 @testable import OpenFCPXMLKit
 
-final class FCPXMLAudioEnhancementTests: XCTestCase {
+@Suite("Audio enhancement adjustments")
+struct FCPXMLAudioEnhancementTests {
     
     // MARK: - NoiseReductionAdjustment Tests
     
-    func testNoiseReductionInitialization() {
+    @Test("Noise reduction initialization")
+    func noiseReductionInitialization() {
         let adjustment = FinalCutPro.FCPXML.NoiseReductionAdjustment(amount: 0.5)
         
-        XCTAssertEqual(adjustment.amount, 0.5)
+        #expect(adjustment.amount == 0.5)
     }
     
-    func testNoiseReductionCodable() throws {
+    @Test("Noise reduction Codable")
+    func noiseReductionCodable() throws {
         let adjustment = FinalCutPro.FCPXML.NoiseReductionAdjustment(amount: 0.75)
         
         let encoder = JSONEncoder()
@@ -27,23 +35,26 @@ final class FCPXMLAudioEnhancementTests: XCTestCase {
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(FinalCutPro.FCPXML.NoiseReductionAdjustment.self, from: data)
         
-        XCTAssertEqual(decoded.amount, adjustment.amount)
+        #expect(decoded.amount == adjustment.amount)
     }
     
     // MARK: - HumReductionAdjustment Tests
     
-    func testHumReductionInitialization() {
+    @Test("Hum reduction initialization")
+    func humReductionInitialization() {
         let adjustment = FinalCutPro.FCPXML.HumReductionAdjustment(frequency: .hz50)
         
-        XCTAssertEqual(adjustment.frequency, .hz50)
+        #expect(adjustment.frequency == .hz50)
     }
     
-    func testHumReductionFrequencyCases() {
-        XCTAssertEqual(FinalCutPro.FCPXML.HumReductionFrequency.hz50.rawValue, "50")
-        XCTAssertEqual(FinalCutPro.FCPXML.HumReductionFrequency.hz60.rawValue, "60")
+    @Test("Hum reduction frequency cases")
+    func humReductionFrequencyCases() {
+        #expect(FinalCutPro.FCPXML.HumReductionFrequency.hz50.rawValue == "50")
+        #expect(FinalCutPro.FCPXML.HumReductionFrequency.hz60.rawValue == "60")
     }
     
-    func testHumReductionCodable() throws {
+    @Test("Hum reduction Codable")
+    func humReductionCodable() throws {
         let adjustment = FinalCutPro.FCPXML.HumReductionAdjustment(frequency: .hz60)
         
         let encoder = JSONEncoder()
@@ -52,41 +63,45 @@ final class FCPXMLAudioEnhancementTests: XCTestCase {
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(FinalCutPro.FCPXML.HumReductionAdjustment.self, from: data)
         
-        XCTAssertEqual(decoded.frequency, adjustment.frequency)
+        #expect(decoded.frequency == adjustment.frequency)
     }
     
     // MARK: - EqualizationAdjustment Tests
     
-    func testEqualizationInitialization() {
+    @Test("Equalization initialization")
+    func equalizationInitialization() {
         let adjustment = FinalCutPro.FCPXML.EqualizationAdjustment(mode: .voiceEnhance)
         
-        XCTAssertEqual(adjustment.mode, .voiceEnhance)
+        #expect(adjustment.mode == .voiceEnhance)
     }
     
-    func testEqualizationModes() {
-        XCTAssertEqual(FinalCutPro.FCPXML.EqualizationMode.flat.rawValue, "flat")
-        XCTAssertEqual(FinalCutPro.FCPXML.EqualizationMode.voiceEnhance.rawValue, "voice_enhance")
-        XCTAssertEqual(FinalCutPro.FCPXML.EqualizationMode.musicEnhance.rawValue, "music_enhance")
-        XCTAssertEqual(FinalCutPro.FCPXML.EqualizationMode.loudness.rawValue, "loudness")
-        XCTAssertEqual(FinalCutPro.FCPXML.EqualizationMode.humReduction.rawValue, "hum_reduction")
-        XCTAssertEqual(FinalCutPro.FCPXML.EqualizationMode.bassBoost.rawValue, "bass_boost")
-        XCTAssertEqual(FinalCutPro.FCPXML.EqualizationMode.bassReduce.rawValue, "bass_reduce")
-        XCTAssertEqual(FinalCutPro.FCPXML.EqualizationMode.trebleBoost.rawValue, "treble_boost")
-        XCTAssertEqual(FinalCutPro.FCPXML.EqualizationMode.trebleReduce.rawValue, "treble_reduce")
+    @Test("Equalization modes")
+    func equalizationModes() {
+        #expect(FinalCutPro.FCPXML.EqualizationMode.flat.rawValue == "flat")
+        #expect(FinalCutPro.FCPXML.EqualizationMode.voiceEnhance.rawValue == "voice_enhance")
+        #expect(FinalCutPro.FCPXML.EqualizationMode.musicEnhance.rawValue == "music_enhance")
+        #expect(FinalCutPro.FCPXML.EqualizationMode.loudness.rawValue == "loudness")
+        #expect(FinalCutPro.FCPXML.EqualizationMode.humReduction.rawValue == "hum_reduction")
+        #expect(FinalCutPro.FCPXML.EqualizationMode.bassBoost.rawValue == "bass_boost")
+        #expect(FinalCutPro.FCPXML.EqualizationMode.bassReduce.rawValue == "bass_reduce")
+        #expect(FinalCutPro.FCPXML.EqualizationMode.trebleBoost.rawValue == "treble_boost")
+        #expect(FinalCutPro.FCPXML.EqualizationMode.trebleReduce.rawValue == "treble_reduce")
     }
     
-    func testEqualizationWithParameters() {
+    @Test("Equalization with parameters")
+    func equalizationWithParameters() {
         let param = FinalCutPro.FCPXML.FilterParameter(name: "Frequency", value: "1000")
         let adjustment = FinalCutPro.FCPXML.EqualizationAdjustment(
             mode: .flat,
             parameters: [param]
         )
         
-        XCTAssertEqual(adjustment.parameters.count, 1)
-        XCTAssertEqual(adjustment.parameters[0].name, "Frequency")
+        #expect(adjustment.parameters.count == 1)
+        #expect(adjustment.parameters[0].name == "Frequency")
     }
     
-    func testEqualizationCodable() throws {
+    @Test("Equalization Codable")
+    func equalizationCodable() throws {
         let adjustment = FinalCutPro.FCPXML.EqualizationAdjustment(mode: .musicEnhance)
         
         let encoder = JSONEncoder()
@@ -95,20 +110,22 @@ final class FCPXMLAudioEnhancementTests: XCTestCase {
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(FinalCutPro.FCPXML.EqualizationAdjustment.self, from: data)
         
-        XCTAssertEqual(decoded.mode, adjustment.mode)
+        #expect(decoded.mode == adjustment.mode)
     }
     
     // MARK: - MatchEqualizationAdjustment Tests
     
-    func testMatchEqualizationInitialization() {
+    @Test("Match equalization initialization")
+    func matchEqualizationInitialization() {
         let data = FinalCutPro.FCPXML.KeyedData(key: "matchEQ", value: "data value")
         let adjustment = FinalCutPro.FCPXML.MatchEqualizationAdjustment(data: data)
         
-        XCTAssertEqual(adjustment.data.key, "matchEQ")
-        XCTAssertEqual(adjustment.data.value, "data value")
+        #expect(adjustment.data.key == "matchEQ")
+        #expect(adjustment.data.value == "data value")
     }
     
-    func testMatchEqualizationCodable() throws {
+    @Test("Match equalization Codable")
+    func matchEqualizationCodable() throws {
         let data = FinalCutPro.FCPXML.KeyedData(key: "matchEQ", value: "data")
         let adjustment = FinalCutPro.FCPXML.MatchEqualizationAdjustment(data: data)
         
@@ -118,13 +135,14 @@ final class FCPXMLAudioEnhancementTests: XCTestCase {
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(FinalCutPro.FCPXML.MatchEqualizationAdjustment.self, from: encoded)
         
-        XCTAssertEqual(decoded.data.key, adjustment.data.key)
-        XCTAssertEqual(decoded.data.value, adjustment.data.value)
+        #expect(decoded.data.key == adjustment.data.key)
+        #expect(decoded.data.value == adjustment.data.value)
     }
     
     // MARK: - Clip Integration Tests
     
-    func testClipNoiseReductionAdjustment() throws {
+    @Test("Clip noise reduction adjustment")
+    func clipNoiseReductionAdjustment() throws {
         let xmlString = """
         <clip duration="5s">
             <adjust-noiseReduction amount="0.5"/>
@@ -132,22 +150,16 @@ final class FCPXMLAudioEnhancementTests: XCTestCase {
         """
         
         let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
-        guard let clipElement = xmlDoc.rootElement() else {
-            XCTFail("Failed to parse XML")
-            return
-        }
-        
-        guard let clip = FinalCutPro.FCPXML.Clip(element: clipElement) else {
-            XCTFail("Failed to create Clip")
-            return
-        }
+        let clipElement = try #require(xmlDoc.rootElement())
+        let clip = try #require(FinalCutPro.FCPXML.Clip(element: clipElement))
         
         let adjustment = clip.noiseReductionAdjustment
-        XCTAssertNotNil(adjustment)
-        XCTAssertEqual(adjustment?.amount, 0.5)
+        #expect(adjustment != nil)
+        #expect(adjustment?.amount == 0.5)
     }
     
-    func testClipHumReductionAdjustment() throws {
+    @Test("Clip hum reduction adjustment")
+    func clipHumReductionAdjustment() throws {
         let xmlString = """
         <clip duration="5s">
             <adjust-humReduction frequency="60"/>
@@ -155,22 +167,16 @@ final class FCPXMLAudioEnhancementTests: XCTestCase {
         """
         
         let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
-        guard let clipElement = xmlDoc.rootElement() else {
-            XCTFail("Failed to parse XML")
-            return
-        }
-        
-        guard let clip = FinalCutPro.FCPXML.Clip(element: clipElement) else {
-            XCTFail("Failed to create Clip")
-            return
-        }
+        let clipElement = try #require(xmlDoc.rootElement())
+        let clip = try #require(FinalCutPro.FCPXML.Clip(element: clipElement))
         
         let adjustment = clip.humReductionAdjustment
-        XCTAssertNotNil(adjustment)
-        XCTAssertEqual(adjustment?.frequency, .hz60)
+        #expect(adjustment != nil)
+        #expect(adjustment?.frequency == .hz60)
     }
     
-    func testClipEqualizationAdjustment() throws {
+    @Test("Clip equalization adjustment")
+    func clipEqualizationAdjustment() throws {
         let xmlString = """
         <clip duration="5s">
             <adjust-EQ mode="voice_enhance">
@@ -180,23 +186,17 @@ final class FCPXMLAudioEnhancementTests: XCTestCase {
         """
         
         let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
-        guard let clipElement = xmlDoc.rootElement() else {
-            XCTFail("Failed to parse XML")
-            return
-        }
-        
-        guard let clip = FinalCutPro.FCPXML.Clip(element: clipElement) else {
-            XCTFail("Failed to create Clip")
-            return
-        }
+        let clipElement = try #require(xmlDoc.rootElement())
+        let clip = try #require(FinalCutPro.FCPXML.Clip(element: clipElement))
         
         let adjustment = clip.equalizationAdjustment
-        XCTAssertNotNil(adjustment)
-        XCTAssertEqual(adjustment?.mode, .voiceEnhance)
-        XCTAssertEqual(adjustment?.parameters.count, 1)
+        #expect(adjustment != nil)
+        #expect(adjustment?.mode == .voiceEnhance)
+        #expect(adjustment?.parameters.count == 1)
     }
     
-    func testClipMatchEqualizationAdjustment() throws {
+    @Test("Clip match equalization adjustment")
+    func clipMatchEqualizationAdjustment() throws {
         let xmlString = """
         <clip duration="5s">
             <adjust-matchEQ>
@@ -206,23 +206,17 @@ final class FCPXMLAudioEnhancementTests: XCTestCase {
         """
         
         let xmlDoc = try FoundationXMLFactory().makeDocument(xmlString: xmlString)
-        guard let clipElement = xmlDoc.rootElement() else {
-            XCTFail("Failed to parse XML")
-            return
-        }
-        
-        guard let clip = FinalCutPro.FCPXML.Clip(element: clipElement) else {
-            XCTFail("Failed to create Clip")
-            return
-        }
+        let clipElement = try #require(xmlDoc.rootElement())
+        let clip = try #require(FinalCutPro.FCPXML.Clip(element: clipElement))
         
         let adjustment = clip.matchEqualizationAdjustment
-        XCTAssertNotNil(adjustment)
-        XCTAssertEqual(adjustment?.data.key, "matchEQ")
-        XCTAssertEqual(adjustment?.data.value, "match data")
+        #expect(adjustment != nil)
+        #expect(adjustment?.data.key == "matchEQ")
+        #expect(adjustment?.data.value == "match data")
     }
     
-    func testClipAudioEnhancementsRoundTrip() {
+    @Test("Clip audio enhancements round-trip")
+    func clipAudioEnhancementsRoundTrip() {
         let clip = FinalCutPro.FCPXML.Clip(duration: Fraction(5, 1))
         
         let noiseReduction = FinalCutPro.FCPXML.NoiseReductionAdjustment(amount: 0.5)
@@ -237,10 +231,10 @@ final class FCPXMLAudioEnhancementTests: XCTestCase {
         clip.equalizationAdjustment = equalization
         clip.matchEqualizationAdjustment = matchEQ
         
-        XCTAssertEqual(clip.noiseReductionAdjustment?.amount, 0.5)
-        XCTAssertEqual(clip.humReductionAdjustment?.frequency, .hz60)
-        XCTAssertEqual(clip.equalizationAdjustment?.mode, .voiceEnhance)
-        XCTAssertEqual(clip.matchEqualizationAdjustment?.data.key, "matchEQ")
+        #expect(clip.noiseReductionAdjustment?.amount == 0.5)
+        #expect(clip.humReductionAdjustment?.frequency == .hz60)
+        #expect(clip.equalizationAdjustment?.mode == .voiceEnhance)
+        #expect(clip.matchEqualizationAdjustment?.data.key == "matchEQ")
         
         // Verify XML structure
         let noiseElement = clip.element.firstChildElement(named: "adjust-noiseReduction")
@@ -248,9 +242,9 @@ final class FCPXMLAudioEnhancementTests: XCTestCase {
         let eqElement = clip.element.firstChildElement(named: "adjust-EQ")
         let matchEQElement = clip.element.firstChildElement(named: "adjust-matchEQ")
         
-        XCTAssertNotNil(noiseElement)
-        XCTAssertNotNil(humElement)
-        XCTAssertNotNil(eqElement)
-        XCTAssertNotNil(matchEQElement)
+        #expect(noiseElement != nil)
+        #expect(humElement != nil)
+        #expect(eqElement != nil)
+        #expect(matchEQElement != nil)
     }
 }

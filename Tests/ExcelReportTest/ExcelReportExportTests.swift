@@ -10,16 +10,17 @@
 
 import Foundation
 import OpenFCPXMLKit
-import XCTest
+import Testing
 #if canImport(PDFKit)
 import PDFKit
 #endif
 
-@available(macOS 26.0, *)
-final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
+@Suite("Excel report export")
+struct ExcelReportExportTests {
     
     /// Writes `Output/OFK-Default.xlsx` (role inventory only) and `Output/OFK-Full.xlsx` (all sheets).
-    func testExportDefaultAndFullWorkbooks() async throws {
+    @Test("Export default and full workbooks")
+    func exportDefaultAndFullWorkbooks() async throws {
         let fixtureURL = try ExcelReportFixture.requireFixtureURL()
         let outputDir = ExcelReportFixture.outputDirectoryURL()
         try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
@@ -41,23 +42,24 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
         try assertWorkbookExists(at: defaultURL)
         try assertWorkbookExists(at: fullURL)
         
-        XCTAssertNotNil(defaultReport.roleInventory)
-        XCTAssertNil(defaultReport.keywords)
-        XCTAssertNil(defaultReport.markers)
+        #expect(defaultReport.roleInventory != nil)
+        #expect(defaultReport.keywords == nil)
+        #expect(defaultReport.markers == nil)
         
-        XCTAssertNotNil(fullReport.roleInventory)
-        XCTAssertNotNil(fullReport.markers)
-        XCTAssertNotNil(fullReport.keywords)
-        XCTAssertNotNil(fullReport.titlesAndGenerators)
-        XCTAssertNotNil(fullReport.transitions)
-        XCTAssertNotNil(fullReport.effects)
-        XCTAssertNotNil(fullReport.speedChangeEffects)
-        XCTAssertNotNil(fullReport.summary)
-        XCTAssertNotNil(fullReport.mediaSummary)
+        #expect(fullReport.roleInventory != nil)
+        #expect(fullReport.markers != nil)
+        #expect(fullReport.keywords != nil)
+        #expect(fullReport.titlesAndGenerators != nil)
+        #expect(fullReport.transitions != nil)
+        #expect(fullReport.effects != nil)
+        #expect(fullReport.speedChangeEffects != nil)
+        #expect(fullReport.summary != nil)
+        #expect(fullReport.mediaSummary != nil)
     }
     
     /// Writes `Output/OFK-Default.pdf` from the role-inventory report for manual PDF review.
-    func testExportDefaultRoleInventoryPDF() async throws {
+    @Test("Export default role inventory PDF")
+    func exportDefaultRoleInventoryPDF() async throws {
         let fixtureURL = try ExcelReportFixture.requireFixtureURL()
         let outputDir = ExcelReportFixture.outputDirectoryURL()
         try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
@@ -72,12 +74,13 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
         try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: outputURL)
         
         let data = try Data(contentsOf: outputURL)
-        XCTAssertEqual(String(data: data.prefix(4), encoding: .ascii), "%PDF")
-        XCTAssertGreaterThan(data.count, 5_000, "Role inventory PDF should contain readable multi-page output")
+        #expect(String(data: data.prefix(4), encoding: .ascii) == "%PDF")
+        #expect(data.count > 5_000, "Role inventory PDF should contain readable multi-page output")
     }
     
     /// Writes `Output/OFK-ExcludedColumns.pdf` — many columns excluded so remaining widths must expand.
-    func testExportRoleInventoryPDFWithManyExcludedColumns() async throws {
+    @Test("Export role inventory PDF with many excluded columns")
+    func exportRoleInventoryPDFWithManyExcludedColumns() async throws {
         let fixtureURL = try ExcelReportFixture.requireFixtureURL()
         let outputDir = ExcelReportFixture.outputDirectoryURL()
         try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
@@ -101,7 +104,7 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
         ]
         
         let report = try await loadReport(options: options, fixtureURL: fixtureURL)
-        XCTAssertFalse(report.excludedColumns.isEmpty)
+        #expect(!report.excludedColumns.isEmpty)
         
         let outputURL = outputDir.appendingPathComponent("OFK-ExcludedColumns.pdf")
         if FileManager.default.fileExists(atPath: outputURL.path) {
@@ -111,17 +114,17 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
         try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: outputURL)
         
         let data = try Data(contentsOf: outputURL)
-        XCTAssertEqual(String(data: data.prefix(4), encoding: .ascii), "%PDF")
-        XCTAssertGreaterThan(
-            data.count,
-            5_000,
+        #expect(String(data: data.prefix(4), encoding: .ascii) == "%PDF")
+        #expect(
+            data.count > 5_000,
             "Excluded-column PDF should still contain a readable multi-page role inventory"
         )
     }
     
     /// Writes `Output/OFK-Copyright.xlsx` and `Output/OFK-Copyright.pdf` with `--label-copyright` parity.
+    @Test("Export role inventory with copyright label")
     @MainActor
-    func testExportRoleInventoryWithCopyrightLabel() async throws {
+    func exportRoleInventoryWithCopyrightLabel() async throws {
         let fixtureURL = try ExcelReportFixture.requireFixtureURL()
         let outputDir = ExcelReportFixture.outputDirectoryURL()
         try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
@@ -131,7 +134,7 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
         options.copyrightLabel = copyright
         
         let report = try await loadReport(options: options, fixtureURL: fixtureURL)
-        XCTAssertEqual(report.copyrightLabel, copyright)
+        #expect(report.copyrightLabel == copyright)
         
         let xlsxURL = try await writeWorkbook(
             report,
@@ -143,11 +146,11 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
         let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
         let coverName = FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.title
         let coverSheet = workbook.getSheet(name: coverName)
-        XCTAssertEqual(
-            coverSheet?.getCellWithFormat("A1")?.value.stringValue,
-            FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.headerText
+        #expect(
+            coverSheet?.getCellWithFormat("A1")?.value.stringValue
+                == FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.headerText
         )
-        XCTAssertEqual(coverSheet?.getCellWithFormat("A2")?.value.stringValue, copyright)
+        #expect(coverSheet?.getCellWithFormat("A2")?.value.stringValue == copyright)
         
         let pdfURL = outputDir.appendingPathComponent(ExcelReportFixture.copyrightOutputPDFFileName)
         if FileManager.default.fileExists(atPath: pdfURL.path) {
@@ -156,19 +159,16 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
         try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
         
         let pdfData = try Data(contentsOf: pdfURL)
-        XCTAssertEqual(String(data: pdfData.prefix(4), encoding: .ascii), "%PDF")
-        XCTAssertGreaterThan(pdfData.count, 5_000)
+        #expect(String(data: pdfData.prefix(4), encoding: .ascii) == "%PDF")
+        #expect(pdfData.count > 5_000)
         
         #if canImport(PDFKit)
-        guard let document = PDFDocument(data: pdfData) else {
-            XCTFail("Expected valid copyright-labelled PDF")
-            return
-        }
+        let document = try #require(PDFDocument(data: pdfData))
         let coverText = document.page(at: 0)?.string ?? ""
-        XCTAssertTrue(coverText.contains(copyright), "Cover should include copyright label")
+        #expect(coverText.contains(copyright), "Cover should include copyright label")
         let footerPageIndex = min(2, max(0, document.pageCount - 1))
         let footerPageText = document.page(at: footerPageIndex)?.string ?? ""
-        XCTAssertTrue(
+        #expect(
             footerPageText.contains(copyright),
             "Content/footer page should include copyright label"
         )
@@ -177,8 +177,9 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
     
     /// Writes `Output/OFK-OutsideClipBoundaries.xlsx` / `.pdf` with
     /// `--include-markers-outside-clip-boundaries` parity (Hidden column on Markers).
+    @Test("Export markers including outside clip boundaries")
     @MainActor
-    func testExportMarkersIncludingOutsideClipBoundaries() async throws {
+    func exportMarkersIncludingOutsideClipBoundaries() async throws {
         let fixtureURL = try ExcelReportFixture.requireFixtureURL()
         let outputDir = ExcelReportFixture.outputDirectoryURL()
         try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
@@ -189,38 +190,38 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
             options: defaultOptions,
             fixtureURL: fixtureURL
         )
-        let defaultMarkers = try XCTUnwrap(defaultMarkersReport.markers)
-        XCTAssertFalse(
-            defaultMarkers.showsHiddenColumn,
+        let defaultMarkers = try #require(defaultMarkersReport.markers)
+        #expect(
+            !defaultMarkers.showsHiddenColumn,
             "Default Markers sheet must omit the Hidden column"
         )
-        XCTAssertFalse(defaultMarkers.columnHeaders().contains("Hidden"))
+        #expect(!defaultMarkers.columnHeaders().contains("Hidden"))
         
         var includeOptions = FinalCutPro.FCPXML.ReportOptions.markersOnly
         includeOptions.includeChapterMarkersInMarkersReport = true
         includeOptions.includeMarkersOutsideClipBoundaries = true
         // Keep role inventory off for a focused Markers workbook, but still write a cover sheet.
         let includeReport = try await loadReport(options: includeOptions, fixtureURL: fixtureURL)
-        let includeMarkers = try XCTUnwrap(includeReport.markers)
+        let includeMarkers = try #require(includeReport.markers)
         
-        XCTAssertTrue(includeMarkers.showsHiddenColumn)
-        XCTAssertEqual(includeMarkers.columnHeaders().last, "Hidden")
-        XCTAssertGreaterThanOrEqual(
-            includeMarkers.rows.count,
-            defaultMarkers.rows.count,
+        #expect(includeMarkers.showsHiddenColumn)
+        #expect(includeMarkers.columnHeaders().last == "Hidden")
+        #expect(
+            includeMarkers.rows.count >= defaultMarkers.rows.count,
             "Opt-in must not drop in-bounds markers and may add out-of-bounds rows"
         )
         
         let hiddenValues = Set(
             includeMarkers.rows.map { includeMarkers.columnValues(for: $0).last ?? "" }
         )
-        XCTAssertTrue(
+        #expect(
             hiddenValues.isSubset(of: ["✓", "✗"]),
             "Hidden column cells must be ✓ or ✗"
         )
         if includeMarkers.rows.count > defaultMarkers.rows.count {
-            XCTAssertTrue(
-                includeMarkers.rows.contains(where: \.isHidden),
+            let hasHiddenRow = includeMarkers.rows.contains { $0.isHidden }
+            #expect(
+                hasHiddenRow,
                 "Extra rows from opt-in should be marked Hidden"
             )
         }
@@ -241,14 +242,15 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
         try FinalCutPro.FCPXML.ReportPDFExport.export(includeReport, to: pdfURL)
         
         let pdfData = try Data(contentsOf: pdfURL)
-        XCTAssertEqual(String(data: pdfData.prefix(4), encoding: .ascii), "%PDF")
-        XCTAssertGreaterThan(pdfData.count, 5_000)
+        #expect(String(data: pdfData.prefix(4), encoding: .ascii) == "%PDF")
+        #expect(pdfData.count > 5_000)
     }
     
     /// Writes `Output/OFK-ProtectedSheets.xlsx` with worksheet protection on every sheet
     /// (CLI `--protect-sheets` parity). Excel only — PDF is unaffected.
+    @Test("Export protected sheets workbook")
     @MainActor
-    func testExportProtectedSheetsWorkbook() async throws {
+    func exportProtectedSheetsWorkbook() async throws {
         let fixtureURL = try ExcelReportFixture.requireFixtureURL()
         let outputDir = ExcelReportFixture.outputDirectoryURL()
         try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
@@ -256,14 +258,14 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
         var options = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
         options.protectSheets = true
         let report = try await loadReport(options: options, fixtureURL: fixtureURL)
-        XCTAssertTrue(report.protectSheets)
+        #expect(report.protectSheets)
         
         let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
         let sheets = workbook.getSheets()
-        XCTAssertFalse(sheets.isEmpty)
+        #expect(!sheets.isEmpty)
         for sheet in sheets {
-            XCTAssertNotNil(
-                sheet.protection,
+            #expect(
+                sheet.protection != nil,
                 "Sheet '\(sheet.name)' should be protected"
             )
         }
@@ -311,13 +313,16 @@ final class ExcelReportExportTests: XCTestCase, @unchecked Sendable {
     }
     
     private func assertWorkbookExists(at url: URL) throws {
-        XCTAssertTrue(
+        #expect(
             FileManager.default.fileExists(atPath: url.path),
             "Expected workbook at \(url.path)"
         )
         
         let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
         let fileSize = attributes[.size] as? NSNumber
-        XCTAssertGreaterThan(fileSize?.intValue ?? 0, 0, "Workbook at \(url.lastPathComponent) is empty")
+        #expect(
+            (fileSize?.intValue ?? 0) > 0,
+            "Workbook at \(url.lastPathComponent) is empty"
+        )
     }
 }

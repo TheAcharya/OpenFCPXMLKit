@@ -8,16 +8,17 @@
 //	Unit tests for semantic effect collection from clip hosts.
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLEffectsCollectorTests: XCTestCase {
+@Suite("Effects collector")
+struct FCPXMLEffectsCollectorTests {
     private typealias EffectsCollector = FinalCutPro.FCPXML.EffectsCollector
     private typealias ExtractedElement = FinalCutPro.FCPXML.ExtractedElement
     private typealias ExtractedEffect = FinalCutPro.FCPXML.ExtractedEffect
-    
-    func testEffectsOnAssetClipCollectsFilterVideoAndAudio() throws {
+
+    @Test("Effects on asset clip collects filter video and audio")
+    func effectsOnAssetClipCollectsFilterVideoAndAudio() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -41,15 +42,18 @@ final class FCPXMLEffectsCollectorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
+
         let host = try makeExtractedHost(from: fcpxml, elementName: "asset-clip")
         let effects = EffectsCollector.effects(on: host)
-        
-        XCTAssertTrue(effects.contains { $0.kind == .filterVideo && $0.name == "Blur" })
-        XCTAssertTrue(effects.contains { $0.kind == .filterAudio && $0.name == "EQ" })
+
+        let hasBlur = effects.contains { $0.kind == .filterVideo && $0.name == "Blur" }
+        let hasEQ = effects.contains { $0.kind == .filterAudio && $0.name == "EQ" }
+        #expect(hasBlur)
+        #expect(hasEQ)
     }
-    
-    func testEffectsOnAssetClipVolumeWithoutAmountEmitsEmptyAndZeroDecibelRows() throws {
+
+    @Test("Effects on asset clip volume without amount emits empty and zero decibel rows")
+    func effectsOnAssetClipVolumeWithoutAmountEmitsEmptyAndZeroDecibelRows() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -72,19 +76,22 @@ final class FCPXMLEffectsCollectorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
+
         let host = try makeExtractedHost(from: fcpxml, elementName: "asset-clip")
         let volumeEffects = EffectsCollector.effects(on: host).filter { $0.kind == .volume }
-        
-        XCTAssertEqual(volumeEffects.count, 2)
-        XCTAssertTrue(volumeEffects.contains { $0.settings == .empty && $0.sortOrder == 0 })
-        XCTAssertTrue(volumeEffects.contains {
+
+        #expect(volumeEffects.count == 2)
+        let hasEmpty = volumeEffects.contains { $0.settings == .empty && $0.sortOrder == 0 }
+        let hasZeroDecibel = volumeEffects.contains {
             if case .decibels(0) = $0.settings { return $0.sortOrder == 1 }
             return false
-        })
+        }
+        #expect(hasEmpty)
+        #expect(hasZeroDecibel)
     }
-    
-    func testEffectsOnAssetClipVolumeWithAmountEmitsSingleDecibelRow() throws {
+
+    @Test("Effects on asset clip volume with amount emits single decibel row")
+    func effectsOnAssetClipVolumeWithAmountEmitsSingleDecibelRow() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -107,43 +114,45 @@ final class FCPXMLEffectsCollectorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
+
         let host = try makeExtractedHost(from: fcpxml, elementName: "asset-clip")
         let volumeEffects = EffectsCollector.effects(on: host).filter { $0.kind == .volume }
-        
-        XCTAssertEqual(volumeEffects.count, 1)
+
+        #expect(volumeEffects.count == 1)
         if case .decibels(let amount) = volumeEffects[0].settings {
-            XCTAssertEqual(amount, 12, accuracy: 0.001)
+            #expect(abs(amount - 12) < 0.001)
         } else {
-            XCTFail("Expected decibel volume settings")
+            Issue.record("Expected decibel volume settings")
         }
     }
-    
-    func testEffectsOnDisabledAssetClipWithAudioEmitsImplicitVolume() throws {
-        let fcpxml = try loadFCPXMLSample(named: "DisabledClips")
-        let disabledClip = try XCTUnwrap(
+
+    @Test("Effects on disabled asset clip with audio emits implicit volume")
+    func effectsOnDisabledAssetClipWithAudioEmitsImplicitVolume() throws {
+        let fcpxml = try requireFCPXMLSample(named: "DisabledClips")
+        let disabledClip = try #require(
             firstDescendantElement(
                 in: fcpxml.root.element,
                 named: "asset-clip",
                 where: { $0.fcpGetEnabled(default: true) == false }
             )
         )
-        
+
         let host = ExtractedElement(
             element: disabledClip,
             breadcrumbs: [],
             resources: fcpxml.root.resources
         )
         let effects = EffectsCollector.effects(on: host)
-        
+
         let implicitVolume = effects.first {
             $0.kind == .implicitVolume && $0.name == "volume"
         }
-        XCTAssertNotNil(implicitVolume)
-        XCTAssertEqual(implicitVolume?.settings, .empty)
+        #expect(implicitVolume != nil)
+        #expect(implicitVolume?.settings == .empty)
     }
-    
-    func testEffectsOnTitleCollectsAdjustBlendAsCompositing() throws {
+
+    @Test("Effects on title collects adjust-blend as compositing")
+    func effectsOnTitleCollectsAdjustBlendAsCompositing() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -167,20 +176,21 @@ final class FCPXMLEffectsCollectorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
+
         let host = try makeExtractedHost(from: fcpxml, elementName: "title")
         let compositing = EffectsCollector.effects(on: host).filter { $0.kind == .compositing }
-        
-        XCTAssertEqual(compositing.count, 1)
-        XCTAssertEqual(compositing[0].name, "Compositing")
+
+        #expect(compositing.count == 1)
+        #expect(compositing[0].name == "Compositing")
         if case .opacityPercent(let amount) = compositing[0].settings {
-            XCTAssertEqual(amount, 0.3, accuracy: 0.001)
+            #expect(abs(amount - 0.3) < 0.001)
         } else {
-            XCTFail("Expected opacity percent settings")
+            Issue.record("Expected opacity percent settings")
         }
     }
-    
-    func testEffectsOnTitleCollectsThreeTransformRowsInSortOrder() throws {
+
+    @Test("Effects on title collects three transform rows in sort order")
+    func effectsOnTitleCollectsThreeTransformRowsInSortOrder() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -204,17 +214,18 @@ final class FCPXMLEffectsCollectorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
+
         let host = try makeExtractedHost(from: fcpxml, elementName: "title")
         let transforms = EffectsCollector.effects(on: host)
             .filter { $0.kind == .transform }
             .sorted { $0.sortOrder < $1.sortOrder }
-        
-        XCTAssertEqual(transforms.count, 3)
-        XCTAssertEqual(transforms.map(\.sortOrder), [0, 1, 2])
+
+        #expect(transforms.count == 3)
+        #expect(transforms.map(\.sortOrder) == [0, 1, 2])
     }
-    
-    func testEffectsCollectorIsEffectEnabledRespectsEffectElementEnabled() throws {
+
+    @Test("Effects collector isEffectEnabled respects effect element enabled")
+    func effectsCollectorIsEffectEnabledRespectsEffectElementEnabled() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -237,18 +248,17 @@ final class FCPXMLEffectsCollectorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let hostElement = try XCTUnwrap(
+
+        let hostElement = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "asset-clip")
         )
-        let filter = try XCTUnwrap(hostElement.firstChildElement(named: "filter-video"))
-        
-        XCTAssertFalse(
-            EffectsCollector.isEffectEnabled(effectElement: filter, host: hostElement)
-        )
+        let filter = try #require(hostElement.firstChildElement(named: "filter-video"))
+
+        #expect(!EffectsCollector.isEffectEnabled(effectElement: filter, host: hostElement))
     }
-    
-    func testEffectsCollectorIsEffectEnabledFallsBackToHostEnabled() throws {
+
+    @Test("Effects collector isEffectEnabled falls back to host enabled")
+    func effectsCollectorIsEffectEnabledFallsBackToHostEnabled() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -271,34 +281,33 @@ final class FCPXMLEffectsCollectorTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        
-        let hostElement = try XCTUnwrap(
+
+        let hostElement = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: "asset-clip")
         )
-        let filter = try XCTUnwrap(hostElement.firstChildElement(named: "filter-video"))
-        
-        XCTAssertFalse(
-            EffectsCollector.isEffectEnabled(effectElement: filter, host: hostElement)
-        )
+        let filter = try #require(hostElement.firstChildElement(named: "filter-video"))
+
+        #expect(!EffectsCollector.isEffectEnabled(effectElement: filter, host: hostElement))
     }
-    
-    func testEffectsExtractionPresetReturnsOnlySupportedHostTypes() async throws {
-        let timeline = try timelineElement(fromSampleNamed: "TimelineSample")
+
+    @Test("Effects extraction preset returns only supported host types")
+    func effectsExtractionPresetReturnsOnlySupportedHostTypes() async throws {
+        let timeline = try requireTimelineElement(fromSampleNamed: "TimelineSample")
         let effects = await timeline.fcpExtract(preset: .effects)
-        
+
         let hostTypes = Set(
             effects.map { $0.host.element.fcpElementType }.compactMap { $0 }
         )
-        
-        XCTAssertFalse(effects.isEmpty)
-        XCTAssertTrue(hostTypes.isSubset(of: [.title, .assetClip, .syncClip]))
+
+        #expect(!effects.isEmpty)
+        #expect(hostTypes.isSubset(of: [.title, .assetClip, .syncClip]))
     }
-    
+
     private func makeExtractedHost(
         from fcpxml: FinalCutPro.FCPXML,
         elementName: String
     ) throws -> ExtractedElement {
-        let element = try XCTUnwrap(
+        let element = try #require(
             firstDescendantElement(in: fcpxml.root.element, named: elementName)
         )
         return ExtractedElement(

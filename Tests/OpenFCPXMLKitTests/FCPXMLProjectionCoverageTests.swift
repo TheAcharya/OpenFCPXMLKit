@@ -9,43 +9,54 @@
 //	Projection geometry: annotations, per-src, nested retiming, sync-in-mc, PSD, Summary occupancy.
 //
 
-import XCTest
+import Testing
 import SwiftTimecode
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLProjectionCoverageTests: XCTestCase {
+@Suite("Projection coverage")
+struct FCPXMLProjectionCoverageTests {
     private let projector = FinalCutPro.FCPXML.TimelineProjector()
 
     // MARK: - Annotations
 
-    func testAnnotationsEmptyByDefault() async throws {
+    @Test("Annotations empty by default")
+    func annotationsEmptyByDefault() async throws {
         let fcpxml = try parseInlineFCPXML(simpleAssetClipXML)
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: .init())
-        XCTAssertFalse(windows.isEmpty)
-        XCTAssertTrue(windows.allSatisfy { $0.roles.isEmpty && $0.effects.isEmpty && $0.breadcrumbs.isEmpty })
+        let hasWindows = !windows.isEmpty
+        #expect(hasWindows)
+        let allEmptyAnnotations = windows.allSatisfy {
+            $0.roles.isEmpty && $0.effects.isEmpty && $0.breadcrumbs.isEmpty
+        }
+        #expect(allEmptyAnnotations)
     }
 
-    func testAnnotationsPopulatedWhenEnabled() async throws {
+    @Test("Annotations populated when enabled")
+    func annotationsPopulatedWhenEnabled() async throws {
         let fcpxml = try parseInlineFCPXML(simpleAssetClipWithVolumeXML)
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         var options = FinalCutPro.FCPXML.TimelineProjectionOptions()
         options.includeAnnotations = true
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: options)
-        XCTAssertFalse(windows.isEmpty)
-        XCTAssertTrue(windows.contains { !$0.breadcrumbs.isEmpty })
-        XCTAssertTrue(windows.contains { $0.effects.contains { $0.kind == .volume } })
-        XCTAssertTrue(windows.contains { window in
+        let hasWindows = !windows.isEmpty
+        #expect(hasWindows)
+        let hasBreadcrumbs = windows.contains { !$0.breadcrumbs.isEmpty }
+        let hasVolume = windows.contains { $0.effects.contains { $0.kind == .volume } }
+        let hasAudioRole = windows.contains { window in
             window.channel.kind == .audio && window.roles.contains { $0.isAudio }
-        })
+        }
+        #expect(hasBreadcrumbs)
+        #expect(hasVolume)
+        #expect(hasAudioRole)
     }
 
     // MARK: - Per-src expansion
 
-    func testExpandAllSourceChannelsFalseEmitsPrimarySrcOnly() async throws {
+    @Test("expandAllSourceChannels false emits primary src only")
+    func expandAllSourceChannelsFalseEmitsPrimarySrcOnly() async throws {
         let fcpxml = try parseInlineFCPXML(multiAudioSourceXML)
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
 
         var all = FinalCutPro.FCPXML.TimelineProjectionOptions()
         all.expandAllSourceChannels = true
@@ -57,15 +68,16 @@ final class FCPXMLProjectionCoverageTests: XCTestCase {
 
         let expandedAudio = expanded.filter { $0.channel.kind == .audio }
         let collapsedAudio = collapsed.filter { $0.channel.kind == .audio }
-        XCTAssertGreaterThanOrEqual(expandedAudio.count, 2)
-        XCTAssertEqual(Set(expandedAudio.map(\.channel.sourceIndex)), Set([1, 2]))
-        XCTAssertEqual(collapsedAudio.count, 1)
-        XCTAssertEqual(collapsedAudio.first?.channel.sourceIndex, 1)
+        #expect(expandedAudio.count >= 2)
+        #expect(Set(expandedAudio.map(\.channel.sourceIndex)) == Set([1, 2]))
+        #expect(collapsedAudio.count == 1)
+        #expect(collapsedAudio.first?.channel.sourceIndex == 1)
     }
 
     // MARK: - Nested retiming composition
 
-    func testRetimingSegmentComposingParentAndChild() throws {
+    @Test("RetimingSegment composing parent and child")
+    func retimingSegmentComposingParentAndChild() throws {
         let parent = FinalCutPro.FCPXML.RetimingSegment(
             timelineStart: Fraction(0, 1),
             timelineEnd: Fraction(5, 1),
@@ -83,15 +95,19 @@ final class FCPXMLProjectionCoverageTests: XCTestCase {
             isReversed: false
         )
         let composed = FinalCutPro.FCPXML.RetimingSegment.composing(parent: parent, child: child)
-        XCTAssertEqual(composed.count, 1)
-        let segment = try XCTUnwrap(composed.first)
+        #expect(composed.count == 1)
+        let segment = try #require(composed.first)
         // Overlap in parent media [2,6) → outer timeline [1,3) at 0.5x
-        XCTAssertEqual(segment.timelineStart.doubleValue, 1, accuracy: 0.001)
-        XCTAssertEqual(segment.timelineEnd.doubleValue, 3, accuracy: 0.001)
-        XCTAssertEqual(segment.scale, 0.5, accuracy: 0.001)
+        let startMatch = abs(segment.timelineStart.doubleValue - 1) < 0.001
+        let endMatch = abs(segment.timelineEnd.doubleValue - 3) < 0.001
+        let scaleMatch = abs(segment.scale - 0.5) < 0.001
+        #expect(startMatch)
+        #expect(endMatch)
+        #expect(scaleMatch)
     }
 
-    func testRetimingSegmentComposingReverseXOR() throws {
+    @Test("RetimingSegment composing reverse XOR")
+    func retimingSegmentComposingReverseXOR() throws {
         let parent = FinalCutPro.FCPXML.RetimingSegment(
             timelineStart: Fraction(0, 1),
             timelineEnd: Fraction(4, 1),
@@ -109,47 +125,58 @@ final class FCPXMLProjectionCoverageTests: XCTestCase {
             isReversed: false
         )
         let composed = FinalCutPro.FCPXML.RetimingSegment.composing(parent: parent, child: child)
-        XCTAssertEqual(composed.count, 1)
-        XCTAssertTrue(try XCTUnwrap(composed.first).isReversed)
+        #expect(composed.count == 1)
+        #expect(try #require(composed.first).isReversed)
     }
 
-    func testNestedRefClipTimeMapComposesInnerIdentity() async throws {
+    @Test("Nested ref-clip timeMap composes inner identity")
+    func nestedRefClipTimeMapComposesInnerIdentity() async throws {
         let fcpxml = try parseInlineFCPXML(nestedRefClipWithOuterTimeMapXML)
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: .init())
         let video = windows.filter { $0.channel.kind == .video }
-        XCTAssertFalse(video.isEmpty)
+        let hasVideo = !video.isEmpty
+        #expect(hasVideo)
         // Outer 2x map over 4s timeline reading 8s media → inner full clip should compress.
-        XCTAssertTrue(video.contains { abs($0.retiming.scale - 2) < 0.05 || $0.timelineOut.doubleValue <= 4.1 })
+        let composedOk = video.contains {
+            abs($0.retiming.scale - 2) < 0.05 || $0.timelineOut.doubleValue <= 4.1
+        }
+        #expect(composedOk)
     }
 
     // MARK: - Sync-in-multicam + multi-channel audio
 
-    func testSyncInsideMulticamEmitsVideoAndMultiChannelAudio() async throws {
+    @Test("Sync inside multicam emits video and multi-channel audio")
+    func syncInsideMulticamEmitsVideoAndMultiChannelAudio() async throws {
         let fcpxml = try parseInlineFCPXML(syncInMulticamXML)
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: .init())
-        XCTAssertTrue(windows.contains { $0.channel.kind == .video })
+        let hasVideo = windows.contains { $0.channel.kind == .video }
+        #expect(hasVideo)
         let audio = windows.filter { $0.channel.kind == .audio }
-        XCTAssertGreaterThanOrEqual(audio.count, 2)
-        XCTAssertEqual(Set(audio.map(\.channel.sourceIndex)).count, audio.count)
+        #expect(audio.count >= 2)
+        #expect(Set(audio.map(\.channel.sourceIndex)).count == audio.count)
     }
 
     // MARK: - Photoshop multi-layer
 
-    func testPhotoshopSample1EmitsMultipleVideoSources() async throws {
-        let fcpxml = try loadFCPXMLSample(named: "PhotoshopSample1")
-        let source = try XCTUnwrap(fcpxml.allReportTimelineSources().first)
+    @Test("PhotoshopSample1 emits multiple video sources")
+    func photoshopSample1EmitsMultipleVideoSources() async throws {
+        let fcpxml = try requireFCPXMLSample(named: "PhotoshopSample1")
+        let source = try #require(fcpxml.allReportTimelineSources().first)
         let windows = try await projector.project(from: source, fcpxml: fcpxml, options: .init())
         let video = windows.filter { $0.channel.kind == .video }
         let indices = Set(video.map(\.channel.sourceIndex))
-        XCTAssertTrue(indices.isSuperset(of: [1, 2, 3]), "Expected src 1–3, got \(indices)")
-        XCTAssertTrue(video.contains { ($0.channel.nativeDuration?.doubleValue ?? -1) == 0 })
+        let hasSrc123 = indices.isSuperset(of: [1, 2, 3])
+        #expect(hasSrc123, "Expected src 1–3, got \(indices)")
+        let hasStill = video.contains { ($0.channel.nativeDuration?.doubleValue ?? -1) == 0 }
+        #expect(hasStill)
     }
 
     // MARK: - Summary overlap-aware
 
-    func testSummaryOverlapAwareUsesUnionLessThanSum() throws {
+    @Test("Summary overlap-aware uses union less than sum")
+    func summaryOverlapAwareUsesUnionLessThanSum() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -170,7 +197,7 @@ final class FCPXMLProjectionCoverageTests: XCTestCase {
             </library>
         </fcpxml>
         """)
-        let timeline = try XCTUnwrap(fcpxml.allProjects().first?.sequence.element)
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
 
         let components: [FinalCutPro.FCPXML.RoleInventoryClipComponent] = [
             .init(
@@ -204,11 +231,13 @@ final class FCPXMLProjectionCoverageTests: XCTestCase {
             overlapAware: true
         )
 
-        let sumDialogue = try XCTUnwrap(summedRows.first { $0.roleSubrole == "Dialogue" })
-        let unionDialogue = try XCTUnwrap(unionedRows.first { $0.roleSubrole == "Dialogue" })
-        XCTAssertEqual(sumDialogue.percentOfTotal, 0.08, accuracy: 0.0001)
-        XCTAssertEqual(unionDialogue.percentOfTotal, 0.06, accuracy: 0.0001)
-        XCTAssertLessThan(unionDialogue.percentOfTotal, sumDialogue.percentOfTotal)
+        let sumDialogue = try #require(summedRows.first { $0.roleSubrole == "Dialogue" })
+        let unionDialogue = try #require(unionedRows.first { $0.roleSubrole == "Dialogue" })
+        let sumMatch = abs(sumDialogue.percentOfTotal - 0.08) < 0.0001
+        let unionMatch = abs(unionDialogue.percentOfTotal - 0.06) < 0.0001
+        #expect(sumMatch)
+        #expect(unionMatch)
+        #expect(unionDialogue.percentOfTotal < sumDialogue.percentOfTotal)
     }
 
     // MARK: - Fixtures

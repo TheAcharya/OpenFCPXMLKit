@@ -9,7 +9,7 @@
 //
 
 import Foundation
-import XCTest
+import Testing
 
 enum ExcelReportFixture {
     static let preferredBundleName = "Sample.fcpxmld"
@@ -55,15 +55,15 @@ enum ExcelReportFixture {
             ?? discoverFixture(in: outputDirectory)
     }
     
+    /// Resolves a fixture URL or cancels the current Swift Testing test when none is available.
     static func requireFixtureURL() throws -> URL {
         guard let url = fixtureURL() else {
-            throw XCTSkip(
+            let message =
                 "Excel report fixture unavailable. Add \(preferredBundleName) or " +
                 "\(preferredFileName) under Tests/ExcelReportTest/, or set " +
                 "\(environmentVariableName) to a .fcpxml file or .fcpxmld bundle path."
-            )
+            try Test.cancel("\(message)")
         }
-        
         return url
     }
     

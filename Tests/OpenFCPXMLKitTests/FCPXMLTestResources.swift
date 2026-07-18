@@ -9,7 +9,6 @@
 //
 
 import Foundation
-import XCTest
 
 /// Resolves the package root (directory containing Package.swift) from a file URL (e.g. `#file`).
 func packageRoot(relativeToFile fileURL: URL = URL(fileURLWithPath: #file)) -> URL {

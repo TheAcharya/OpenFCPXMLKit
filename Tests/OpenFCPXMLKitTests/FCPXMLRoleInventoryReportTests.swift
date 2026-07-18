@@ -8,89 +8,104 @@
 //	Role inventory report integration tests (optional local FCPXML fixture).
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLRoleInventoryReportTests: XCTestCase, @unchecked Sendable {
-    
-    private func roleInventoryOptions() throws -> FinalCutPro.FCPXML.ReportOptions {
-        try FCPXMLReportingReportFixture.reportOptions {
-            $0.includeRoleInventory = true
-        }
+@Suite("Role inventory report")
+struct FCPXMLRoleInventoryReportTests {
+
+    private func roleInventoryOptions(
+        for fcpxml: FinalCutPro.FCPXML
+    ) -> FinalCutPro.FCPXML.ReportOptions {
+        var options = FinalCutPro.FCPXML.ReportOptions()
+        options.projectName = FCPXMLReportingReportFixture.primaryProjectName(in: fcpxml)
+        options.includeRoleInventory = true
+        return options
     }
-    
-    func testBuildRoleInventoryReportSheetLayoutFromFixture() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
-        let report = try await fcpxml.buildReport(options: roleInventoryOptions())
-        
-        guard let roleInventory = report.roleInventory else {
-            XCTFail("Expected role inventory section")
-            return
-        }
-        
-        XCTAssertFalse(roleInventory.selectedRoles.isEmpty)
-        XCTAssertFalse(roleInventory.roleSheets.isEmpty)
-        
+
+    @Test("Build role inventory report sheet layout from fixture")
+    func buildRoleInventoryReportSheetLayoutFromFixture() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
+        let report = try await fcpxml.buildReport(options: roleInventoryOptions(for: fcpxml))
+
+        let roleInventory = try #require(report.roleInventory)
+
+        let selectedRolesEmpty = roleInventory.selectedRoles.isEmpty
+        let roleSheetsEmpty = roleInventory.roleSheets.isEmpty
+        #expect(!selectedRolesEmpty)
+        #expect(!roleSheetsEmpty)
+
         let sheetNames = roleInventory.roleSheets.map(\.sheetName)
-        XCTAssertEqual(Set(sheetNames).count, sheetNames.count)
-        
+        #expect(Set(sheetNames).count == sheetNames.count)
+
         for sheet in roleInventory.roleSheets where sheet.sheetName.contains(" ▸ ") {
             let parentName = String(sheet.sheetName.split(separator: "▸", maxSplits: 1)[0])
                 .trimmingCharacters(in: .whitespaces)
-            XCTAssertTrue(
+            #expect(
                 sheetNames.contains(parentName),
                 "Expected parent sheet for \(sheet.sheetName)"
             )
         }
     }
-    
-    func testBuildRoleInventorySelectedRolesRowShapeFromFixture() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
-        let report = try await fcpxml.buildReport(options: roleInventoryOptions())
-        
+
+    @Test("Build role inventory selected roles row shape from fixture")
+    func buildRoleInventorySelectedRolesRowShapeFromFixture() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
+        let report = try await fcpxml.buildReport(options: roleInventoryOptions(for: fcpxml))
+
         let rows = report.roleInventory?.selectedRoles ?? []
-        XCTAssertFalse(rows.isEmpty)
-        
+        let rowsEmpty = rows.isEmpty
+        #expect(!rowsEmpty)
+
         for row in rows.prefix(10) {
-            XCTAssertFalse(row.roleSubrole.isEmpty)
-            XCTAssertFalse(row.clipName.isEmpty)
-            XCTAssertFalse(row.category.isEmpty)
+            let roleEmpty = row.roleSubrole.isEmpty
+            let clipNameEmpty = row.clipName.isEmpty
+            let categoryEmpty = row.category.isEmpty
+            #expect(!roleEmpty)
+            #expect(!clipNameEmpty)
+            #expect(!categoryEmpty)
             FCPXMLReportingReportTestSupport.assertCheckmarkOrCross(row.enabled)
             FCPXMLReportingReportTestSupport.assertValidTimecode(row.timelineIn)
             FCPXMLReportingReportTestSupport.assertValidTimecode(row.timelineOut)
         }
     }
-    
-    func testBuildRoleInventoryPerRoleSheetsContainRowsFromFixture() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
-        let report = try await fcpxml.buildReport(options: roleInventoryOptions())
-        
+
+    @Test("Build role inventory per-role sheets contain rows from fixture")
+    func buildRoleInventoryPerRoleSheetsContainRowsFromFixture() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
+        let report = try await fcpxml.buildReport(options: roleInventoryOptions(for: fcpxml))
+
         let sheetsWithRows = report.roleInventory?.roleSheets.filter { !$0.rows.isEmpty } ?? []
-        XCTAssertFalse(sheetsWithRows.isEmpty)
-        
+        let sheetsEmpty = sheetsWithRows.isEmpty
+        #expect(!sheetsEmpty)
+
         for sheet in sheetsWithRows.prefix(5) {
-            XCTAssertFalse(sheet.sheetName.isEmpty)
-            XCTAssertFalse(sheet.rows.isEmpty)
+            let sheetNameEmpty = sheet.sheetName.isEmpty
+            let rowsEmpty = sheet.rows.isEmpty
+            #expect(!sheetNameEmpty)
+            #expect(!rowsEmpty)
         }
     }
-    
-    func testRoleInventoryOnlyPresetEnablesRoleInventorySectionOnly() {
+
+    @Test("Role inventory only preset enables role inventory section only")
+    func roleInventoryOnlyPresetEnablesRoleInventorySectionOnly() {
         let options = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
-        
-        XCTAssertTrue(options.includeRoleInventory)
-        XCTAssertFalse(options.includeMarkers)
-        XCTAssertFalse(options.includeKeywords)
-        XCTAssertFalse(options.includeTitlesAndGenerators)
-        XCTAssertFalse(options.includeTransitions)
-        XCTAssertFalse(options.includeEffects)
-        XCTAssertFalse(options.includeSummary)
-        XCTAssertFalse(options.includeMediaSummary)
+
+        #expect(options.includeRoleInventory)
+        #expect(!options.includeMarkers)
+        #expect(!options.includeKeywords)
+        #expect(!options.includeTitlesAndGenerators)
+        #expect(!options.includeTransitions)
+        #expect(!options.includeEffects)
+        #expect(!options.includeSummary)
+        #expect(!options.includeMediaSummary)
     }
-    
-    func testExcludeDisabledClipsOptionDefaultsToIncludingDisabledClips() {
+
+    @Test("Exclude disabled clips option defaults to including disabled clips")
+    func excludeDisabledClipsOptionDefaultsToIncludingDisabledClips() {
         let options = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
-        
-        XCTAssertFalse(options.excludeDisabledClips)
+
+        #expect(!options.excludeDisabledClips)
     }
 }

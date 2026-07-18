@@ -8,54 +8,59 @@
 //	Titles & Generators report integration tests (optional local FCPXML fixture).
 //
 
-import XCTest
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLTitlesReportTests: XCTestCase, @unchecked Sendable {
-    
+@Suite("Titles report")
+struct FCPXMLTitlesReportTests {
+
     private func buildTitlesReport(
         from fcpxml: FinalCutPro.FCPXML
     ) async throws -> FinalCutPro.FCPXML.Report {
-        try await fcpxml.buildReport(
-            options: try FCPXMLReportingReportFixture.reportOptions {
-                $0.includeTitlesAndGenerators = true
-            }
-        )
+        var options = FinalCutPro.FCPXML.ReportOptions()
+        options.projectName = FCPXMLReportingReportFixture.primaryProjectName(in: fcpxml)
+        options.includeTitlesAndGenerators = true
+        return try await fcpxml.buildReport(options: options)
     }
-    
-    func testBuildTitlesReportFromFixture() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
+
+    @Test("Build titles report from fixture")
+    func buildTitlesReportFromFixture() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
         let report = try await buildTitlesReport(from: fcpxml)
-        
-        XCTAssertNotNil(report.titlesAndGenerators)
-        
+
+        #expect(report.titlesAndGenerators != nil)
+
         let rows = report.titlesAndGenerators?.rows ?? []
-        XCTAssertFalse(rows.isEmpty)
-        XCTAssertEqual(FinalCutPro.FCPXML.TitleReportRow.columnHeaders.count, 9)
+        let rowsEmpty = rows.isEmpty
+        #expect(!rowsEmpty)
+        #expect(FinalCutPro.FCPXML.TitleReportRow.columnHeaders.count == 9)
     }
-    
-    func testTitleReportRowsHaveValidShapeFromFixture() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
+
+    @Test("Title report rows have valid shape from fixture")
+    func titleReportRowsHaveValidShapeFromFixture() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
         let report = try await buildTitlesReport(from: fcpxml)
-        
+
         let rows = report.titlesAndGenerators?.rows ?? []
-        XCTAssertFalse(rows.isEmpty)
-        
+        let rowsEmpty = rows.isEmpty
+        #expect(!rowsEmpty)
+
         for row in rows.prefix(20) {
-            XCTAssertFalse(row.clipName.isEmpty)
-            XCTAssertEqual(row.roleSubrole, "Titles")
+            let clipNameEmpty = row.clipName.isEmpty
+            #expect(!clipNameEmpty)
+            #expect(row.roleSubrole == "Titles")
             FCPXMLReportingReportTestSupport.assertCheckmarkOrCross(row.enabled)
             FCPXMLReportingReportTestSupport.assertValidTimecode(row.timelineIn)
             FCPXMLReportingReportTestSupport.assertValidTimecode(row.timelineOut)
             FCPXMLReportingReportTestSupport.assertValidTimecode(row.duration)
         }
     }
-    
-    func testTitlesReportSortedByTimelinePosition() async throws {
-        let fcpxml = try FCPXMLReportingReportFixture.loadFCPXML()
+
+    @Test("Titles report sorted by timeline position")
+    func titlesReportSortedByTimelinePosition() async throws {
+        let fcpxml = try requireReportingFixtureFCPXML()
         let report = try await buildTitlesReport(from: fcpxml)
-        
+
         let positions = report.titlesAndGenerators?.rows.map(\.timelineIn) ?? []
         FCPXMLReportingReportTestSupport.assertSortedTimelinePositions(positions)
     }

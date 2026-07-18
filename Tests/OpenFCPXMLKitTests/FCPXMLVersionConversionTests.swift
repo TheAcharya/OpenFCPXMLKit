@@ -8,27 +8,14 @@
 //	Tests for FCPXML version conversion and save as .fcpxml / .fcpxmld.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import OpenFCPXMLKit
 
-@available(macOS 26.0, *)
-final class FCPXMLVersionConversionTests: XCTestCase, @unchecked Sendable {
-
-    private var service: FCPXMLService!
-    private var converter: FCPXMLVersionConverter!
+@Suite("Version conversion")
+struct FCPXMLVersionConversionTests {
+    private var service: FCPXMLService { FCPXMLService(versionConverter: FCPXMLVersionConverter()) }
     private let factory = FoundationXMLFactory()
-
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        converter = FCPXMLVersionConverter()
-        service = FCPXMLService(versionConverter: converter)
-    }
-
-    override func tearDownWithError() throws {
-        service = nil
-        converter = nil
-        try super.tearDownWithError()
-    }
 
     private func docVersion(_ doc: any OFKXMLDocument) -> String? {
         doc.rootElement()?.attribute(forName: "version")
@@ -36,34 +23,37 @@ final class FCPXMLVersionConversionTests: XCTestCase, @unchecked Sendable {
 
     // MARK: - Convert to version
 
-    func testConvertToVersion_1_14_to_1_10() throws {
+    @Test("Convert to version 1.14 to 1.10")
+    func convertToVersion_1_14_to_1_10() throws {
         let doc = service.createFCPXMLDocument(version: "1.14")
-        XCTAssertEqual(docVersion(doc), "1.14")
+        #expect(docVersion(doc) == "1.14")
         let converted = try service.convertToVersion(doc, targetVersion: .v1_10)
-        XCTAssertEqual(docVersion(converted), "1.10")
+        #expect(docVersion(converted) == "1.10")
     }
 
-    func testConvertToVersion_1_10_to_1_14() throws {
+    @Test("Convert to version 1.10 to 1.14")
+    func convertToVersion_1_10_to_1_14() throws {
         let doc = service.createFCPXMLDocument(version: "1.10")
         let converted = try service.convertToVersion(doc, targetVersion: .v1_14)
-        XCTAssertEqual(docVersion(converted), "1.14")
+        #expect(docVersion(converted) == "1.14")
     }
 
-    func testConvertToVersion_ReturnsNewDocument() throws {
+    @Test("Convert to version returns new document")
+    func convertToVersion_ReturnsNewDocument() throws {
         let doc = service.createFCPXMLDocument(version: "1.13")
         let converted = try service.convertToVersion(doc, targetVersion: .v1_10)
-        XCTAssertNotIdentical(doc, converted)
-        XCTAssertEqual(docVersion(doc), "1.13")
-        XCTAssertEqual(docVersion(converted), "1.10")
+        let originalID = ObjectIdentifier(doc as AnyObject)
+        let convertedID = ObjectIdentifier(converted as AnyObject)
+        #expect(originalID != convertedID)
+        #expect(docVersion(doc) == "1.13")
+        #expect(docVersion(converted) == "1.10")
     }
 
     /// When converting to 1.10, elements not in the 1.10 DTD (e.g. adjust-colorConform from 1.11+) are stripped so FCP can import.
-    func testConvertToVersion_1_10_StripsAdjustColorConform() throws {
+    @Test("Convert to version 1.10 strips adjust-colorConform")
+    func convertToVersion_1_10_StripsAdjustColorConform() throws {
         let doc = service.createFCPXMLDocument(version: "1.14")
-        guard let root = doc.rootElement() else {
-            XCTFail("No root")
-            return
-        }
+        let root = try #require(doc.rootElement())
         let assetClip = factory.makeElement(name: "asset-clip")
         let adjustColorConform = factory.makeElement(name: "adjust-colorConform")
         for (k, v) in [("enabled", "1"), ("autoOrManual", "automatic"), ("conformType", "conformNone"), ("peakNitsOfPQSource", "1000"), ("peakNitsOfSDRToPQSource", "100")] as [(String, String)] {
@@ -73,34 +63,33 @@ final class FCPXMLVersionConversionTests: XCTestCase, @unchecked Sendable {
         root.addChild(assetClip)
 
         let converted = try service.convertToVersion(doc, targetVersion: .v1_10)
-        XCTAssertEqual(docVersion(converted), "1.10")
+        #expect(docVersion(converted) == "1.10")
 
         let found = findElement(named: "adjust-colorConform", in: converted)
-        XCTAssertNil(found, "adjust-colorConform must be stripped when converting to 1.10 for FCP DTD validation")
+        #expect(found == nil, "adjust-colorConform must be stripped when converting to 1.10 for FCP DTD validation")
     }
 
     /// When converting to 1.12, adjust-stereo-3D (1.13+) is stripped.
-    func testConvertToVersion_1_12_StripsAdjustStereo3D() throws {
+    @Test("Convert to version 1.12 strips adjust-stereo-3D")
+    func convertToVersion_1_12_StripsAdjustStereo3D() throws {
         let doc = service.createFCPXMLDocument(version: "1.14")
-        guard let root = doc.rootElement() else {
-            XCTFail("No root")
-            return
-        }
+        let root = try #require(doc.rootElement())
         let assetClip = factory.makeElement(name: "asset-clip")
         let adjustStereo = factory.makeElement(name: "adjust-stereo-3D")
         assetClip.addChild(adjustStereo)
         root.addChild(assetClip)
 
         let converted = try service.convertToVersion(doc, targetVersion: .v1_12)
-        XCTAssertEqual(docVersion(converted), "1.12")
+        #expect(docVersion(converted) == "1.12")
         let found = findElement(named: "adjust-stereo-3D", in: converted)
-        XCTAssertNil(found, "adjust-stereo-3D must be stripped when converting to 1.12")
+        #expect(found == nil, "adjust-stereo-3D must be stripped when converting to 1.12")
     }
 
     /// When converting to 1.12, hidden-clip-marker (1.13+) is stripped.
-    func testConvertToVersion_1_12_StripsHiddenClipMarker() throws {
+    @Test("Convert to version 1.12 strips hidden-clip-marker")
+    func convertToVersion_1_12_StripsHiddenClipMarker() throws {
         let doc = service.createFCPXMLDocument(version: "1.14")
-        guard let root = doc.rootElement() else { XCTFail("No root"); return }
+        let root = try #require(doc.rootElement())
         let resources = root.firstChildElement(named: "resources") ?? factory.makeElement(name: "resources")
         if root.firstChildElement(named: "resources") == nil { root.addChild(resources) }
         let format = factory.makeElement(name: "format")
@@ -127,17 +116,18 @@ final class FCPXMLVersionConversionTests: XCTestCase, @unchecked Sendable {
         clip.addChild(hidden)
         spine.addChild(clip)
         let converted = try service.convertToVersion(doc, targetVersion: .v1_12)
-        XCTAssertEqual(docVersion(converted), "1.12")
+        #expect(docVersion(converted) == "1.12")
         let found = findElement(named: "hidden-clip-marker", in: converted)
-        XCTAssertNil(found, "hidden-clip-marker must be stripped when converting to 1.12")
+        #expect(found == nil, "hidden-clip-marker must be stripped when converting to 1.12")
     }
 
     // MARK: - Attribute stripping (backward compatibility with 1.5)
 
     /// When converting to 1.5, format heroEye and asset heroEyeOverride (1.13+) are stripped.
-    func testConvertToVersion_1_5_StripsFormatHeroEyeAndAssetHeroEyeOverride() throws {
+    @Test("Convert to version 1.5 strips format heroEye and asset heroEyeOverride")
+    func convertToVersion_1_5_StripsFormatHeroEyeAndAssetHeroEyeOverride() throws {
         let doc = service.createFCPXMLDocument(version: "1.14")
-        guard let root = doc.rootElement() else { XCTFail("No root"); return }
+        let root = try #require(doc.rootElement())
         let resources = root.firstChildElement(named: "resources") ?? factory.makeElement(name: "resources")
         if root.firstChildElement(named: "resources") == nil { root.addChild(resources) }
 
@@ -155,21 +145,22 @@ final class FCPXMLVersionConversionTests: XCTestCase, @unchecked Sendable {
         resources.addChild(asset)
 
         let converted = try service.convertToVersion(doc, targetVersion: .v1_5)
-        XCTAssertEqual(docVersion(converted), "1.5")
+        #expect(docVersion(converted) == "1.5")
 
         let convFormat = findElement(named: "format", in: converted)
-        XCTAssertNotNil(convFormat)
-        XCTAssertNil(convFormat?.attribute(forName: "heroEye"), "heroEye must be stripped when converting to 1.5")
+        #expect(convFormat != nil)
+        #expect(convFormat?.attribute(forName: "heroEye") == nil, "heroEye must be stripped when converting to 1.5")
 
         let convAsset = findElement(named: "asset", in: converted)
-        XCTAssertNotNil(convAsset)
-        XCTAssertNil(convAsset?.attribute(forName: "heroEyeOverride"), "heroEyeOverride must be stripped when converting to 1.5")
+        #expect(convAsset != nil)
+        #expect(convAsset?.attribute(forName: "heroEyeOverride") == nil, "heroEyeOverride must be stripped when converting to 1.5")
     }
 
     /// When converting to 1.10, param auxValue and keyframe auxValue (1.11+) are stripped.
-    func testConvertToVersion_1_10_StripsParamAndKeyframeAuxValue() throws {
+    @Test("Convert to version 1.10 strips param and keyframe auxValue")
+    func convertToVersion_1_10_StripsParamAndKeyframeAuxValue() throws {
         let doc = service.createFCPXMLDocument(version: "1.14")
-        guard let root = doc.rootElement() else { XCTFail("No root"); return }
+        let root = try #require(doc.rootElement())
         let resources = root.firstChildElement(named: "resources") ?? factory.makeElement(name: "resources")
         if root.firstChildElement(named: "resources") == nil { root.addChild(resources) }
 
@@ -191,21 +182,22 @@ final class FCPXMLVersionConversionTests: XCTestCase, @unchecked Sendable {
         clip.addChild(keyframe)
 
         let converted = try service.convertToVersion(doc, targetVersion: .v1_10)
-        XCTAssertEqual(docVersion(converted), "1.10")
+        #expect(docVersion(converted) == "1.10")
 
         let convParam = findElement(named: "param", in: converted)
-        XCTAssertNotNil(convParam)
-        XCTAssertNil(convParam?.attribute(forName: "auxValue"), "param auxValue must be stripped when converting to 1.10")
+        #expect(convParam != nil)
+        #expect(convParam?.attribute(forName: "auxValue") == nil, "param auxValue must be stripped when converting to 1.10")
 
         let convKeyframe = findElement(named: "keyframe", in: converted)
-        XCTAssertNotNil(convKeyframe)
-        XCTAssertNil(convKeyframe?.attribute(forName: "auxValue"), "keyframe auxValue must be stripped when converting to 1.10")
+        #expect(convKeyframe != nil)
+        #expect(convKeyframe?.attribute(forName: "auxValue") == nil, "keyframe auxValue must be stripped when converting to 1.10")
     }
 
     /// When converting to 1.13, param auxValue is kept (1.11+); when converting to 1.5, it is stripped.
-    func testConvertToVersion_KeepsAuxValueAt1_13_StripsAt1_5() throws {
+    @Test("Convert to version keeps auxValue at 1.13 strips at 1.5")
+    func convertToVersion_KeepsAuxValueAt1_13_StripsAt1_5() throws {
         let doc = service.createFCPXMLDocument(version: "1.14")
-        guard let root = doc.rootElement() else { XCTFail("No root"); return }
+        let root = try #require(doc.rootElement())
         let param = factory.makeElement(name: "param")
         param.addAttribute(name: "name", value: "Gain")
         param.addAttribute(name: "value", value: "0.8")
@@ -214,11 +206,11 @@ final class FCPXMLVersionConversionTests: XCTestCase, @unchecked Sendable {
 
         let to13 = try service.convertToVersion(doc, targetVersion: .v1_13)
         let param13 = findElement(named: "param", in: to13)
-        XCTAssertEqual(param13?.attribute(forName: "auxValue"), "dB", "param auxValue kept at 1.13")
+        #expect(param13?.attribute(forName: "auxValue") == "dB", "param auxValue kept at 1.13")
 
         let to5 = try service.convertToVersion(doc, targetVersion: .v1_5)
         let param5 = findElement(named: "param", in: to5)
-        XCTAssertNil(param5?.attribute(forName: "auxValue"), "param auxValue stripped at 1.5")
+        #expect(param5?.attribute(forName: "auxValue") == nil, "param auxValue stripped at 1.5")
     }
 
     private func findElement(named name: String, in document: any OFKXMLDocument) -> (any OFKXMLElement)? {
@@ -236,26 +228,25 @@ final class FCPXMLVersionConversionTests: XCTestCase, @unchecked Sendable {
 
     // MARK: - Edge Cases
 
-    func testConvertToVersion_DocumentAlwaysHasRoot() throws {
+    @Test("Convert to version document always has root")
+    func convertToVersion_DocumentAlwaysHasRoot() throws {
         // Verify that converted documents always have a root element
         let doc = service.createFCPXMLDocument(version: "1.14")
         let converted = try service.convertToVersion(doc, targetVersion: .v1_10)
 
         // Converted document should always have a root element
         let root = converted.rootElement()
-        XCTAssertNotNil(root, "Converted document should always have a root element")
-        XCTAssertEqual(root?.name, "fcpxml", "Root element should be 'fcpxml'")
-        XCTAssertEqual(docVersion(converted), "1.10", "Version should be set correctly")
+        #expect(root != nil, "Converted document should always have a root element")
+        #expect(root?.name == "fcpxml", "Root element should be 'fcpxml'")
+        #expect(docVersion(converted) == "1.10", "Version should be set correctly")
     }
 
-    func testConvertToVersion_StrippingWorksWithValidRoot() throws {
+    @Test("Convert to version stripping works with valid root")
+    func convertToVersion_StrippingWorksWithValidRoot() throws {
         // Verify that element stripping works when root exists
         let doc = service.createFCPXMLDocument(version: "1.14")
 
-        guard let root = doc.rootElement() else {
-            XCTFail("Document should have root element")
-            return
-        }
+        let root = try #require(doc.rootElement())
 
         let resources = root.firstChildElement(named: "resources") ?? factory.makeElement(name: "resources")
         if root.firstChildElement(named: "resources") == nil {
@@ -273,76 +264,80 @@ final class FCPXMLVersionConversionTests: XCTestCase, @unchecked Sendable {
         let converted = try service.convertToVersion(doc, targetVersion: .v1_10)
 
         // Verify adjust-colorConform was stripped
-        let convertedRoot = converted.rootElement()
-        XCTAssertNotNil(convertedRoot, "Converted document should have root")
+        let convertedRoot = try #require(converted.rootElement())
 
         // Search for adjust-colorConform - it should not exist
-        let found = findElement(named: "adjust-colorConform", in: convertedRoot!)
-        XCTAssertNil(found, "adjust-colorConform should be stripped when converting to 1.10")
+        let found = findElement(named: "adjust-colorConform", in: convertedRoot)
+        #expect(found == nil, "adjust-colorConform should be stripped when converting to 1.10")
     }
 
     // MARK: - Save as .fcpxml
 
-    func testSaveAsFCPXML() throws {
+    @Test("Save as FCPXML")
+    func saveAsFCPXML() throws {
         let doc = try service.convertToVersion(service.createFCPXMLDocument(version: "1.14"), targetVersion: .v1_10)
         let tempDir = FileManager.default.temporaryDirectory
         let fileURL = tempDir.appendingPathComponent("VersionConversionTests_\(UUID().uuidString).fcpxml")
         defer { try? FileManager.default.removeItem(at: fileURL) }
         try service.saveAsFCPXML(doc, to: fileURL)
-        XCTAssertTrue(FileManager.default.fileExists(atPath: fileURL.path))
+        #expect(FileManager.default.fileExists(atPath: fileURL.path))
         let data = try Data(contentsOf: fileURL)
         let loaded = try factory.makeDocument(data: data)
-        XCTAssertEqual(docVersion(loaded), "1.10")
+        #expect(docVersion(loaded) == "1.10")
     }
 
     // MARK: - Save as .fcpxmld (1.10+ only)
 
-    func testSaveAsBundle_WhenVersion1_10_Succeeds() throws {
+    @Test("Save as bundle when version 1.10 succeeds")
+    func saveAsBundle_WhenVersion1_10_Succeeds() throws {
         let doc = try service.convertToVersion(service.createFCPXMLDocument(version: "1.14"), targetVersion: .v1_10)
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("VersionConversionTests_\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
         let bundleURL = try service.saveAsBundle(doc, to: tempDir, bundleName: "TestProject")
-        XCTAssertTrue(FileManager.default.fileExists(atPath: bundleURL.path))
+        #expect(FileManager.default.fileExists(atPath: bundleURL.path))
         let infoFcpxml = bundleURL.appendingPathComponent("Info.fcpxml")
         let infoPlist = bundleURL.appendingPathComponent("Info.plist")
-        XCTAssertTrue(FileManager.default.fileExists(atPath: infoFcpxml.path))
-        XCTAssertTrue(FileManager.default.fileExists(atPath: infoPlist.path))
+        #expect(FileManager.default.fileExists(atPath: infoFcpxml.path))
+        #expect(FileManager.default.fileExists(atPath: infoPlist.path))
         let data = try Data(contentsOf: infoFcpxml)
         let loaded = try factory.makeDocument(data: data)
-        XCTAssertEqual(docVersion(loaded), "1.10")
+        #expect(docVersion(loaded) == "1.10")
     }
 
-    func testSaveAsBundle_WhenVersionBelow1_10_Throws() throws {
+    @Test("Save as bundle when version below 1.10 throws")
+    func saveAsBundle_WhenVersionBelow1_10_Throws() throws {
         let doc = service.createFCPXMLDocument(version: "1.9")
         let tempDir = FileManager.default.temporaryDirectory
         do {
             _ = try service.saveAsBundle(doc, to: tempDir, bundleName: "Test")
-            XCTFail("Expected bundleRequiresVersion1_10OrHigher")
+            Issue.record("expected throw")
         } catch let error as FCPXMLBundleExportError {
             if case .bundleRequiresVersion1_10OrHigher(let v) = error {
-                XCTAssertEqual(v, "1.9")
+                #expect(v == "1.9")
             } else {
-                XCTFail("Expected bundleRequiresVersion1_10OrHigher, got \(error)")
+                Issue.record("Expected bundleRequiresVersion1_10OrHigher, got \(error)")
             }
         }
     }
 
     // MARK: - Async
 
-    func testConvertToVersionAsync() async throws {
+    @Test("Convert to version async")
+    func convertToVersionAsync() async throws {
         let doc = await service.createFCPXMLDocument(version: "1.14")
         let converted = try await service.convertToVersion(doc, targetVersion: .v1_10)
-        XCTAssertEqual(docVersion(converted), "1.10")
+        #expect(docVersion(converted) == "1.10")
     }
 
-    func testSaveAsBundleAsync() async throws {
+    @Test("Save as bundle async")
+    func saveAsBundleAsync() async throws {
         let doc = await service.createFCPXMLDocument(version: "1.14")
         let converted = try await service.convertToVersion(doc, targetVersion: .v1_10)
         let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("VersionConversionTests_async_\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
         let bundleURL = try await service.saveAsBundle(converted, to: tempDir, bundleName: "AsyncProject")
-        XCTAssertTrue(FileManager.default.fileExists(atPath: bundleURL.appendingPathComponent("Info.fcpxml").path))
+        #expect(FileManager.default.fileExists(atPath: bundleURL.appendingPathComponent("Info.fcpxml").path))
     }
 }
