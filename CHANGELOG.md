@@ -7,7 +7,25 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [Unreleased]
+
+### ✨ New Features
+
+- **Markers outside clip boundaries:** By default the Markers report omits markers whose `start` is outside the host clip’s media range (hidden in Final Cut Pro’s timeline/Tags). Opt in with `ReportOptions.includeMarkersOutsideClipBoundaries` / CLI `--include-markers-outside-clip-boundaries` to include them and add a **Hidden** column (✓ outside / ✗ inside). The Hidden column is not part of `--exclude-column`. Sample: `HiddenMarkers.fcpxml`. Tests: `FCPXMLMarkersReportTests`, `FCPXMLFileTest_HiddenMarkers`; ExcelReportTest writes `OFK-OutsideClipBoundaries.xlsx` / `.pdf`.
+- **Excel sheet protection:** `ReportOptions.protectSheets` / CLI `--protect-sheets` applies worksheet protection to every sheet in the Excel workbook (cover + content). Edit lock only — not file-open encryption; PDF export is unchanged (use Preview → Encrypt for PDF passwords). Tests: `FCPXMLReportExcelExportTests`; ExcelReportTest writes `OFK-ProtectedSheets.xlsx`.
+
+### 🔧 Improvements
+
+- **Documentation:** Added [GUARDRAILS.md](GUARDRAILS.md) as a companion to [ARCHITECTURE.md](ARCHITECTURE.md) — hard must / must-not constraints for contributors and agents (layer boundaries, naming, FCPXML 1.5 floor, reporting honesty, fixtures, Signs for learned locks). Cross-linked from README, Manual index, CONTRIBUTING, AGENT, and `.cursorrules`.
+
+### 🐛 Bug Fixes
+
+- None in this release.
+
+---
+
 ## [3.1.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.1.0) - 2026-07-16
+
 
 ### ✨ New Features
 

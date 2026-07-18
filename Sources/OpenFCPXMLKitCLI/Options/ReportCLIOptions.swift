@@ -108,6 +108,27 @@ struct ReportCLIOptions: ParsableArguments {
     )
     var excludeDisabledClips: Bool = false
     
+    @Flag(
+        name: .customLong("include-markers-outside-clip-boundaries"),
+        help: """
+        Include markers whose start is outside the host clip’s media range (hidden in FCP \
+        timeline/Tags) and add a Hidden column (✓/✗) on the Markers sheet (with --report / \
+        --report-markers). Default omits those markers and does not show Hidden.
+        """
+    )
+    var includeMarkersOutsideClipBoundaries: Bool = false
+    
+    @Flag(
+        name: .customLong("protect-sheets"),
+        help: """
+        Protect every sheet in the Excel workbook against casual edits (with --report). \
+        Applies to the cover sheet and all content sheets. This is an edit lock, not \
+        file-open encryption — Excel can still open the file, and anyone can turn protection \
+        off. PDF export is unaffected (use Preview’s Encrypt to password-protect a PDF).
+        """
+    )
+    var protectSheets: Bool = false
+    
     @Option(
         name: .customLong("exclude-column"),
         help: """
@@ -169,6 +190,8 @@ struct ReportCLIOptions: ParsableArguments {
             || labelCopyright != nil
             || !excludeRole.isEmpty
             || excludeDisabledClips
+            || includeMarkersOutsideClipBoundaries
+            || protectSheets
             || !excludeColumn.isEmpty
             || timecodeFormat != nil
             || mediaResolution != nil
@@ -201,6 +224,8 @@ struct ReportCLIOptions: ParsableArguments {
         options.copyrightLabel = labelCopyright
         options.excludedRoles = excludeRole
         options.excludeDisabledClips = excludeDisabledClips
+        options.includeMarkersOutsideClipBoundaries = includeMarkersOutsideClipBoundaries
+        options.protectSheets = protectSheets
         options.excludedColumns = excludeColumn
         options.timecodeFormat = try resolvedTimecodeFormat()
         options.mediaResolutionPolicy = try resolvedMediaResolutionPolicy()

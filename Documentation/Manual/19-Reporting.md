@@ -69,6 +69,7 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 | `includeMediaSummary` | `false` | Media Summary (missing media file paths) |
 | `includeRoleInventory` | `false` | Selected Roles Inventory + per-role sheets |
 | `includeChapterMarkersInMarkersReport` | `false` | Add chapter markers to the Markers sheet |
+| `includeMarkersOutsideClipBoundaries` | `false` | Include markers outside the host clip’s media range (hidden in FCP Tags/timeline) and show a **Hidden** column (✓/✗). Not part of `excludedColumns` / `--exclude-column`. |
 
 ### Other configuration
 
@@ -249,6 +250,8 @@ Use **RoleInventoryColumnLayout** (internal layout helper) or `RoleClipReportRow
 #### Markers
 
 **MarkersReportSection** of **MarkerReportRow**: **Row**, Marker Name, Type, Notes, Position, Clip Name, Role ▸ Subrole, Reel, Scene, Source Position. (**Row** is added at export unless excluded.)
+
+By default, markers whose `start` lies outside the host clip’s media range (`[start, start + duration)`) are **omitted** — Final Cut Pro hides them from the timeline and Tags list. Set `includeMarkersOutsideClipBoundaries` (CLI `--include-markers-outside-clip-boundaries`) to include them; the sheet then gains a trailing **Hidden** column (✓ = outside bounds, ✗ = inside). **Hidden** is not a `ReportColumn` / `--exclude-column` target.
 
 **MarkerReportType**: `.standard`, `.incompleteToDo`, `.completedToDo`, `.chapter`.
 
@@ -508,6 +511,17 @@ options.workbookCoverSheet = FinalCutPro.FCPXML.ReportWorkbookCoverSheet(
 options.copyrightLabel = "© 2026 My Studio"
 ```
 
+### Sheet protection (Excel only)
+
+Optional **`ReportOptions.protectSheets`** / **`Report.protectSheets`** (CLI `--protect-sheets`) applies XLKit worksheet protection to **every** sheet in the workbook after content is written (cover + inventory + section sheets). Defaults to `false`.
+
+This is an **edit lock** to discourage accidental changes — **not** file-open encryption. Excel still opens the workbook without a password, and anyone can turn protection off in Excel unless you add a password later in Excel itself. **`ReportPDFExport` ignores this flag**; password-protect PDFs with Preview or another PDF tool after export.
+
+```swift
+var options = FinalCutPro.FCPXML.ReportOptions.full
+options.protectSheets = true
+```
+
 ---
 
 ## PDF export
@@ -555,7 +569,7 @@ Per-section presentation:
 | `workbookCoverSheet` | `exportBrandingText` on cover and footer (Excel cover tab is separate) |
 | `copyrightLabel` | Cover line below branding; centred running footer (Excel cover **A2**) |
 
-Headers such as **Marker Name** or **Type** on the Markers sheet are **not** `ReportColumn` cases; `--exclude-column` cannot remove them in Excel or PDF.
+Headers such as **Marker Name**, **Type**, or the opt-in **Hidden** column on the Markers sheet are **not** `ReportColumn` cases; `--exclude-column` cannot remove them in Excel or PDF.
 
 ---
 
@@ -577,6 +591,8 @@ The same reports are available through **OpenFCPXMLKit-CLI**:
 | `--report-project <name>` | Timeline name filter (project or standalone compound-clip name) |
 | `--exclude-role <name>` | Omit roles from role inventory (repeatable) |
 | `--exclude-disabled-clips` | Omit `enabled="0"` clips from all timeline sections |
+| `--include-markers-outside-clip-boundaries` | Include out-of-bounds markers + Markers **Hidden** column |
+| `--protect-sheets` | Excel worksheet edit lock on every sheet (not encryption; PDF unaffected) |
 | `--exclude-column <name>` | Omit a column from every applicable sheet (repeatable) |
 | `--timecode-format <format>` | Timeline cell format: `HH:MM:SS:FF` (default), `Frames`, `Feet+Frames`, `HH:MM:SS` |
 

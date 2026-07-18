@@ -107,12 +107,27 @@ final class FCPXMLReportObligationCorpusTests: XCTestCase {
     // MARK: - Near-zero-miss corpus
 
     func testObligationCorpusBasicMarkersHasMarkerRows() async throws {
-        let report = try await buildFullReport(sample: .basicMarkers)
+        // BasicMarkers title markers sit outside the title media range (FCP-hidden).
+        let defaultReport = try await buildFullReport(sample: .basicMarkers)
+        XCTAssertEqual(
+            defaultReport.markers?.rows.isEmpty,
+            true,
+            "Default Markers report must omit out-of-bounds BasicMarkers"
+        )
+
+        let fcpxml = try loadFCPXMLSample(named: FCPXMLSampleName.basicMarkers.rawValue)
+        var options = FinalCutPro.FCPXML.ReportOptions.full
+        options.mediaBaseURL = urlForFCPXMLSample(named: FCPXMLSampleName.basicMarkers.rawValue)
+            .deletingLastPathComponent()
+        options.includeMarkersOutsideClipBoundaries = true
+        let report = try await fcpxml.buildReport(options: options)
         let markers = try XCTUnwrap(report.markers)
-        XCTAssertFalse(markers.rows.isEmpty, "BasicMarkers must yield Markers sheet rows")
+        XCTAssertFalse(markers.rows.isEmpty, "Opt-in must yield Markers sheet rows for BasicMarkers")
+        XCTAssertTrue(markers.showsHiddenColumn)
         for row in markers.rows {
             XCTAssertFalse(row.markerName.isEmpty)
             XCTAssertFalse(row.position.isEmpty)
+            XCTAssertTrue(row.isHidden)
         }
     }
 

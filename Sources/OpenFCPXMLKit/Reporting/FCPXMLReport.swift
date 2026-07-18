@@ -86,6 +86,10 @@ extension FinalCutPro.FCPXML {
         /// Timecode display format used for workbook timecode columns.
         public var timecodeFormat: ReportTimecodeFormat
         
+        /// When `true`, ``ReportExcelExport`` protects every worksheet (edit lock, not encryption).
+        /// PDF export ignores this. See ``ReportOptions/protectSheets``.
+        public var protectSheets: Bool
+        
         public init(
             projectName: String,
             eventName: String? = nil,
@@ -101,7 +105,8 @@ extension FinalCutPro.FCPXML {
             workbookCoverSheet: ReportWorkbookCoverSheet? = nil,
             copyrightLabel: String? = nil,
             excludedColumns: Set<ReportColumn> = [],
-            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames,
+            protectSheets: Bool = false
         ) {
             self.projectName = projectName
             self.eventName = eventName
@@ -118,6 +123,7 @@ extension FinalCutPro.FCPXML {
             self.copyrightLabel = ReportOptions.normalizedCopyrightLabel(copyrightLabel)
             self.excludedColumns = excludedColumns
             self.timecodeFormat = timecodeFormat
+            self.protectSheets = protectSheets
         }
         
         /// Resolved export branding for Excel cover and PDF cover/footer.

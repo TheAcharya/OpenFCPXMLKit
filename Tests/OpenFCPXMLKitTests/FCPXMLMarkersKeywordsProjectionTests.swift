@@ -19,6 +19,9 @@ final class FCPXMLMarkersKeywordsProjectionTests: XCTestCase {
         let fcpxml = try loadFCPXMLSample(named: FCPXMLSampleName.basicMarkers.rawValue)
         var options = FinalCutPro.FCPXML.ReportOptions.markersOnly
         options.includeChapterMarkersInMarkersReport = true
+        // BasicMarkers title markers lie outside the title media range (FCP-hidden);
+        // opt in so this sample still exercises Projection marker annotations.
+        options.includeMarkersOutsideClipBoundaries = true
 
         let report = try await fcpxml.buildReport(options: options)
         let rows = try XCTUnwrap(report.markers?.rows)

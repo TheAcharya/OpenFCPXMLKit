@@ -106,6 +106,7 @@ enum FCPXMLSampleName: String, CaseIterable {
     case empty1920x1080 = "1920x1080"
     case empty4096x2160 = "4096x2160"
     case empty5120x2160 = "5120x2160"
+    case hiddenMarkers = "HiddenMarkers"
     case keywords = "Keywords"
     case multicamMarkers = "MulticamMarkers"
     case multicamMarkers2 = "MulticamMarkers2"

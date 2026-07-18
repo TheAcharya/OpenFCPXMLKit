@@ -17,8 +17,28 @@ extension FinalCutPro.FCPXML {
         
         public var rows: [MarkerReportRow]
         
-        public init(rows: [MarkerReportRow]) {
+        /// When `true`, Excel/PDF append a **Hidden** column (✓/✗) for out-of-bounds markers.
+        ///
+        /// Set only when ``ReportOptions/includeMarkersOutsideClipBoundaries`` is `true`.
+        /// Not controllable via ``ReportColumn`` / `--exclude-column`.
+        public var showsHiddenColumn: Bool
+        
+        public init(rows: [MarkerReportRow], showsHiddenColumn: Bool = false) {
             self.rows = rows
+            self.showsHiddenColumn = showsHiddenColumn
+        }
+        
+        public func columnHeaders(
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+        ) -> [String] {
+            MarkerReportRow.columnHeaders(
+                timecodeFormat: timecodeFormat,
+                includeHiddenColumn: showsHiddenColumn
+            )
+        }
+        
+        public func columnValues(for row: MarkerReportRow) -> [String] {
+            row.columnValues(includeHiddenColumn: showsHiddenColumn)
         }
     }
 }

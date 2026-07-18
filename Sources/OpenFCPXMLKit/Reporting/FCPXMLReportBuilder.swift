@@ -100,7 +100,8 @@ extension FinalCutPro.FCPXML {
                 workbookCoverSheet: options.workbookCoverSheet,
                 copyrightLabel: options.copyrightLabel,
                 excludedColumns: ReportColumnExclusion.resolve(options.excludedColumns),
-                timecodeFormat: options.timecodeFormat
+                timecodeFormat: options.timecodeFormat,
+                protectSheets: options.protectSheets
             )
 
             for phase in ReportBuildPhase.enabledPhases(for: options) {
@@ -197,6 +198,7 @@ extension FinalCutPro.FCPXML {
                     from: timelineElement,
                     scope: extractionScope,
                     includeChapterMarkers: options.includeChapterMarkersInMarkersReport,
+                    includeMarkersOutsideClipBoundaries: options.includeMarkersOutsideClipBoundaries,
                     roleDisplayPreference: options.roleDisplayPreference,
                     timecodeFormat: options.timecodeFormat,
                     projection: projection,

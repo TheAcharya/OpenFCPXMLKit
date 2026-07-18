@@ -1,4 +1,4 @@
-# Submitted FCPXML (private inbox)
+# Submitted FCPXML (Private Inbox)
 
 Local-only drop zone for **private / user-supplied** FCPXML exports used when investigating parsing or Excel/PDF reporting edge cases.
 

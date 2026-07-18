@@ -278,6 +278,14 @@ REPORT:
                           excludes its subroles.
   --exclude-disabled-clips
                           Omit disabled clips (enabled="0") from all report sections (with --report).
+  --include-markers-outside-clip-boundaries
+                          Include markers whose start is outside the host clip’s media range (hidden in FCP
+                          timeline/Tags) and add a Hidden column (✓/✗) on the Markers sheet (with --report /
+                          --report-markers). Default omits those markers and does not show Hidden.
+  --protect-sheets        Protect every sheet in the Excel workbook against casual edits (with --report). Applies to
+                          the cover sheet and all content sheets. This is an edit lock, not file-open encryption —
+                          Excel can still open the file, and anyone can turn protection off. PDF export is unaffected
+                          (use Preview’s Encrypt to password-protect a PDF).
   --exclude-column <exclude-column>
                           Exclude a report column from every applicable Excel/PDF sheet (repeatable; with --report).
                           Case-insensitive names include Row / Row Numbers (all tabular sheets + PDF Row injection),
@@ -316,6 +324,7 @@ Complete manual, usage guide, and examples are in the [Documentation](Documentat
 - [19 — Reporting, Excel & PDF Export](Documentation/Manual/19-Reporting.md) — `buildReport`, Excel/PDF export, filters, progress
 - [CLI](Sources/OpenFCPXMLKitCLI/README.md) — Flags, examples, building and extending
 - [ARCHITECTURE.md](ARCHITECTURE.md) — Layer stack, codebase map, Mermaid diagrams
+- [GUARDRAILS.md](GUARDRAILS.md) — Must / must-not constraints for contributors and agents
 
 ## FCPXML Version Support
 
@@ -335,9 +344,9 @@ OpenFCPXMLKit supports FCPXML versions 1.5 through 1.14. All DTDs for these vers
 - Protocols define parsing, timecode conversion, document operations, error handling, MIME type detection, asset validation, silence detection, asset duration measurement, and parallel file I/O; each has a default implementation you can swap. FCPXMLService (and FCPXMLUtility) composes these and exposes sync and async APIs. ModularUtilities provides createService, processFCPXML, validateDocument, convertTimecodes, and similar helpers.
 - FCPXMLFileLoader handles .fcpxml and .fcpxmld (including bundle Info.fcpxml). FCPXMLValidator and FCPXMLDTDValidator handle structural and schema validation (full DTD on macOS; FCPXMLStructuralValidator on iOS when DTD is unavailable); DTDs for 1.5–1.14 are bundled.
 - A cross-platform XML layer (`Sources/OpenFCPXMLKit/XML/`) provides protocol types (OFKXMLNode, OFKXMLElement, OFKXMLDocument, OFKXMLFactory) with Foundation and AEXML backends. Extensions on CMTime and the XML protocol types offer convenience APIs; use modular overloads with an explicit dependency to inject your own. Error types are explicit (FCPXMLError, FCPXMLLoadError, export and validation errors); you can inject a custom error handler.
-- The engine is layered bottom-up — `XML → Parsing → Model → Extraction → Projection → Reporting` — so the CLI, extraction presets, timeline tools, and reports share one foundation. **Projection** emits playable `MediaUsageWindow`s; **Reporting** (Excel via XLKit, PDF via CoreGraphics) maps Projection + Extraction facts into sheets and owns presentation only. See [ARCHITECTURE.md](ARCHITECTURE.md) for the full codebase map and layer boundaries.
+- The engine is layered bottom-up — `XML → Parsing → Model → Extraction → Projection → Reporting` — so the CLI, extraction presets, timeline tools, and reports share one foundation. **Projection** emits playable `MediaUsageWindow`s; **Reporting** (Excel via XLKit, PDF via CoreGraphics) maps Projection + Extraction facts into sheets and owns presentation only. See [ARCHITECTURE.md](ARCHITECTURE.md) for the full codebase map and layer boundaries, and [GUARDRAILS.md](GUARDRAILS.md) for hard must / must-not constraints on those layers.
 
-See AGENT.md for a detailed breakdown for AI agents and contributors.
+See [AGENT.md](AGENT.md) for a detailed breakdown for AI agents and contributors, and [GUARDRAILS.md](GUARDRAILS.md) for hard must / must-not constraints.
 
 ## Utilised By
 

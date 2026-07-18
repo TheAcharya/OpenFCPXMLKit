@@ -147,6 +147,7 @@ final class FCPXMLReportPDFExportTests: XCTestCase, @unchecked Sendable {
             includeRoleInventory: false
         )
         options.projectName = fcpxml.allProjects().first?.name
+        options.includeMarkersOutsideClipBoundaries = true
         
         let report = try await fcpxml.buildReport(options: options)
         

@@ -2,7 +2,7 @@
 
 This directory contains the test suite for OpenFCPXMLKit, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration. The suite runs on **macOS** (Foundation XML backend). The library also supports **iOS 26+** (AEXML backend); CI builds for iOS Simulator; the same tests are not run on iOS because they rely on Foundation XML.
 
-- **Test count:** **1076** tests listed in `swift test --list-tests` — **1072** in `OpenFCPXMLKitTests` (1069 XCTest `func test` methods + 3 Swift Testing `@Test` in `FCPXMLReportRoleExclusionTests`) and **4** in `ExcelReportTest` (optional integration; skips without a local fixture)
+- **Test count:** **1084** tests listed in `swift test --list-tests` — **1078** in `OpenFCPXMLKitTests` (1075 XCTest `func test` methods + 3 Swift Testing `@Test` in `FCPXMLReportRoleExclusionTests`) and **6** in `ExcelReportTest` (optional integration; skips without a local fixture)
 - **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines, audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), Timeline Projection (`TimelineProjector` / `MediaUsageWindow` / `ReportProjectionContext`, project-once for report sections), Excel and PDF reporting (universal **Row** column on all tabular sheets via `ensuringRowColumn` / `allowsInjectedRowColumn`, role inventory columns, Summary sheet with project title in **B1**, Media Summary sheets, configurable `ReportTimecodeFormat` / DF·NDF notation, format-aware headers, Frames/Feet+Frames sort order, inventory-first `ReportBuildPhase` progress, global column exclusion, disabled-clip filtering, workbook export and cell formatting, PDF cover with black “About This PDF Export” header + `info.circle`, TOC with accent colour chips + content-tint washes keyed to sheet `colorIndex`, remaining columns expanded to fill A4 landscape width after exclusions, section pagination, shared `FCPXMLReportRowColorPolicy`, standalone compound-clip timelines via `allReportTimelineSources()` / `FCPXMLCompoundClipReportTests`), and all supported FCPXML versions and frame rates  
 - **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure; validation and cross-platform XML tests; optional Excel/PDF report integration tests under `ExcelReportTest/`; private investigation inbox under `Submitted FCPXML/` (gitignored contents)
 
@@ -74,6 +74,7 @@ Tests/
     │   ├── FCPXMLFileTest_Annotations.swift
     │   ├── FCPXMLFileTest_AuditionSample.swift
     │   ├── FCPXMLFileTest_BasicMarkers.swift
+    │   ├── FCPXMLFileTest_HiddenMarkers.swift
     │   ├── FCPXMLFileTest_Complex.swift
     │   ├── FCPXMLFileTest_CompoundClips.swift
     │   ├── FCPXMLFileTest_EmptyFormatProjects.swift
@@ -194,9 +195,9 @@ swift test --filter OpenFCPXMLKitTests             # By pattern
 To verify the documented test counts:
 
 ```bash
-swift test --list-tests 2>/dev/null | grep -c '\.'                        # 1076
+swift test --list-tests 2>/dev/null | grep -c '\.'                        # 1084
 swift test --list-tests 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 1072
-swift test --list-tests 2>/dev/null | grep -c 'ExcelReportTest\.'       # 4
+swift test --list-tests 2>/dev/null | grep -c 'ExcelReportTest\.'       # 6
 ```
 
 ### Xcode
@@ -354,6 +355,7 @@ File tests live under **OpenFCPXMLKitTests/FileTests/** and use samples from **T
 | **FCPXMLFileTest_Annotations** | Annotations.fcpxml | Root, events, projects |
 | **FCPXMLFileTest_AuditionSample** | AuditionSample.fcpxml | Root, ver1_13, audition element, active/inactive clips, adjust-colorConform, conform-rate, keywords |
 | **FCPXMLFileTest_BasicMarkers** | BasicMarkers.fcpxml | Root, ver1_9, root equality, resources, library; allEvents, allProjects |
+| **FCPXMLFileTest_HiddenMarkers** | HiddenMarkers.fcpxml | Root, ver1_14; markers outside title media range (FCP-hidden) |
 | **FCPXMLFileTest_Complex** | Complex.fcpxml | Root, ver1_11, events, projects; version attribute; resources exist |
 | **FCPXMLFileTest_GeneralDemo** | GeneralDemo.fcpxml | ver1_14, multicam resources/clips, titles, filter-video; anonymized media paths |
 | **FCPXMLFileTest_CompoundClips** | CompoundClips.fcpxml, CompoundClipSample.fcpxml | Root, non-empty projects; compound clip resources |

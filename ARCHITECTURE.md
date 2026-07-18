@@ -2,7 +2,7 @@
 
 A guide for contributors: project structure, architecture, naming, styling, and design decisions.
 
-**See also:** [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md).
+**See also:** [GUARDRAILS.md](GUARDRAILS.md) (must / must-not), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md).
 
 ---
 
@@ -415,5 +415,5 @@ Binary name: **`OpenFCPXMLKit-CLI`**. Mutually exclusive modes: `--check-version
 
 ## 10. References
 
-- **Internal:** [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Documentation/Manual.md](Documentation/Manual.md), [Tests/README.md](Tests/README.md).
+- **Internal:** [GUARDRAILS.md](GUARDRAILS.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Documentation/Manual.md](Documentation/Manual.md), [Tests/README.md](Tests/README.md).
 - **External:** [Final Cut Pro XML](https://fcp.cafe/developers/fcpxml/), [SwiftTimecode](https://github.com/orchetect/swift-timecode), [Swift API Design Guidelines](https://swift.org/documentation/api-design-guidelines/), [Swift Concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/).

@@ -34,6 +34,8 @@ Complete manual and usage guide for **OpenFCPXMLKit**, a Swift 6 framework for F
 ## Quick links
 
 - **Project README:** [../README.md](../README.md) (repository root)
+- **Architecture:** [../ARCHITECTURE.md](../ARCHITECTURE.md) — layers and codebase map
+- **Guardrails:** [../GUARDRAILS.md](../GUARDRAILS.md) — must / must-not for contributors and agents
 - **CLI reference:** [../Sources/OpenFCPXMLKitCLI/README.md](../Sources/OpenFCPXMLKitCLI/README.md)
 - **Tests:** [../Tests/README.md](../Tests/README.md) — suite layout; [Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md) for private local investigation (never commit private FCPXML)
 - **FCPXML reference:** [fcp.cafe/developers/fcpxml](https://fcp.cafe/developers/fcpxml)

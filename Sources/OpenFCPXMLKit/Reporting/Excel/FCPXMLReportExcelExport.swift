@@ -26,6 +26,9 @@ extension FinalCutPro.FCPXML {
         }
         
         /// Writes a report to an `.xlsx` file at the given URL.
+        ///
+        /// When ``Report/protectSheets`` is `true`, every worksheet is edit-locked
+        /// (XLKit sheet protection without a password). This is not file encryption.
         @MainActor
         public static func export(_ report: Report, to url: URL) async throws {
             let workbook = makeWorkbook(from: report)

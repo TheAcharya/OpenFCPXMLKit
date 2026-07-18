@@ -18,6 +18,7 @@ extension FinalCutPro.FCPXML {
             from timeline: any OFKXMLElement,
             scope: ExtractionScope,
             includeChapterMarkers: Bool,
+            includeMarkersOutsideClipBoundaries: Bool = false,
             roleDisplayPreference: RoleDisplayPreference = .builtIn,
             timecodeFormat: ReportTimecodeFormat = .smpteFrames,
             projection: ReportProjectionContext? = nil,
@@ -31,16 +32,21 @@ extension FinalCutPro.FCPXML {
                     timeline: timeline,
                     resources: resources,
                     includeChapterMarkers: includeChapterMarkers,
+                    includeMarkersOutsideClipBoundaries: includeMarkersOutsideClipBoundaries,
                     roleDisplayPreference: roleDisplayPreference,
                     timecodeFormat: timecodeFormat
                 )
-                return MarkersReportSection(rows: rows)
+                return MarkersReportSection(
+                    rows: rows,
+                    showsHiddenColumn: includeMarkersOutsideClipBoundaries
+                )
             }
 
             return await buildFromExtraction(
                 from: timeline,
                 scope: scope,
                 includeChapterMarkers: includeChapterMarkers,
+                includeMarkersOutsideClipBoundaries: includeMarkersOutsideClipBoundaries,
                 roleDisplayPreference: roleDisplayPreference,
                 timecodeFormat: timecodeFormat
             )
@@ -50,6 +56,7 @@ extension FinalCutPro.FCPXML {
             from timeline: any OFKXMLElement,
             scope: ExtractionScope,
             includeChapterMarkers: Bool,
+            includeMarkersOutsideClipBoundaries: Bool,
             roleDisplayPreference: RoleDisplayPreference,
             timecodeFormat: ReportTimecodeFormat
         ) async -> MarkersReportSection {
@@ -57,7 +64,11 @@ extension FinalCutPro.FCPXML {
 
             let filtered = extracted.filter { marker in
                 if case .chapter = marker.configuration {
-                    return includeChapterMarkers
+                    if !includeChapterMarkers { return false }
+                }
+                let isOutside = isOutsideClipBoundaries(extracted: marker)
+                if isOutside, !includeMarkersOutsideClipBoundaries {
+                    return false
                 }
                 return true
             }
@@ -68,11 +79,15 @@ extension FinalCutPro.FCPXML {
                     markerRows(
                         from: $0,
                         roleDisplayPreference: roleDisplayPreference,
-                        timecodeFormat: timecodeFormat
+                        timecodeFormat: timecodeFormat,
+                        includeHiddenColumn: includeMarkersOutsideClipBoundaries
                     )
                 }
 
-            return MarkersReportSection(rows: rows)
+            return MarkersReportSection(
+                rows: rows,
+                showsHiddenColumn: includeMarkersOutsideClipBoundaries
+            )
         }
 
         private static func rowsFromProjection(
@@ -80,6 +95,7 @@ extension FinalCutPro.FCPXML {
             timeline: any OFKXMLElement,
             resources: (any OFKXMLElement)?,
             includeChapterMarkers: Bool,
+            includeMarkersOutsideClipBoundaries: Bool,
             roleDisplayPreference: RoleDisplayPreference,
             timecodeFormat: ReportTimecodeFormat
         ) -> [MarkerReportRow] {
@@ -93,6 +109,9 @@ extension FinalCutPro.FCPXML {
 
                 for marker in host.markers {
                     if marker.kind == .chapter, !includeChapterMarkers { continue }
+                    if marker.isOutsideClipBoundaries, !includeMarkersOutsideClipBoundaries {
+                        continue
+                    }
 
                     let position = formatFraction(
                         marker.timelinePosition,
@@ -118,7 +137,8 @@ extension FinalCutPro.FCPXML {
                                 roleSubrole: roleDisplay,
                                 reel: marker.reel,
                                 scene: marker.scene,
-                                sourcePosition: sourcePosition
+                                sourcePosition: sourcePosition,
+                                isHidden: marker.isOutsideClipBoundaries
                             )
                         )
                     }
@@ -191,6 +211,15 @@ extension FinalCutPro.FCPXML {
             return ReportFormatting.timecodeString(timecode, format: timecodeFormat)
         }
 
+        private static func isOutsideClipBoundaries(extracted: ExtractedMarker) -> Bool {
+            let host = extracted.ancestorClipElement()
+            return MarkerClipBoundary.isOutsideHostMediaRange(
+                markerStart: extracted.model.start,
+                hostStart: host?.fcpStart,
+                hostDuration: host?.fcpDuration
+            )
+        }
+
         /// Builds one report row per host component role.
         ///
         /// A marker on a clip carrying both video and audio yields two rows (for example
@@ -198,7 +227,8 @@ extension FinalCutPro.FCPXML {
         private static func markerRows(
             from extracted: ExtractedMarker,
             roleDisplayPreference: RoleDisplayPreference,
-            timecodeFormat: ReportTimecodeFormat
+            timecodeFormat: ReportTimecodeFormat,
+            includeHiddenColumn: Bool
         ) -> [MarkerReportRow] {
             guard let positionTimecode = extracted.value(
                 forContext: .absoluteStartAsTimecode(frameRateSource: .mainTimeline)
@@ -220,6 +250,7 @@ extension FinalCutPro.FCPXML {
             }
 
             let metadata = extracted.ancestorClipContext()?.value(forContext: .metadata) ?? []
+            let isHidden = isOutsideClipBoundaries(extracted: extracted)
 
             let roleDisplays = ReportFormatting.markerRoleDisplays(
                 for: extracted,
@@ -240,7 +271,8 @@ extension FinalCutPro.FCPXML {
                     roleSubrole: roleDisplay,
                     reel: ReportFormatting.metadataString(from: metadata, key: .reel),
                     scene: ReportFormatting.metadataString(from: metadata, key: .scene),
-                    sourcePosition: sourcePosition
+                    sourcePosition: sourcePosition,
+                    isHidden: includeHiddenColumn ? isHidden : false
                 )
             }
         }

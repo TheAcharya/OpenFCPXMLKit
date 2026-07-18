@@ -576,6 +576,49 @@ final class FCPXMLReportExcelExportTests: XCTestCase, @unchecked Sendable {
     }
     
     @MainActor
+    func testMakeWorkbookLeavesSheetsUnprotectedByDefault() {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Demo",
+            markers: FinalCutPro.FCPXML.MarkersReportSection(rows: []),
+            workbookCoverSheet: .openFCPXMLKitDefault
+        )
+        
+        let sheets = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report).getSheets()
+        XCTAssertFalse(sheets.isEmpty)
+        for sheet in sheets {
+            XCTAssertNil(
+                sheet.protection,
+                "Sheet '\(sheet.name)' should be unprotected by default"
+            )
+        }
+    }
+    
+    @MainActor
+    func testMakeWorkbookProtectsAllSheetsWhenRequested() {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Demo",
+            markers: FinalCutPro.FCPXML.MarkersReportSection(rows: []),
+            workbookCoverSheet: .openFCPXMLKitDefault,
+            protectSheets: true
+        )
+        
+        let sheets = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report).getSheets()
+        XCTAssertGreaterThanOrEqual(sheets.count, 2, "Cover + Markers expected")
+        for sheet in sheets {
+            XCTAssertNotNil(
+                sheet.protection,
+                "Sheet '\(sheet.name)' should be protected when protectSheets is true"
+            )
+            XCTAssertEqual(sheet.protection?.sheet, true)
+            XCTAssertNil(
+                sheet.protection?.password,
+                "Default sheet protection must not set a password"
+            )
+            XCTAssertNil(sheet.protection?.hashValue)
+        }
+    }
+    
+    @MainActor
     private func sheetNames(from report: FinalCutPro.FCPXML.Report) -> [String] {
         FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report).getSheets().map(\.name)
     }
