@@ -121,9 +121,8 @@ struct FCPXMLExtractedElementTests {
         let keyword = try #require(keywords.first)
         let range = try #require(keyword.visibleKeywordRangeOnMainTimeline())
 
-        #expect(range.timelineIn != nil)
-        #expect(range.timelineOut != nil)
-        #expect(range.duration != nil)
+        #expect(range.timelineOut > range.timelineIn)
+        #expect(range.duration.frameCount.wholeFrames > 0)
     }
 
     @Test("Effect host clip element for title returns title element")
