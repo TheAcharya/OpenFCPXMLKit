@@ -526,7 +526,7 @@ Swift Testing conventions:
 
 ## 14. Continuous integration
 
-GitHub Actions (e.g. `.github/workflows/build.yml`) run on push and pull requests: **macOS** — build and full unit test suite (Xcode workspace, xcodebuild); Swift 6 and strict concurrency job; **iOS** — build for iOS Simulator (orchetect/setup-xcode-simulator); tests are not run on iOS because they require Foundation XML. All macOS tests must pass with no regressions.
+GitHub Actions (`.github/workflows/build.yml`) run on push and pull requests: **macOS** — `xcodebuild` build plus `swift test --no-parallel` (full suite); **macOS (strict concurrency)** — same build + unit suite with `SWIFT_STRICT_CONCURRENCY=complete` / `-strict-concurrency=complete`; **iOS** — Simulator build only (`orchetect/setup-xcode-simulator`; tests need Foundation XML). `--no-parallel` is required so Swift Testing does not deadlock on non-Sendable Foundation XML. All macOS tests must pass with no regressions.
 
 ---
 
