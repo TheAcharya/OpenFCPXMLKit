@@ -12,19 +12,19 @@ Everything lives under **`FinalCutPro.FCPXML`**:
 
 - **buildReport(options:scope:onPhaseStarted:)** — convenience entry point on a parsed document.
 - **ReportBuilder** — assembles a **Report** from a document or a single **Project**.
-- **ReportOptions** — selects which sections to include, plus project filter, media base URL, role display preference, cover sheet, role exclusions, disabled-clip filtering, column exclusions, **timecodeFormat**, **mediaResolutionPolicy**, **mediaSummaryDistinguishProxyAndOriginal**, and optional **copyrightLabel**.
+- **ReportOptions** — selects which sections to include, plus project filter, media base URL, role display preference, cover sheet, role exclusions, disabled-clip filtering, column exclusions, **timecodeFormat**, **mediaResolutionPolicy**, **mediaSummaryDistinguishProxyAndOriginal**, optional **copyrightLabel**, **includeMarkersOutsideClipBoundaries**, and **protectSheets** (Excel edit lock).
 - **ReportTimecodeFormat** — how timeline time values appear in workbook/PDF cells (`HH:MM:SS:FF`, Frames, Feet+Frames, `HH:MM:SS`).
-- **Report** — the assembled value type (one optional property per section, plus resolved column exclusions, `timecodeFormat`, and `copyrightLabel`).
+- **Report** — the assembled value type (one optional property per section, plus resolved column exclusions, `timecodeFormat`, `copyrightLabel`, and `protectSheets`).
 - **ReportBuildPhase** — content phases in product / workbook order; use `enabledPhases(for:)` for GUI progress bars.
 - **ReportColumn** — logical columns that can be omitted globally at export (Excel and PDF).
-- **ReportExcelExport** — turns a `Report` into an XLKit `Workbook` or writes it to disk.
-- **ReportPDFExport** — turns a `Report` into PDF `Data` or writes a multi-page `.pdf` file.
+- **ReportExcelExport** — turns a `Report` into an XLKit `Workbook` or writes it to disk (honours `protectSheets`).
+- **ReportPDFExport** — turns a `Report` into PDF `Data` or writes a multi-page `.pdf` file (ignores `protectSheets`).
 
 All **build** APIs are **async**. PDF export is **synchronous** once a `Report` exists.
 
 **Project-once Projection:** When Role Inventory, Markers, Keywords, Titles & Generators, Transitions, Effects, Speed Change Effects, Media Summary, or Summary is enabled, `ReportBuilder` projects the timeline **once** (progress phase `.projecting`) and shares `ReportProjectionContext` across those sections. Markers / Keywords / Titles / Transitions / Effects are Projection-first with Extraction fallback. See [20 — Timeline Projection](20-Timeline-Projection.md).
 
-**Configuration parity:** Build the report **once** with `ReportOptions`, then export to Excel, PDF, or both. Section flags, `excludedColumns`, `excludedRoles`, `excludeDisabledClips`, `timecodeFormat`, `copyrightLabel`, and `projectName` all apply to both exporters. PDF adds presentation-only features (cover page, TOC with sheet colour chips + tint washes, per-sheet content tints, pagination, remaining-column width expansion after exclusions, truncation) on top of the same `Report` data.
+**Configuration parity:** Build the report **once** with `ReportOptions`, then export to Excel, PDF, or both. Section flags, `excludedColumns`, `excludedRoles`, `excludeDisabledClips`, `timecodeFormat`, `copyrightLabel`, `includeMarkersOutsideClipBoundaries`, and `projectName` all apply to both exporters (they shape the shared `Report`). **`protectSheets` is Excel-only** (worksheet edit lock — not encryption). PDF adds presentation-only features (cover page, TOC with sheet colour chips + tint washes, per-sheet content tints, pagination, remaining-column width expansion after exclusions, truncation) on top of the same `Report` data.
 
 ---
 
@@ -88,6 +88,7 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 | `mediaSummaryDistinguishProxyAndOriginal` | `false` | When `true`, Media Summary uses separate Missing Original / Missing Proxy columns. |
 | `summaryOverlapAwareDurations` | `false` | When `true`, Summary role durations use occupied-union via Projection occupancy. |
 | `emitPerSourceInventoryRows` | `false` | When `true`, Role Inventory may emit distinct rows per media `src` index. |
+| `protectSheets` | `false` | When `true`, Excel export applies XLKit worksheet protection to **every** sheet (cover + content). Edit lock only — **not** file-open encryption; PDF ignores this flag. CLI `--protect-sheets`. |
 
 ### Presets
 
@@ -169,6 +170,7 @@ let report = try await fcpxml.buildReport(options: options)
 - `copyrightLabel: String?` — optional copyright / attribution line (Excel cover **A2**; PDF cover below branding; PDF footer centre)
 - `excludedColumns: Set<ReportColumn>` — resolved from `ReportOptions.excludedColumns` at build time
 - `timecodeFormat: ReportTimecodeFormat` — copied from options; drives Excel and PDF headers and cell formatting
+- `protectSheets: Bool` — copied from options; Excel export applies worksheet protection when `true` (PDF ignores)
 - **`exportBrandingText`** — resolved branding label from `workbookCoverSheet` (or the OpenFCPXMLKit default) for Excel cover cell A1 and PDF cover/footer
 
 A section property is `nil` when that section was not requested. Every section conforms to **ReportSection** and exposes a `defaultSheetName`. Row models expose `columnHeaders` / `columnHeaders(timecodeFormat:)` and `columnValues` in matching order, so sections can be rendered by either export backend.
@@ -180,7 +182,7 @@ These contracts define what a “near-zero miss” report must not omit when the
 | Sheet | Obligation (FCPXML-derived) |
 |-------|-----------------------------|
 | Selected Roles Inventory / per-role | One row per visible host clip × role (Projection windows when inventory is enabled); fixed columns after **Row** as listed below; dynamic metadata keys discovered on those clips |
-| Markers | Every non-filtered marker on the report timeline (standard / to-do / chapter when enabled); host clip name and timeline position |
+| Markers | Every non-filtered marker on the report timeline (standard / to-do / chapter when enabled); host clip name and timeline position. Default omits markers whose `start` is outside the host media range unless `includeMarkersOutsideClipBoundaries` is set |
 | Keywords | Every keyword range attached to timeline hosts in scope |
 | Titles & Generators | Every title / generator clip in scope with clip name and timeline bounds |
 | Transitions | Every transition element on the report spine(s) in scope |
@@ -249,9 +251,11 @@ Use **RoleInventoryColumnLayout** (internal layout helper) or `RoleClipReportRow
 
 #### Markers
 
-**MarkersReportSection** of **MarkerReportRow**: **Row**, Marker Name, Type, Notes, Position, Clip Name, Role ▸ Subrole, Reel, Scene, Source Position. (**Row** is added at export unless excluded.)
+**MarkersReportSection** of **MarkerReportRow**: **Row**, Marker Name, Type, Notes, Position, Clip Name, Role ▸ Subrole, Reel, Scene, Source Position — and, when `includeMarkersOutsideClipBoundaries` is `true`, a trailing **Hidden** column (✓/✗). (**Row** is added at export unless excluded.)
 
-By default, markers whose `start` lies outside the host clip’s media range (`[start, start + duration)`) are **omitted** — Final Cut Pro hides them from the timeline and Tags list. Set `includeMarkersOutsideClipBoundaries` (CLI `--include-markers-outside-clip-boundaries`) to include them; the sheet then gains a trailing **Hidden** column (✓ = outside bounds, ✗ = inside). **Hidden** is not a `ReportColumn` / `--exclude-column` target.
+By default, markers whose `start` lies outside the host clip’s media range (`[start, start + duration)`) are **omitted** — Final Cut Pro hides them from the timeline and Tags list. Set `includeMarkersOutsideClipBoundaries` (CLI `--include-markers-outside-clip-boundaries`) to include them; the sheet then gains **Hidden** (✓ = outside bounds, ✗ = inside). **Hidden** is not a `ReportColumn` / `--exclude-column` target.
+
+This is **not** the FCPXML 1.13+ empty `hidden-clip-marker` element (see [12 — Typed Models](12-Typed-Models.md#hidden-clip-marker-fcpxml-113)). Boundary helper: `FCPXMLMarkerClipBoundary`; Projection annotations expose `isOutsideClipBoundaries`.
 
 **MarkerReportType**: `.standard`, `.incompleteToDo`, `.completedToDo`, `.chapter`.
 
@@ -568,6 +572,8 @@ Per-section presentation:
 | `projectName` | Applied at build time (timeline source and `report.projectName`) |
 | `workbookCoverSheet` | `exportBrandingText` on cover and footer (Excel cover tab is separate) |
 | `copyrightLabel` | Cover line below branding; centred running footer (Excel cover **A2**) |
+| `includeMarkersOutsideClipBoundaries` | Applied at build time (Markers rows + optional **Hidden** column) |
+| `protectSheets` | **Ignored** — Excel-only worksheet edit lock; use Preview → Encrypt for PDF open passwords |
 
 Headers such as **Marker Name**, **Type**, or the opt-in **Hidden** column on the Markers sheet are **not** `ReportColumn` cases; `--exclude-column` cannot remove them in Excel or PDF.
 

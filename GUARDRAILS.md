@@ -4,6 +4,8 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
+**Current suite (keep in sync):** **1084** tests listed in `swift test --list-tests` — **1078** in `OpenFCPXMLKitTests` (1075 XCTest + 3 Swift Testing `@Test`) + **6** optional `ExcelReportTest`; **60** public sample `.fcpxml` files.
+
 ---
 
 ## How to use this document

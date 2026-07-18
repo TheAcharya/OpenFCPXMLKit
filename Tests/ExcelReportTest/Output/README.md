@@ -1,6 +1,6 @@
 # Excel and PDF report test output
 
-This folder holds **generated** `.xlsx` workbooks and `.pdf` reports from the `ExcelReportTest` target. It is gitignored; files here are produced on your machine when you run the export tests.
+This folder holds **generated** `.xlsx` workbooks and `.pdf` reports from the `ExcelReportTest` target (**6** optional integration tests). It is gitignored; files here are produced on your machine when you run the export tests.
 
 ---
 

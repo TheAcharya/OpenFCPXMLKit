@@ -15,7 +15,7 @@ The package includes an experimental command-line tool **OpenFCPXMLKit-CLI**. It
 
 ## Commands and options
 
-Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--report`, or `--create-project`. For `--convert-version`, `--media-copy`, `--report` (and default process), `<output-dir>` is required and is **created if missing**. For `--create-project`, the single positional argument is `<output-dir>` (also created if missing). `--extension-type` requires `--convert-version`. REPORT modifiers (`--report-full`, section flags, `--timecode-format`, `--media-resolution`, etc.) require `--report`.
+Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--report`, or `--create-project`. For `--convert-version`, `--media-copy`, `--report` (and default process), `<output-dir>` is required and is **created if missing**. For `--create-project`, the single positional argument is `<output-dir>` (also created if missing). `--extension-type` requires `--convert-version`. REPORT modifiers (`--report-full`, section flags, `--include-markers-outside-clip-boundaries`, `--protect-sheets`, `--timecode-format`, `--media-resolution`, `--label-copyright`, `--create-pdf`, etc.) require `--report`.
 
 ### GENERAL
 

@@ -7,7 +7,7 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
-## [Unreleased]
+## [3.1.1](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.1.1) - 2026-07-18
 
 ### ✨ New Features
 
@@ -17,6 +17,7 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 ### 🔧 Improvements
 
 - **Documentation:** Added [GUARDRAILS.md](GUARDRAILS.md) as a companion to [ARCHITECTURE.md](ARCHITECTURE.md) — hard must / must-not constraints for contributors and agents (layer boundaries, naming, FCPXML 1.5 floor, reporting honesty, fixtures, Signs for learned locks). Cross-linked from README, Manual index, CONTRIBUTING, AGENT, and `.cursorrules`.
+- **Documentation sync:** Test/sample counts and API surface refreshed across README, Manual, Tests READMEs, ARCHITECTURE (incl. Mermaid), AGENT, `.cursorrules`, and GUARDRAILS — **1084** listed tests (**1078** + **6**), **60** public FCPXML samples; documenting `includeMarkersOutsideClipBoundaries` / `--protect-sheets`. Manual chapters **19** / **16** / **17** / **12** / **01** / **20** aligned for `protectSheets`, Markers **Hidden** vs `hidden-clip-marker`, and Excel-only sheet protection.
 
 ### 🐛 Bug Fixes
 

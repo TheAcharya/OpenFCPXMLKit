@@ -105,7 +105,7 @@ try await projector.project(from: source, fcpxml: fcpxml, options: options) { wi
 - Nested spines / anchored children and J/L cuts (`audioStart` / `audioDuration`)
 - `mc-clip` angles (active or all; split video/audio), `ref-clip` media sequences, auditions
 - `video` / `audio` leaves with `ChannelKindFilter` / `srcEnable`
-- Optional annotations when `includeAnnotations` is on (roles, volume/effects breadcrumbs, markers/keywords/titles/transitions/effects for reporting)
+- Optional annotations when `includeAnnotations` is on (roles, volume/effects breadcrumbs, markers/keywords/titles/transitions/effects for reporting). Marker annotations include **`isOutsideClipBoundaries`** (start outside host media range) for Markers report filtering / the opt-in **Hidden** column — see [19 — Reporting](19-Reporting.md#markers).
 
 Timing composition uses **`ProjectionTiming`** (Double intermediates → `Fraction` at 12 decimal places). Do not use SwiftTimecode `Fraction.+` / `.-` for absolute timeline placement when mixing conform-scaled values with literal FCPXML rationals — see [03 — Timecode & Timing](03-Timecode-Timing.md).
 
