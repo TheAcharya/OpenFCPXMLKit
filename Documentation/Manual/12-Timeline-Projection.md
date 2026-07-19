@@ -1,4 +1,4 @@
-# 11 — Timeline Projection
+# 12 — Timeline Projection
 
 [← Manual Index](00-Index.md)
 
@@ -20,7 +20,7 @@ Parsing → Model → Extraction → Projection → Reporting (Excel / PDF)
 
 Use Projection directly when you need timeline geometry. Prefer `buildReport` when you want Excel/PDF — `ReportBuilder` projects **once** per timeline and shares `ReportProjectionContext` across consuming sections.
 
-Related: [03 — Timecode & Timing](03-Timecode-Timing.md) (Double-safe composition), [10 — Extraction & Media](10-Extraction-Media.md), [19 — Reporting](19-Reporting.md), [ARCHITECTURE.md](../../ARCHITECTURE.md) §2.7.
+Related: [03 — Timecode & Timing](03-Timecode-Timing.md) (Double-safe composition), [11 — Extraction & Media](11-Extraction-Media.md), [20 — Reporting](20-Reporting.md), [ARCHITECTURE.md](../../ARCHITECTURE.md) §2.7.
 
 ---
 
@@ -53,6 +53,9 @@ options.expandAllSourceChannels = true   // one window per video/audio src (defa
 
 // Preset aligned with main-timeline Extraction visibility
 let main = FinalCutPro.FCPXML.TimelineProjectionOptions.mainTimeline
+
+// Preset for playable “active mix” track analysis (active audition/angles; all source channels)
+let track = FinalCutPro.FCPXML.TimelineProjectionOptions.trackAnalysis
 ```
 
 Report builds use `TimelineProjectionOptions.forReport(...)` so `excludeDisabledClips` and annotation needs stay consistent across sections.
@@ -105,7 +108,7 @@ try await projector.project(from: source, fcpxml: fcpxml, options: options) { wi
 - Nested spines / anchored children and J/L cuts (`audioStart` / `audioDuration`)
 - `mc-clip` angles (active or all; split video/audio), `ref-clip` media sequences, auditions
 - `video` / `audio` leaves with `ChannelKindFilter` / `srcEnable`
-- Optional annotations when `includeAnnotations` is on (roles, volume/effects breadcrumbs, markers/keywords/titles/transitions/effects for reporting). Marker annotations include **`isOutsideClipBoundaries`** (start outside host media range) for Markers report filtering / the opt-in **Hidden** column — see [19 — Reporting](19-Reporting.md#markers).
+- Optional annotations when `includeAnnotations` is on (roles, volume/effects breadcrumbs, markers/keywords/titles/transitions/effects for reporting). Marker annotations include **`isOutsideClipBoundaries`** (start outside host media range) for Markers report filtering / the opt-in **Hidden** column — see [19 — Reporting](20-Reporting.md#markers).
 
 Timing composition uses **`ProjectionTiming`** (Double intermediates → `Fraction` at 12 decimal places). Do not use SwiftTimecode `Fraction.+` / `.-` for absolute timeline placement when mixing conform-scaled values with literal FCPXML rationals — see [03 — Timecode & Timing](03-Timecode-Timing.md).
 
@@ -116,10 +119,20 @@ Timing composition uses **`ProjectionTiming`** (Double intermediates → `Fracti
 ```swift
 let index = FinalCutPro.FCPXML.TimelineOccupancyIndex(windows: windows)
 let occupiedSeconds = index.occupiedDuration() // union of window intervals in seconds
-// Overlap-aware Summary uses this path when
-// ReportOptions.summaryOverlapAwareDurations == true (API-only; default off).
+let overlapping = index.windows(overlapping: start, end: end) // start-sorted binary-search overlap
+
+// Retiming algebra (compose nested warps; clip to a timeline range)
+let composed = FinalCutPro.FCPXML.RetimingSegment.composing(
+    parents: parentSegments,
+    children: childSegments
+)
+if let first = composed.first,
+   let clipped = first.clipped(toTimelineStart: inPoint, timelineEnd: outPoint) {
+    _ = clipped
+}
 ```
 
+Overlap-aware Summary uses this path when `ReportOptions.summaryOverlapAwareDurations == true` (API-only; default off).
 ---
 
 ## Reporting integration
@@ -146,7 +159,7 @@ let report = try await fcpxml.buildReport(options: options) { phase in
 
 CLI: `--media-resolution fail-soft|fail-loud`, `--media-summary-distinguish-proxy`. Overlap-aware Summary and per-source inventory rows are library options only.
 
-See [19 — Reporting, Excel & PDF Export](19-Reporting.md).
+See [20 — Reporting, Excel & PDF Export](20-Reporting.md).
 
 For private complex exports used only while debugging Projection/reporting, use [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
 
@@ -154,9 +167,9 @@ For private complex exports used only while debugging Projection/reporting, use 
 
 ## Next
 
-- [12 — Media Processing](12-Media-Processing.md) — MIME type, asset validation, silence, duration, parallel I/O.
-- [19 — Reporting, Excel & PDF Export](19-Reporting.md) — build Excel/PDF from Projection + Extraction.
-- [20 — Examples](20-Examples.md) — end-to-end workflows.
+- [13 — Media Processing](13-Media-Processing.md) — MIME type, asset validation, silence, duration, parallel I/O.
+- [20 — Reporting, Excel & PDF Export](20-Reporting.md) — build Excel/PDF from Projection + Extraction.
+- [21 — Examples](21-Examples.md) — end-to-end workflows.
 
 [← Manual Index](00-Index.md)
 

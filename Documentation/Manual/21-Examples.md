@@ -1,4 +1,4 @@
-# 20 — Examples
+# 21 — Examples
 
 [← Manual Index](00-Index.md)
 
@@ -6,7 +6,7 @@
 
 ## Open an FCPXML file
 
-Prefer the cross-platform loader / OFKXML document APIs (see [14 — XML Extensions](14-XML-Extensions.md) and [16 — Cross-Platform & iOS](16-Cross-Platform-iOS.md)). On macOS, Foundation `XMLDocument(contentsOfFCPXML:)` remains available as a convenience.
+Prefer the cross-platform loader / OFKXML document APIs (see [15 — XML Extensions](15-XML-Extensions.md) and [17 — Cross-Platform & iOS](17-Cross-Platform-iOS.md)). On macOS, Foundation `XMLDocument(contentsOfFCPXML:)` remains available as a convenience.
 
 ```swift
 let fileURL = URL(fileURLWithPath: "/Users/username/Documents/sample.fcpxml")
@@ -314,6 +314,35 @@ OpenFCPXMLKit-CLI --report --report-markers \
 
 ---
 
+## Author a simple project (detached Authoring)
+
+```swift
+typealias Authoring = FinalCutPro.FCPXML.Authoring
+
+let format = Authoring.Format(id: "r1", frameDuration: "100/2400s", width: 1920, height: 1080)
+let asset = Authoring.Asset(
+    id: "r2",
+    hasVideo: true,
+    hasAudio: true,
+    duration: "10s",
+    formatID: "r1",
+    mediaReps: [Authoring.MediaRep(src: "file:///tmp/clip.mov")]
+)
+let clip = Authoring.AssetClip(ref: "r2", offset: "0s", duration: "5s", name: "Clip", start: "0s")
+let document = Authoring.Document.simpleProject(
+    version: .v1_14,
+    format: format,
+    asset: asset,
+    clip: clip,
+    sequenceDuration: "5s"
+)
+let xml = try document.xmlString()
+```
+
+Full Authoring API: [08 — Detached Authoring](08-Detached-Authoring.md).
+
+---
+
 ## Project a timeline (MediaUsageWindow)
 
 ```swift
@@ -337,7 +366,7 @@ let videoSeconds = FinalCutPro.FCPXML.TimelineOccupancyIndex(windows: windows)
 print("Union video occupancy:", videoSeconds, "s across", windows.count, "windows")
 ```
 
-Full Projection API: [11 — Timeline Projection](11-Timeline-Projection.md). Reporting project-once is automatic inside `buildReport` when sections need windows.
+Full Projection API: [12 — Timeline Projection](12-Timeline-Projection.md). Reporting project-once is automatic inside `buildReport` when sections need windows.
 
 ---
 
@@ -354,7 +383,7 @@ OpenFCPXMLKit-CLI --report --report-full \
   /path/to/project.fcpxmld /path/to/output-dir
 ```
 
-See [19 — Reporting, Excel & PDF Export](19-Reporting.md) and [11 — Timeline Projection](11-Timeline-Projection.md) for the full reporting and Projection APIs.
+See [20 — Reporting, Excel & PDF Export](20-Reporting.md) and [12 — Timeline Projection](12-Timeline-Projection.md) for the full reporting and Projection APIs.
 
 ---
 

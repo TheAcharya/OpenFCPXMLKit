@@ -5,7 +5,7 @@ Optional integration tests that build real `.xlsx` workbooks and `.pdf` reports 
 **Target:** `ExcelReportTest` (Swift Testing)  
 **Depends on:** `OpenFCPXMLKit`, `XLKit`  
 **Tests:** **6** `@Test` methods in `@Suite("Excel report export")` / `ExcelReportExportTests`  
-**Public suite (keep in sync):** **1084** listed (`1078` OpenFCPXMLKitTests + **6** ExcelReportTest; all Swift Testing); **60** public samples
+**Public suite (keep in sync):** **1114** listed (`1108` OpenFCPXMLKitTests + **6** ExcelReportTest; all Swift Testing); **60** public samples
 
 Unit-level reporting behaviour (universal **Row** on all tabular sheets, Summary title in **B1**, column layout, column exclusion including `ReportColumn.row`, disabled-clip filtering, timecode formats / DF·NDF, format-aware headers, build-phase order including `.projecting`, workbook cell formatting, optional `copyrightLabel` cover/footer branding, `includeMarkersOutsideClipBoundaries` / Markers **Hidden** column, `protectSheets` worksheet protection, `ReportMediaResolutionPolicy` / Media Summary proxy-original distinction, PDF cover notes / black header + `info.circle`, TOC colour chips, column-width expansion after exclusions, pagination, shared row colours, **standalone compound-clip timeline resolution**, **Projection-first** Markers/Keywords/Titles/Transitions/Effects) lives in **`OpenFCPXMLKitTests`** — see [Tests/README.md](../README.md#reporting--excelpdf-export) (`FCPXMLCompoundClipReportTests`, `FCPXMLTimelineProjectionTests`, `FCPXMLReportObligationCorpusTests`, `FCPXMLMarkersReportTests`, `FCPXMLReportPDFExportTests`, `FCPXMLReportPDFSheetPlanTests`, `FCPXMLReportPDFTableLayoutTests`, `FCPXMLReportColumnExclusionTests`, `FCPXMLReportExcelExportTests`, and related files).
 
@@ -120,7 +120,7 @@ try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: xlsxURL)
 try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 ```
 
-See [Documentation/Manual/19-Reporting.md](../../Documentation/Manual/19-Reporting.md) and [11 — Timeline Projection](../../Documentation/Manual/11-Timeline-Projection.md) for the full API (`ReportPDFExport`, `ReportTimecodeFormat`, progress phases, column exclusion, Projection).
+See [Documentation/Manual/20-Reporting.md](../../Documentation/Manual/20-Reporting.md) and [11 — Timeline Projection](../../Documentation/Manual/12-Timeline-Projection.md) for the full API (`ReportPDFExport`, `ReportTimecodeFormat`, progress phases, column exclusion, Projection).
 
 ---
 

@@ -58,6 +58,61 @@ extension FinalCutPro.FCPXML {
             self.isReversed = isReversed
         }
 
+        /// Forward timeline occupancy length in seconds (`max(0, timelineEnd − timelineStart)`).
+        public var timelineDuration: Double {
+            max(0, timelineEnd.doubleValue - timelineStart.doubleValue)
+        }
+
+        /// Absolute media span length in seconds (`abs(mediaEnd − mediaStart)`).
+        ///
+        /// Hold / freeze segments approach `0` even when timeline occupancy is positive.
+        public var mediaDuration: Double {
+            abs(mediaEnd.doubleValue - mediaStart.doubleValue)
+        }
+
+        /// `true` when media does not advance over a positive timeline span (hold / freeze).
+        public var isHold: Bool {
+            timelineDuration > .ulpOfOne && mediaDuration <= .ulpOfOne
+        }
+
+        /// `true` when `timeline` lies in the half-open occupancy `[timelineStart, timelineEnd)`.
+        public func containsTimeline(_ timeline: Fraction) -> Bool {
+            let t = timeline.doubleValue
+            return t >= timelineStart.doubleValue && t < timelineEnd.doubleValue
+        }
+
+        /// `true` when this segment’s timeline occupancy overlaps `[start, end)`.
+        public func intersectsTimeline(start: Fraction, end: Fraction) -> Bool {
+            let queryStart = min(start.doubleValue, end.doubleValue)
+            let queryEnd = max(start.doubleValue, end.doubleValue)
+            return timelineStart.doubleValue < queryEnd && queryStart < timelineEnd.doubleValue
+        }
+
+        /// Returns a copy clipped to the overlapping timeline range `[start, end)`, remapping
+        /// media endpoints through ``mediaPoint(forTimeline:)``.
+        ///
+        /// Returns `nil` when there is no positive overlap.
+        public func clipped(toTimelineStart start: Fraction, timelineEnd end: Fraction) -> RetimingSegment? {
+            let queryStart = min(start.doubleValue, end.doubleValue)
+            let queryEnd = max(start.doubleValue, end.doubleValue)
+            let overlapLo = max(timelineStart.doubleValue, queryStart)
+            let overlapHi = min(timelineEnd.doubleValue, queryEnd)
+            guard overlapHi > overlapLo + .ulpOfOne else { return nil }
+
+            let clippedStart = Fraction(double: overlapLo)
+            let clippedEnd = Fraction(double: overlapHi)
+            let clippedMediaStart = mediaPoint(forTimeline: clippedStart)
+            let clippedMediaEnd = mediaPoint(forTimeline: clippedEnd)
+            return RetimingSegment(
+                timelineStart: clippedStart,
+                timelineEnd: clippedEnd,
+                mediaStart: clippedMediaStart,
+                mediaEnd: clippedMediaEnd,
+                scale: scale,
+                isReversed: clippedMediaEnd.doubleValue < clippedMediaStart.doubleValue
+            )
+        }
+
         /// Identity mapping: clip occupies `[timelineStart, timelineStart + duration)` and
         /// reads media `[mediaStart, mediaStart + duration)`.
         public static func identity(
@@ -151,6 +206,19 @@ extension FinalCutPro.FCPXML {
                 current = current.flatMap { composing(parent: parent, child: $0) }
             }
             return current
+        }
+
+        /// Composes every child through the parent chain (outermost → innermost).
+        ///
+        /// Useful when both a container and a nested clip expose multi-point ``TimeMap``
+        /// segments: each child is composed independently, then results are concatenated.
+        public static func composing(
+            parents: [RetimingSegment],
+            children: [RetimingSegment]
+        ) -> [RetimingSegment] {
+            guard !children.isEmpty else { return [] }
+            guard !parents.isEmpty else { return children }
+            return children.flatMap { composing(parents: parents, child: $0) }
         }
     }
 }

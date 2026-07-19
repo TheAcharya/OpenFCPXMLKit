@@ -4,7 +4,25 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1084** tests listed in `swift test list` — **1078** in `OpenFCPXMLKitTests` + **6** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1114** tests listed in `swift test list` — **1108** in `OpenFCPXMLKitTests` + **6** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+
+---
+
+## Table of Contents
+
+- [How to use this document](#how-to-use-this-document)
+- [1. Naming & product identity](#1-naming--product-identity)
+- [2. Layer boundaries (non-negotiable)](#2-layer-boundaries-non-negotiable)
+- [3. FCPXML compatibility & versions](#3-fcpxml-compatibility--versions)
+- [4. Architecture & concurrency](#4-architecture--concurrency)
+- [5. Reporting & CLI honesty](#5-reporting--cli-honesty)
+- [6. Tests & fixtures](#6-tests--fixtures)
+- [7. Documentation & changelog](#7-documentation--changelog)
+- [8. Safety & scope](#8-safety--scope)
+- [9. Signs (learned constraints)](#9-signs-learned-constraints)
+  - [Active signs](#active-signs)
+- [10. Quick checklist before merge](#10-quick-checklist-before-merge)
+- [11. References](#11-references)
 
 ---
 
@@ -42,12 +60,15 @@ Extend the engine **bottom-up**. Do not invent FCPXML meaning inside Reporting.
 XML → Parsing → Model → Extraction → Projection → Reporting
 ```
 
+**Authoring** (`Authoring/`) is a **parallel create path** (detached value graph). It must not feed Reporting, and Reporting must not depend on Authoring types.
+
 | Always | Never |
 |--------|-------|
 | Put new XML facts in **Model / Parsing** first | Parse or reinterpret FCPXML only inside `Reporting/` builders |
 | Put occupancy / retiming / channel visibility in **Projection** | Duplicate timeline math, role resolution, or story walks in Excel/PDF exporters |
 | Keep **Reporting** presentation-thin (rows, columns, colours, sheet layout) | Add report-only ad hoc XML walks when Extraction/Projection can supply the fact |
 | Prefer **Projection-first** for Markers / Keywords / Titles / Transitions / Effects (Extraction fallback) | Bypass `ReportProjectionContext` / project-once when those sections are enabled |
+| Keep **Authoring** omit-on-write honest via `VersionAvailability` / `VersionFeatureGate` | Use Authoring types inside Reporting builders or invent FCPXML meaning only in Authoring when Model should own it |
 
 See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 
@@ -110,7 +131,7 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 | Rule | Detail |
 |------|--------|
 | **AGENT ↔ .cursorrules** | When you update one, update the other. Same overview, architecture, test structure, and conventions. |
-| **Feature docs** | User-visible behaviour → Manual (esp. [11 Timeline Projection](Documentation/Manual/11-Timeline-Projection.md) / [18 CLI](Documentation/Manual/18-CLI.md) / [19 Reporting](Documentation/Manual/19-Reporting.md) / [20 Examples](Documentation/Manual/20-Examples.md)) and CLI README as needed. Structural boundaries → ARCHITECTURE.md. Hard constraints → this file. |
+| **Feature docs** | User-visible behaviour → Manual (esp. [11 Timeline Projection](Documentation/Manual/12-Timeline-Projection.md) / [18 CLI](Documentation/Manual/19-CLI.md) / [19 Reporting](Documentation/Manual/20-Reporting.md) / [20 Examples](Documentation/Manual/21-Examples.md)) and CLI README as needed. Structural boundaries → ARCHITECTURE.md. Hard constraints → this file. |
 | **CHANGELOG** | Keep a Changelog format. Version heading links to the GitHub release tag. Sections: **✨ New Features**, **🔧 Improvements**, **🐛 Bug Fixes** (empty → “None in this release.”). |
 | **File headers** | New Swift files use the project header (see ARCHITECTURE.md §5.2): OpenFCPXMLKit URL line, MIT, tabbed purpose block — no `Created by` / extra copyright lines. |
 
@@ -165,8 +186,14 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1084** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1114** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
+
+### Sign: authoring-not-in-reporting
+- **Trigger:** Detached Authoring (`FinalCutPro.FCPXML.Authoring`) or report builders.
+- **Instruction:** Keep Authoring parallel to live Model / Timeline Export. Do not import Authoring types into Reporting; do not invent FCPXML meaning only in Authoring when Model/Parsing should own it. Omit-on-write must consult `VersionAvailability` / `VersionFeatureGate`.
+- **Reason:** Reporting consumes Extraction → Projection only; Authoring is a create/round-trip path.
+- **Provenance:** 2026-07-19 — design lock for Authoring layer (3.2.0).
 
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.
@@ -191,6 +218,6 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 
 ## 11. References
 
-- **Internal:** [ARCHITECTURE.md](ARCHITECTURE.md), [AGENT.md](AGENT.md), [.cursorrules](.cursorrules), [Tests/README.md](Tests/README.md), [Tests/Submitted FCPXML/README.md](Tests/Submitted%20FCPXML/README.md), [Documentation/Manual/00-Index.md](Documentation/Manual/00-Index.md).
+- **Internal:** [ARCHITECTURE.md](ARCHITECTURE.md), [AGENT.md](AGENT.md), [.cursorrules](.cursorrules), [Tests/README.md](Tests/README.md), [Tests/Submitted FCPXML/README.md](Tests/Submitted%20FCPXML/README.md), [Documentation/Manual/00-Index.md](Documentation/Manual/00-Index.md), [Documentation/Coverage.md](Documentation/Coverage.md).
 - **External:** [Final Cut Pro XML](https://fcp.cafe/developers/fcpxml/), [Swift API Design Guidelines](https://swift.org/documentation/api-design-guidelines/), [Swift Concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/).
 

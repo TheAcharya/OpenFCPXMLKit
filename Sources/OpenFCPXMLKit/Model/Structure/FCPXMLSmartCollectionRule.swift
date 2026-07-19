@@ -48,6 +48,12 @@ extension FinalCutPro.FCPXML {
         
         /// Matches if the value is not exactly equal to the specified value.
         case isNot = "isNot"
+
+        /// Matches when the property is set (FCPXML 1.11+ `match-property` rule).
+        case isSet
+
+        /// Matches when the property is not set (FCPXML 1.11+ `match-property` rule).
+        case isNotSet
         
         /// Matches if the value starts with the specified text.
         case startsWith

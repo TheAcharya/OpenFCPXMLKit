@@ -9,7 +9,7 @@ A modern Swift 6 framework for working with Final Cut Pro's FCPXML with full con
 
 OpenFCPXMLKit provides a type-safe API for parsing, creating, and manipulating FCPXML with async/await, SwiftTimecode, and Excel/PDF reporting. Targets **macOS 26+** and **iOS 26+** (Foundation XML on macOS; AEXML on iOS).
 
-**Tests:** **1084** listed in `swift test list` — **1078** in `OpenFCPXMLKitTests` + **6** optional `ExcelReportTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
+**Tests:** **1114** listed in `swift test list` — **1108** in `OpenFCPXMLKitTests` + **6** optional `ExcelReportTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
 
 OpenFCPXMLKit is currently in an experimental stage. It covers most core FCPXML attributes and parameters and provides a solid foundation for parsing, creation, and manipulation, with room for future expansion and additional feature coverage.
 
@@ -31,6 +31,7 @@ This codebase is developed using AI agents.
   - [Timecode & timing](#timecode--timing)
   - [Typed models](#typed-models)
   - [Timeline](#timeline)
+  - [Detached Authoring](#detached-authoring)
   - [Extraction & media](#extraction--media)
   - [Timeline Projection](#timeline-projection)
   - [Excel & PDF reporting](#excel--pdf-reporting)
@@ -72,7 +73,7 @@ This codebase is developed using AI agents.
 
 ### Typed models
 - Resources, events, clips, projects, transitions, multicam
-- Adjustments (crop, transform, volume, EQ, 360, stereo 3D, …)
+- Adjustments (crop, corners, transform, volume, panner, EQ, 360, stereo 3D, …)
 - Filters, captions/titles (`TextStyle`), smart collections, keyword folders
 - Keyframe animation, Live Drawing (1.11+), HiddenClipMarker / heroEye / mediaReps (1.13+)
 
@@ -81,6 +82,13 @@ This codebase is developed using AI agents.
 - Ripple insert, auto lane, clip queries, secondary storylines
 - Markers, keywords, ratings, custom metadata, timestamps
 
+### Detached Authoring
+- `FinalCutPro.FCPXML.Authoring` value graph (no live XML ownership)
+- Encode/decode limited subset; omit-on-write via `VersionAvailability` / `VersionFeatureGate`
+- Spine: asset-clip, gap, title, transition, video/audio, caption, sync/ref/mc-clip, audition
+- Resources: format, asset, effect, media (compound + multicam)
+- See [Manual 08 — Detached Authoring](Documentation/Manual/08-Detached-Authoring.md)
+
 ### Extraction & media
 - Extraction presets (Captions, Markers, Roles, Titles, Effects, FrameData)
 - Media extract / copy; MIME detection; asset validation; silence; duration; parallel I/O
@@ -88,8 +96,9 @@ This codebase is developed using AI agents.
 ### Timeline Projection
 - Mid-layer between Extraction and Reporting: `TimelineProjector` → `MediaUsageWindow`
 - Channels, lanes, `timeMap` / conform retiming, multicam / ref-clip / audition unfold
+- `RetimingSegment` compose/clip; `TimelineOccupancyIndex` overlap; `.trackAnalysis` options preset
 - Reports project **once** per timeline; Markers / Keywords / Titles / Transitions / Effects are Projection-first (Extraction fallback)
-- See [Manual 11 — Timeline Projection](Documentation/Manual/11-Timeline-Projection.md)
+- See [Manual 12 — Timeline Projection](Documentation/Manual/12-Timeline-Projection.md)
 
 ### Excel & PDF reporting
 - Build once with `buildReport(options:)`, then export `.xlsx` (XLKit) and/or `.pdf` (CoreGraphics)
@@ -98,7 +107,7 @@ This codebase is developed using AI agents.
 - Markers: default omits out-of-bounds starts; `--include-markers-outside-clip-boundaries` adds them + **Hidden** column
 - Excel: `--protect-sheets` / `protectSheets` applies worksheet edit locks (not encryption; PDF unaffected)
 - CLI: `--report`, `--report-full`, `--create-pdf`, `--media-resolution`, `--timecode-format`, `--protect-sheets`, …
-- See [Manual 19 — Reporting](Documentation/Manual/19-Reporting.md)
+- See [Manual 20 — Reporting](Documentation/Manual/20-Reporting.md)
 
 ### CLI
 - `OpenFCPXMLKit-CLI`: check / convert / validate / media-copy / create-project / report
@@ -141,7 +150,7 @@ let package = Package(
         .iOS(.v26)
     ],
     dependencies: [
-        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.1.2")
+        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.2.0")
     ],
     targets: [
         .target(
@@ -204,7 +213,7 @@ sudo rm /usr/local/bin/OpenFCPXMLKit-CLI
 ### Compiled From Source
 
 ```shell
-VERSION=3.1.2 # replace this with the git tag of the version you need
+VERSION=3.2.0 # replace this with the git tag of the version you need
 git clone https://github.com/TheAcharya/OpenFCPXMLKit.git
 cd OpenFCPXMLKit
 git checkout "tags/$VERSION"
@@ -324,10 +333,11 @@ Complete manual, usage guide, and examples are in the [Documentation](Documentat
 
 - **[Manual Index](Documentation/Manual/00-Index.md)** — Full chapter list and navigation (start here)
 - **[Documentation hub](Documentation/README.md)** — Manual overview
+- **[Coverage](Documentation/Coverage.md)** — Detailed FCPXML coverage matrices (typed Model, Authoring, Extraction, Projection, Reporting)
 - **[CLI](Sources/OpenFCPXMLKitCLI/README.md)** — Flags, examples, building and extending
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — Layer stack, codebase map, Mermaid diagrams
 - **[GUARDRAILS.md](GUARDRAILS.md)** — Must / must-not constraints for contributors and agents
-- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1084** listed; all Swift Testing)
+- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1114** listed; all Swift Testing)
 - **[AGENT.md](AGENT.md)** — AI agent / contributor briefing
 
 ## FCPXML Version Support
@@ -348,7 +358,7 @@ OpenFCPXMLKit supports FCPXML versions 1.5 through 1.14. All DTDs for these vers
 - Protocols define parsing, timecode conversion, document operations, error handling, MIME type detection, asset validation, silence detection, asset duration measurement, and parallel file I/O; each has a default implementation you can swap. FCPXMLService (and FCPXMLUtility) composes these and exposes sync and async APIs. ModularUtilities provides createService, processFCPXML, validateDocument, convertTimecodes, and similar helpers.
 - FCPXMLFileLoader handles .fcpxml and .fcpxmld (including bundle Info.fcpxml). FCPXMLValidator and FCPXMLDTDValidator handle structural and schema validation (full DTD on macOS; FCPXMLStructuralValidator on iOS when DTD is unavailable); DTDs for 1.5–1.14 are bundled.
 - A cross-platform XML layer (`Sources/OpenFCPXMLKit/XML/`) provides protocol types (OFKXMLNode, OFKXMLElement, OFKXMLDocument, OFKXMLFactory) with Foundation and AEXML backends. Extensions on CMTime and the XML protocol types offer convenience APIs; use modular overloads with an explicit dependency to inject your own. Error types are explicit (FCPXMLError, FCPXMLLoadError, export and validation errors); you can inject a custom error handler.
-- The engine is layered bottom-up — `XML → Parsing → Model → Extraction → Projection → Reporting` — so the CLI, extraction presets, timeline tools, and reports share one foundation. **Projection** emits playable `MediaUsageWindow`s; **Reporting** (Excel via XLKit, PDF via CoreGraphics) maps Projection + Extraction facts into sheets and owns presentation only. See [ARCHITECTURE.md](ARCHITECTURE.md) for the full codebase map and layer boundaries, and [GUARDRAILS.md](GUARDRAILS.md) for hard must / must-not constraints on those layers.
+- The engine is layered bottom-up — `XML → Parsing → Model → Extraction → Projection → Reporting` — so the CLI, extraction presets, timeline tools, and reports share one foundation. **Authoring** is a parallel detached create path (not in the Reporting stack). **Projection** emits playable `MediaUsageWindow`s; **Reporting** (Excel via XLKit, PDF via CoreGraphics) maps Projection + Extraction facts into sheets and owns presentation only. See [ARCHITECTURE.md](ARCHITECTURE.md) for the full codebase map and layer boundaries, and [GUARDRAILS.md](GUARDRAILS.md) for hard must / must-not constraints on those layers.
 
 See [AGENT.md](AGENT.md) for a detailed breakdown for AI agents and contributors, and [GUARDRAILS.md](GUARDRAILS.md) for hard must / must-not constraints.
 

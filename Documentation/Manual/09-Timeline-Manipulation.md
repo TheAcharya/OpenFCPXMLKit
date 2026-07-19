@@ -1,4 +1,4 @@
-# 08 — Timeline Manipulation
+# 09 — Timeline Manipulation
 
 [← Manual Index](00-Index.md)
 
@@ -121,4 +121,4 @@ if let laneRange = timeline.laneRange {
 
 ## Next
 
-- [09 — Timeline Metadata](09-Timeline-Metadata.md) — Markers, chapters, keywords, ratings, timestamps.
+- [10 — Timeline Metadata](10-Timeline-Metadata.md) — Markers, chapters, keywords, ratings, timestamps.

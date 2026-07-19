@@ -20,7 +20,12 @@ let validation = service.validateDocumentAgainstDTD(converted, version: .v1_10)
 guard validation.isValid else { /* handle errors */ }
 ```
 
-Allowlists are derived at runtime from the target DTD (**EmbeddedDTDProvider** in CLI, bundle in library). Fallback to hand-maintained lists when DTD data is unavailable.
+Allowlists are derived at runtime from the target DTD (**EmbeddedDTDProvider** in CLI, bundle in library). When DTD data is unavailable, the converter falls back to **`FinalCutPro.FCPXML.VersionFeatureGate`** (`elementNamesToOmit(at:)` / `attributeNamesToOmit(onElement:at:)`), the same registry used by detached Authoring omit-on-write (see [08 — Detached Authoring](08-Detached-Authoring.md)).
+
+```swift
+let omit = FinalCutPro.FCPXML.VersionFeatureGate.elementNamesToOmit(at: .v1_09)
+// includes e.g. adjust-cinematic (introduced in 1.10)
+```
 
 ### Write honesty vs report reads
 

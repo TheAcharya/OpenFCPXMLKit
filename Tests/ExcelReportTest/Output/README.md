@@ -1,6 +1,6 @@
 # Excel and PDF report test output
 
-This folder holds **generated** `.xlsx` workbooks and `.pdf` reports from the `ExcelReportTest` target (**6** optional Swift Testing integration tests; part of the **1084**-test public suite). It is gitignored; files here are produced on your machine when you run the export tests. Without a local fixture, those tests **cancel** via `Test.cancel` and nothing is written.
+This folder holds **generated** `.xlsx` workbooks and `.pdf` reports from the `ExcelReportTest` target (**6** optional Swift Testing integration tests; part of the **1114**-test public suite). It is gitignored; files here are produced on your machine when you run the export tests. Without a local fixture, those tests **cancel** via `Test.cancel` and nothing is written.
 
 ---
 

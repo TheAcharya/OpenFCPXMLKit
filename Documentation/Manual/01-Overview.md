@@ -22,6 +22,7 @@ OpenFCPXMLKit provides a comprehensive API for parsing, creating, and manipulati
 | **FCPXMLValidator** | Semantic validation (root, resources, ref resolution) |
 | **FCPXMLDTDValidator** | DTD schema validation for a given FCPXML version |
 | **FCPXMLExporter** / **FCPXMLBundleExporter** | Export `Timeline` to FCPXML string or `.fcpxmld` bundle |
+| **`FinalCutPro.FCPXML.Authoring.Document`** | Detached value-graph authoring (encode/decode limited subset; omit-on-write) |
 | **TimelineProjector** | Project a report timeline into `MediaUsageWindow` values (playable occupancy) |
 | **ReportExcelExport** / **ReportPDFExport** | Export a built `Report` to `.xlsx` (XLKit) or `.pdf` (CoreGraphics) |
 
@@ -50,7 +51,7 @@ All core behaviour is defined by **protocols** with both sync and async APIs. De
 
 Semantic validators (`FCPXMLValidator`, `FCPXMLDTDValidator`, `FCPXMLStructuralValidator`) are injectable concrete types, not protocol-backed.
 
-**Layer stack (bottom → top):** XML → Parsing → Model → Extraction → **Projection** → Reporting. Extend lower layers before adding report-only XML walks. See [11 — Timeline Projection](11-Timeline-Projection.md), [ARCHITECTURE.md](../../ARCHITECTURE.md) §2.7, and [GUARDRAILS.md](../../GUARDRAILS.md) for must / must-not constraints.
+**Layer stack (bottom → top):** XML → Parsing → Model → Extraction → **Projection** → Reporting. Extend lower layers before adding report-only XML walks. See [12 — Timeline Projection](12-Timeline-Projection.md), [ARCHITECTURE.md](../../ARCHITECTURE.md) §2.7, and [GUARDRAILS.md](../../GUARDRAILS.md) for must / must-not constraints.
 
 ## Logging
 

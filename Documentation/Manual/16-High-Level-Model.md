@@ -1,4 +1,4 @@
-# 15 — High-Level Model
+# 16 — High-Level Model
 
 [← Manual Index](00-Index.md)
 
@@ -35,13 +35,13 @@ let version = fcpxml.version
 
 Bridging with **FCPXMLVersion** (DTD/validation): use `.fcpxmlVersion` and `.dtdVersion` and `init(from:)` converters where provided.
 
-For building Excel or PDF reports from either a project or a standalone compound clip, see [19 — Reporting, Excel & PDF Export](19-Reporting.md).
+For building Excel or PDF reports from either a project or a standalone compound clip, see [20 — Reporting, Excel & PDF Export](20-Reporting.md).
 
 ---
 
 ## Next
 
-- [16 — Cross-Platform & iOS](16-Cross-Platform-iOS.md) — OFKXML abstraction, Foundation vs AEXML, iOS support.
+- [17 — Cross-Platform & iOS](17-Cross-Platform-iOS.md) — OFKXML abstraction, Foundation vs AEXML, iOS support.
 
 [← Manual Index](00-Index.md)
 

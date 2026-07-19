@@ -567,6 +567,42 @@ struct FCPXMLTimelineProjectionTests {
         #expect(segments.video[0].timelineStart == Fraction(2, 1))
     }
 
+    @Test("AudioStart-only split defaults audioDuration to video duration")
+    func audioSplitRetiming_AudioStartOnly_DefaultsDuration() throws {
+        // video start=10s duration=5s at offset=2s → [2,7) media [10,15)
+        // audioStart=9s only → audio timeline starts 1s earlier, duration remains 5s → [1,6)
+        let segments = FinalCutPro.FCPXML.AudioSplitRetiming.segments(
+            timeMap: nil,
+            absoluteStart: Fraction(2, 1),
+            videoDuration: Fraction(5, 1),
+            videoMediaStart: Fraction(10, 1),
+            clipStartAttribute: Fraction(10, 1),
+            audioStart: Fraction(9, 1),
+            audioDuration: nil
+        )
+        #expect(FinalCutPro.FCPXML.AudioSplitRetiming.hasSplitEdit(
+            videoStart: Fraction(10, 1),
+            videoDuration: Fraction(5, 1),
+            audioStart: Fraction(9, 1),
+            audioDuration: nil
+        ))
+        #expect(segments.audio.count == 1)
+        #expect(segments.audio[0].timelineStart == Fraction(1, 1))
+        #expect(segments.audio[0].timelineEnd == Fraction(6, 1))
+        #expect(segments.audio[0].mediaStart == Fraction(9, 1))
+        #expect(segments.audio[0].mediaEnd == Fraction(14, 1))
+    }
+
+    @Test("trackAnalysis preset uses active audition and multicam")
+    func trackAnalysisPreset_UsesActiveMasks() {
+        let options = FinalCutPro.FCPXML.TimelineProjectionOptions.trackAnalysis
+        #expect(options.auditions == .active)
+        #expect(options.mcClipAngles == .active)
+        #expect(options.expandAllSourceChannels)
+        #expect(options.includeDisabled)
+        #expect(!options.excludeFullyOccluded)
+    }
+
     // MARK: - Multicam, ref-clip, audition, video/audio leaves
 
     @Test("MC-clip active angle only emits from active angle")

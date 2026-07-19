@@ -160,6 +160,8 @@ extension FinalCutPro.FCPXML {
     /// A property match criterion for a smart collection.
     public struct MatchProperty: Sendable, Equatable, Hashable, Codable {
         /// Specifies the possible property keys to match.
+        ///
+        /// Keys `projection`, `stereoscopic`, and `cinematic` are defined in FCPXML 1.11+.
         public enum PropertyKey: String, Sendable, Equatable, Hashable, Codable {
             case reel
             case scene
@@ -170,6 +172,12 @@ extension FinalCutPro.FCPXML {
             case audioSampleRate
             case cameraName
             case cameraAngle
+            /// FCPXML 1.11+.
+            case projection
+            /// FCPXML 1.11+.
+            case stereoscopic
+            /// FCPXML 1.11+.
+            case cinematic
         }
         
         /// A Boolean value indicating whether the property match is enabled.
@@ -182,7 +190,10 @@ extension FinalCutPro.FCPXML {
         public var rule: SmartCollectionRule
         
         /// The property value to match.
-        public var value: String
+        ///
+        /// Absent when the rule is ``SmartCollectionRule/isSet`` or ``SmartCollectionRule/isNotSet``
+        /// (FCPXML 1.11+ DTD: `value` is `#IMPLIED`).
+        public var value: String?
         
         private enum CodingKeys: String, CodingKey {
             case isEnabled = "enabled"
@@ -193,9 +204,14 @@ extension FinalCutPro.FCPXML {
         /// - Parameters:
         ///   - key: The property key to match.
         ///   - rule: The rule to use for the property match (default: `.includes`).
-        ///   - value: The property value to match.
+        ///   - value: The property value to match (omit for `isSet` / `isNotSet`).
         ///   - isEnabled: Whether the match is enabled (default: `true`).
-        public init(key: PropertyKey, rule: SmartCollectionRule = .includes, value: String, isEnabled: Bool = true) {
+        public init(
+            key: PropertyKey,
+            rule: SmartCollectionRule = .includes,
+            value: String? = nil,
+            isEnabled: Bool = true
+        ) {
             self.key = key
             self.rule = rule
             self.value = value

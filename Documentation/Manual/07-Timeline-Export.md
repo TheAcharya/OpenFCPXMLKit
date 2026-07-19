@@ -57,7 +57,7 @@ let asset = FCPXMLExportAsset(
 
 ## Export to FCPXML string
 
-**FCPXMLExporter** produces an FCPXML string. Supports timelines with **zero clips** (empty spine) or with clips; when clips are present, every `assetRef` must match an asset `id`. The output includes a **DOCTYPE** declaration, **format** `colorSpace` (e.g. `1-1-1 (Rec. 709)`), and optionally FCP-style default smart collections. **Timeline-level and clip-level metadata** (markers, chapter markers, keywords, ratings, custom metadata) are included when present — see [09 — Timeline Metadata](09-Timeline-Metadata.md) for setting metadata on timelines and clips. The XML declaration uses `standalone="no"` for compatibility with external DTD validation (e.g. xmllint).
+**FCPXMLExporter** produces an FCPXML string. Supports timelines with **zero clips** (empty spine) or with clips; when clips are present, every `assetRef` must match an asset `id`. The output includes a **DOCTYPE** declaration, **format** `colorSpace` (e.g. `1-1-1 (Rec. 709)`), and optionally FCP-style default smart collections. **Timeline-level and clip-level metadata** (markers, chapter markers, keywords, ratings, custom metadata) are included when present — see [10 — Timeline Metadata](10-Timeline-Metadata.md) for setting metadata on timelines and clips. The XML declaration uses `standalone="no"` for compatibility with external DTD validation (e.g. xmllint).
 
 ```swift
 let exporter = FCPXMLExporter(version: .default)
@@ -66,7 +66,7 @@ let xmlString = try exporter.export(timeline: timeline, assets: [asset])
 
 Optional parameters for FCP-style document identity and library location:
 
-- **eventUid** — Event `uid` attribute; if `nil`, a new UID is generated (see **FCPXMLUID** in [17 — Errors & Utilities](17-Errors-Utilities.md)).
+- **eventUid** — Event `uid` attribute; if `nil`, a new UID is generated (see **FCPXMLUID** in [18 — Errors & Utilities](18-Errors-Utilities.md)).
 - **projectUid** — Project `uid` attribute; if `nil`, a new UID is generated.
 - **libraryLocation** — Library `location` attribute (e.g. file URL of the library bundle).
 - **includeDefaultSmartCollections** — If `true`, adds FCP-style default smart collections under the library (Projects, All Video, Audio Only, Stills, Favorites). Default: `false`. Set to `true` when creating new projects for FCP import.
@@ -109,5 +109,6 @@ let bundleURL = try bundleExporter.exportBundle(
 
 ## Next
 
-- [08 — Timeline Manipulation](08-Timeline-Manipulation.md) — Ripple insert, auto lane, clip queries.
+- [08 — Detached Authoring](08-Detached-Authoring.md) — Detached value-graph document authoring (parallel to Timeline export).
+- [09 — Timeline Manipulation](09-Timeline-Manipulation.md) — Ripple insert, auto lane, clip queries.
 

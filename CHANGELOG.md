@@ -7,6 +7,26 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.2.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.2.0) - 2026-07-19
+
+### ✨ New Features
+
+- **Detached Authoring:** New `FinalCutPro.FCPXML.Authoring` value-graph layer for composing FCPXML without live XML ownership. `Authoring.Document` encode (`makeXMLDocument` / `xmlString`) and limited decode; omit-on-write via `VersionAvailability` / `VersionFeatureGate`. Spine items: asset-clip, gap, title, transition, video, audio, caption, sync-clip, ref-clip, mc-clip, audition; resources: format, asset, effect, media (compound sequence + multicam). Parallel to live `Model/` and `Timeline`/`Export/` — do not use inside Reporting. Tests: `FCPXMLAuthoringTests`. Manual: [08 — Detached Authoring](Documentation/Manual/08-Detached-Authoring.md).
+- **Version feature gate:** Public `FinalCutPro.FCPXML.VersionFeatureGate` registry of DTD feature introductions (elements/attributes). Shared by Authoring omit-on-write and `FCPXMLVersionConverter` fallback strip lists. Tests: `FCPXMLVersionFeatureGateTests`.
+- **Model adjustments:** Typed `CornersAdjustment` (`adjust-corners`) and `PannerAdjustment` (`adjust-panner`) with clip accessors; MatchProperty / smart-collection DTD rule gaps filled (`projection` / `stereoscopic` / `cinematic`, `isSet` / `isNotSet`).
+- **Projection time algebra:** `RetimingSegment.clipped` / `composing(parents:children:)`; `TimelineOccupancyIndex` start-sorted binary-search overlap; `TimelineProjectionOptions.trackAnalysis` preset; audioStart-only J/L split handling in projection. Tests: `FCPXMLProjectionEdgeCaseCorpusTests` and related Projection suites.
+
+### 🔧 Improvements
+
+- **Manual reorder:** Inserted **08 — Detached Authoring**; subsequent chapters renumbered (**09–21**). Timeline Projection is **12**, CLI **19**, Reporting **20**, Examples **21**. Documentation hub, README, ARCHITECTURE (Mermaid + folder map), AGENT, `.cursorrules`, GUARDRAILS, and Tests READMEs updated.
+- **Documentation sync:** Test counts refreshed to **1114** listed in `swift test list` (**1108** OpenFCPXMLKitTests + **6** ExcelReportTest); ARCHITECTURE Mermaid includes Authoring + VersionFeatureGate; Manual 06/12/14 examples updated for feature gate, occupancy/retiming, Corners/Panner; added [Documentation/Coverage.md](Documentation/Coverage.md) (detailed FCPXML layer matrices).
+
+### 🐛 Bug Fixes
+
+- None in this release.
+
+---
+
 ## [3.1.2](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.1.2) - 2026-07-19
 
 ### ✨ New Features
@@ -53,7 +73,7 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 - **Titles & Generators → Projection:** Report builder prefers ``WindowTitleAnnotation`` collected during timeline Projection (title/generator story hosts, including titles with no nested story children). Extraction remains fallback when Projection has no title annotations. Tests: `FCPXMLTitlesProjectionTests`.
 - **Markers + Keywords → Projection:** Report builders prefer ``ProjectedClipAnnotations`` collected during timeline Projection (covers title-hosted markers such as BasicMarkers). Extraction remains fallback when Projection has no marker/keyword annotations. Tests: `FCPXMLMarkersKeywordsProjectionTests`.
 - **Timeline Projection:** New `Projection/` mid-layer between Extraction and Reporting. `TimelineProjecting` / `TimelineProjector` emit Sendable `MediaUsageWindow` values (per `MediaChannel`, `LanePath`, `RetimingSegment`) for visible usages with identity or `timeMap` retiming (normalized segments, reverse detection, multi-segment windows); `ConformRate` scale via shared `fcpConformRateScalingFactor`. Recursive story walk for nested spines and anchored children (`SpineProjection`, `ProjectionTiming`); J/L cuts via `AudioSplitRetiming`. Unfolds `mc-clip` angles (`MulticamProjection`), `ref-clip` media sequences (`RefClipProjection`), auditions, and `video`/`audio` leaves with `ChannelKindFilter` / `srcEnable`. Role Inventory, Speed Change, Media Summary, Effects, and Summary consume shared `ReportProjectionContext` windows (projected once per timeline); Speed Change prefers non-identity `RetimingSegment` facts; Role Inventory overlays timeline bounds from matching windows; Media Summary prefers window media URLs; Summary uses projection-backed spans; `TimelineOccupancyIndex` for overlap queries. Extraction remains the source for roles/metadata discovery where annotations are absent.
-- **Reporting contracts:** Per-sheet obligation contracts (Manual 19); `ReportMediaResolutionPolicy` (`.failSoft` / `.failLoud`) with CLI `--media-resolution`; Media Summary optional Missing Original / Missing Proxy columns (`mediaSummaryDistinguishProxyAndOriginal`, `--media-summary-distinguish-proxy`). Tests: `FCPXMLReportObligationCorpusTests`.
+- **Reporting contracts:** Per-sheet obligation contracts (Manual 20); `ReportMediaResolutionPolicy` (`.failSoft` / `.failLoud`) with CLI `--media-resolution`; Media Summary optional Missing Original / Missing Proxy columns (`mediaSummaryDistinguishProxyAndOriginal`, `--media-summary-distinguish-proxy`). Tests: `FCPXMLReportObligationCorpusTests`.
 - **Engine hygiene:** Project-once Projection contract for report sections that share windows; version-strip honesty (writers must not re-emit newer-schema facts into older targets); Double-safe Projection timing composition. Tests: `FCPXMLEngineHygieneTests` (project-once, strip honesty, Complex smoke budget) + Complex projection `measure` in `FCPXMLPerformanceTests`.
 
 ### 🔧 Improvements

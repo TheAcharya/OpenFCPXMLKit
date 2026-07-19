@@ -554,6 +554,101 @@ struct FCPXMLAdjustmentTests {
         #expect(adjustEl?.stringValue(forAttributeNamed: "type") == "fill")
     }
 
+    // MARK: - CornersAdjustment Tests
+
+    @Test("CornersAdjustment initialization defaults")
+    func cornersAdjustmentDefaults() {
+        let corners = FinalCutPro.FCPXML.CornersAdjustment()
+        #expect(corners.isEnabled)
+        #expect(corners.bottomLeft == .zero)
+        #expect(corners.topLeft == .zero)
+        #expect(corners.topRight == .zero)
+        #expect(corners.bottomRight == .zero)
+        #expect(corners.parameters.isEmpty)
+    }
+
+    @Test("CornersAdjustment Codable round-trip")
+    func cornersAdjustmentCodable() throws {
+        var corners = FinalCutPro.FCPXML.CornersAdjustment(
+            isEnabled: false,
+            bottomLeft: .init(x: 1, y: 2),
+            topLeft: .init(x: 3, y: 4),
+            topRight: .init(x: 5, y: 6),
+            bottomRight: .init(x: 7, y: 8)
+        )
+        corners.parameters = []
+        let data = try JSONEncoder().encode(corners)
+        let decoded = try JSONDecoder().decode(FinalCutPro.FCPXML.CornersAdjustment.self, from: data)
+        #expect(decoded == corners)
+    }
+
+    @Test("Clip corners adjustment round-trip")
+    func clipCornersAdjustmentRoundTrip() throws {
+        let clipEl = FoundationXMLFactory().makeElement(name: "clip")
+        clipEl.addAttribute(name: "ref", value: "r1")
+        let videoEl = FoundationXMLFactory().makeElement(name: "video")
+        clipEl.addChild(videoEl)
+        let clip = try #require(FinalCutPro.FCPXML.Clip(element: clipEl))
+        let corners = FinalCutPro.FCPXML.CornersAdjustment(
+            bottomLeft: .init(x: -10, y: -20),
+            topRight: .init(x: 10, y: 20)
+        )
+        clip.cornersAdjustment = corners
+        #expect(clip.cornersAdjustment?.bottomLeft.x == -10)
+        #expect(clip.cornersAdjustment?.topRight.y == 20)
+        let adjustEl = clip.element.firstChildElement(named: "adjust-corners")
+        #expect(adjustEl?.stringValue(forAttributeNamed: "botLeft") == "-10 -20")
+        #expect(adjustEl?.stringValue(forAttributeNamed: "topRight") == "10 20")
+    }
+
+    // MARK: - PannerAdjustment Tests
+
+    @Test("PannerAdjustment initialization defaults")
+    func pannerAdjustmentDefaults() {
+        let panner = FinalCutPro.FCPXML.PannerAdjustment()
+        #expect(panner.amount == 0)
+        #expect(panner.mode == nil)
+        #expect(panner.lfeBalance == nil)
+        #expect(panner.parameters.isEmpty)
+    }
+
+    @Test("PannerAdjustment Codable round-trip")
+    func pannerAdjustmentCodable() throws {
+        let panner = FinalCutPro.FCPXML.PannerAdjustment(
+            mode: "surround",
+            amount: 0.5,
+            leftRightMix: -0.25,
+            lfeBalance: 0.1
+        )
+        let data = try JSONEncoder().encode(panner)
+        let decoded = try JSONDecoder().decode(FinalCutPro.FCPXML.PannerAdjustment.self, from: data)
+        #expect(decoded == panner)
+    }
+
+    @Test("Clip panner adjustment round-trip")
+    func clipPannerAdjustmentRoundTrip() throws {
+        let clipEl = FoundationXMLFactory().makeElement(name: "clip")
+        clipEl.addAttribute(name: "ref", value: "r1")
+        let videoEl = FoundationXMLFactory().makeElement(name: "video")
+        clipEl.addChild(videoEl)
+        let clip = try #require(FinalCutPro.FCPXML.Clip(element: clipEl))
+        let panner = FinalCutPro.FCPXML.PannerAdjustment(
+            mode: "stereo",
+            amount: 0.25,
+            stereoSpread: 0.8,
+            centerBalance: 0.1
+        )
+        clip.pannerAdjustment = panner
+        #expect(clip.pannerAdjustment?.mode == "stereo")
+        #expect(clip.pannerAdjustment?.amount == 0.25)
+        #expect(clip.pannerAdjustment?.stereoSpread == 0.8)
+        let adjustEl = clip.element.firstChildElement(named: "adjust-panner")
+        #expect(adjustEl?.stringValue(forAttributeNamed: "mode") == "stereo")
+        #expect(adjustEl?.stringValue(forAttributeNamed: "amount") == "0.25")
+        #expect(adjustEl?.stringValue(forAttributeNamed: "stereo_spread") == "0.8")
+        #expect(adjustEl?.stringValue(forAttributeNamed: "LFE_balance") == nil)
+    }
+
     // MARK: - Equatable Tests
     
     @Test("Adjustment equality")

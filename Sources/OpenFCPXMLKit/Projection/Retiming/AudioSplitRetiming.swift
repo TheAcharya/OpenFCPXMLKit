@@ -23,24 +23,36 @@ extension FinalCutPro.FCPXML {
         }
 
         /// `true` when audio timeline occupancy differs from the video clip span.
+        ///
+        /// A split is detected when either:
+        /// - `audioStart` differs from the clip `start` (J/L lead-in), or
+        /// - `audioDuration` differs from `videoDuration` (unequal A/V lengths).
+        ///
+        /// When only `audioStart` is present, `audioDuration` is treated as
+        /// `videoDuration` for detection and emission (DTD both attributes are optional).
         static func hasSplitEdit(
             videoStart: Fraction?,
             videoDuration: Fraction,
             audioStart: Fraction?,
             audioDuration: Fraction?
         ) -> Bool {
-            guard let audioDuration else { return false }
             let clipStart = videoStart ?? .zero
-            let resolvedAudioStart = audioStart ?? clipStart
-            return resolvedAudioStart != clipStart || audioDuration != videoDuration
+            if let audioStart, audioStart != clipStart {
+                return true
+            }
+            if let audioDuration, audioDuration != videoDuration {
+                return true
+            }
+            return false
         }
 
         /// Builds channel-specific segments for an asset-clip placement.
         ///
         /// - Video uses ``ClipRetiming`` on the video timeline span (`absoluteStart` +
         ///   `videoDuration` / `videoMediaStart`).
-        /// - When a split edit is present, audio uses an identity window on
-        ///   `audioTimelineStart`…+`audioDuration` reading media from `audioStart`.
+        /// - When a split edit is present, audio uses ``ClipRetiming`` on the audio
+        ///   timeline occupancy (including any `timeMap`), with media origin at
+        ///   `audioStart` (defaulting to clip `start`).
         /// - Without a split, audio reuses the video segments (including any `timeMap`).
         ///
         /// - Parameter clipStartAttribute: The clip's `start` attribute (local media origin
@@ -66,25 +78,23 @@ extension FinalCutPro.FCPXML {
                 videoDuration: videoDuration,
                 audioStart: audioStart,
                 audioDuration: audioDuration
-            ),
-                let audioDuration
-            else {
+            ) else {
                 return ChannelSegments(video: video, audio: video)
             }
 
             let clipStart = clipStartAttribute ?? .zero
             let resolvedAudioStart = audioStart ?? clipStart
+            let effectiveAudioDuration = audioDuration ?? videoDuration
             let audioTimelineStart = ProjectionTiming.adding(
                 absoluteStart,
                 ProjectionTiming.subtracting(resolvedAudioStart, clipStart)
             )
-            let audio = [
-                RetimingSegment.identity(
-                    timelineStart: audioTimelineStart,
-                    duration: audioDuration,
-                    mediaStart: resolvedAudioStart
-                )
-            ]
+            let audio = ClipRetiming.segments(
+                timeMap: timeMap,
+                clipOffset: audioTimelineStart,
+                clipDuration: effectiveAudioDuration,
+                mediaStart: resolvedAudioStart
+            )
             return ChannelSegments(video: video, audio: audio)
         }
     }

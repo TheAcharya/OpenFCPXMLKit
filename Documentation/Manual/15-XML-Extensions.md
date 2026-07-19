@@ -1,4 +1,4 @@
-# 14 — XML Extensions
+# 15 — XML Extensions
 
 [← Manual Index](00-Index.md)
 
@@ -12,7 +12,7 @@ FCPXML document and element APIs are defined on **protocol types** so the same c
 - **OFKXMLElement** — element protocol (attributes, children, serialization). On macOS the default wraps Foundation `XMLElement`; on iOS it wraps AEXML.
 - **OFKXMLFactory** — factory for creating documents and elements. Use **OFKXMLDefaultFactory()** to get the correct backend for the current platform.
 
-All `fcpx*` extensions below apply to `OFKXMLDocument` and `OFKXMLElement`; the concrete type is chosen at runtime. See [16 — Cross-Platform & iOS](16-Cross-Platform-iOS.md) for details.
+All `fcpx*` extensions below apply to `OFKXMLDocument` and `OFKXMLElement`; the concrete type is chosen at runtime. See [17 — Cross-Platform & iOS](17-Cross-Platform-iOS.md) for details.
 
 ---
 
@@ -83,8 +83,8 @@ let annotations = element.fcpxAnnotations
 
 ## Next
 
-- [15 — High-Level Model](15-High-Level-Model.md) — FinalCutPro.FCPXML wrapper.
-- [16 — Cross-Platform & iOS](16-Cross-Platform-iOS.md) — XML abstraction, Foundation vs AEXML, iOS support.
+- [16 — High-Level Model](16-High-Level-Model.md) — FinalCutPro.FCPXML wrapper.
+- [17 — Cross-Platform & iOS](17-Cross-Platform-iOS.md) — XML abstraction, Foundation vs AEXML, iOS support.
 
 [← Manual Index](00-Index.md)
 
