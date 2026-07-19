@@ -81,7 +81,7 @@ let noOp = NoOpServiceLogger()
 let quietService = FCPXMLService(logger: noOp)
 ```
 
-The service logs parsing, version conversion, DTD validation, save, media extraction, and media copy. CLI supports `--log`, `--log-level`, `--quiet` (see [18 — CLI](18-CLI.md)).
+The service logs parsing, version conversion, DTD validation, save, media extraction, and media copy. CLI supports `--log`, `--log-level`, `--quiet` (see [19 — CLI](19-CLI.md)).
 
 ---
 

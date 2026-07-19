@@ -14,13 +14,18 @@ extension FinalCutPro.FCPXML.Clip {
     /// Attribute names used when reading/writing adjustment XML (avoids typos and centralizes strings).
     private enum AttributeName {
         static let amount = "amount"
+        static let ambientDirectMix = "ambient_direct_mix"
         static let anchor = "anchor"
         static let aperture = "aperture"
+        static let attenuateCollapseMix = "attenuate_collapse_mix"
         static let autoOrient = "autoOrient"
         static let autoOrManual = "autoOrManual"
         static let autoScale = "autoScale"
         static let auxValue = "auxValue"
+        static let botLeft = "botLeft"
+        static let botRight = "botRight"
         static let bottom = "bottom"
+        static let centerBalance = "center_balance"
         static let conformType = "conformType"
         static let convergence = "convergence"
         static let coordinates = "coordinates"
@@ -30,14 +35,18 @@ extension FinalCutPro.FCPXML.Clip {
         static let enabled = "enabled"
         static let fieldOfView = "fieldOfView"
         static let frequency = "frequency"
+        static let frontBackMix = "front_back_mix"
         static let interaxial = "interaxial"
         static let key = "key"
         static let latitude = "latitude"
         static let left = "left"
+        static let leftRightMix = "left_right_mix"
+        static let lfeBalance = "LFE_balance"
         static let longitude = "longitude"
         static let mapping = "mapping"
         static let mode = "mode"
         static let name = "name"
+        static let originalDecodedMix = "original_decoded_mix"
         static let pan = "pan"
         static let peakNitsOfPQSource = "peakNitsOfPQSource"
         static let peakNitsOfSDRToPQSource = "peakNitsOfSDRToPQSource"
@@ -46,9 +55,13 @@ extension FinalCutPro.FCPXML.Clip {
         static let roll = "roll"
         static let rotation = "rotation"
         static let scale = "scale"
+        static let stereoSpread = "stereo_spread"
+        static let surroundWidth = "surround_width"
         static let swapEyes = "swapEyes"
         static let tilt = "tilt"
         static let top = "top"
+        static let topLeft = "topLeft"
+        static let topRight = "topRight"
         static let type = "type"
         static let uniformity = "uniformity"
         static let value = "value"
@@ -58,6 +71,33 @@ extension FinalCutPro.FCPXML.Clip {
         static let yPosition = "yPosition"
         static let zOrientation = "zOrientation"
         static let zPosition = "zPosition"
+    }
+
+    /// Parses nested `param` children from an adjustment element.
+    private static func filterParameters(
+        from adjustElement: any OFKXMLElement
+    ) -> [FinalCutPro.FCPXML.FilterParameter] {
+        Array(
+            adjustElement.childElements
+                .filter { $0.name == "param" }
+                .compactMap { FinalCutPro.FCPXML.FilterParameter(paramElement: $0) }
+        )
+    }
+
+    /// Appends nested `param` children to an adjustment element.
+    private static func appendFilterParameters(
+        _ parameters: [FinalCutPro.FCPXML.FilterParameter],
+        to adjustElement: any OFKXMLElement
+    ) {
+        for param in parameters {
+            let paramElement = OFKXMLDefaultFactory().makeElement(name: "param")
+            paramElement.addAttribute(name: AttributeName.name, value: param.name)
+            if let k = param.key { paramElement.addAttribute(name: AttributeName.key, value: k) }
+            if let v = param.value { paramElement.addAttribute(name: AttributeName.value, value: v) }
+            if let av = param.auxValue { paramElement.addAttribute(name: AttributeName.auxValue, value: av) }
+            if !param.isEnabled { paramElement.addAttribute(name: AttributeName.enabled, value: "0") }
+            adjustElement.addChild(paramElement)
+        }
     }
 
     /// The crop adjustment applied to the clip.
@@ -158,6 +198,50 @@ extension FinalCutPro.FCPXML.Clip {
                 }
             }
             
+            element.addChild(adjustElement)
+        }
+    }
+
+    /// The corners adjustment applied to the clip (`adjust-corners`).
+    public var cornersAdjustment: FinalCutPro.FCPXML.CornersAdjustment? {
+        get {
+            guard let adjustElement = element.firstChildElement(named: "adjust-corners") else {
+                return nil
+            }
+            let enabledString = adjustElement.stringValue(forAttributeNamed: AttributeName.enabled) ?? "1"
+            let bottomLeft = FinalCutPro.FCPXML.Point(
+                fromString: adjustElement.stringValue(forAttributeNamed: AttributeName.botLeft) ?? "0 0"
+            ) ?? .zero
+            let topLeft = FinalCutPro.FCPXML.Point(
+                fromString: adjustElement.stringValue(forAttributeNamed: AttributeName.topLeft) ?? "0 0"
+            ) ?? .zero
+            let topRight = FinalCutPro.FCPXML.Point(
+                fromString: adjustElement.stringValue(forAttributeNamed: AttributeName.topRight) ?? "0 0"
+            ) ?? .zero
+            let bottomRight = FinalCutPro.FCPXML.Point(
+                fromString: adjustElement.stringValue(forAttributeNamed: AttributeName.botRight) ?? "0 0"
+            ) ?? .zero
+            return FinalCutPro.FCPXML.CornersAdjustment(
+                isEnabled: enabledString == "1",
+                bottomLeft: bottomLeft,
+                topLeft: topLeft,
+                topRight: topRight,
+                bottomRight: bottomRight,
+                parameters: Self.filterParameters(from: adjustElement)
+            )
+        }
+        nonmutating set {
+            element.removeChildren { $0.name == "adjust-corners" }
+            guard let adjustment = newValue else { return }
+            let adjustElement = OFKXMLDefaultFactory().makeElement(name: "adjust-corners")
+            if !adjustment.isEnabled {
+                adjustElement.addAttribute(name: AttributeName.enabled, value: "0")
+            }
+            adjustElement.addAttribute(name: AttributeName.botLeft, value: adjustment.bottomLeft.stringValue)
+            adjustElement.addAttribute(name: AttributeName.topLeft, value: adjustment.topLeft.stringValue)
+            adjustElement.addAttribute(name: AttributeName.topRight, value: adjustment.topRight.stringValue)
+            adjustElement.addAttribute(name: AttributeName.botRight, value: adjustment.bottomRight.stringValue)
+            Self.appendFilterParameters(adjustment.parameters, to: adjustElement)
             element.addChild(adjustElement)
         }
     }
@@ -334,6 +418,76 @@ extension FinalCutPro.FCPXML.Clip {
             let adjustElement = OFKXMLDefaultFactory().makeElement(name: "adjust-volume")
             adjustElement.addAttribute(name: AttributeName.amount, value: adjustment.decibelString)
             
+            element.addChild(adjustElement)
+        }
+    }
+
+    /// The panner adjustment applied to the clip (`adjust-panner`).
+    public var pannerAdjustment: FinalCutPro.FCPXML.PannerAdjustment? {
+        get {
+            guard let adjustElement = element.firstChildElement(named: "adjust-panner") else {
+                return nil
+            }
+            let amount = Double(adjustElement.stringValue(forAttributeNamed: AttributeName.amount) ?? "0") ?? 0
+            func optionalDouble(_ name: String) -> Double? {
+                guard let raw = adjustElement.stringValue(forAttributeNamed: name) else { return nil }
+                return Double(raw)
+            }
+            return FinalCutPro.FCPXML.PannerAdjustment(
+                mode: adjustElement.stringValue(forAttributeNamed: AttributeName.mode),
+                amount: amount,
+                originalDecodedMix: optionalDouble(AttributeName.originalDecodedMix),
+                ambientDirectMix: optionalDouble(AttributeName.ambientDirectMix),
+                surroundWidth: optionalDouble(AttributeName.surroundWidth),
+                leftRightMix: optionalDouble(AttributeName.leftRightMix),
+                frontBackMix: optionalDouble(AttributeName.frontBackMix),
+                lfeBalance: optionalDouble(AttributeName.lfeBalance),
+                rotation: optionalDouble(AttributeName.rotation),
+                stereoSpread: optionalDouble(AttributeName.stereoSpread),
+                attenuateCollapseMix: optionalDouble(AttributeName.attenuateCollapseMix),
+                centerBalance: optionalDouble(AttributeName.centerBalance),
+                parameters: Self.filterParameters(from: adjustElement)
+            )
+        }
+        nonmutating set {
+            element.removeChildren { $0.name == "adjust-panner" }
+            guard let adjustment = newValue else { return }
+            let adjustElement = OFKXMLDefaultFactory().makeElement(name: "adjust-panner")
+            if let mode = adjustment.mode {
+                adjustElement.addAttribute(name: AttributeName.mode, value: mode)
+            }
+            adjustElement.addAttribute(name: AttributeName.amount, value: String(adjustment.amount))
+            if let v = adjustment.originalDecodedMix {
+                adjustElement.addAttribute(name: AttributeName.originalDecodedMix, value: String(v))
+            }
+            if let v = adjustment.ambientDirectMix {
+                adjustElement.addAttribute(name: AttributeName.ambientDirectMix, value: String(v))
+            }
+            if let v = adjustment.surroundWidth {
+                adjustElement.addAttribute(name: AttributeName.surroundWidth, value: String(v))
+            }
+            if let v = adjustment.leftRightMix {
+                adjustElement.addAttribute(name: AttributeName.leftRightMix, value: String(v))
+            }
+            if let v = adjustment.frontBackMix {
+                adjustElement.addAttribute(name: AttributeName.frontBackMix, value: String(v))
+            }
+            if let v = adjustment.lfeBalance {
+                adjustElement.addAttribute(name: AttributeName.lfeBalance, value: String(v))
+            }
+            if let v = adjustment.rotation {
+                adjustElement.addAttribute(name: AttributeName.rotation, value: String(v))
+            }
+            if let v = adjustment.stereoSpread {
+                adjustElement.addAttribute(name: AttributeName.stereoSpread, value: String(v))
+            }
+            if let v = adjustment.attenuateCollapseMix {
+                adjustElement.addAttribute(name: AttributeName.attenuateCollapseMix, value: String(v))
+            }
+            if let v = adjustment.centerBalance {
+                adjustElement.addAttribute(name: AttributeName.centerBalance, value: String(v))
+            }
+            Self.appendFilterParameters(adjustment.parameters, to: adjustElement)
             element.addChild(adjustElement)
         }
     }

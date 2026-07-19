@@ -129,6 +129,118 @@ struct FCPXMLProjectionCoverageTests {
         #expect(try #require(composed.first).isReversed)
     }
 
+    @Test("RetimingSegment timeline clip remaps media endpoints")
+    func retimingSegmentClippedRemapsMedia() throws {
+        let segment = FinalCutPro.FCPXML.RetimingSegment(
+            timelineStart: Fraction(0, 1),
+            timelineEnd: Fraction(10, 1),
+            mediaStart: Fraction(100, 1),
+            mediaEnd: Fraction(200, 1),
+            scale: 10,
+            isReversed: false
+        )
+        let clipped = try #require(
+            segment.clipped(toTimelineStart: Fraction(2, 1), timelineEnd: Fraction(4, 1))
+        )
+        #expect(abs(clipped.timelineStart.doubleValue - 2) < 0.001)
+        #expect(abs(clipped.timelineEnd.doubleValue - 4) < 0.001)
+        #expect(abs(clipped.mediaStart.doubleValue - 120) < 0.001)
+        #expect(abs(clipped.mediaEnd.doubleValue - 140) < 0.001)
+        #expect(!clipped.isReversed)
+        #expect(segment.intersectsTimeline(start: Fraction(3, 1), end: Fraction(7, 2)))
+        #expect(segment.containsTimeline(Fraction(0, 1)))
+        #expect(!segment.containsTimeline(Fraction(10, 1)))
+    }
+
+    @Test("RetimingSegment hold detection and durations")
+    func retimingSegmentHoldAndDurations() {
+        let hold = FinalCutPro.FCPXML.RetimingSegment(
+            timelineStart: Fraction(0, 1),
+            timelineEnd: Fraction(2, 1),
+            mediaStart: Fraction(5, 1),
+            mediaEnd: Fraction(5, 1),
+            scale: 0,
+            isReversed: false
+        )
+        #expect(hold.isHold)
+        #expect(abs(hold.timelineDuration - 2) < 0.001)
+        #expect(hold.mediaDuration < 0.001)
+
+        let reverse = FinalCutPro.FCPXML.RetimingSegment(
+            timelineStart: Fraction(0, 1),
+            timelineEnd: Fraction(4, 1),
+            mediaStart: Fraction(8, 1),
+            mediaEnd: Fraction(0, 1),
+            scale: 2,
+            isReversed: true
+        )
+        #expect(!reverse.isHold)
+        #expect(abs(reverse.mediaDuration - 8) < 0.001)
+    }
+
+    @Test("RetimingSegment composing parents against multiple children")
+    func retimingSegmentComposingParentsAgainstChildren() {
+        let parent = FinalCutPro.FCPXML.RetimingSegment(
+            timelineStart: Fraction(0, 1),
+            timelineEnd: Fraction(4, 1),
+            mediaStart: Fraction(0, 1),
+            mediaEnd: Fraction(8, 1),
+            scale: 0.5,
+            isReversed: false
+        )
+        let children = [
+            FinalCutPro.FCPXML.RetimingSegment(
+                timelineStart: Fraction(0, 1),
+                timelineEnd: Fraction(2, 1),
+                mediaStart: Fraction(10, 1),
+                mediaEnd: Fraction(12, 1),
+                scale: 1,
+                isReversed: false
+            ),
+            FinalCutPro.FCPXML.RetimingSegment(
+                timelineStart: Fraction(4, 1),
+                timelineEnd: Fraction(6, 1),
+                mediaStart: Fraction(20, 1),
+                mediaEnd: Fraction(22, 1),
+                scale: 1,
+                isReversed: false
+            ),
+        ]
+        let composed = FinalCutPro.FCPXML.RetimingSegment.composing(
+            parents: [parent],
+            children: children
+        )
+        #expect(composed.count == 2)
+        #expect(abs(composed[0].timelineStart.doubleValue - 0) < 0.001)
+        #expect(abs(composed[0].timelineEnd.doubleValue - 1) < 0.001)
+        #expect(abs(composed[1].timelineStart.doubleValue - 2) < 0.001)
+        #expect(abs(composed[1].timelineEnd.doubleValue - 3) < 0.001)
+    }
+
+    @Test("TimelineOccupancyIndex overlap preserves window order")
+    func timelineOccupancyIndexOverlapPreservesOrder() {
+        let channel = FinalCutPro.FCPXML.MediaChannel(
+            resourceID: "r1",
+            kind: .video,
+            sourceIndex: 1
+        )
+        // Insert later-starting window first so order ≠ start sort order.
+        let late = FinalCutPro.FCPXML.MediaUsageWindow(
+            channel: channel,
+            retiming: .identity(timelineStart: Fraction(5, 1), duration: Fraction(2, 1), mediaStart: .zero),
+            clipDisplayName: "Late"
+        )
+        let early = FinalCutPro.FCPXML.MediaUsageWindow(
+            channel: channel,
+            retiming: .identity(timelineStart: Fraction(0, 1), duration: Fraction(10, 1), mediaStart: .zero),
+            clipDisplayName: "Early"
+        )
+        let index = FinalCutPro.FCPXML.TimelineOccupancyIndex(windows: [late, early])
+        let hits = index.windows(overlapping: Fraction(11, 2), end: Fraction(6, 1))
+        #expect(hits.map(\.clipDisplayName) == ["Late", "Early"])
+        #expect(abs(index.occupiedDuration(kind: .video) - 10) < 0.001)
+    }
+
     @Test("Nested ref-clip timeMap composes inner identity")
     func nestedRefClipTimeMapComposesInnerIdentity() async throws {
         let fcpxml = try parseInlineFCPXML(nestedRefClipWithOuterTimeMapXML)

@@ -1,4 +1,4 @@
-# 18 — CLI
+# 19 — CLI
 
 [← Manual Index](00-Index.md)
 
@@ -29,7 +29,7 @@ Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-c
 
 ### REPORT
 
-Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD, with optional PDF (`.pdf`) export via `--create-pdf`. Works for normal project timelines and for standalone compound-clip exports (event `ref-clip` with no `<project>`). The workbook is written to `<output-dir>`; its file name is derived from the project or compound-clip name. See [19 — Reporting, Excel & PDF Export](19-Reporting.md) for the underlying API.
+Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD, with optional PDF (`.pdf`) export via `--create-pdf`. Works for normal project timelines and for standalone compound-clip exports (event `ref-clip` with no `<project>`). The workbook is written to `<output-dir>`; its file name is derived from the project or compound-clip name. See [20 — Reporting, Excel & PDF Export](20-Reporting.md) for the underlying API.
 
 | Option | Description |
 |--------|-------------|
@@ -57,7 +57,7 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD, with optional PDF 
 
 When `--report` is used without `--report-full` or section flags, the CLI exports role inventory only. Use `--report-full` for every optional sheet, or set individual `--report-*` section flags for a partial export (role inventory is always included). `--report-full` takes precedence when combined with section flags.
 
-Build progress follows **product / workbook order** (Selected Roles Inventory first, then Markers … Media Summary). See [19 — Reporting](19-Reporting.md#progress-callbacks).
+Build progress follows **product / workbook order** (Selected Roles Inventory first, then Markers … Media Summary). See [19 — Reporting](20-Reporting.md#progress-callbacks).
 
 All REPORT flags except `--report` itself require `--report`.
 
@@ -119,7 +119,7 @@ Common values:
 | `Source File Path` | Removes Source File Path (and Missing Media on Media Summary) |
 | `Frame Rate` | Removes Frame Rate/Sample Rate (and related summary metric cells) |
 
-Unknown column names are ignored. See [19 — Reporting, Excel & PDF Export](19-Reporting.md#column-exclusion) for the full **ReportColumn** list and aliases.
+Unknown column names are ignored. See [19 — Reporting, Excel & PDF Export](20-Reporting.md#column-exclusion) for the full **ReportColumn** list and aliases.
 
 ```bash
 OpenFCPXMLKit-CLI --report \
@@ -131,7 +131,7 @@ OpenFCPXMLKit-CLI --report \
 
 #### Timecode display format
 
-`--timecode-format` controls how timeline and source time columns are written in Excel and PDF exports (and appends a header suffix when not using default SMPTE frames). See [19 — Reporting, Excel & PDF Export](19-Reporting.md#timecode-display-format).
+`--timecode-format` controls how timeline and source time columns are written in Excel and PDF exports (and appends a header suffix when not using default SMPTE frames). See [19 — Reporting, Excel & PDF Export](20-Reporting.md#timecode-display-format).
 
 | Value | Cells | Example headers |
 |-------|-------|-----------------|
@@ -215,8 +215,8 @@ For source layout, extending the CLI, and regenerating embedded DTDs, see **[Ope
 
 ## Next
 
-- [19 — Reporting, Excel & PDF Export](19-Reporting.md) — the reporting API behind `--report`.
-- [20 — Examples](20-Examples.md) — End-to-end workflows and code examples.
+- [20 — Reporting, Excel & PDF Export](20-Reporting.md) — the reporting API behind `--report`.
+- [21 — Examples](21-Examples.md) — End-to-end workflows and code examples.
 
 [← Manual Index](00-Index.md)
 

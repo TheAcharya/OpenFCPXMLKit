@@ -1,4 +1,4 @@
-# 13 — Typed Models
+# 14 — Typed Models
 
 [← Manual Index](00-Index.md)
 
@@ -15,10 +15,12 @@ Typed models with **Clip** accessors (see **FCPXMLClip+Adjustments**):
 | Model | Notes |
 |-------|--------|
 | **CropAdjustment** | Crop, trim, pan modes |
+| **CornersAdjustment** | Four-corner pin (`adjust-corners`) |
 | **TransformAdjustment** | Position, scale, rotation, anchor |
 | **BlendAdjustment** | Blend amount and mode |
 | **StabilizationAdjustment** | automatic, inertiaCam, smoothCam |
 | **VolumeAdjustment** | Volume level |
+| **PannerAdjustment** | Stereo/surround panner (`adjust-panner`) |
 | **LoudnessAdjustment** | Loudness parameters |
 | **NoiseReductionAdjustment** | Amount |
 | **HumReductionAdjustment** | 50Hz / 60Hz |
@@ -152,7 +154,7 @@ let marker = FinalCutPro.FCPXML.HiddenClipMarker()
 // Add to clip via fcpxAnnotations / addToClip(annotationElements:)
 ```
 
-Do **not** confuse this DTD element with the Markers **report** concept of “Hidden”: report **Hidden** means a normal `marker` / `chapter-marker` whose `start` is outside the host clip’s media range (omitted by default; opt in with `includeMarkersOutsideClipBoundaries` / `--include-markers-outside-clip-boundaries`). See [19 — Reporting](19-Reporting.md#markers).
+Do **not** confuse this DTD element with the Markers **report** concept of “Hidden”: report **Hidden** means a normal `marker` / `chapter-marker` whose `start` is outside the host clip’s media range (omitted by default; opt in with `includeMarkersOutsideClipBoundaries` / `--include-markers-outside-clip-boundaries`). See [19 — Reporting](20-Reporting.md#markers).
 
 ---
 
@@ -193,7 +195,7 @@ let parentFolder = FinalCutPro.FCPXML.CollectionFolder(
 
 ## Next
 
-- [14 — XML Extensions](14-XML-Extensions.md) — OFKXMLDocument and OFKXMLElement FCPXML APIs.
+- [15 — XML Extensions](15-XML-Extensions.md) — OFKXMLDocument and OFKXMLElement FCPXML APIs.
 
 [← Manual Index](00-Index.md)
 

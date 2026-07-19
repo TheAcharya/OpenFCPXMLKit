@@ -41,52 +41,18 @@ public final class FCPXMLVersionConverter: FCPXMLVersionConverting, Sendable {
         try _convert(document, to: targetVersion)
     }
 
-    /// Elements introduced after a given version (per DTD). When converting to a target version,
-    /// any element whose introduced version is greater than the target is stripped.
-    private static let elementsIntroducedAfter: [(name: String, introducedIn: FCPXMLVersion)] = [
-        ("object-tracker", .v1_10),
-        ("adjust-cinematic", .v1_10),
-        ("adjust-colorConform", .v1_11),
-        ("adjust-voiceIsolation", .v1_11),
-        ("adjust-stereo-3D", .v1_13),
-        // Smart collection match rules (content model per version)
-        ("match-usage", .v1_9),
-        ("match-representation", .v1_10),
-        ("match-markers", .v1_10),
-        ("match-analysis-type", .v1_14),
-        ("hidden-clip-marker", .v1_13),
-    ]
-
-    /// Attributes introduced after a given version (per DTD). When converting to a target version,
-    /// any attribute whose introduced version is greater than the target is stripped from the element.
-    /// Keeps output valid for older DTDs (e.g. 1.5) and backward compatible.
-    private static let attributesIntroducedAfter: [(element: String, attribute: String, introducedIn: FCPXMLVersion)] = [
-        ("format", "heroEye", .v1_13),
-        ("asset", "heroEyeOverride", .v1_13),
-        ("keyframe", "auxValue", .v1_11),
-        ("param", "auxValue", .v1_11),
-    ]
-
-    /// Element names to remove when converting to `target` (elements not in that version’s DTD).
+    /// Elements introduced after a given version (per ``FinalCutPro/FCPXML/VersionFeatureGate``).
+    /// When converting to a target version, any element not available at that version is stripped.
     private static func elementNamesToStrip(whenConvertingTo target: FCPXMLVersion) -> Set<String> {
-        var names: Set<String> = []
-        for entry in elementsIntroducedAfter {
-            if target.isOlder(than: entry.introducedIn) {
-                names.insert(entry.name)
-            }
-        }
-        return names
+        FinalCutPro.FCPXML.VersionFeatureGate.elementNamesToOmit(at: target)
     }
 
     /// Attribute names to remove from the given element when converting to `target`.
     private static func attributeNamesToStrip(forElement elementName: String, whenConvertingTo target: FCPXMLVersion) -> Set<String> {
-        var names: Set<String> = []
-        for entry in attributesIntroducedAfter {
-            if entry.element == elementName && target.isOlder(than: entry.introducedIn) {
-                names.insert(entry.attribute)
-            }
-        }
-        return names
+        FinalCutPro.FCPXML.VersionFeatureGate.attributeNamesToOmit(
+            onElement: elementName,
+            at: target
+        )
     }
 
     private func _convert(_ document: any OFKXMLDocument, to targetVersion: FCPXMLVersion) throws -> any OFKXMLDocument {

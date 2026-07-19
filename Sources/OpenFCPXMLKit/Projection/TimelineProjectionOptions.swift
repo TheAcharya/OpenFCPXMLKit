@@ -63,5 +63,21 @@ extension FinalCutPro.FCPXML {
             mcClipAngles: .active,
             excludeFullyOccluded: true
         )
+
+        /// Active-audition / active-angle track occupancy analysis.
+        ///
+        /// Unfolds only the active audition leaf and active multicam angles, expands all
+        /// A/V source channels, and keeps disabled clips. Matches the common “what is
+        /// playable on the active mix” policy used for track-usage analysis (distinct from
+        /// report inventory/summary, which may use ``Audition/AuditionMask/all`` /
+        /// ``MCClip/AngleMask/all`` via ``forReport(excludeDisabledClips:auditions:mcClipAngles:includeAnnotations:expandAllSourceChannels:)``).
+        public static let trackAnalysis = TimelineProjectionOptions(
+            includeDisabled: true,
+            auditions: .active,
+            mcClipAngles: .active,
+            excludeFullyOccluded: false,
+            includeAnnotations: false,
+            expandAllSourceChannels: true
+        )
     }
 }

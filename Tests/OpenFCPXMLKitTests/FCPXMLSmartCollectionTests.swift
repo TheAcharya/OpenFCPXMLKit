@@ -143,6 +143,32 @@ struct FCPXMLSmartCollectionTests {
         #expect(FinalCutPro.FCPXML.MatchProperty.PropertyKey.reel.rawValue == "reel")
         #expect(FinalCutPro.FCPXML.MatchProperty.PropertyKey.scene.rawValue == "scene")
         #expect(FinalCutPro.FCPXML.MatchProperty.PropertyKey.take.rawValue == "take")
+        #expect(FinalCutPro.FCPXML.MatchProperty.PropertyKey.projection.rawValue == "projection")
+        #expect(FinalCutPro.FCPXML.MatchProperty.PropertyKey.stereoscopic.rawValue == "stereoscopic")
+        #expect(FinalCutPro.FCPXML.MatchProperty.PropertyKey.cinematic.rawValue == "cinematic")
+    }
+
+    @Test("MatchProperty isSet omits value")
+    func matchPropertyIsSetOmitsValue() throws {
+        let smartEl = OFKXMLDefaultFactory().makeElement(name: "smart-collection")
+        smartEl.addAttribute(name: "name", value: "Cinematic")
+        let smart = try #require(FinalCutPro.FCPXML.SmartCollection(element: smartEl))
+        smart.matchProperties = [
+            FinalCutPro.FCPXML.MatchProperty(key: .cinematic, rule: .isSet, value: nil)
+        ]
+        let matchEl = try #require(smart.element.firstChildElement(named: "match-property"))
+        #expect(matchEl.stringValue(forAttributeNamed: "key") == "cinematic")
+        #expect(matchEl.stringValue(forAttributeNamed: "rule") == "isSet")
+        #expect(matchEl.stringValue(forAttributeNamed: "value") == nil)
+        #expect(smart.matchProperties.count == 1)
+        #expect(smart.matchProperties[0].rule == .isSet)
+        #expect(smart.matchProperties[0].value == nil)
+    }
+
+    @Test("SmartCollectionRule isSet and isNotSet raw values")
+    func smartCollectionRuleIsSetRawValues() {
+        #expect(FinalCutPro.FCPXML.SmartCollectionRule.isSet.rawValue == "isSet")
+        #expect(FinalCutPro.FCPXML.SmartCollectionRule.isNotSet.rawValue == "isNotSet")
     }
 
     // MARK: - MatchTime Tests

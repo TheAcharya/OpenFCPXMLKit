@@ -1,4 +1,4 @@
-# 09 — Timeline Metadata
+# 10 — Timeline Metadata
 
 [← Manual Index](00-Index.md)
 
@@ -95,4 +95,4 @@ clip.addRating(rating)
 
 ## Next
 
-- [10 — Extraction & Media](10-Extraction-Media.md) — Extraction scope/presets, media extraction and copy.
+- [11 — Extraction & Media](11-Extraction-Media.md) — Extraction scope/presets, media extraction and copy.

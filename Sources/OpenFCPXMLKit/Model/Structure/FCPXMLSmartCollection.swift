@@ -439,13 +439,22 @@ extension FinalCutPro.FCPXML.SmartCollection {
                     guard let keyString = matchElement.stringValue(forAttributeNamed: "key"),
                           let key = FinalCutPro.FCPXML.MatchProperty.PropertyKey(rawValue: keyString),
                           let ruleString = matchElement.stringValue(forAttributeNamed: "rule"),
-                          let rule = FinalCutPro.FCPXML.SmartCollectionRule(rawValue: ruleString),
-                          let value = matchElement.stringValue(forAttributeNamed: "value") else {
+                          let rule = FinalCutPro.FCPXML.SmartCollectionRule(rawValue: ruleString) else {
+                        return nil
+                    }
+                    let value = matchElement.stringValue(forAttributeNamed: "value")
+                    // `isSet` / `isNotSet` omit value; other rules require it per DTD practice.
+                    if rule != .isSet && rule != .isNotSet && value == nil {
                         return nil
                     }
                     let enabledString = matchElement.stringValue(forAttributeNamed: "enabled") ?? "1"
                     let isEnabled = enabledString == "1"
-                    return FinalCutPro.FCPXML.MatchProperty(key: key, rule: rule, value: value, isEnabled: isEnabled)
+                    return FinalCutPro.FCPXML.MatchProperty(
+                        key: key,
+                        rule: rule,
+                        value: value,
+                        isEnabled: isEnabled
+                    )
                 }
         }
         nonmutating set {
@@ -458,7 +467,9 @@ extension FinalCutPro.FCPXML.SmartCollection {
                 matchElement.addAttribute(name: "enabled", value: matchProperty.isEnabled ? "1" : "0")
                 matchElement.addAttribute(name: "key", value: matchProperty.key.rawValue)
                 matchElement.addAttribute(name: "rule", value: matchProperty.rule.rawValue)
-                matchElement.addAttribute(name: "value", value: matchProperty.value)
+                if let value = matchProperty.value {
+                    matchElement.addAttribute(name: "value", value: value)
+                }
                 element.addChild(matchElement)
             }
         }
