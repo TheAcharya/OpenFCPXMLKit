@@ -7,6 +7,25 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.2.1](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.2.1) - 2026-07-20
+
+### ✨ New Features
+
+- **Per-role inventory Total footer:** Non-empty per-role sheets end with a blank row, then a **Total:** label under Timeline Out and an optimistic sum of that sheet’s Clip Duration values (black/white header styling). Selected Roles Inventory has no Total footer. Omitted when Timeline Out or Clip Duration is excluded. Presentation-thin (`RoleInventorySheetTotal`); not overlap-aware (Summary’s `summaryOverlapAwareDurations` stays Summary-only). Excel and PDF.
+- **Duplicate Frames column:** Fixed inventory column after Source Duration. Shows source-range reuse duration for the same media resource (Projection windows); blank when none. `ReportColumn.duplicateFrames` / CLI `--exclude-column "Duplicate Frames"`. Tests: `FCPXMLRoleInventoryDuplicateFramesTests`.
+- **Friendlier inventory fixed columns:** Frame Size / Audio Config (video `W × H`; audio Mono/Stereo/channels); **Codecs** and **Ingest Date** promoted from metadata keys (no longer duplicated in the dynamic metadata block). Fixed block is now **26** columns after Row. Tests: `FCPXMLRoleInventoryColumnLayoutTests`.
+- **Non-Std Effects & Templates sheet:** Optional section (included in `.full`) listing non-Apple `<effect>` resources; missing Motion template paths flagged `MISSING`. Columns: Name, Kind, Status, Path, UID (no injected Row). Sheet tab shortened for Excel’s 31-character limit. Empty inventories omit the sheet at export. `ReportOptions.includeNonStandardEffectsTemplates` / `.nonStandardEffectsTemplatesOnly` / CLI `--report-non-standard-effects`. Placed before Video & Audio Effects in build / workbook order. Tests: `FCPXMLNonStandardEffectsTemplatesReportTests`.
+
+### 🔧 Improvements
+
+- **Documentation sync:** Manual 19–21, Coverage, Tests READMEs, README, CLI README, ARCHITECTURE (Mermaid + Reporting map), AGENT, `.cursorrules`, and GUARDRAILS updated for Total footers, Duplicate Frames, friendlier columns, Non-Std Effects & Templates, and Row exception on that sheet. Test counts refreshed to **1124** listed in `swift test list` (**1118** OpenFCPXMLKitTests + **6** ExcelReportTest).
+
+### 🐛 Bug Fixes
+
+- None in this release.
+
+---
+
 ## [3.2.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.2.0) - 2026-07-19
 
 ### ✨ New Features

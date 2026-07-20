@@ -27,7 +27,7 @@ Complete manual and usage guide for **OpenFCPXMLKit**, a Swift 6 framework for F
 | [17 — Cross-Platform & iOS](17-Cross-Platform-iOS.md) | XML abstraction layer, OFKXML protocols, Foundation vs AEXML backends, iOS support |
 | [18 — Errors & Utilities](18-Errors-Utilities.md) | Error types, ErrorHandling, ProgressBar, FCPXMLUID |
 | [19 — CLI](19-CLI.md) | Experimental command-line interface (OpenFCPXMLKit-CLI) |
-| [20 — Reporting, Excel & PDF Export](20-Reporting.md) | Report builder, ReportOptions, ReportTimecodeFormat, ReportBuildPhase, Projection-first sections, Excel + PDF |
+| [20 — Reporting, Excel & PDF Export](20-Reporting.md) | Report builder, ReportOptions, ReportTimecodeFormat, ReportBuildPhase, Non-Std Effects & Templates, Duplicate Frames / Total footers, Projection-first sections, Excel + PDF |
 | [21 — Examples](21-Examples.md) | End-to-end workflows and code examples |
 
 ---
@@ -40,5 +40,5 @@ Complete manual and usage guide for **OpenFCPXMLKit**, a Swift 6 framework for F
 - **Coverage:** [../Coverage.md](../Coverage.md) — FCPXML element / layer matrices (Model · Authoring · Extraction · Projection · Reporting)
 - **Guardrails:** [../../GUARDRAILS.md](../../GUARDRAILS.md) — must / must-not for contributors and agents
 - **CLI reference:** [../../Sources/OpenFCPXMLKitCLI/README.md](../../Sources/OpenFCPXMLKitCLI/README.md)
-- **Tests:** [../../Tests/README.md](../../Tests/README.md) — suite layout (**1114** listed tests, all Swift Testing); [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) for private local investigation (never commit private FCPXML)
+- **Tests:** [../../Tests/README.md](../../Tests/README.md) — suite layout (**1124** listed tests, all Swift Testing); [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) for private local investigation (never commit private FCPXML)
 - **FCPXML reference:** [fcp.cafe/developers/fcpxml](https://fcp.cafe/developers/fcpxml)

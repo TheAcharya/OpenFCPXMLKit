@@ -31,7 +31,7 @@ From the index you can reach all chapters:
 - **17** — Cross-Platform & iOS (OFKXML abstraction, Foundation vs AEXML)
 - **18** — Errors & Utilities
 - **19** — CLI (OpenFCPXMLKit-CLI)
-- **20** — Reporting, Excel & PDF Export (Projection-first sections, ReportTimecodeFormat, ReportBuildPhase, XLKit workbook, CoreGraphics PDF)
+- **20** — Reporting, Excel & PDF Export (Non-Std Effects & Templates, Duplicate Frames / Total footers, Projection-first sections, ReportTimecodeFormat, ReportBuildPhase, XLKit workbook, CoreGraphics PDF)
 - **21** — Examples (workflows and code)
 
 ---
@@ -41,4 +41,4 @@ From the index you can reach all chapters:
 - **Documentation index:** [README.md](README.md)
 - **CLI reference:** [../Sources/OpenFCPXMLKitCLI/README.md](../Sources/OpenFCPXMLKitCLI/README.md)
 - **Project README:** [../README.md](../README.md)
-- **Tests:** [../Tests/README.md](../Tests/README.md) — **1114** listed tests (all Swift Testing)
+- **Tests:** [../Tests/README.md](../Tests/README.md) — **1124** listed tests (all Swift Testing)

@@ -39,6 +39,7 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD, with optional PDF 
 | **--report-keywords** | Include the Keywords sheet (with `--report`). |
 | **--report-titles-generators** | Include the Titles & Generators sheet (with `--report`). |
 | **--report-transitions** | Include the Transitions sheet (with `--report`). |
+| **--report-non-standard-effects** | Include the Non-Std Effects & Templates sheet (non-Apple / missing Motion templates; with `--report`). |
 | **--report-effects** | Include the Video & Audio Effects sheet (with `--report`). |
 | **--report-speed-change-effects** | Include the Speed Change Effects sheet (with `--report`). |
 | **--report-summary** | Include the Summary sheet (project metrics and role-duration totals; with `--report`). |
@@ -57,7 +58,7 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD, with optional PDF 
 
 When `--report` is used without `--report-full` or section flags, the CLI exports role inventory only. Use `--report-full` for every optional sheet, or set individual `--report-*` section flags for a partial export (role inventory is always included). `--report-full` takes precedence when combined with section flags.
 
-Build progress follows **product / workbook order** (Selected Roles Inventory first, then Markers … Media Summary). See [19 — Reporting](20-Reporting.md#progress-callbacks).
+Build progress follows **product / workbook order** (Selected Roles Inventory first, then Markers … Non-Std Effects & Templates … Media Summary). See [20 — Reporting](20-Reporting.md#progress-callbacks).
 
 All REPORT flags except `--report` itself require `--report`.
 
@@ -114,6 +115,9 @@ Common values:
 |-----------|--------|
 | `Row` / `Row Numbers` | Removes the Row index column from **every** Excel and PDF tabular sheet, including PDF multi-page Row injection |
 | `Role Subrole` | Removes Role ▸ Subrole |
+| `Duplicate Frames` | Removes the Duplicate Frames inventory column |
+| `Codecs`, `Ingest Date` | Removes the named fixed inventory columns |
+| `Frame Size` / `Frame Size / Audio Config` | Removes Frame Size / Audio Config |
 | `Reel`, `Scene`, `Take` | Removes the named fixed column |
 | `Metadata` | Removes all dynamic metadata key columns on role inventory sheets |
 | `Source File Path` | Removes Source File Path (and Missing Media on Media Summary) |

@@ -79,6 +79,16 @@ extension FinalCutPro.FCPXML {
             }
             return best
         }
+        
+        /// All windows near ``expectedStart`` for ``clipName`` (video and audio channels).
+        func windows(
+            clipName: String,
+            expectedStart: Double
+        ) -> [MediaUsageWindow] {
+            let tolerance = Self.bucketSeconds
+            return candidateWindows(clipName: clipName, expectedStart: expectedStart)
+                .filter { abs($0.timelineIn.doubleValue - expectedStart) < tolerance }
+        }
 
         private func candidateWindows(
             clipName: String,

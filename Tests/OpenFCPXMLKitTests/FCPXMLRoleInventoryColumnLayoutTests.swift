@@ -4,6 +4,7 @@
 //  © 2026 • Licensed under MIT License
 //
 
+
 //
 //	Unit tests for Selected Roles Inventory column layout and metadata discovery.
 //
@@ -24,6 +25,10 @@ struct FCPXMLRoleInventoryColumnLayoutTests {
         #expect(
             Array(headers.dropFirst()) == RoleRow.fixedColumnHeaders
         )
+        #expect(headers.contains("Duplicate Frames"))
+        #expect(headers.contains("Frame Size / Audio Config"))
+        #expect(headers.contains("Codecs"))
+        #expect(headers.contains("Ingest Date"))
     }
 
     @Test("Metadata column keys exclude dedicated fixed columns")
@@ -45,6 +50,7 @@ struct FCPXMLRoleInventoryColumnLayoutTests {
                 FinalCutPro.FCPXML.Metadata.Key.take.rawValue: "3",
                 FinalCutPro.FCPXML.Metadata.Key.cameraName.rawValue: "Cam A",
                 FinalCutPro.FCPXML.Metadata.Key.ingestDate.rawValue: "2024-01-01",
+                FinalCutPro.FCPXML.Metadata.Key.codecs.rawValue: "ProRes",
                 FinalCutPro.FCPXML.Metadata.Key.cameraAngle.rawValue: "A"
             ]
         )
@@ -52,14 +58,13 @@ struct FCPXMLRoleInventoryColumnLayoutTests {
         let keys = Layout.metadataColumnKeys(from: [row])
 
         #expect(keys == [
-            FinalCutPro.FCPXML.Metadata.Key.ingestDate.rawValue,
             FinalCutPro.FCPXML.Metadata.Key.cameraAngle.rawValue
         ])
     }
 
     @Test("Column values include row index and dynamic metadata")
     func columnValuesIncludeRowIndexAndDynamicMetadata() {
-        let ingestKey = FinalCutPro.FCPXML.Metadata.Key.ingestDate.rawValue
+        let profileKey = FinalCutPro.FCPXML.Metadata.Key.colorProfile.rawValue
         let row = RoleRow(
             roleSubrole: "Video",
             clipName: "Clip",
@@ -73,18 +78,22 @@ struct FCPXMLRoleInventoryColumnLayoutTests {
             sourceDuration: "",
             frameRateSampleRate: "24 fps",
             frameSize: "1920 × 1080",
-            metadataValues: [ingestKey: "2024-01-01"]
+            codecs: "ProRes",
+            ingestDate: "2024-01-01",
+            metadataValues: [profileKey: "Rec. 709"]
         )
 
         let values = Layout.columnValues(
             for: row,
             rowIndex: 5,
-            metadataColumnKeys: [ingestKey]
+            metadataColumnKeys: [profileKey]
         )
 
         #expect(values.first == "5")
         #expect(values[1] == "Video")
-        #expect(values[values.count - 1] == "2024-01-01")
+        #expect(values.contains("ProRes"))
+        #expect(values.contains("2024-01-01"))
+        #expect(values.last == "Rec. 709")
     }
 
     @Test("Inventory audio rate display uses kilohertz label")
@@ -99,4 +108,3 @@ struct FCPXMLRoleInventoryColumnLayoutTests {
         )
     }
 }
-

@@ -56,6 +56,9 @@ extension FinalCutPro.FCPXML {
         /// Transitions report section.
         public var transitions: TransitionsReportSection?
         
+        /// Non-standard / missing Motion templates and custom effects.
+        public var nonStandardEffectsTemplates: NonStandardEffectsTemplatesReportSection?
+        
         /// Video & Audio Effects report section.
         public var effects: EffectsReportSection?
         
@@ -97,6 +100,7 @@ extension FinalCutPro.FCPXML {
             keywords: KeywordsReportSection? = nil,
             titlesAndGenerators: TitlesReportSection? = nil,
             transitions: TransitionsReportSection? = nil,
+            nonStandardEffectsTemplates: NonStandardEffectsTemplatesReportSection? = nil,
             effects: EffectsReportSection? = nil,
             speedChangeEffects: SpeedChangeEffectsReportSection? = nil,
             summary: SummaryReportSection? = nil,
@@ -114,6 +118,7 @@ extension FinalCutPro.FCPXML {
             self.keywords = keywords
             self.titlesAndGenerators = titlesAndGenerators
             self.transitions = transitions
+            self.nonStandardEffectsTemplates = nonStandardEffectsTemplates
             self.effects = effects
             self.speedChangeEffects = speedChangeEffects
             self.summary = summary

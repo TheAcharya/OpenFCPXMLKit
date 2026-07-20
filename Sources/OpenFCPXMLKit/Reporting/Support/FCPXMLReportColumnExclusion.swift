@@ -40,6 +40,8 @@ extension FinalCutPro.FCPXML {
         case frameSize
         case sourceFileName
         case sourceFilePath
+        case codecs
+        case ingestDate
         case metadata
     }
     
@@ -223,7 +225,7 @@ extension FinalCutPro.FCPXML.ReportColumn {
     var isTimecodeColumn: Bool {
         switch self {
         case .timelineIn, .timelineOut, .clipDuration, .duration,
-             .sourceIn, .sourceOut, .sourceDuration, .sourcePosition:
+             .sourceIn, .sourceOut, .sourceDuration, .sourcePosition, .duplicateFrames:
             return true
         default:
             return false
@@ -294,7 +296,11 @@ extension FinalCutPro.FCPXML.ReportColumn {
         case .frameRateSampleRate:
             return ["Frame Rate/Sample Rate", "Frame Rate", "Sample Rate"]
         case .frameSize:
-            return ["Frame Size"]
+            return [
+                "Frame Size / Audio Config",
+                "Frame Size/Audio Config",
+                "Frame Size"
+            ]
         case .sourceFileName:
             return ["Source File Name"]
         case .sourceFilePath:
@@ -304,6 +310,10 @@ extension FinalCutPro.FCPXML.ReportColumn {
                 "Missing Original",
                 "Missing Proxy"
             ]
+        case .codecs:
+            return ["Codecs"]
+        case .ingestDate:
+            return ["Ingest Date"]
         case .metadata:
             return []
         }
@@ -361,7 +371,11 @@ extension FinalCutPro.FCPXML.ReportColumn {
         case .frameRateSampleRate:
             return ["Frame Rate/Sample Rate", "Frame Rate", "Sample Rate"]
         case .frameSize:
-            return ["Frame Size"]
+            return [
+                "Frame Size / Audio Config",
+                "Frame Size/Audio Config",
+                "Frame Size"
+            ]
         case .sourceFileName:
             return ["Source File Name"]
         case .sourceFilePath:
@@ -371,6 +385,10 @@ extension FinalCutPro.FCPXML.ReportColumn {
                 "Missing Original",
                 "Missing Proxy"
             ]
+        case .codecs:
+            return ["Codecs"]
+        case .ingestDate:
+            return ["Ingest Date"]
         case .metadata:
             return ["Metadata"]
         }

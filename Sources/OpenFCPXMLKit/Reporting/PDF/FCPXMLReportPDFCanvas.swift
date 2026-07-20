@@ -470,7 +470,8 @@ enum FCPXMLReportPDFCanvas {
             headers: [String],
             rows: [[String]],
             rowTextColor: CGColor = FCPXMLReportPDFStyle.textColor,
-            rowTextColorForRow: ((Int, [String]) -> CGColor)? = nil
+            rowTextColorForRow: ((Int, [String]) -> CGColor)? = nil,
+            footerTotal: FCPXMLReportPDFTableRenderer.TableFooterTotal? = nil
         ) {
             FCPXMLReportPDFTableRenderer.drawTable(
                 on: self,
@@ -478,9 +479,64 @@ enum FCPXMLReportPDFCanvas {
                 headers: headers,
                 rows: rows,
                 rowTextColor: rowTextColor,
-                rowTextColorForRow: rowTextColorForRow
+                rowTextColorForRow: rowTextColorForRow,
+                footerTotal: footerTotal
             )
             cursorY += FCPXMLReportPDFStyle.tableSpacing
+        }
+        
+        func drawTableFooterTotalRow(
+            labelGlobalIndex: Int,
+            valueGlobalIndex: Int,
+            label: String,
+            value: String,
+            chunkColumnIndices: [Int],
+            columnWidths: [CGFloat]
+        ) {
+            guard let localLabel = chunkColumnIndices.firstIndex(of: labelGlobalIndex),
+                  let localValue = chunkColumnIndices.firstIndex(of: valueGlobalIndex)
+            else { return }
+            
+            ensureVerticalSpace(
+                FCPXMLReportPDFStyle.rowHeight + FCPXMLReportPDFStyle.headerRowHeight
+            )
+            cursorY += FCPXMLReportPDFStyle.rowHeight
+            ensureVerticalSpace(FCPXMLReportPDFStyle.headerRowHeight)
+            
+            let originX = FCPXMLReportPDFStyle.margin
+            var x = originX
+            
+            for (index, width) in columnWidths.enumerated() {
+                if index == localLabel || index == localValue {
+                    let cellRect = CGRect(
+                        x: x,
+                        y: cursorY,
+                        width: width,
+                        height: FCPXMLReportPDFStyle.headerRowHeight
+                    )
+                    context.setFillColor(FCPXMLReportPDFStyle.headerBackgroundColor)
+                    context.fill(cellRect)
+                    
+                    let text = index == localLabel ? label : value
+                    let display = FCPXMLReportPDFTableLayout.truncated(
+                        text,
+                        maxWidth: width,
+                        bold: true,
+                        fontSize: FCPXMLReportPDFStyle.headerFontSize
+                    )
+                    drawText(
+                        display,
+                        x: x + FCPXMLReportPDFStyle.cellPadding,
+                        y: cursorY + FCPXMLReportPDFStyle.headerFontSize + 4,
+                        fontName: FCPXMLReportPDFStyle.boldFontName,
+                        fontSize: FCPXMLReportPDFStyle.headerFontSize,
+                        color: FCPXMLReportPDFStyle.headerTextColor
+                    )
+                }
+                x += width
+            }
+            
+            cursorY += FCPXMLReportPDFStyle.headerRowHeight
         }
         
         func drawTableHeaderRow(headers: [String], columnWidths: [CGFloat]) {

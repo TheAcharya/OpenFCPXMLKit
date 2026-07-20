@@ -234,6 +234,12 @@ extension FinalCutPro.FCPXML {
                     resources: fcpxml.root.resources
                 )
 
+            case .nonStandardEffectsTemplates:
+                report.nonStandardEffectsTemplates = NonStandardEffectsTemplatesReportBuilder.build(
+                    document: fcpxml.xml,
+                    baseURL: options.mediaBaseURL
+                )
+
             case .effects:
                 report.effects = await EffectsReportBuilder.build(
                     from: timelineElement,

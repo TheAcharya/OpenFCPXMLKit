@@ -103,6 +103,7 @@ enum FCPXMLReportPDFExporter {
                 roleInventory,
                 excludedColumns: excludedColumns,
                 timecodeFormat: timecodeFormat,
+                projectFrameRateHint: report.summary?.projectSummary?.frameRate,
                 colorIndexByTitle: colorIndexByTitle,
                 recordsSectionStarts: recordsSectionStarts,
                 to: canvas
@@ -147,6 +148,15 @@ enum FCPXMLReportPDFExporter {
                 transitions,
                 excludedColumns: excludedColumns,
                 timecodeFormat: timecodeFormat,
+                colorIndexByTitle: colorIndexByTitle,
+                recordsSectionStarts: recordsSectionStarts,
+                to: canvas
+            )
+        }
+        
+        if let nonStandard = report.nonStandardEffectsTemplates, !nonStandard.rows.isEmpty {
+            appendNonStandardEffectsTemplates(
+                nonStandard,
                 colorIndexByTitle: colorIndexByTitle,
                 recordsSectionStarts: recordsSectionStarts,
                 to: canvas
@@ -211,6 +221,7 @@ enum FCPXMLReportPDFExporter {
         _ roleInventory: FinalCutPro.FCPXML.RoleInventoryReportSection,
         excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>,
         timecodeFormat: FinalCutPro.FCPXML.ReportTimecodeFormat,
+        projectFrameRateHint: String?,
         colorIndexByTitle: [String: Int],
         recordsSectionStarts: Bool,
         to canvas: FCPXMLReportPDFCanvas.Builder
@@ -293,9 +304,43 @@ enum FCPXMLReportPDFExporter {
                         context: .roleInventory,
                         defaultColor: FCPXMLReportPDFStyle.textColor
                     )
-                }
+                },
+                footerTotal: roleSheetFooterTotal(
+                    rows: roleSheet.rows,
+                    headers: headers,
+                    excludedColumns: excludedColumns,
+                    timecodeFormat: timecodeFormat,
+                    projectFrameRateHint: projectFrameRateHint
+                )
             )
         }
+    }
+    
+    private static func roleSheetFooterTotal(
+        rows: [FinalCutPro.FCPXML.RoleClipReportRow],
+        headers: [String],
+        excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>,
+        timecodeFormat: FinalCutPro.FCPXML.ReportTimecodeFormat,
+        projectFrameRateHint: String?
+    ) -> FCPXMLReportPDFTableRenderer.TableFooterTotal? {
+        guard let totalValue = FinalCutPro.FCPXML.RoleInventorySheetTotal.optimisticClipDurationTotal(
+            from: rows,
+            timecodeFormat: timecodeFormat,
+            projectFrameRateHint: projectFrameRateHint
+        ),
+              let columns = FinalCutPro.FCPXML.RoleInventorySheetTotal.footerColumnIndices(
+                in: headers,
+                excludedColumns: excludedColumns,
+                timecodeFormat: timecodeFormat
+              )
+        else { return nil }
+        
+        return FCPXMLReportPDFTableRenderer.TableFooterTotal(
+            globalLabelColumnIndex: columns.label,
+            globalValueColumnIndex: columns.value,
+            label: FinalCutPro.FCPXML.RoleInventorySheetTotal.label,
+            value: totalValue
+        )
     }
     
     private static func appendMarkers(
@@ -387,6 +432,24 @@ enum FCPXMLReportPDFExporter {
             colorIndexByTitle: colorIndexByTitle,
             recordsSectionStarts: recordsSectionStarts,
             colorContext: .transitions,
+            to: canvas
+        )
+    }
+    
+    private static func appendNonStandardEffectsTemplates(
+        _ section: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection,
+        colorIndexByTitle: [String: Int],
+        recordsSectionStarts: Bool,
+        to canvas: FCPXMLReportPDFCanvas.Builder
+    ) {
+        appendTabularSection(
+            sheetName: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.defaultSheetName,
+            headers: FinalCutPro.FCPXML.NonStandardEffectTemplateReportRow.columnHeaders,
+            rows: section.rows.map(\.columnValues),
+            excludedColumns: [],
+            colorIndexByTitle: colorIndexByTitle,
+            recordsSectionStarts: recordsSectionStarts,
+            colorContext: .effects,
             to: canvas
         )
     }

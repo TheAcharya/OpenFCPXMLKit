@@ -24,6 +24,7 @@ extension FinalCutPro.FCPXML {
         case keywords = "Keywords"
         case titlesAndGenerators = "Titles & Generators"
         case transitions = "Transitions"
+        case nonStandardEffectsTemplates = "Non-Std Effects & Templates"
         case effects = "Video & Audio Effects"
         case speedChangeEffects = "Speed Change Effects"
         case summary = "Summary"
@@ -39,6 +40,7 @@ extension FinalCutPro.FCPXML {
                 .keywords,
                 .titlesAndGenerators,
                 .transitions,
+                .nonStandardEffectsTemplates,
                 .effects,
                 .speedChangeEffects,
                 .summary,
@@ -92,6 +94,8 @@ extension FinalCutPro.FCPXML {
                 return options.includeTitlesAndGenerators
             case .transitions:
                 return options.includeTransitions
+            case .nonStandardEffectsTemplates:
+                return options.includeNonStandardEffectsTemplates
             case .effects:
                 return options.includeEffects
             case .speedChangeEffects:

@@ -28,6 +28,9 @@ extension FinalCutPro.FCPXML {
         /// Include the Transitions report sheet.
         public var includeTransitions: Bool
         
+        /// Include the Non-Standard Effects & Templates report sheet.
+        public var includeNonStandardEffectsTemplates: Bool
+        
         /// Include the Video & Audio Effects report sheet.
         public var includeEffects: Bool
         
@@ -130,6 +133,7 @@ extension FinalCutPro.FCPXML {
             includeKeywords: Bool = false,
             includeTitlesAndGenerators: Bool = false,
             includeTransitions: Bool = false,
+            includeNonStandardEffectsTemplates: Bool = false,
             includeEffects: Bool = false,
             includeSpeedChangeEffects: Bool = false,
             includeSummary: Bool = false,
@@ -156,6 +160,7 @@ extension FinalCutPro.FCPXML {
             self.includeKeywords = includeKeywords
             self.includeTitlesAndGenerators = includeTitlesAndGenerators
             self.includeTransitions = includeTransitions
+            self.includeNonStandardEffectsTemplates = includeNonStandardEffectsTemplates
             self.includeEffects = includeEffects
             self.includeSpeedChangeEffects = includeSpeedChangeEffects
             self.includeSummary = includeSummary
@@ -313,12 +318,27 @@ extension FinalCutPro.FCPXML {
                 includeKeywords: true,
                 includeTitlesAndGenerators: true,
                 includeTransitions: true,
+                includeNonStandardEffectsTemplates: true,
                 includeEffects: true,
                 includeSpeedChangeEffects: true,
                 includeSummary: true,
                 includeMediaSummary: true,
                 includeRoleInventory: true,
                 includeChapterMarkersInMarkersReport: true
+            )
+        }
+        
+        /// Non-Standard Effects & Templates sheet only.
+        public static var nonStandardEffectsTemplatesOnly: ReportOptions {
+            ReportOptions(
+                includeMarkers: false,
+                includeKeywords: false,
+                includeTitlesAndGenerators: false,
+                includeTransitions: false,
+                includeNonStandardEffectsTemplates: true,
+                includeEffects: false,
+                includeSummary: false,
+                includeRoleInventory: false
             )
         }
     }

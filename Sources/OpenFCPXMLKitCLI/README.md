@@ -124,6 +124,7 @@ OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 | `--report-keywords` | Include the Keywords sheet (requires `--report`). |
 | `--report-titles-generators` | Include the Titles & Generators sheet (requires `--report`). |
 | `--report-transitions` | Include the Transitions sheet (requires `--report`). |
+| `--report-non-standard-effects` | Include the Non-Std Effects & Templates sheet (non-Apple / missing Motion templates; requires `--report`). |
 | `--report-effects` | Include the Video & Audio Effects sheet (requires `--report`). |
 | `--report-speed-change-effects` | Include the Speed Change Effects sheet (requires `--report`). |
 | `--report-summary` | Include the Summary sheet (project metrics and role-duration totals; requires `--report`). |
@@ -144,7 +145,7 @@ When `--report` is used without `--report-full` or section flags, the CLI export
 
 Report building uses **Timeline Projection** once per timeline when inventory, markers, keywords, titles, transitions, effects, speed-change, media summary, or summary sections are enabled (Markers / Keywords / Titles / Transitions / Effects are Projection-first with Extraction fallback). See [11 — Timeline Projection](../../Documentation/Manual/12-Timeline-Projection.md).
 
-Build progress follows **Projecting Timeline** (when Projection is needed), then **product / workbook order** (Selected Roles Inventory → Markers → Keywords → Titles & Generators → Transitions → Video & Audio Effects → Speed Change Effects → Summary → Media Summary), then **Saving Workbook**, and **Saving PDF** when `--create-pdf` is set. See [19 — Progress callbacks](../../Documentation/Manual/20-Reporting.md#progress-callbacks).
+Build progress follows **Projecting Timeline** (when Projection is needed), then **product / workbook order** (Selected Roles Inventory → Markers → Keywords → Titles & Generators → Transitions → Non-Std Effects & Templates → Video & Audio Effects → Speed Change Effects → Summary → Media Summary), then **Saving Workbook**, and **Saving PDF** when `--create-pdf` is set. See [19 — Progress callbacks](../../Documentation/Manual/20-Reporting.md#progress-callbacks).
 
 ---
 

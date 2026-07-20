@@ -167,7 +167,20 @@ struct FCPXMLReportExcelExportTests {
                 roleSheets: [
                     FinalCutPro.FCPXML.RoleSheet(
                         sheetName: "Video",
-                        rows: []
+                        rows: [
+                            FinalCutPro.FCPXML.RoleClipReportRow(
+                                roleSubrole: "Video",
+                                clipName: "Clip",
+                                category: "Video",
+                                enabled: "Yes",
+                                timelineIn: "00:00:00:00",
+                                timelineOut: "00:00:05:00",
+                                clipDuration: "00:00:05:00",
+                                sourceIn: "00:00:00:00",
+                                sourceOut: "00:00:05:00",
+                                sourceDuration: "00:00:05:00"
+                            )
+                        ]
                     )
                 ]
             )
@@ -634,6 +647,80 @@ struct FCPXMLReportExcelExportTests {
             )
             #expect(sheet.protection?.hashValue == nil)
         }
+    }
+
+    @Test("Per-role inventory sheet writes black Total footer under Clip Duration")
+    @MainActor
+    func perRoleInventorySheetWritesBlackTotalFooter() {
+        let row = FinalCutPro.FCPXML.RoleClipReportRow(
+            roleSubrole: "Video",
+            clipName: "A",
+            category: "Primary video",
+            enabled: "✓",
+            timelineIn: "00:00:00:00",
+            timelineOut: "00:00:10:00",
+            clipDuration: "00:00:10:00",
+            sourceIn: "",
+            sourceOut: "",
+            sourceDuration: "00:00:10:00",
+            frameRateSampleRate: "24 fps"
+        )
+        let row2 = FinalCutPro.FCPXML.RoleClipReportRow(
+            roleSubrole: "Video",
+            clipName: "B",
+            category: "Primary video",
+            enabled: "✓",
+            timelineIn: "00:00:10:00",
+            timelineOut: "00:00:15:00",
+            clipDuration: "00:00:05:00",
+            sourceIn: "",
+            sourceOut: "",
+            sourceDuration: "00:00:05:00",
+            frameRateSampleRate: "24 fps"
+        )
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Totals",
+            roleInventory: FinalCutPro.FCPXML.RoleInventoryReportSection(
+                roleSheets: [
+                    .init(sheetName: "Video", rows: [row, row2])
+                ]
+            )
+        )
+        
+        let sheet = FinalCutPro.FCPXML.ReportExcelExport
+            .makeWorkbook(from: report)
+            .getSheet(name: "Video")
+        
+        let headers = FinalCutPro.FCPXML.RoleInventoryColumnLayout.columnHeaders(
+            metadataColumnKeys: [],
+            excludedColumns: [],
+            timecodeFormat: .smpteFrames
+        )
+        let columns = FinalCutPro.FCPXML.RoleInventorySheetTotal.footerColumnIndices(
+            in: headers,
+            excludedColumns: [],
+            timecodeFormat: .smpteFrames
+        )
+        guard let columns else {
+            Issue.record("Expected footer column indices")
+            return
+        }
+        
+        let labelCoordinate = CellCoordinate(
+            row: 5,
+            column: columns.label + 1
+        ).excelAddress
+        let valueCoordinate = CellCoordinate(
+            row: 5,
+            column: columns.value + 1
+        ).excelAddress
+        
+        #expect(sheet?.getCellWithFormat(labelCoordinate)?.value.stringValue == "Total:")
+        #expect(sheet?.getCellWithFormat(valueCoordinate)?.value.stringValue == "00:00:15:00")
+        #expect(sheet?.getCellWithFormat(labelCoordinate)?.format?.backgroundColor == "#000000")
+        #expect(sheet?.getCellWithFormat(labelCoordinate)?.format?.fontColor == "#FFFFFF")
+        #expect(sheet?.getCellWithFormat(valueCoordinate)?.format?.backgroundColor == "#000000")
+        #expect(sheet?.getCellWithFormat(valueCoordinate)?.format?.fontColor == "#FFFFFF")
     }
 
     @MainActor
