@@ -62,3 +62,4 @@ OpenFCPXMLKit-CLI --report --report-full --create-pdf \
 - Fixture bundles used for local investigation (e.g. `Sample.fcpxmld`) may also live here; discovery prefers root `Sample.*`, then falls back to `Output/`.  
 - Do not commit large generated workbooks or PDFs unless you intentionally add golden files for regression testing.
 
+

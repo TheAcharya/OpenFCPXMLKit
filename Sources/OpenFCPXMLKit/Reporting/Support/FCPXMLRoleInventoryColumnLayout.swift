@@ -236,3 +236,4 @@ extension FinalCutPro.FCPXML {
         }
     }
 }
+

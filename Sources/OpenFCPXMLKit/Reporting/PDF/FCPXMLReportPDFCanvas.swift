@@ -931,3 +931,4 @@ enum FCPXMLReportPDFCanvas {
         }
     }
 }
+

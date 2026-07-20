@@ -262,3 +262,4 @@ struct ReportCLIOptions: ParsableArguments {
         return format
     }
 }
+

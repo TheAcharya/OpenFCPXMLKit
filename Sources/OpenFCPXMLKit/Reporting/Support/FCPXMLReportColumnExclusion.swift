@@ -394,3 +394,4 @@ extension FinalCutPro.FCPXML.ReportColumn {
         }
     }
 }
+

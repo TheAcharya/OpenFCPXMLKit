@@ -343,3 +343,4 @@ extension FinalCutPro.FCPXML {
         }
     }
 }
+

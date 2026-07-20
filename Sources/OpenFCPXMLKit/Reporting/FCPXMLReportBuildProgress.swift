@@ -113,3 +113,4 @@ extension FinalCutPro.FCPXML {
     /// Called when a report section or export step begins.
     public typealias ReportBuildPhaseHandler = @Sendable (ReportBuildPhase) -> Void
 }
+

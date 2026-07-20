@@ -22,7 +22,7 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ### 🐛 Bug Fixes
 
-- None in this release.
+- **iOS build:** Non-Std Effects & Templates path resolution no longer uses macOS-only `FileManager.homeDirectoryForCurrentUser`. Tilde (`~/…`) template paths now expand via `NSString.expandingTildeInPath` so the library builds for iOS.
 
 ---
 

@@ -123,3 +123,4 @@ extension FinalCutPro.FCPXML {
         }
     }
 }
+

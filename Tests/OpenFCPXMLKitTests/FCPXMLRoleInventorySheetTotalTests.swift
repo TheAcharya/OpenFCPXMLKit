@@ -83,3 +83,4 @@ struct FCPXMLRoleInventorySheetTotalTests {
         #expect(indices == nil)
     }
 }
+

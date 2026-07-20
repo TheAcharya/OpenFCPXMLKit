@@ -56,3 +56,4 @@ Architecture philosophy: [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7. Hard const
 - **[Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md)** — Private inbox workflow for parsing / reporting edge cases (local only).
 - **[ARCHITECTURE.md](../ARCHITECTURE.md)** — Layer stack, Authoring, Projection, reporting.
 - **[GUARDRAILS.md](../GUARDRAILS.md)** — Must / must-not constraints (layers, naming, tests, reporting honesty).
+

@@ -212,3 +212,4 @@ All Swift in `Sources/OpenFCPXMLKitCLI/` is a single module; no extra imports ar
 
 **Regenerating embedded DTDs:** If the FCPXML DTDs in `Sources/OpenFCPXMLKit/FCPXML DTDs/` change, run `./Scripts/generate_embedded_dtds.sh` or `swift run GenerateEmbeddedDTDs` from the package root to regenerate `Sources/OpenFCPXMLKitCLI/Generated/EmbeddedDTDs.swift`, then rebuild.
 
+

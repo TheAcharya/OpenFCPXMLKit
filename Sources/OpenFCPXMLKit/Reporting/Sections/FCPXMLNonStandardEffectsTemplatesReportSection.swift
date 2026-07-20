@@ -58,3 +58,4 @@ extension FinalCutPro.FCPXML {
         }
     }
 }
+

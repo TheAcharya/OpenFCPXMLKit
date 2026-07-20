@@ -422,3 +422,4 @@ enum FCPXMLReportPDFTableRenderer {
         }
     }
 }
+

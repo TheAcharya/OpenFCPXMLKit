@@ -328,3 +328,4 @@ private func timelineCategorySortRank(
         return 8
     }
 }
+

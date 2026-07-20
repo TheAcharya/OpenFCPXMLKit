@@ -555,3 +555,4 @@ When coverage changes:
 2. If Authoring gains types, update §5 / §16 and Manual 08.
 3. If Reporting gains sheets, update §15 and Manual 20.
 4. Mention material coverage shifts in `CHANGELOG.md` under Improvements.
+

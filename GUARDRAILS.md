@@ -222,3 +222,4 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Internal:** [ARCHITECTURE.md](ARCHITECTURE.md), [AGENT.md](AGENT.md), [.cursorrules](.cursorrules), [Tests/README.md](Tests/README.md), [Tests/Submitted FCPXML/README.md](Tests/Submitted%20FCPXML/README.md), [Documentation/Manual/00-Index.md](Documentation/Manual/00-Index.md), [Documentation/Coverage.md](Documentation/Coverage.md).
 - **External:** [Final Cut Pro XML](https://fcp.cafe/developers/fcpxml/), [Swift API Design Guidelines](https://swift.org/documentation/api-design-guidelines/), [Swift Concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/).
 
+

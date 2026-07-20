@@ -402,4 +402,3 @@ OpenFCPXMLKit is developed using AI agents as part of an ongoing exploration of 
 ## Legacy
 
 This repository was formerly known as Pipeline Neo.
-

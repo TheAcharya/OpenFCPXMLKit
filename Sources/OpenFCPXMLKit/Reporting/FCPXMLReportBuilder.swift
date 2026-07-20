@@ -365,3 +365,4 @@ extension FinalCutPro.FCPXML {
         ).build(from: self)
     }
 }
+
