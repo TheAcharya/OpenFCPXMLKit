@@ -85,9 +85,8 @@ extension FinalCutPro.FCPXML {
             guard let src, !src.isEmpty else { return nil }
             
             if src.hasPrefix("~/") {
-                let home = FileManager.default.homeDirectoryForCurrentUser
-                let expanded = home.appendingPathComponent(String(src.dropFirst(2))).path
-                return expanded
+                // `homeDirectoryForCurrentUser` is macOS-only; tilde expansion works on iOS too.
+                return (src as NSString).expandingTildeInPath
             }
             
             if let url = URL(string: src), url.isFileURL {
