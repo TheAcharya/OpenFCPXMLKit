@@ -20,7 +20,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Extract version number
       run: |
@@ -201,7 +201,7 @@ jobs:
       actions: write
       attestations: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Get tag version
         run: |
           CLI_VERSION=$(sed -n 's/.*let packageVersion = "\(.*\)".*/\1/p' Sources/OpenFCPXMLKit/Version.swift)
