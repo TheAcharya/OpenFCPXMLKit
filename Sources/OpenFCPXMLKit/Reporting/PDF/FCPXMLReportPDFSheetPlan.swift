@@ -58,6 +58,10 @@ enum FCPXMLReportPDFSheetPlan {
             titles.append(FinalCutPro.FCPXML.TransitionsReportSection.defaultSheetName)
         }
         
+        if let nonStandard = report.nonStandardEffectsTemplates, !nonStandard.rows.isEmpty {
+            titles.append(FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.defaultSheetName)
+        }
+        
         if let effects = report.effects, !effects.rows.isEmpty {
             titles.append(FinalCutPro.FCPXML.EffectsReportSection.defaultSheetName)
         }

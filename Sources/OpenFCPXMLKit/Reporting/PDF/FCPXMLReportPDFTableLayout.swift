@@ -324,13 +324,22 @@ enum FCPXMLReportPDFTableRenderer {
         var allowInjectedRowColumn: Bool = true
     }
     
+    /// Optional per-role inventory sheet footer (black label + value cells).
+    struct TableFooterTotal: Sendable {
+        var globalLabelColumnIndex: Int
+        var globalValueColumnIndex: Int
+        var label: String
+        var value: String
+    }
+    
     static func drawTable(
         on canvas: FCPXMLReportPDFCanvas.Builder,
         context: TableDrawContext,
         headers: [String],
         rows: [[String]],
         rowTextColor: CGColor = FCPXMLReportPDFStyle.textColor,
-        rowTextColorForRow: ((Int, [String]) -> CGColor)? = nil
+        rowTextColorForRow: ((Int, [String]) -> CGColor)? = nil,
+        footerTotal: TableFooterTotal? = nil
     ) {
         guard !headers.isEmpty else { return }
         
@@ -347,6 +356,14 @@ enum FCPXMLReportPDFTableRenderer {
             pinnedColumnIndices: prepared.pinnedColumnIndices
         )
         let rowsPerPage = FCPXMLReportPDFTableLayout.rowsPerPage()
+        let footerChunkIndex: Int? = footerTotal.flatMap { footer in
+            chunks.firstIndex { chunk in
+                chunk.columnIndices.contains(footer.globalLabelColumnIndex)
+                    && chunk.columnIndices.contains(footer.globalValueColumnIndex)
+            } ?? chunks.firstIndex { chunk in
+                chunk.columnIndices.contains(footer.globalValueColumnIndex)
+            }
+        }
         
         for (chunkIndex, chunk) in chunks.enumerated() {
             let chunkHeaders = chunk.headers(from: prepared.headers)
@@ -388,6 +405,17 @@ enum FCPXMLReportPDFTableRenderer {
                 if rowOffset < chunkRows.count {
                     canvas.endContentPage()
                 }
+            }
+            
+            if chunkIndex == footerChunkIndex, let footer = footerTotal {
+                canvas.drawTableFooterTotalRow(
+                    labelGlobalIndex: footer.globalLabelColumnIndex,
+                    valueGlobalIndex: footer.globalValueColumnIndex,
+                    label: footer.label,
+                    value: footer.value,
+                    chunkColumnIndices: chunk.columnIndices,
+                    columnWidths: chunk.widths
+                )
             }
             
             canvas.endContentPage()

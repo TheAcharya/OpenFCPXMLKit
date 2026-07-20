@@ -51,6 +51,7 @@ struct ExcelReportExportTests {
         #expect(fullReport.keywords != nil)
         #expect(fullReport.titlesAndGenerators != nil)
         #expect(fullReport.transitions != nil)
+        #expect(fullReport.nonStandardEffectsTemplates != nil)
         #expect(fullReport.effects != nil)
         #expect(fullReport.speedChangeEffects != nil)
         #expect(fullReport.summary != nil)

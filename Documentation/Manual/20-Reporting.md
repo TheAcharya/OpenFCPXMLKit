@@ -6,7 +6,7 @@
 
 ## Overview
 
-The reporting subsystem builds structured **reports** from a parsed FCPXML document and exports them to an **`.xlsx` workbook** (via XLKit) and/or a **`.pdf` document** (via CoreGraphics). A report is assembled from independent **sections** (role inventory, markers, keywords, titles & generators, transitions, effects, speed-change effects, summary, media summary). In Excel, each section becomes one or more worksheet tabs; in PDF, each section becomes one or more content pages with a cover page and dynamic table of contents.
+The reporting subsystem builds structured **reports** from a parsed FCPXML document and exports them to an **`.xlsx` workbook** (via XLKit) and/or a **`.pdf` document** (via CoreGraphics). A report is assembled from independent **sections** (role inventory, markers, keywords, titles & generators, transitions, Non-Std Effects & Templates, Video & Audio Effects, speed-change effects, summary, media summary). In Excel, each section becomes one or more worksheet tabs; in PDF, each section becomes one or more content pages with a cover page and dynamic table of contents.
 
 Everything lives under **`FinalCutPro.FCPXML`**:
 
@@ -63,6 +63,7 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 | `includeKeywords` | `false` | Keywords |
 | `includeTitlesAndGenerators` | `false` | Titles & Generators |
 | `includeTransitions` | `false` | Transitions |
+| `includeNonStandardEffectsTemplates` | `false` | Non-Std Effects & Templates (non-Apple / missing Motion templates; included in `.full`) |
 | `includeEffects` | `false` | Video & Audio Effects |
 | `includeSpeedChangeEffects` | `false` | Speed Change Effects |
 | `includeSummary` | `false` | Summary (project metrics and role-duration totals) |
@@ -95,16 +96,17 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 `ReportOptions` provides ready-made configurations:
 
 ```swift
-.roleInventoryOnly       // Selected Roles Inventory + per-role sheets only
-.markersOnly             // Markers sheet only
+.roleInventoryOnly                 // Selected Roles Inventory + per-role sheets only
+.markersOnly                       // Markers sheet only
 .keywordsOnly
 .titlesAndGeneratorsOnly
 .transitionsOnly
+.nonStandardEffectsTemplatesOnly   // Non-Std Effects & Templates sheet only
 .effectsOnly
 .speedChangeEffectsOnly
-.summaryOnly             // Summary sheet only (project metrics + role durations)
-.mediaSummaryOnly        // Media Summary sheet only (missing media paths)
-.full                    // role inventory + every optional sheet (chapter markers included)
+.summaryOnly                       // Summary sheet only (project metrics + role durations)
+.mediaSummaryOnly                  // Media Summary sheet only (missing media paths)
+.full                              // role inventory + every optional sheet (chapter markers included)
 ```
 
 ```swift
@@ -186,6 +188,7 @@ These contracts define what a “near-zero miss” report must not omit when the
 | Keywords | Every keyword range attached to timeline hosts in scope |
 | Titles & Generators | Every title / generator clip in scope with clip name and timeline bounds |
 | Transitions | Every transition element on the report spine(s) in scope |
+| Non-Std Effects & Templates | Every non-Apple `<effect>` resource (optional); missing Motion template paths flagged `MISSING` |
 | Video & Audio Effects | Every reportable filter / adjustment effect with clip association |
 | Speed Change Effects | Every non-identity retiming (Projection `RetimingSegment` preferred) |
 | Summary | Project title + duration/resolution/frame-rate metrics when available; role-duration rows for inventory roles |
@@ -205,7 +208,7 @@ These contracts define what a “near-zero miss” report must not omit when the
 
 ### Sections and columns
 
-**Row column (all tabular sheets):** Excel and PDF export prepend a 1-based **Row** column to every tabular sheet — Selected Roles Inventory and per-role sheets, Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, the Summary role-duration table, and Media Summary — unless `ReportColumn.row` is excluded. Inventory sheets include Row in their layout; other sheets receive it at export via **`ReportColumnExclusion.ensuringRowColumn`**. PDF pagination pins or injects the same column for multi-page / multi-column-set tables (see [PDF export](#pdf-export)).
+**Row column (all tabular sheets):** Excel and PDF export prepend a 1-based **Row** column to every tabular sheet — Selected Roles Inventory and per-role sheets, Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, the Summary role-duration table, and Media Summary — unless `ReportColumn.row` is excluded. Inventory sheets include Row in their layout; other sheets receive it at export via **`ReportColumnExclusion.ensuringRowColumn`**. PDF pagination pins or injects the same column for multi-page / multi-column-set tables (see [PDF export](#pdf-export)). The **Non-Std Effects & Templates** sheet uses its own fixed columns (Name, Kind, Status, Path, UID) without an injected Row column.
 
 #### Role inventory
 
@@ -215,7 +218,9 @@ These contracts define what a “near-zero miss” report must not omit when the
 - `roleSheets: [RoleSheet]` — one sheet per role (same column layout as the main inventory sheet).
 - `metadataColumnKeys: [String]` — dynamic metadata key columns appended after the fixed inventory columns.
 
-Each inventory sheet uses a **Row** index column, then fixed columns, then sorted dynamic metadata keys discovered across all inventory rows. Reel, Scene, Take, and Camera Name metadata keys that already have dedicated columns are not duplicated in the dynamic metadata block.
+Each inventory sheet uses a **Row** index column, then fixed columns, then sorted dynamic metadata keys discovered across all inventory rows. Reel, Scene, Take, Camera Name, **Codecs**, and **Ingest Date** metadata keys that already have dedicated columns are not duplicated in the dynamic metadata block.
+
+**Per-role Total footer:** Each non-empty per-role sheet ends with a blank row, then a **Total:** label under **Timeline Out** and an optimistic sum of that sheet’s **Clip Duration** values under **Clip Duration**. Both cells use the same black-background / white-text style as column headers. **Selected Roles Inventory** has no Total footer. If Timeline Out or Clip Duration is excluded, the footer is omitted. The sum is presentation-thin (`RoleInventorySheetTotal` — parses already-formatted `clipDuration` strings); it is **not** overlap-aware (Summary’s `summaryOverlapAwareDurations` stays Summary-only). Excel and PDF draw the same footer in the table content area (not the PDF running page footer).
 
 **RoleClipReportRow** fixed columns (in export order, after **Row**):
 
@@ -231,6 +236,7 @@ Each inventory sheet uses a **Row** index column, then fixed columns, then sorte
 | Source In | `sourceIn` |
 | Source Out | `sourceOut` |
 | Source Duration | `sourceDuration` |
+| Duplicate Frames | `duplicateFrames` |
 | Markers | `markers` |
 | Keywords | `keywords` |
 | Effects | `effects` |
@@ -241,11 +247,13 @@ Each inventory sheet uses a **Row** index column, then fixed columns, then sorte
 | Camera Angle | `cameraAngle` |
 | Camera Name | `cameraName` |
 | Frame Rate/Sample Rate | `frameRateSampleRate` |
-| Frame Size | `frameSize` |
+| Frame Size / Audio Config | `frameSize` |
 | Source File Name | `sourceFileName` |
 | Source File Path | `sourceFilePath` |
+| Codecs | `codecs` |
+| Ingest Date | `ingestDate` |
 
-Additional metadata appears in columns keyed by the raw FCPXML metadata key (for example `com.apple.proapps.studio.rawToLogConversion`). Access values via `metadataValues: [String: String]`.
+Additional metadata appears in columns keyed by the raw FCPXML metadata key (for example `com.apple.proapps.studio.rawToLogConversion`). Access values via `metadataValues: [String: String]`. Codecs and Ingest Date are promoted to fixed columns and omitted from that dynamic block.
 
 Use **RoleInventoryColumnLayout** (internal layout helper) or `RoleClipReportRow.fixedColumnHeaders` / `fixedColumnValues` when working with the fixed column block programmatically.
 
@@ -270,6 +278,12 @@ This is **not** the FCPXML 1.13+ empty `hidden-clip-marker` element (see [13 —
 #### Transitions
 
 **TransitionsReportSection** of **TransitionReportRow**: **Row**, Transition, Category, Apple, Timeline In/Out, Duration.
+
+#### Non-Std Effects & Templates
+
+**NonStandardEffectsTemplatesReportSection** of **NonStandardEffectTemplateReportRow**: Name, Kind (Effect / Title / Transition / Generator), Status (`MISSING` when the template path is absent on disk), Path, UID.
+
+Lists **non-Apple** `<effect>` resources from the document (UID does not match Apple-supplied Motion/FxPlug patterns). Missing Motion template paths are flagged like Media Summary’s missing media, but for effects/templates. Sheet tab title is shortened to **Non-Std Effects & Templates** (Excel’s 31-character limit). Enabled via `includeNonStandardEffectsTemplates` / CLI `--report-non-standard-effects`; included in `.full`. Empty inventories omit the sheet at export.
 
 #### Video & Audio Effects
 
@@ -369,7 +383,7 @@ At build time, labels are resolved to `Set<ReportColumn>` and stored on **`Repor
 | `.sourceOut` | Source Out | |
 | `.sourceDuration` | Source Duration | |
 | `.sourcePosition` | Source Position | Markers |
-| `.duplicateFrames` | Duplicate Frames | Alias supported; no data column yet |
+| `.duplicateFrames` | Duplicate Frames | Source-range reuse duration (blank when none); after Source Duration |
 | `.markers` | Markers | |
 | `.keywords` | Keywords / Keyword | |
 | `.effects` | Effects / Effect | |
@@ -380,9 +394,11 @@ At build time, labels are resolved to `Set<ReportColumn>` and stored on **`Repor
 | `.cameraAngle` | Camera Angle | |
 | `.cameraName` | Camera Name | |
 | `.frameRateSampleRate` | Frame Rate/Sample Rate | Also matches Frame Rate, Sample Rate |
-| `.frameSize` | Frame Size | |
+| `.frameSize` | Frame Size / Audio Config | Video: `W × H`; audio-only: layout/channels (aliases include Frame Size) |
 | `.sourceFileName` | Source File Name | |
 | `.sourceFilePath` | Source File Path | Also matches Missing Media, Missing Original, Missing Proxy on Media Summary |
+| `.codecs` | Codecs | Promoted from `com.apple.proapps.spotlight.kMDItemCodecs` |
+| `.ingestDate` | Ingest Date | Promoted from `com.apple.proapps.mio.ingestDate` |
 | `.metadata` | *(dynamic keys)* | Removes all dynamic metadata key columns on role inventory sheets |
 
 ### Accepted aliases
@@ -442,10 +458,11 @@ options.roleDisplayPreference = preference
 3. Keywords
 4. Titles & Generators
 5. Transitions
-6. Video & Audio Effects
-7. Speed Change Effects
-8. Summary
-9. Media Summary
+6. Non-Std Effects & Templates
+7. Video & Audio Effects
+8. Speed Change Effects
+9. Summary
+10. Media Summary
 
 Only options that are enabled are included. Each phase has a human-readable `rawValue` (for example `"Selected Roles Inventory"`, `"Video & Audio Effects"`).
 
@@ -485,7 +502,7 @@ Sheet order follows the report:
 1. Optional **cover sheet**
 2. **Selected Roles Inventory** and per-role sheets
 3. Markers, Keywords, Titles & Generators, Transitions
-4. Video & Audio Effects, Speed Change Effects
+4. Non-Std Effects & Templates, Video & Audio Effects, Speed Change Effects
 5. Summary, Media Summary
 
 Role/subrole cells are colour-coded by category on inventory sheets (video/caption blue `#0066FF`, titles purple `#9933FF`, audio green `#00AA44`, gap gray `#808080`). The entire row is tinted on those sheets so clip names, timecodes, and other columns match the role colour.
@@ -556,6 +573,8 @@ Per-section presentation:
 
 - **Per-sheet tint** — pages that belong to the same workbook section share a subtle background tint between the header rule and footer rule.
 - **Row colours** — the same rules as Excel (`FCPXMLReportRowColorPolicy`): role inventory category colours, marker-type colours, keywords/titles/effects/transitions inference, red missing-media paths.
+- **Per-role Total footer** — same blank row + **Total:** / Clip Duration sum as Excel (black/white header style), drawn in the table content area.
+- **Non-Std Effects & Templates** — Name / Kind / Status / Path / UID (no injected Row); omitted when empty.
 - **Tables** — black header row with white text; body uses Menlo. Column widths are measured from content (clamped for horizontal packing), then **expanded proportionally to fill the A4 landscape content width** when leftover space remains (for example after many `excludedColumns`). Wide tables still **paginate horizontally** into column sets (running header shows `Columns 2 of 5` when chunked); each set also fills the page width. Pinned **Row** columns keep their packed width.
 - **Truncation** — cell text that exceeds column width is ellipsized (`…`). For the full untruncated dataset, use the Excel export.
 - **Row column** — included by default on all tabular content (same as Excel) via **`ensuringRowColumn`**. On multi-page or multi-column-set tables, Row is **pinned** on the left; if headers lack Row and injection is allowed, PDF injects it via **`preparePaginatedTable(allowInjectedRowColumn:)`**. Exclude `ReportColumn.row` (CLI `--exclude-column Row`) to omit Row everywhere, including continuation pages.
@@ -588,6 +607,7 @@ The same reports are available through **OpenFCPXMLKit-CLI**:
 | `--report` | Role inventory only (Selected Roles Inventory + per-role sheets) |
 | `--report-full` | Every optional sheet |
 | `--report-markers`, `--report-keywords`, … | Individual optional sheets |
+| `--report-non-standard-effects` | Non-Std Effects & Templates sheet |
 | `--report-summary` | Summary sheet |
 | `--report-media-summary` | Media Summary sheet |
 | `--media-resolution <mode>` | `fail-soft` (default) or `fail-loud` for Projection failures |

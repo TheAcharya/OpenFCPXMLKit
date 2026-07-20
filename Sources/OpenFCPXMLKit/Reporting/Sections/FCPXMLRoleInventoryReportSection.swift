@@ -23,6 +23,8 @@ extension FinalCutPro.FCPXML {
         public var sourceIn: String
         public var sourceOut: String
         public var sourceDuration: String
+        /// Reused source-range duration vs other projected windows (blank when none).
+        public var duplicateFrames: String
         public var markers: String
         public var keywords: String
         public var effects: String
@@ -33,9 +35,14 @@ extension FinalCutPro.FCPXML {
         public var cameraAngle: String
         public var cameraName: String
         public var frameRateSampleRate: String
+        /// Video frame size or audio layout/channel config for the inventory column.
         public var frameSize: String
         public var sourceFileName: String
         public var sourceFilePath: String
+        /// Spotlight codecs metadata (friendly ``Codecs`` column).
+        public var codecs: String
+        /// Ingest date metadata (friendly ``Ingest Date`` column).
+        public var ingestDate: String
         /// Remaining metadata key/value pairs keyed by raw FCPXML metadata key.
         public var metadataValues: [String: String]
         
@@ -57,6 +64,7 @@ extension FinalCutPro.FCPXML {
             sourceIn: String,
             sourceOut: String,
             sourceDuration: String,
+            duplicateFrames: String = "",
             markers: String = "",
             keywords: String = "",
             effects: String = "",
@@ -70,6 +78,8 @@ extension FinalCutPro.FCPXML {
             frameSize: String = "",
             sourceFileName: String = "",
             sourceFilePath: String = "",
+            codecs: String = "",
+            ingestDate: String = "",
             metadataValues: [String: String] = [:]
         ) {
             self.roleSubrole = roleSubrole
@@ -82,6 +92,7 @@ extension FinalCutPro.FCPXML {
             self.sourceIn = sourceIn
             self.sourceOut = sourceOut
             self.sourceDuration = sourceDuration
+            self.duplicateFrames = duplicateFrames
             self.markers = markers
             self.keywords = keywords
             self.effects = effects
@@ -95,6 +106,8 @@ extension FinalCutPro.FCPXML {
             self.frameSize = frameSize
             self.sourceFileName = sourceFileName
             self.sourceFilePath = sourceFilePath
+            self.codecs = codecs
+            self.ingestDate = ingestDate
             self.metadataValues = metadataValues
         }
         
@@ -111,6 +124,7 @@ extension FinalCutPro.FCPXML {
                 sourceIn,
                 sourceOut,
                 sourceDuration,
+                duplicateFrames,
                 markers,
                 keywords,
                 effects,
@@ -123,7 +137,9 @@ extension FinalCutPro.FCPXML {
                 frameRateSampleRate,
                 frameSize,
                 sourceFileName,
-                sourceFilePath
+                sourceFilePath,
+                codecs,
+                ingestDate
             ]
         }
         

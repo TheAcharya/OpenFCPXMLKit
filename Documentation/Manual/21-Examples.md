@@ -246,16 +246,18 @@ import OpenFCPXMLKit
 
 let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
 
-// Role inventory + every optional sheet, with filtering and frame-count timecodes
+// Role inventory + every optional sheet (including Non-Std Effects & Templates when present),
+// with filtering and frame-count timecodes
 var options = FinalCutPro.FCPXML.ReportOptions.full
 options.excludedRoles = ["Effects"]
 options.excludeDisabledClips = true
-options.excludedColumns = ["Reel", "Metadata", "Source File Path"]
+options.excludedColumns = ["Reel", "Metadata", "Source File Path", "Duplicate Frames"]
 options.timecodeFormat = .frames
 options.mediaBaseURL = URL(fileURLWithPath: "/path/to/project.fcpxmld")
 
 let phases = FinalCutPro.FCPXML.ReportBuildPhase.enabledPhases(for: options)
 print("Will build \(phases.count) section(s) in product order")
+// Product order places Non-Std Effects & Templates immediately before Video & Audio Effects
 
 let report = try await fcpxml.buildReport(options: options) { phase in
     print("Building \(phase.rawValue)…")
@@ -268,6 +270,7 @@ let pdfURL = URL(fileURLWithPath: "/path/to/Report.pdf")
 try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 
 print("Wrote \(report.roleInventory?.roleSheets.count ?? 0) role sheet(s)")
+print("Non-std effects rows: \(report.nonStandardEffectsTemplates?.rows.count ?? 0)")
 print("Excluded columns: \(report.excludedColumns)")
 print("Timecode format: \(report.timecodeFormat.rawValue)")
 ```

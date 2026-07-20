@@ -25,6 +25,7 @@ struct FCPXMLReportBuildPhaseTests {
                     "Keywords",
                     "Titles & Generators",
                     "Transitions",
+                    "Non-Std Effects & Templates",
                     "Video & Audio Effects",
                     "Speed Change Effects",
                     "Summary",
@@ -55,6 +56,7 @@ struct FCPXMLReportBuildPhaseTests {
             .roleInventory,
             .markers,
             .titlesAndGenerators,
+            .nonStandardEffectsTemplates,
             .effects,
             .speedChangeEffects,
             .summary

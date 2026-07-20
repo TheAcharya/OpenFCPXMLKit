@@ -28,6 +28,7 @@ extension FinalCutPro.FCPXML {
             .sourceIn,
             .sourceOut,
             .sourceDuration,
+            .duplicateFrames,
             .markers,
             .keywords,
             .effects,
@@ -40,7 +41,9 @@ extension FinalCutPro.FCPXML {
             .frameRateSampleRate,
             .frameSize,
             .sourceFileName,
-            .sourceFilePath
+            .sourceFilePath,
+            .codecs,
+            .ingestDate
         ]
         
         /// Fixed inventory column headers excluding ``rowColumnHeader`` and dynamic metadata keys.
@@ -58,7 +61,9 @@ extension FinalCutPro.FCPXML {
             Metadata.Key.reel.rawValue,
             Metadata.Key.scene.rawValue,
             Metadata.Key.take.rawValue,
-            Metadata.Key.cameraName.rawValue
+            Metadata.Key.cameraName.rawValue,
+            Metadata.Key.codecs.rawValue,
+            Metadata.Key.ingestDate.rawValue
         ]
         
         /// Full header row for an inventory sheet.
@@ -173,7 +178,7 @@ extension FinalCutPro.FCPXML {
             in row: RoleClipReportRow
         ) -> String {
             switch column {
-            case .row, .metadata, .duplicateFrames, .duration, .sourcePosition:
+            case .row, .metadata, .duration, .sourcePosition:
                 return ""
             case .roleSubrole:
                 return row.roleSubrole
@@ -195,6 +200,8 @@ extension FinalCutPro.FCPXML {
                 return row.sourceOut
             case .sourceDuration:
                 return row.sourceDuration
+            case .duplicateFrames:
+                return row.duplicateFrames
             case .markers:
                 return row.markers
             case .keywords:
@@ -221,6 +228,10 @@ extension FinalCutPro.FCPXML {
                 return row.sourceFileName
             case .sourceFilePath:
                 return row.sourceFilePath
+            case .codecs:
+                return row.codecs
+            case .ingestDate:
+                return row.ingestDate
             }
         }
     }

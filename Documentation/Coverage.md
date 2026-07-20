@@ -2,7 +2,7 @@
 
 Living inventory of how OpenFCPXMLKit covers Final Cut Pro FCPXML across layers. Prefer this file when asking “is element *X* typed / authored / projected / reported?” Prefer [GUARDRAILS.md](../GUARDRAILS.md) for must / must-not, and [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7 for where new work belongs.
 
-**Keep in sync** when adding Model types, Authoring encode/decode, Extraction presets, Projection walks, or Reporting sheets. Suite context: **1114** tests listed (`swift test list`); FCPXML **1.5–1.14**.
+**Keep in sync** when adding Model types, Authoring encode/decode, Extraction presets, Projection walks, or Reporting sheets. Suite context: **1124** tests listed (`swift test list`); FCPXML **1.5–1.14**.
 
 **Related Manual:** [08 — Detached Authoring](Manual/08-Detached-Authoring.md) · [11 — Extraction](Manual/11-Extraction-Media.md) · [12 — Projection](Manual/12-Timeline-Projection.md) · [14 — Typed Models](Manual/14-Typed-Models.md) · [20 — Reporting](Manual/20-Reporting.md)
 
@@ -358,12 +358,13 @@ Options presets: `.mainTimeline`, `.trackAnalysis`, `.forReport(...)`.
 | Keywords | `includeKeywords` | **Projection** | Extraction keyword walk |
 | Titles & Generators | `includeTitlesAndGenerators` | **Projection** | TitlesExtractionPreset |
 | Transitions | `includeTransitions` | **Projection** | Extraction |
+| Non-Std Effects & Templates | `includeNonStandardEffectsTemplates` | Document `<effect>` resources (non-Apple / missing `src`) | — |
 | Video & Audio Effects | `includeEffects` | **Projection** annot | EffectsExtractionPreset |
 | Speed Change Effects | `includeSpeedChangeEffects` | **Projection** retiming | Extraction `timeMap` |
 | Summary | `includeSummary` | **Projection** + inventory agg | — |
 | Media Summary | `includeMediaSummary` | **Projection** / media-reps | Document fallback |
 
-Cover / TOC are presentation-only (Excel XLKit / PDF CoreGraphics). Build once via `buildReport(options:)`; project-once when any consuming section is enabled (`ReportBuildPhase` includes `.projecting`).
+Cover / TOC are presentation-only (Excel XLKit / PDF CoreGraphics). Build once via `buildReport(options:)`; project-once when any consuming section is enabled (`ReportBuildPhase` includes `.projecting`). Role inventory fixed columns after **Row**: **26** (includes Duplicate Frames, Frame Size / Audio Config, Codecs, Ingest Date). Per-role sheets may append an optimistic **Total:** Clip Duration footer. Non-Std Effects & Templates has no injected Row.
 
 ---
 

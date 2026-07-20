@@ -552,12 +552,50 @@ extension FinalCutPro.FCPXML {
             for clipContext: ExtractedElement,
             category: ReportClipCategory
         ) -> String {
+            inventoryFrameSizeOrAudioConfigDisplay(for: clipContext, category: category)
+        }
+        
+        /// Video frame size, or audio layout/channel config for audio-only inventory rows.
+        static func inventoryFrameSizeOrAudioConfigDisplay(
+            for clipContext: ExtractedElement,
+            category: ReportClipCategory
+        ) -> String {
+            if category.isAudioCategory, !category.isVideoCategory {
+                return inventoryAudioConfigDisplay(for: clipContext)
+            }
+            
             guard shouldIncludeFrameSize(for: category) else { return "" }
             
             let format = clipContext.element._fcpFirstDefinedFormatResourceForElementOrAncestors(
                 in: clipContext.resources
             )
             return inventoryFrameSizeDisplay(width: format?.width, height: format?.height)
+        }
+        
+        /// Audio layout / channel count for the Frame Size / Audio Config column.
+        static func inventoryAudioConfigDisplay(
+            for clipContext: ExtractedElement
+        ) -> String {
+            if let asset = clipContext.element._fcpFirstResourceForElementOrAncestors(
+                in: clipContext.resources
+            )?.fcpAsAsset {
+                let channels = asset.audioChannels
+                if channels == 1 { return "1 Mono" }
+                if channels == 2 { return "Stereo" }
+                if channels > 2 { return "\(channels) Channels" }
+            }
+            
+            if let sequence = inventoryAncestorSequence(for: clipContext),
+               let layout = sequence.audioLayout
+            {
+                switch layout {
+                case .mono: return "Mono"
+                case .stereo: return "Stereo"
+                case .surround: return "Surround"
+                }
+            }
+            
+            return ""
         }
         
         private static func shouldIncludeFrameSize(for category: ReportClipCategory) -> Bool {

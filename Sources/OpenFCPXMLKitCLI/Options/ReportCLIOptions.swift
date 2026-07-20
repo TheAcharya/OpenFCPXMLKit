@@ -50,6 +50,12 @@ struct ReportCLIOptions: ParsableArguments {
     var reportTransitions: Bool = false
     
     @Flag(
+        name: .customLong("report-non-standard-effects"),
+        help: "Include the Non-Std Effects & Templates sheet (with --report)."
+    )
+    var reportNonStandardEffects: Bool = false
+    
+    @Flag(
         name: .customLong("report-effects"),
         help: "Include the Video & Audio Effects sheet (with --report)."
     )
@@ -175,6 +181,7 @@ struct ReportCLIOptions: ParsableArguments {
             || reportKeywords
             || reportTitlesGenerators
             || reportTransitions
+            || reportNonStandardEffects
             || reportEffects
             || reportSpeedChangeEffects
             || reportSummary
@@ -209,6 +216,7 @@ struct ReportCLIOptions: ParsableArguments {
                 includeKeywords: reportKeywords,
                 includeTitlesAndGenerators: reportTitlesGenerators,
                 includeTransitions: reportTransitions,
+                includeNonStandardEffectsTemplates: reportNonStandardEffects,
                 includeEffects: reportEffects,
                 includeSpeedChangeEffects: reportSpeedChangeEffects,
                 includeSummary: reportSummary,

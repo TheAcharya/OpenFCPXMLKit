@@ -9,7 +9,7 @@ A modern Swift 6 framework for working with Final Cut Pro's FCPXML with full con
 
 OpenFCPXMLKit provides a type-safe API for parsing, creating, and manipulating FCPXML with async/await, SwiftTimecode, and Excel/PDF reporting. Targets **macOS 26+** and **iOS 26+** (Foundation XML on macOS; AEXML on iOS).
 
-**Tests:** **1114** listed in `swift test list` — **1108** in `OpenFCPXMLKitTests` + **6** optional `ExcelReportTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
+**Tests:** **1124** listed in `swift test list` — **1118** in `OpenFCPXMLKitTests` + **6** optional `ExcelReportTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
 
 OpenFCPXMLKit is currently in an experimental stage. It covers most core FCPXML attributes and parameters and provides a solid foundation for parsing, creation, and manipulation, with room for future expansion and additional feature coverage.
 
@@ -102,11 +102,12 @@ This codebase is developed using AI agents.
 
 ### Excel & PDF reporting
 - Build once with `buildReport(options:)`, then export `.xlsx` (XLKit) and/or `.pdf` (CoreGraphics)
-- Sheets: Role Inventory, Markers, Keywords, Titles, Transitions, Effects, Speed Change, Summary, Media Summary
+- Sheets: Role Inventory, Markers, Keywords, Titles, Transitions, Non-Std Effects & Templates, Effects, Speed Change, Summary, Media Summary
+  - Role inventory: **26** fixed columns (Duplicate Frames, Codecs, Ingest Date, Frame Size / Audio Config, …) + per-role **Total:** footers
 - Filters: roles, columns (incl. **Row**), disabled clips, project name, timecode format, copyright label
 - Markers: default omits out-of-bounds starts; `--include-markers-outside-clip-boundaries` adds them + **Hidden** column
 - Excel: `--protect-sheets` / `protectSheets` applies worksheet edit locks (not encryption; PDF unaffected)
-- CLI: `--report`, `--report-full`, `--create-pdf`, `--media-resolution`, `--timecode-format`, `--protect-sheets`, …
+- CLI: `--report`, `--report-full`, `--report-non-standard-effects`, `--create-pdf`, `--media-resolution`, `--timecode-format`, `--protect-sheets`, …
 - See [Manual 20 — Reporting](Documentation/Manual/20-Reporting.md)
 
 ### CLI
@@ -150,7 +151,7 @@ let package = Package(
         .iOS(.v26)
     ],
     dependencies: [
-        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.2.0")
+        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.2.1")
     ],
     targets: [
         .target(
@@ -213,7 +214,7 @@ sudo rm /usr/local/bin/OpenFCPXMLKit-CLI
 ### Compiled From Source
 
 ```shell
-VERSION=3.2.0 # replace this with the git tag of the version you need
+VERSION=3.2.1 # replace this with the git tag of the version you need
 git clone https://github.com/TheAcharya/OpenFCPXMLKit.git
 cd OpenFCPXMLKit
 git checkout "tags/$VERSION"
@@ -270,6 +271,8 @@ REPORT:
   --report-titles-generators
                           Include the Titles & Generators sheet (with --report).
   --report-transitions    Include the Transitions sheet (with --report).
+  --report-non-standard-effects
+                          Include the Non-Std Effects & Templates sheet (with --report).
   --report-effects        Include the Video & Audio Effects sheet (with --report).
   --report-speed-change-effects
                           Include the Speed Change Effects sheet (with --report).
@@ -337,7 +340,7 @@ Complete manual, usage guide, and examples are in the [Documentation](Documentat
 - **[CLI](Sources/OpenFCPXMLKitCLI/README.md)** — Flags, examples, building and extending
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — Layer stack, codebase map, Mermaid diagrams
 - **[GUARDRAILS.md](GUARDRAILS.md)** — Must / must-not constraints for contributors and agents
-- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1114** listed; all Swift Testing)
+- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1124** listed; all Swift Testing)
 - **[AGENT.md](AGENT.md)** — AI agent / contributor briefing
 
 ## FCPXML Version Support
