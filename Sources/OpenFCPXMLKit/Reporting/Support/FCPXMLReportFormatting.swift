@@ -733,11 +733,14 @@ extension FinalCutPro.FCPXML {
         ) -> String {
             switch effect.kind {
             case .filterAudio, .volume, .implicitVolume:
-                guard let preferred = effect.host.preferredRole(
+                if let preferred = effect.host.preferredRole(
                     for: .audioEffects,
                     using: roleDisplayPreference
-                ) else { return "" }
-                return mainRoleDisplay(from: preferred.collapsingSubRole())
+                ) {
+                    return mainRoleDisplay(from: preferred.collapsingSubRole())
+                }
+                // FCP default when `audioRole` is omitted from the host.
+                return "Dialogue"
             case .filterVideo, .transform, .compositing, .spatialConform:
                 if effect.host.element.fcpElementType == .title {
                     return titleRoleSubrole(
@@ -745,11 +748,14 @@ extension FinalCutPro.FCPXML {
                         roleDisplayPreference: roleDisplayPreference
                     )
                 }
-                guard let preferred = effect.host.preferredRole(
+                if let preferred = effect.host.preferredRole(
                     for: .videoEffects,
                     using: roleDisplayPreference
-                ) else { return "" }
-                return mainRoleDisplay(from: preferred.collapsingSubRole())
+                ) {
+                    return mainRoleDisplay(from: preferred.collapsingSubRole())
+                }
+                // FCP default when `videoRole` is omitted from an asset-clip (common in exports).
+                return "Video"
             }
         }
 
@@ -767,7 +773,7 @@ extension FinalCutPro.FCPXML {
                 ) ?? roles.first(where: { $0.isAudio }) {
                     return mainRoleDisplay(from: preferred.collapsingSubRole())
                 }
-                return firstMainRoleDisplay(in: roles, ofType: .audio) ?? ""
+                return firstMainRoleDisplay(in: roles, ofType: .audio) ?? "Dialogue"
             case .filterVideo, .transform, .compositing, .spatialConform:
                 if hostElementType == ElementType.title.rawValue {
                     return "Titles"
@@ -778,7 +784,7 @@ extension FinalCutPro.FCPXML {
                 ) ?? roles.first(where: { $0.isVideo }) {
                     return mainRoleDisplay(from: preferred.collapsingSubRole())
                 }
-                return firstMainRoleDisplay(in: roles, ofType: .video) ?? ""
+                return firstMainRoleDisplay(in: roles, ofType: .video) ?? "Video"
             }
         }
 

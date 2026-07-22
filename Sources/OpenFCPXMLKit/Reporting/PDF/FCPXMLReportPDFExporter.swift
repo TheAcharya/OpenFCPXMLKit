@@ -449,7 +449,7 @@ enum FCPXMLReportPDFExporter {
             excludedColumns: [],
             colorIndexByTitle: colorIndexByTitle,
             recordsSectionStarts: recordsSectionStarts,
-            colorContext: .effects,
+            colorContext: .nonStandardEffectsTemplates,
             to: canvas
         )
     }
@@ -569,11 +569,12 @@ enum FCPXMLReportPDFExporter {
         }
         
         if !summary.roleDurations.isEmpty {
+            let roleDurations = summary.roleDurations
             let filtered = filteredTabularSection(
                 headers: FinalCutPro.FCPXML.SummaryRoleDurationRow.columnHeaders(
                     timecodeFormat: timecodeFormat
                 ),
-                rows: summary.roleDurations.map(\.columnValues),
+                rows: roleDurations.map(\.columnValues),
                 excludedColumns: excludedColumns
             )
             
@@ -587,7 +588,11 @@ enum FCPXMLReportPDFExporter {
                         excludedColumns: excludedColumns
                     ),
                     headers: filtered.headers,
-                    rows: filtered.rows
+                    rows: filtered.rows,
+                    rowIsSectionBanner: { index in
+                        roleDurations.indices.contains(index)
+                            && roleDurations[index].isSectionSubtotal
+                    }
                 )
             }
         }

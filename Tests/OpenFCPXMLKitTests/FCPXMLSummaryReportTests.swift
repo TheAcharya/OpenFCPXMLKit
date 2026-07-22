@@ -14,6 +14,23 @@ import Testing
 @Suite("Summary report")
 struct FCPXMLSummaryReportTests {
 
+    @Test("Summary percent columnValues match Excel 0.0% display")
+    func summaryPercentColumnValuesMatchExcelPercentDisplay() {
+        typealias Row = FinalCutPro.FCPXML.SummaryRoleDurationRow
+        #expect(Row.formattedPercentOfTotal(0.5) == "50.0%")
+        #expect(Row.formattedPercentOfTotal(0.33) == "33.0%")
+        #expect(Row.formattedPercentOfTotal(3.8961593172119295) == "389.6%")
+        #expect(Row.formattedPercentOfTotal(10.289439694628776) == "1028.9%")
+        #expect(Row.formattedPercentOfTotal(2.0) == "200.0%")
+        
+        let values = Row(
+            roleSubrole: "Titles",
+            estimatedTotal: "00:21:54:18",
+            percentOfTotal: 3.8961593172119295
+        ).columnValues
+        #expect(values.last == "389.6%")
+    }
+
     private func summaryOptions(
         for fcpxml: FinalCutPro.FCPXML
     ) throws -> FinalCutPro.FCPXML.ReportOptions {

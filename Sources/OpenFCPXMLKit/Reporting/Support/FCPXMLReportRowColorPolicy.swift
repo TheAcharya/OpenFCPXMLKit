@@ -20,6 +20,8 @@ enum FCPXMLReportRowColorPolicy {
         case effects
         case speedChangeEffects
         case transitions
+        /// Non-Std Effects & Templates — colours from Kind (+ UID for audio Effects).
+        case nonStandardEffectsTemplates
     }
     
     enum Bucket {
@@ -44,6 +46,8 @@ enum FCPXMLReportRowColorPolicy {
     
     static let roleSubroleColumnHeader = "Role ▸ Subrole"
     static let categoryColumnHeader = "Category"
+    static let kindColumnHeader = "Kind"
+    static let uidColumnHeader = "UID"
     
     static func bucket(
         for roleSubrole: String,
@@ -59,6 +63,9 @@ enum FCPXMLReportRowColorPolicy {
             return roleBucketFromRoleName(roleSubrole, titlesAsVideo: true)
         case .titlesAndGenerators:
             return roleBucketFromRoleName(roleSubrole, titlesAsVideo: false)
+        case .nonStandardEffectsTemplates:
+            // Callers should use ``bucket(forNonStandardKind:uid:)``; Kind is required.
+            return .videoOrSRT
         case .roleInventory:
             if let categoryLabel,
                let category = FinalCutPro.FCPXML.ReportClipCategory.matchingWorkbookLabel(categoryLabel)
@@ -78,6 +85,27 @@ enum FCPXMLReportRowColorPolicy {
             }
             
             return roleBucketFromRoleName(roleSubrole, titlesAsVideo: false)
+        }
+    }
+    
+    /// Row colour for Non-Std Effects & Templates from the Kind column (and UID for audio Effects).
+    ///
+    /// - Title → purple
+    /// - Transition → gray (same as Transitions sheet)
+    /// - Generator → blue
+    /// - Effect → green when UID looks like audio (`AudioUnit:`, `FFAudio…`); otherwise blue
+    static func bucket(forNonStandardKind kind: String, uid: String = "") -> Bucket {
+        switch kind.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "title":
+            return .titles
+        case "transition":
+            return .gap
+        case "generator":
+            return .videoOrSRT
+        case "effect":
+            return isAudioEffectUID(uid) ? .audio : .videoOrSRT
+        default:
+            return .videoOrSRT
         }
     }
     
@@ -128,33 +156,67 @@ enum FCPXMLReportRowColorPolicy {
         cgColor(fromHex: markerFontColorHex(for: markerType))
     }
     
+    /// Font colour hex for a data row, or `nil` when the sheet has no colouring source.
+    static func fontColorHex(
+        forRowValues values: [String],
+        headers: [String],
+        context: Context
+    ) -> String? {
+        switch context {
+        case .nonStandardEffectsTemplates:
+            guard let kindColumnIndex = headers.firstIndex(of: kindColumnHeader),
+                  values.indices.contains(kindColumnIndex)
+            else {
+                return nil
+            }
+            var uid = ""
+            if let uidColumnIndex = headers.firstIndex(of: uidColumnHeader),
+               values.indices.contains(uidColumnIndex)
+            {
+                uid = values[uidColumnIndex]
+            }
+            return bucket(forNonStandardKind: values[kindColumnIndex], uid: uid).fontColorHex
+            
+        case .keywords, .transitions, .effects, .speedChangeEffects, .titlesAndGenerators, .roleInventory:
+            guard let roleColumnIndex = headers.firstIndex(of: roleSubroleColumnHeader),
+                  values.indices.contains(roleColumnIndex)
+            else {
+                return nil
+            }
+            
+            let roleValue = values[roleColumnIndex]
+            var categoryValue: String?
+            if let categoryColumnIndex = headers.firstIndex(of: categoryColumnHeader),
+               values.indices.contains(categoryColumnIndex)
+            {
+                categoryValue = values[categoryColumnIndex]
+            }
+            
+            return bucket(
+                for: roleValue,
+                categoryLabel: categoryValue,
+                context: context
+            ).fontColorHex
+        }
+    }
+    
     static func textColor(
         forRowValues values: [String],
         headers: [String],
         context: Context,
         defaultColor: CGColor
     ) -> CGColor {
-        guard let roleColumnIndex = headers.firstIndex(of: roleSubroleColumnHeader),
-              values.indices.contains(roleColumnIndex)
-        else {
+        guard let hex = fontColorHex(forRowValues: values, headers: headers, context: context) else {
             return defaultColor
         }
-        
-        let roleValue = values[roleColumnIndex]
-        var categoryValue: String?
-        if let categoryColumnIndex = headers.firstIndex(of: categoryColumnHeader),
-           values.indices.contains(categoryColumnIndex)
-        {
-            categoryValue = values[categoryColumnIndex]
-        }
-        
-        return cgColor(
-            for: bucket(
-                for: roleValue,
-                categoryLabel: categoryValue,
-                context: context
-            )
-        ) ?? defaultColor
+        return cgColor(fromHex: hex) ?? defaultColor
+    }
+    
+    private static func isAudioEffectUID(_ uid: String) -> Bool {
+        let lowered = uid.lowercased()
+        return lowered.hasPrefix("audiounit:")
+            || lowered.hasPrefix("ffaudio")
+            || lowered.contains("audio unit")
     }
     
     private static func roleBucketFromRoleName(
@@ -211,4 +273,3 @@ enum FCPXMLReportRowColorPolicy {
         return trimmed
     }
 }
-

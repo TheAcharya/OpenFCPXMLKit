@@ -19,24 +19,17 @@ enum FCPXMLReportWorkbookExporter {
         return format
     }
     
-    /// Workbook sheet context for row text colour when Category is unavailable.
-    private typealias RoleRowColorContext = FCPXMLReportRowColorPolicy.Context
-    
-    private static func roleFontFormat(
-        for roleSubrole: String,
-        categoryLabel: String? = nil,
-        context: RoleRowColorContext = .roleInventory
-    ) -> CellFormat? {
-        let bucket = FCPXMLReportRowColorPolicy.bucket(
-            for: roleSubrole,
-            categoryLabel: categoryLabel,
-            context: context
-        )
-        
+    /// Summary visual-section subtotal: black fill + white bold text at body size (not header 14pt / centred).
+    private static func summarySectionSubtotalFormat() -> CellFormat {
         var format = CellFormat()
-        format.fontColor = bucket.fontColorHex
+        format.backgroundColor = "#000000"
+        format.fontColor = "#FFFFFF"
+        format.fontWeight = .bold
         return format
     }
+    
+    /// Workbook sheet context for row text colour when Category is unavailable.
+    private typealias RoleRowColorContext = FCPXMLReportRowColorPolicy.Context
     
     @MainActor
     static func makeWorkbook(from report: FinalCutPro.FCPXML.Report) -> Workbook {
@@ -128,7 +121,7 @@ enum FCPXMLReportWorkbookExporter {
                 sheetName: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.defaultSheetName,
                 headers: FinalCutPro.FCPXML.NonStandardEffectTemplateReportRow.columnHeaders,
                 rows: nonStandard.rows.map(\.columnValues),
-                colorContext: .effects
+                colorContext: .nonStandardEffectsTemplates
             )
         }
         
@@ -291,20 +284,17 @@ enum FCPXMLReportWorkbookExporter {
     ) {
         let sheet = workbook.addSheet(name: sanitizeSheetName(sheetName))
         setTableHeaderRow(sheet, row: 1, strings: headers)
-        let roleColumnIndex = headers.firstIndex(of: FCPXMLReportRowColorPolicy.roleSubroleColumnHeader).map { $0 + 1 }
-        let categoryColumnIndex = headers.firstIndex(of: FCPXMLReportRowColorPolicy.categoryColumnHeader).map { $0 + 1 }
         for (index, values) in rows.enumerated() {
             let rowIndex = index + 2
-            let roleFormat = roleFontFormatIfNeeded(
+            let rowFormat = rowFontFormatIfNeeded(
                 values: values,
-                roleColumnIndex: roleColumnIndex,
-                categoryColumnIndex: categoryColumnIndex,
+                headers: headers,
                 colorContext: colorContext
             )
             for (columnIndex, value) in values.enumerated() {
                 let coordinate = CellCoordinate(row: rowIndex, column: columnIndex + 1).excelAddress
-                if let roleFormat {
-                    sheet.setCell(coordinate, string: value, format: roleFormat)
+                if let rowFormat {
+                    sheet.setCell(coordinate, string: value, format: rowFormat)
                 } else {
                     sheet.setCell(coordinate, string: value)
                 }
@@ -313,45 +303,33 @@ enum FCPXMLReportWorkbookExporter {
         FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet, headers: headers, rows: rows)
     }
 
-    private static func roleFontFormatIfNeeded(
+    private static func rowFontFormatIfNeeded(
         values: [String],
-        roleColumnIndex: Int?,
-        categoryColumnIndex: Int?,
+        headers: [String],
         colorContext: RoleRowColorContext
     ) -> CellFormat? {
-        guard let roleColumnIndex,
-              values.indices.contains(roleColumnIndex - 1)
-        else {
+        guard let hex = FCPXMLReportRowColorPolicy.fontColorHex(
+            forRowValues: values,
+            headers: headers,
+            context: colorContext
+        ) else {
             return nil
         }
-
-        let roleValue = values[roleColumnIndex - 1]
-        var categoryValue: String?
-        if let categoryColumnIndex,
-           values.indices.contains(categoryColumnIndex - 1)
-        {
-            categoryValue = values[categoryColumnIndex - 1]
-        }
-
-        return roleFontFormat(
-            for: roleValue,
-            categoryLabel: categoryValue,
-            context: colorContext
-        )
+        var format = CellFormat()
+        format.fontColor = hex
+        return format
     }
     
     private static func applyRoleColorToRow(
         _ sheet: Sheet,
         row: Int,
         values: [String],
-        roleColumnIndex: Int?,
-        categoryColumnIndex: Int?,
+        headers: [String],
         colorContext: RoleRowColorContext = .roleInventory
     ) {
-        guard let roleFormat = roleFontFormatIfNeeded(
+        guard let rowFormat = rowFontFormatIfNeeded(
             values: values,
-            roleColumnIndex: roleColumnIndex,
-            categoryColumnIndex: categoryColumnIndex,
+            headers: headers,
             colorContext: colorContext
         ) else {
             return
@@ -359,7 +337,7 @@ enum FCPXMLReportWorkbookExporter {
         
         for (columnIndex, value) in values.enumerated() {
             let coordinate = CellCoordinate(row: row, column: columnIndex + 1).excelAddress
-            sheet.setCell(coordinate, string: value, format: roleFormat)
+            sheet.setCell(coordinate, string: value, format: rowFormat)
         }
     }
     
@@ -388,11 +366,16 @@ enum FCPXMLReportWorkbookExporter {
         
         if let projectSummary = summary.projectSummary {
             // Title lives in column B so autofit does not widen the Row index column (A)
-            // when the project name is long.
+            // when the project name is long. Flanking cells A1 / C1–E1 share the black
+            // banner fill so row 1 reads as one continuous header band.
+            let headerFormat = tableHeaderFormat()
+            for address in ["A1", "C1", "D1", "E1"] {
+                sheet.setCell(address, string: "", format: headerFormat)
+            }
             sheet.setCell(
                 "B\(rowIndex)",
                 string: projectSummary.title,
-                format: tableHeaderFormat()
+                format: headerFormat
             )
             rowIndex += 1
             sheet.setRow(
@@ -415,6 +398,11 @@ enum FCPXMLReportWorkbookExporter {
             )
             let headers = filtered.headers
             setTableHeaderRow(sheet, row: rowIndex, strings: headers)
+            // Extend the black header band through column E so it aligns with the
+            // project-metrics width (A–E), matching the A1/C1–E1 title banner.
+            if headers.count < 5 {
+                sheet.setCell("E\(rowIndex)", string: "", format: tableHeaderFormat())
+            }
             rowIndex += 1
             
             let percentColumnIndex = headers
@@ -423,19 +411,16 @@ enum FCPXMLReportWorkbookExporter {
             
             for (index, roleDuration) in summary.roleDurations.enumerated() {
                 let values = filtered.rows[index]
-                sheet.setRow(rowIndex, strings: values)
+                let isSubtotal = roleDuration.isSectionSubtotal
                 
-                if let percentColumnIndex {
-                    let coordinate = CellCoordinate(
-                        row: rowIndex,
-                        column: percentColumnIndex
-                    ).excelAddress
-                    sheet.setCell(
-                        coordinate,
-                        number: roleDuration.percentOfTotal,
-                        format: summaryPercentFormat()
-                    )
-                }
+                writeSummaryRoleDurationRow(
+                    on: sheet,
+                    rowIndex: rowIndex,
+                    values: values,
+                    roleDuration: roleDuration,
+                    percentColumnIndex: percentColumnIndex,
+                    bannerSubtotal: isSubtotal
+                )
                 
                 rowIndex += 1
             }
@@ -465,6 +450,60 @@ enum FCPXMLReportWorkbookExporter {
         let desired = FCPXMLReportWorkbookColumnAutoFit.summaryProjectTitleColumnWidth(for: title)
         let current = sheet.getColumnWidth(titleColumn) ?? 0
         sheet.setColumnWidth(titleColumn, width: max(current, desired))
+    }
+    
+    private static func writeSummaryRoleDurationRow(
+        on sheet: Sheet,
+        rowIndex: Int,
+        values: [String],
+        roleDuration: FinalCutPro.FCPXML.SummaryRoleDurationRow,
+        percentColumnIndex: Int?,
+        bannerSubtotal: Bool
+    ) {
+        // Visual-section subtotal: black fill + white bold body text across A–E (dynamic row).
+        let bannerFormat = summarySectionSubtotalFormat()
+        
+        if bannerSubtotal {
+            for column in 1 ... 5 {
+                let coordinate = CellCoordinate(row: rowIndex, column: column).excelAddress
+                if column == percentColumnIndex {
+                    var percentFormat = summaryPercentFormat(bold: true)
+                    percentFormat.backgroundColor = "#000000"
+                    percentFormat.fontColor = "#FFFFFF"
+                    sheet.setCell(
+                        coordinate,
+                        number: roleDuration.percentOfTotal,
+                        format: percentFormat
+                    )
+                } else if let valueIndex = values.indices.first(where: { $0 + 1 == column }) {
+                    sheet.setCell(coordinate, string: values[valueIndex], format: bannerFormat)
+                } else {
+                    sheet.setCell(coordinate, string: "", format: bannerFormat)
+                }
+            }
+            return
+        }
+        
+        for (columnIndex, value) in values.enumerated() {
+            let column = columnIndex + 1
+            if column == percentColumnIndex {
+                continue
+            }
+            let coordinate = CellCoordinate(row: rowIndex, column: column).excelAddress
+            sheet.setCell(coordinate, string: value)
+        }
+        
+        if let percentColumnIndex {
+            let coordinate = CellCoordinate(
+                row: rowIndex,
+                column: percentColumnIndex
+            ).excelAddress
+            sheet.setCell(
+                coordinate,
+                number: roleDuration.percentOfTotal,
+                format: summaryPercentFormat()
+            )
+        }
     }
     
     private static func appendMediaSummary(
@@ -624,20 +663,12 @@ enum FCPXMLReportWorkbookExporter {
         )
         setTableHeaderRow(sheet, row: 1, strings: headers)
         
-        let roleColumnIndex = headers.firstIndex(
-            of: FCPXMLReportRowColorPolicy.roleSubroleColumnHeader
-        ).map { $0 + 1 }
-        let categoryColumnIndex = headers.firstIndex(
-            of: FCPXMLReportRowColorPolicy.categoryColumnHeader
-        ).map { $0 + 1 }
-        
         for (index, values) in rows.enumerated() {
             applyRoleColorToRow(
                 sheet,
                 row: index + 2,
                 values: values,
-                roleColumnIndex: roleColumnIndex,
-                categoryColumnIndex: categoryColumnIndex,
+                headers: headers,
                 colorContext: .roleInventory
             )
         }
@@ -720,10 +751,13 @@ enum FCPXMLReportWorkbookExporter {
     /// Percentage cell format matching Final Cut Pro's Summary sheet (`0.0%`). The stored value
     /// is a fraction (for example `0.42`), which the number format renders as `42.0%`.
     /// Summary data cells use default black text (no role colour coding).
-    private static func summaryPercentFormat() -> CellFormat {
+    private static func summaryPercentFormat(bold: Bool = false) -> CellFormat {
         var format = CellFormat()
         format.numberFormat = .custom
         format.customNumberFormat = "0.0%"
+        if bold {
+            format.fontWeight = .bold
+        }
         return format
     }
 }

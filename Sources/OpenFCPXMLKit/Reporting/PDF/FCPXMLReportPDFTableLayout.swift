@@ -339,6 +339,7 @@ enum FCPXMLReportPDFTableRenderer {
         rows: [[String]],
         rowTextColor: CGColor = FCPXMLReportPDFStyle.textColor,
         rowTextColorForRow: ((Int, [String]) -> CGColor)? = nil,
+        rowIsSectionBanner: ((Int) -> Bool)? = nil,
         footerTotal: TableFooterTotal? = nil
     ) {
         guard !headers.isEmpty else { return }
@@ -392,11 +393,13 @@ enum FCPXMLReportPDFTableRenderer {
                 for (index, row) in pageRows.enumerated() {
                     let globalRowIndex = rowOffset + index
                     let sourceRow = prepared.rows[globalRowIndex]
+                    let isBanner = rowIsSectionBanner?(globalRowIndex) ?? false
                     let textColor = rowTextColorForRow?(globalRowIndex, sourceRow) ?? rowTextColor
                     canvas.drawTableDataRow(
                         values: row,
                         columnWidths: chunk.widths,
-                        textColor: textColor
+                        textColor: textColor,
+                        sectionBanner: isBanner
                     )
                 }
                 

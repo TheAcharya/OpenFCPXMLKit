@@ -250,6 +250,46 @@ struct FCPXMLReportFormattingTests {
         #expect(ReportFormatting.titleRoleSubrole(for: title) == "Titles")
     }
 
+    @Test("Video effect role defaults to Video when host has only audio roles")
+    func videoEffectRoleDefaultsToVideoWhenHostHasOnlyAudioRoles() {
+        let roles: [FinalCutPro.FCPXML.AnyInterpolatedRole] = [
+            .assigned(.audio(FinalCutPro.FCPXML.AudioRole(rawValue: "dialogue")!))
+        ]
+
+        let videoRole = ReportFormatting.effectRoleSubrole(
+            kind: .filterVideo,
+            hostElementType: "asset-clip",
+            roles: roles
+        )
+        let audioRole = ReportFormatting.effectRoleSubrole(
+            kind: .filterAudio,
+            hostElementType: "asset-clip",
+            roles: roles
+        )
+
+        #expect(videoRole == "Video")
+        #expect(audioRole == "Dialogue")
+    }
+
+    @Test("Audio effect role defaults to Dialogue when host has only video roles")
+    func audioEffectRoleDefaultsToDialogueWhenHostHasOnlyVideoRoles() {
+        let roles = [interpolatedRole("video")]
+
+        let audioRole = ReportFormatting.effectRoleSubrole(
+            kind: .filterAudio,
+            hostElementType: "asset-clip",
+            roles: roles
+        )
+        let videoRole = ReportFormatting.effectRoleSubrole(
+            kind: .filterVideo,
+            hostElementType: "asset-clip",
+            roles: roles
+        )
+
+        #expect(audioRole == "Dialogue")
+        #expect(videoRole == "Video")
+    }
+
     @Test("Inventory combined role field uses anchor format when video present")
     func inventoryCombinedRoleFieldUsesAnchorFormatWhenVideoPresent() {
         let field = ReportFormatting.inventoryCombinedRoleField(from: [

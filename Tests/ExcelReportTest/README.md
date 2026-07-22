@@ -4,8 +4,8 @@ Optional integration tests that build real `.xlsx` workbooks and `.pdf` reports 
 
 **Target:** `ExcelReportTest` (Swift Testing)  
 **Depends on:** `OpenFCPXMLKit`, `XLKit`  
-**Tests:** **6** `@Test` methods in `@Suite("Excel report export")` / `ExcelReportExportTests`  
-**Public suite (keep in sync):** **1128** listed (`1122` OpenFCPXMLKitTests + **6** ExcelReportTest; all Swift Testing); **60** public samples
+**Tests:** **7** `@Test` methods in `@Suite("Excel report export")` / `ExcelReportExportTests`  
+**Public suite (keep in sync):** **1137** listed (`1130` OpenFCPXMLKitTests + **7** ExcelReportTest; all Swift Testing); **60** public samples
 
 Unit-level reporting behaviour (universal **Row** on all tabular sheets, Summary title in **B1**, column layout including **Duplicate Frames** / **Codecs** / **Ingest Date** / **Frame Size / Audio Config**, per-role **Total:** footers, Non-Std Effects & Templates sheet, column exclusion including `ReportColumn.row`, disabled-clip filtering, timecode formats / DF·NDF, format-aware headers, build-phase order including `.projecting` and Non-Std before Effects, workbook cell formatting, optional `copyrightLabel` cover/footer branding, chapter markers on Markers by default, `includeMarkersOutsideClipBoundaries` / Markers **Hidden** column, `protectSheets` worksheet protection, `ReportMediaResolutionPolicy` / Media Summary proxy-original distinction, PDF cover notes / black header + `info.circle`, TOC colour chips, column-width expansion after exclusions, pagination, shared row colours, **standalone compound-clip timeline resolution**, **Projection-first** Markers/Keywords/Titles/Transitions/Effects) lives in **`OpenFCPXMLKitTests`** — see [Tests/README.md](../README.md#reporting--excelpdf-export) (`FCPXMLCompoundClipReportTests`, `FCPXMLTimelineProjectionTests`, `FCPXMLReportObligationCorpusTests`, `FCPXMLMarkersReportTests`, `FCPXMLReportPDFExportTests`, `FCPXMLReportPDFSheetPlanTests`, `FCPXMLReportPDFTableLayoutTests`, `FCPXMLReportColumnExclusionTests`, `FCPXMLReportExcelExportTests`, `FCPXMLRoleInventorySheetTotalTests`, `FCPXMLRoleInventoryDuplicateFramesTests`, `FCPXMLNonStandardEffectsTemplatesReportTests`, and related files).
 
@@ -63,18 +63,21 @@ Running the export tests writes workbooks and a sample PDF to **`Output/`** (als
 | `Output/OFK-Default.xlsx` | `ReportOptions.roleInventoryOnly` | `OpenFCPXMLKit-CLI --report <fixture> <dir>` | **Selected Roles Inventory** + per-role sheets (**Row** + **26** fixed columns including Duplicate Frames / Codecs / Ingest Date / Frame Size / Audio Config + dynamic metadata keys; per-role **Total:** footers) |
 | `Output/OFK-Full.xlsx` | `ReportOptions.full` | `OpenFCPXMLKit-CLI --report --report-full <fixture> <dir>` | Default sheets plus Markers … Speed Change Effects (**Row** on each), **Summary** (project title in **B1**, narrow Row column A, black data rows), and **Media Summary** (**Row** + red missing-media paths) |
 | `Output/OFK-Default.pdf` | `ReportOptions.roleInventoryOnly` | `OpenFCPXMLKit-CLI --report --create-pdf <fixture> <dir>` | Role-inventory PDF with cover page (black “About This PDF Export” + `info.circle`), TOC (accent colour chips + content-tint washes per sheet `colorIndex`), and per-sheet tinted content pages |
+| `Output/OFK-Full.pdf` | `ReportOptions.full` | `OpenFCPXMLKit-CLI --report --report-full --create-pdf <fixture> <dir>` | Full-report PDF (all sections including Summary / Media Summary); Summary visual-section subtotal banner + `% of Total` matching Excel `0.0%` display |
 | `Output/OFK-ExcludedColumns.pdf` | role inventory + many `excludedColumns` | `--report --create-pdf --exclude-column …` | Same sheets with remaining columns expanded to fill A4 landscape width |
 | `Output/OFK-Copyright.xlsx` / `Output/OFK-Copyright.pdf` | role inventory + `copyrightLabel` | `--report --create-pdf --label-copyright "…"` | Cover/footer copyright line for manual review of `--label-copyright` |
 | `Output/OFK-OutsideClipBoundaries.xlsx` / `Output/OFK-OutsideClipBoundaries.pdf` | markers + `includeMarkersOutsideClipBoundaries` | `--report --report-markers --include-markers-outside-clip-boundaries --create-pdf` | Markers sheet with **Hidden** column (✓/✗) for out-of-bounds markers |
 | `Output/OFK-ProtectedSheets.xlsx` | role inventory + `protectSheets` | `--report --protect-sheets` | Every worksheet protected (edit lock; not encryption; Excel only) |
 
-Cell colours, header styling, section-sheet colour rules, TOC colour chips, and PDF column-width expansion are covered by **`FCPXMLReportExcelExportTests`**, **`FCPXMLReportPDFExportTests`**, **`FCPXMLReportPDFSheetPlanTests`**, and **`FCPXMLReportPDFTableLayoutTests`** in `OpenFCPXMLKitTests`. This integration target checks that a real fixture produces complete workbooks and readable PDFs; open `OFK-Full.xlsx`, `OFK-Default.pdf`, `OFK-ExcludedColumns.pdf`, `OFK-Copyright.xlsx` / `.pdf`, `OFK-OutsideClipBoundaries.xlsx` / `.pdf`, or `OFK-ProtectedSheets.xlsx` locally to compare layout, copyright branding, Markers **Hidden**, and sheet protection against a reference export if you maintain one.
+Cell colours, header styling, section-sheet colour rules, TOC colour chips, and PDF column-width expansion are covered by **`FCPXMLReportExcelExportTests`**, **`FCPXMLReportPDFExportTests`**, **`FCPXMLReportPDFSheetPlanTests`**, and **`FCPXMLReportPDFTableLayoutTests`** in `OpenFCPXMLKitTests`. This integration target checks that a real fixture produces complete workbooks and readable PDFs; open `OFK-Full.xlsx`, `OFK-Full.pdf`, `OFK-Default.pdf`, `OFK-ExcludedColumns.pdf`, `OFK-Copyright.xlsx` / `.pdf`, `OFK-OutsideClipBoundaries.xlsx` / `.pdf`, or `OFK-ProtectedSheets.xlsx` locally to compare layout, copyright branding, Markers **Hidden**, Summary formatting, and sheet protection against a reference export if you maintain one.
 
 See [Output/README.md](Output/README.md) for details on that folder.
 
 `exportDefaultAndFullWorkbooks` asserts that the default export includes only role inventory, and that the full export includes every optional section (`summary`, `mediaSummary`, markers, keywords, titles, transitions, nonStandardEffectsTemplates, effects, speedChangeEffects).
 
 `exportDefaultRoleInventoryPDF` writes `OFK-Default.pdf` and asserts a valid `%PDF` header and minimum size.
+
+`exportFullReportPDF` writes `OFK-Full.pdf` from `ReportOptions.full` and asserts Summary is present in extracted PDF text (including Excel-parity `% of Total` formatting when Titles rows exist).
 
 `exportRoleInventoryPDFWithManyExcludedColumns` writes `OFK-ExcludedColumns.pdf` after excluding many inventory columns (leftover horizontal space must expand remaining columns).
 
@@ -143,7 +146,7 @@ First run on a large fixture can take ~1–2 minutes (report build + XLKit save;
 | File | Purpose |
 |------|---------|
 | `ExcelReportFixture.swift` | Resolves fixture URL (including under `Output/`), `mediaBaseURL`, and `Output/` path; defines output file names |
-| `ExcelReportExportTests.swift` | Builds and writes `OFK-Default.xlsx`, `OFK-Full.xlsx`, `OFK-Default.pdf`, `OFK-ExcludedColumns.pdf`, `OFK-Copyright.xlsx`, `OFK-Copyright.pdf`, `OFK-OutsideClipBoundaries.xlsx` / `.pdf`, and `OFK-ProtectedSheets.xlsx` |
+| `ExcelReportExportTests.swift` | Builds and writes `OFK-Default.xlsx`, `OFK-Full.xlsx`, `OFK-Default.pdf`, `OFK-Full.pdf`, `OFK-ExcludedColumns.pdf`, `OFK-Copyright.xlsx`, `OFK-Copyright.pdf`, `OFK-OutsideClipBoundaries.xlsx` / `.pdf`, and `OFK-ProtectedSheets.xlsx` |
 | `Output/` | Generated workbooks and PDFs (created by tests; gitignored); may also hold local investigation fixtures such as `Sample.fcpxmld` |
 
 ---

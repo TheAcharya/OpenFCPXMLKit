@@ -63,12 +63,26 @@ extension FinalCutPro.FCPXML {
             self.percentOfTotal = percentOfTotal
         }
         
+        /// Display string matching Excel Summary ``% of Total`` (`0.0%` number format).
+        ///
+        /// ``percentOfTotal`` is a fraction (for example `0.42` → `42.0%`; `3.896` → `389.6%`).
+        public static func formattedPercentOfTotal(_ value: Double) -> String {
+            String(format: "%.1f%%", value * 100.0)
+        }
+        
         public var columnValues: [String] {
             [
                 roleSubrole,
                 estimatedTotal,
-                String(percentOfTotal)
+                Self.formattedPercentOfTotal(percentOfTotal)
             ]
+        }
+        
+        /// Visual-section subtotal inserted between visual and audio role groups
+        /// (empty ``roleSubrole``, non-empty ``estimatedTotal``).
+        public var isSectionSubtotal: Bool {
+            roleSubrole.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                && !estimatedTotal.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
     }
     

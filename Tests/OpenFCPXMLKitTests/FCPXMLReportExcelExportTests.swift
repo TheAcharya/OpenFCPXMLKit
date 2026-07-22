@@ -489,6 +489,16 @@ struct FCPXMLReportExcelExportTests {
                     roleSubrole: "Titles",
                     timelineIn: "00:00:02:00",
                     timelineOut: "00:00:03:00"
+                ),
+                .init(
+                    effect: "Enveloper",
+                    settings: "Enveloper",
+                    enabled: "✓",
+                    isApple: "",
+                    clipName: "Audio Clip",
+                    roleSubrole: "Effects",
+                    timelineIn: "00:00:03:00",
+                    timelineOut: "00:00:04:00"
                 )
             ])
         )
@@ -497,9 +507,61 @@ struct FCPXMLReportExcelExportTests {
             .makeWorkbook(from: report)
             .getSheet(name: FinalCutPro.FCPXML.EffectsReportSection.defaultSheetName)
 
+        // Video / Titles → blue; Dialogue / Effects (audio) → green
         #expect(sheet?.getCellWithFormat("A2")?.format?.fontColor == "#0066FF")
         #expect(sheet?.getCellWithFormat("A3")?.format?.fontColor == "#00AA44")
         #expect(sheet?.getCellWithFormat("A4")?.format?.fontColor == "#0066FF")
+        #expect(sheet?.getCellWithFormat("A5")?.format?.fontColor == "#00AA44")
+    }
+
+    @Test("Non-Std Effects & Templates rows use Kind-based colors")
+    @MainActor
+    func nonStandardEffectsTemplatesRowsUseKindBasedColors() {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test Project",
+            nonStandardEffectsTemplates: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection(
+                rows: [
+                    .init(
+                        name: "Adjustment Clip",
+                        kind: "Effect",
+                        uid: "FFAdjustmentEffect"
+                    ),
+                    .init(
+                        name: "Enveloper",
+                        kind: "Effect",
+                        uid: "AudioUnit: 0x617566780000009d454d4147"
+                    ),
+                    .init(
+                        name: "Basic Title",
+                        kind: "Title",
+                        uid: ".../Basic Title.moti"
+                    ),
+                    .init(
+                        name: "Audio Crossfade",
+                        kind: "Transition",
+                        uid: "FFAudioTransition"
+                    ),
+                    .init(
+                        name: "Custom Generator",
+                        kind: "Generator",
+                        uid: ".../Custom.motn"
+                    )
+                ]
+            )
+        )
+
+        let sheet = FinalCutPro.FCPXML.ReportExcelExport
+            .makeWorkbook(from: report)
+            .getSheet(
+                name: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.defaultSheetName
+            )
+
+        // Effect (video) blue; AudioUnit Effect green; Title purple; Transition gray; Generator blue
+        #expect(sheet?.getCellWithFormat("A2")?.format?.fontColor == "#0066FF")
+        #expect(sheet?.getCellWithFormat("A3")?.format?.fontColor == "#00AA44")
+        #expect(sheet?.getCellWithFormat("A4")?.format?.fontColor == "#9933FF")
+        #expect(sheet?.getCellWithFormat("A5")?.format?.fontColor == "#808080")
+        #expect(sheet?.getCellWithFormat("A6")?.format?.fontColor == "#0066FF")
     }
 
     @Test("Summary long project title does not widen Row column")
@@ -575,15 +637,21 @@ struct FCPXMLReportExcelExportTests {
             .getSheet(name: FinalCutPro.FCPXML.SummaryReportSection.defaultSheetName)
 
         // Project title sits in B1 so a long name does not widen the Row column (A).
+        // A1 / C1–E1 share the black banner fill so the header band spans the metrics width.
         let titleCell = sheet?.getCellWithFormat("B1")
         #expect(titleCell?.value.stringValue == "Test Project")
         #expect(titleCell?.format?.backgroundColor == "#000000")
         #expect(titleCell?.format?.fontColor == "#FFFFFF")
         #expect(titleCell?.format?.fontWeight == .bold)
-        #expect(sheet?.getCellWithFormat("A1")?.value.stringValue == nil)
+        for address in ["A1", "C1", "D1", "E1"] {
+            let cell = sheet?.getCellWithFormat(address)
+            #expect(cell?.format?.backgroundColor == "#000000")
+            #expect(cell?.format?.fontColor == "#FFFFFF")
+        }
 
         // Role table header on row 3, data rows on 4–5; columns are Row | Role | Estimated Total | %.
         #expect(sheet?.getCellWithFormat("A3")?.value.stringValue == "Row")
+        #expect(sheet?.getCellWithFormat("E3")?.format?.backgroundColor == "#000000")
         let percentCell = sheet?.getCellWithFormat("D4")
 
         // The value must be stored as the raw fraction in a numeric cell (not a text string),
@@ -601,6 +669,68 @@ struct FCPXMLReportExcelExportTests {
         #expect(sheet?.getCellWithFormat("B5")?.format?.fontColor == nil)
         #expect(sheet?.getCellWithFormat("C5")?.format?.fontColor == nil)
         #expect(sheet?.getCellWithFormat("D5")?.format?.fontColor == nil)
+    }
+
+    @Test("Summary visual section subtotal uses black banner without blank separator")
+    @MainActor
+    func summaryVisualSectionSubtotalUsesBlackBannerWithoutBlankSeparator() {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test Project",
+            summary: FinalCutPro.FCPXML.SummaryReportSection(
+                projectSummary: FinalCutPro.FCPXML.ProjectSummary(
+                    title: "Test Project",
+                    duration: "00:01:00:00",
+                    resolution: "1920x1080",
+                    frameRate: "24",
+                    audioSampleRate: "48kHz"
+                ),
+                roleDurations: [
+                    FinalCutPro.FCPXML.SummaryRoleDurationRow(
+                        roleSubrole: "Video",
+                        estimatedTotal: "00:00:07:23",
+                        percentOfTotal: 1.0
+                    ),
+                    FinalCutPro.FCPXML.SummaryRoleDurationRow(
+                        roleSubrole: "Titles",
+                        estimatedTotal: "00:00:00:22",
+                        percentOfTotal: 0.11
+                    ),
+                    // Aggregator visual-section subtotal (empty role name).
+                    FinalCutPro.FCPXML.SummaryRoleDurationRow(
+                        roleSubrole: "",
+                        estimatedTotal: "00:00:10:01",
+                        percentOfTotal: 1.27
+                    ),
+                    FinalCutPro.FCPXML.SummaryRoleDurationRow(
+                        roleSubrole: "Dialogue ▸ Dialogue-1",
+                        estimatedTotal: "00:00:07:23",
+                        percentOfTotal: 1.0
+                    )
+                ]
+            )
+        )
+
+        let sheet = FinalCutPro.FCPXML.ReportExcelExport
+            .makeWorkbook(from: report)
+            .getSheet(name: FinalCutPro.FCPXML.SummaryReportSection.defaultSheetName)
+
+        // Rows: header=3, Video=4, Titles=5, subtotal=6, Dialogue=7 (no blank row)
+        #expect(sheet?.getCellWithFormat("B4")?.value.stringValue == "Video")
+        #expect(sheet?.getCellWithFormat("B5")?.value.stringValue == "Titles")
+        #expect(sheet?.getCellWithFormat("B6")?.value.stringValue == "")
+        #expect(sheet?.getCellWithFormat("C6")?.value.stringValue == "00:00:10:01")
+        for address in ["A6", "B6", "C6", "D6", "E6"] {
+            let cell = sheet?.getCellWithFormat(address)
+            #expect(cell?.format?.backgroundColor == "#000000")
+            #expect(cell?.format?.fontColor == "#FFFFFF")
+            #expect(cell?.format?.fontWeight == .bold)
+            // Body size / default alignment — not table-header 14pt centre.
+            #expect(cell?.format?.fontSize == nil)
+            #expect(cell?.format?.horizontalAlignment == nil)
+        }
+        #expect(sheet?.getCellWithFormat("D6")?.value == .number(1.27))
+        #expect(sheet?.getCellWithFormat("B7")?.value.stringValue == "Dialogue ▸ Dialogue-1")
+        #expect(sheet?.getCellWithFormat("C7")?.format?.backgroundColor != "#000000")
     }
 
     @Test("Make workbook leaves sheets unprotected by default")

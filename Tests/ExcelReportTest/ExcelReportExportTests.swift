@@ -66,7 +66,7 @@ struct ExcelReportExportTests {
         try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
         
         let report = try await loadReport(options: .roleInventoryOnly, fixtureURL: fixtureURL)
-        let outputURL = outputDir.appendingPathComponent("OFK-Default.pdf")
+        let outputURL = outputDir.appendingPathComponent(ExcelReportFixture.defaultOutputPDFFileName)
         
         if FileManager.default.fileExists(atPath: outputURL.path) {
             try FileManager.default.removeItem(at: outputURL)
@@ -77,6 +77,50 @@ struct ExcelReportExportTests {
         let data = try Data(contentsOf: outputURL)
         #expect(String(data: data.prefix(4), encoding: .ascii) == "%PDF")
         #expect(data.count > 5_000, "Role inventory PDF should contain readable multi-page output")
+    }
+    
+    /// Writes `Output/OFK-Full.pdf` from the full report (all sections) for manual PDF review.
+    @Test("Export full report PDF")
+    func exportFullReportPDF() async throws {
+        let fixtureURL = try ExcelReportFixture.requireFixtureURL()
+        let outputDir = ExcelReportFixture.outputDirectoryURL()
+        try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
+        
+        let report = try await loadReport(options: .full, fixtureURL: fixtureURL)
+        #expect(report.summary != nil)
+        #expect(report.mediaSummary != nil)
+        
+        let outputURL = outputDir.appendingPathComponent(ExcelReportFixture.fullOutputPDFFileName)
+        
+        if FileManager.default.fileExists(atPath: outputURL.path) {
+            try FileManager.default.removeItem(at: outputURL)
+        }
+        
+        try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: outputURL)
+        
+        let data = try Data(contentsOf: outputURL)
+        #expect(String(data: data.prefix(4), encoding: .ascii) == "%PDF")
+        #expect(data.count > 10_000, "Full report PDF should contain multi-section output")
+        
+        #if canImport(PDFKit)
+        let document = try #require(PDFDocument(data: data))
+        #expect(document.pageCount > 5, "Full PDF should include cover, TOC, and section pages")
+        var combined = ""
+        for index in 0 ..< document.pageCount {
+            combined += document.page(at: index)?.string ?? ""
+        }
+        #expect(combined.contains(FinalCutPro.FCPXML.SummaryReportSection.defaultSheetName))
+        // Summary % of Total must match Excel `0.0%` display (not raw Double strings).
+        if let titlesPercent = report.summary?.roleDurations.first(where: {
+            $0.roleSubrole == "Titles"
+        })?.percentOfTotal {
+            let expected = FinalCutPro.FCPXML.SummaryRoleDurationRow.formattedPercentOfTotal(
+                titlesPercent
+            )
+            #expect(combined.contains(expected))
+            #expect(!combined.contains(String(titlesPercent)))
+        }
+        #endif
     }
     
     /// Writes `Output/OFK-ExcludedColumns.pdf` — many columns excluded so remaining widths must expand.

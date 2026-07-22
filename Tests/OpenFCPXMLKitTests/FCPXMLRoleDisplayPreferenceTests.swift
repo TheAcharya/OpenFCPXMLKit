@@ -41,7 +41,7 @@ struct FCPXMLRoleDisplayPreferenceTests {
 
     @Test("Audio effects context prefers dialogue over music")
     func preferredRoleAudioEffectsContextPicksDialogueOverMusic() {
-        let roles = [interpolatedRole("music"), interpolatedRole("dialogue")]
+        let roles = [assignedAudioRole("music"), assignedAudioRole("dialogue")]
 
         let preferred = RoleDisplayPreference.builtIn.preferredRole(
             from: roles,
@@ -54,8 +54,8 @@ struct FCPXMLRoleDisplayPreferenceTests {
     @Test("Falls back to first role by type and name")
     func preferredRoleFallsBackToFirstRoleByTypeAndName() {
         let roles = [
-            interpolatedRole("score composer"),
-            interpolatedRole("custom library role")
+            assignedAudioRole("zebra fx"),
+            assignedAudioRole("alpha room")
         ]
 
         let preferred = RoleDisplayPreference.builtIn.preferredRole(
@@ -63,7 +63,31 @@ struct FCPXMLRoleDisplayPreferenceTests {
             context: .audioEffects
         )
 
-        #expect(preferred?.wrapped.role.lowercased() == "custom library role")
+        #expect(preferred?.wrapped.role.lowercased() == "alpha room")
+    }
+
+    @Test("Video effects ignore audio-only roles")
+    func preferredRoleVideoEffectsIgnoresAudioOnlyRoles() {
+        let roles = [assignedAudioRole("dialogue"), assignedAudioRole("effects")]
+
+        let preferred = RoleDisplayPreference.builtIn.preferredRole(
+            from: roles,
+            context: .videoEffects
+        )
+
+        #expect(preferred == nil)
+    }
+
+    @Test("Audio effects ignore video-only roles")
+    func preferredRoleAudioEffectsIgnoresVideoOnlyRoles() {
+        let roles = [interpolatedRole("video"), interpolatedRole("titles")]
+
+        let preferred = RoleDisplayPreference.builtIn.preferredRole(
+            from: roles,
+            context: .audioEffects
+        )
+
+        #expect(preferred == nil)
     }
 
     @Test("Returns nil for empty role list")
@@ -94,8 +118,23 @@ struct FCPXMLRoleDisplayPreferenceTests {
             builtIn.markerRolePriority
                 == ["dialogue", "video", "titles", "srt", "effects", "music"]
         )
+        #expect(builtIn.videoEffectRolePriority == ["video", "titles", "srt"])
+        #expect(builtIn.audioEffectRolePriority == ["dialogue", "effects", "music"])
         #expect(!builtIn.markerRolePriority.contains("vfx"))
         #expect(!builtIn.markerRolePriority.contains("score composer"))
+        #expect(!builtIn.videoEffectRolePriority.contains("dialogue"))
+        #expect(!builtIn.videoEffectRolePriority.contains("vfx"))
+        #expect(!builtIn.audioEffectRolePriority.contains("video"))
+        #expect(!builtIn.audioEffectRolePriority.contains("atmosphere"))
+        #expect(!builtIn.audioEffectRolePriority.contains("score composer"))
+        #expect(!builtIn.audioEffectRolePriority.contains("sound mix"))
     }
+}
+
+private func assignedAudioRole(_ rawValue: String) -> FinalCutPro.FCPXML.AnyInterpolatedRole {
+    guard let audio = FinalCutPro.FCPXML.AudioRole(rawValue: rawValue) else {
+        preconditionFailure("Could not create audio role from raw value: \(rawValue)")
+    }
+    return .assigned(.audio(audio))
 }
 

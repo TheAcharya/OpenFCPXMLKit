@@ -162,7 +162,9 @@ extension FCPXMLExtractedElement {
         using preferences: FinalCutPro.FCPXML.RoleDisplayPreference = .builtIn
     ) -> FinalCutPro.FCPXML.AnyInterpolatedRole? {
         let roles = inheritedRoles(for: context)
-        return preferences.preferredRole(from: roles, context: context) ?? roles.first
+        // Do not fall back to `roles.first` — that reintroduces cross-type picks
+        // (e.g. Dialogue for a video filter) when the priority table misses.
+        return preferences.preferredRole(from: roles, context: context)
     }
     
     /// Inherited roles from the ancestor clip hosting a keyword or annotation.
