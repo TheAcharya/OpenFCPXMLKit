@@ -155,13 +155,17 @@ extension OFKXMLElement {
     
     /// FCPXML: Returns the timecode frame rate for the given resource ID.
     /// Traverses parents to determine `format` (resource ID) and `tcFormat`.
+    ///
+    /// When `tcFormat` is omitted (`#IMPLIED` in the DTD), defaults to
+    /// ``FinalCutPro/FCPXML/TimecodeFormat/nonDropFrame`` so sequence-level
+    /// formatting (reports, absolute times) still resolves a frame rate.
     func _fcpTimecodeFrameRate(
         in resources: (any OFKXMLElement)? = nil
     ) -> TimecodeFrameRate? {
-        guard let format = _fcpFirstDefinedFormatResourceForElementOrAncestors(in: resources),
-              let tcFormat = _fcpTCFormatForElementOrAncestors()
+        guard let format = _fcpFirstDefinedFormatResourceForElementOrAncestors(in: resources)
         else { return nil }
-        
+
+        let tcFormat = _fcpTCFormatForElementOrAncestors() ?? .nonDropFrame
         return format.element._fcpTimecodeFrameRate(tcFormat: tcFormat)
     }
 }

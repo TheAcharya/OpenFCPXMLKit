@@ -11,7 +11,7 @@ Extract elements from an FCPXML tree by type or using **presets**. **FinalCutPro
 **FCPXMLExtractionPreset** defines a preset with a typed result. Built-in presets:
 
 - **CaptionsExtractionPreset** — Captions with typed result (**ExtractedCaption**)
-- **MarkersExtractionPreset** — Markers (returns e.g. **ExtractedMarker**)
+- **MarkersExtractionPreset** — Markers and chapter markers (returns e.g. **ExtractedMarker**). Does **not** drop markers solely because the host is fully occluded for media occupancy; outside-media-range “Hidden” filtering stays on the report option `includeMarkersOutsideClipBoundaries`.
 - **RolesExtractionPreset** — Role-based extraction
 - **FrameDataPreset** — Frame data (e.g. **ExtractedFrameData**)
 - **TitlesExtractionPreset** (`.titles`) — Titles visible on the main timeline (`[ExtractedElement]`)

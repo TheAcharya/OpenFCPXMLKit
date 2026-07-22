@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1124** tests listed in `swift test list` — **1118** in `OpenFCPXMLKitTests` + **6** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1128** tests listed in `swift test list` — **1122** in `OpenFCPXMLKitTests` + **6** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -107,6 +107,7 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 | **Build once, export many** | Build a single `Report`; export Excel and/or PDF from that model. Do not diverge section logic between exporters. |
 | **Presentation vs security** | `protectSheets` / `--protect-sheets` is an **Excel edit lock**, not file-open encryption. Document that clearly in help and Manual. Do **not** imply PDF password protection from this flag. |
 | **Markers “Hidden”** | Out-of-bounds markers (`start` outside host media range) are **not** FCPXML `hidden-clip-marker` (1.13+). Default omits out-of-bounds markers; `--include-markers-outside-clip-boundaries` adds them + a **Hidden** column. **Hidden** is not a `--exclude-column` / `ReportColumn` target. |
+| **Chapter markers on Markers** | `includeChapterMarkersInMarkersReport` defaults **`true`**. No separate CLI chapter flag; Excel Type = Chapter filter is the user-facing opt-out. API may set `false`. |
 | **Universal Row** | Tabular Excel/PDF sheets get a 1-based **Row** column by default (`ensuringRowColumn` / `allowsInjectedRowColumn`) unless explicitly excluded. **Exception:** Non-Std Effects & Templates uses its own fixed columns (Name, Kind, Status, Path, UID) without an injected Row. |
 | **Per-role Total footer** | Per-role inventory sheets may show an optimistic **Clip Duration** sum (`RoleInventorySheetTotal`). It is **not** overlap-aware; do not conflate with Summary’s `summaryOverlapAwareDurations`. Selected Roles Inventory has no Total footer. |
 | **CLI modifiers need `--report`** | Report-only flags (`--report-full`, section flags including `--report-non-standard-effects`, `--protect-sheets`, `--create-pdf`, exclusions, …) must require `--report`. |
@@ -178,6 +179,18 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Reason:** Matches FCP Tags behaviour; MarkersExtractor #34-inspired semantics.
 - **Provenance:** 2026-07 — design lock for `--include-markers-outside-clip-boundaries`.
 
+### Sign: chapter-markers-on-markers-sheet
+- **Trigger:** Markers report options, CLI `--report-markers`, or docs about chapter markers.
+- **Instruction:** Keep `includeChapterMarkersInMarkersReport` default **`true`**. Do not add a CLI chapter toggle; users filter Type = Chapter in Excel or set the API to `false`.
+- **Reason:** Chapter markers are first-class Tags content; Excel already exposes Type.
+- **Provenance:** 2026-07-22 — product lock after Markers sheet review.
+
+### Sign: markers-keywords-survive-host-occlusion
+- **Trigger:** Connected / nested / occluded clip markers or keywords missing from reports.
+- **Instruction:** Emit host annotations for `mc-clip` / `ref-clip`; use `.markersAndKeywordsOnly` for occluded hosts. Do not drop Markers Extraction solely for host full-occlusion. Titles/Transitions/Effects remain occupancy-gated. Fall back to Extraction when Projection annotations filter to zero rows. Missing sequence `tcFormat` → NDF.
+- **Reason:** Tags markers/keywords on covered connected clips remain user-visible; occupancy gates media windows, not every annotation.
+- **Provenance:** 2026-07-22 — Sample-02 / connected-clip Markers+Keywords regressions.
+
 ### Sign: protect-sheets-is-edit-lock
 - **Trigger:** Password / protect / encrypt options for reports.
 - **Instruction:** `--protect-sheets` / `protectSheets` applies XLKit worksheet protection only. Do not advertise workbook open-password or PDF encryption via this flag.
@@ -187,7 +200,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1124** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1128** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: authoring-not-in-reporting

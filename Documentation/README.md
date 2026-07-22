@@ -31,7 +31,7 @@ The manual is split into **chapters** for easier navigation and maintenance:
 | [17 — Cross-Platform & iOS](Manual/17-Cross-Platform-iOS.md) | XML abstraction layer, Foundation vs AEXML, iOS support |
 | [18 — Errors & Utilities](Manual/18-Errors-Utilities.md) | Error types, ErrorHandling, ProgressBar, FCPXMLUID |
 | [19 — CLI](Manual/19-CLI.md) | Experimental command-line interface (OpenFCPXMLKit-CLI) |
-| [20 — Reporting, Excel & PDF Export](Manual/20-Reporting.md) | Report builder, ReportOptions (`includeNonStandardEffectsTemplates`, `copyrightLabel`, `includeMarkersOutsideClipBoundaries`, `protectSheets`, …), inventory Total / Duplicate Frames, Projection-first sections, Excel/PDF export |
+| [20 — Reporting, Excel & PDF Export](Manual/20-Reporting.md) | Report builder, ReportOptions (`includeNonStandardEffectsTemplates`, `includeChapterMarkersInMarkersReport` default on, `copyrightLabel`, `includeMarkersOutsideClipBoundaries`, `protectSheets`, …), inventory Total / Duplicate Frames, Projection-first sections, Excel/PDF export |
 | [21 — Examples](Manual/21-Examples.md) | End-to-end workflows and code examples |
 
 The manual covers the **entire public API** with examples: core operations, async/await, file I/O, validation, timeline creation and manipulation, **detached Authoring**, metadata, media processing, typed models, version conversion, **Timeline Projection**, reporting and Excel/PDF export, CLI, and utilities.
@@ -43,7 +43,7 @@ The manual covers the **entire public API** with examples: core operations, asyn
 
 Architecture philosophy: [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7. Hard constraints: [GUARDRAILS.md](../GUARDRAILS.md). **Element / layer inventory:** [Coverage.md](Coverage.md) (Model · Authoring · Extraction · Projection · Reporting matrices).
 
-**Test count (keep in sync):** **1124** listed in `swift test list` — **1118** in `OpenFCPXMLKitTests` + **6** optional `ExcelReportTest` (all Swift Testing `@Test`); **60** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
+**Test count (keep in sync):** **1128** listed in `swift test list` — **1122** in `OpenFCPXMLKitTests` + **6** optional `ExcelReportTest` (all Swift Testing `@Test`); **60** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
 
 ---
 

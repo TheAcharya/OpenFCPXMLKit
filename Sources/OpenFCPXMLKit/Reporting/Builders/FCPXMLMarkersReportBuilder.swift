@@ -36,10 +36,14 @@ extension FinalCutPro.FCPXML {
                     roleDisplayPreference: roleDisplayPreference,
                     timecodeFormat: timecodeFormat
                 )
-                return MarkersReportSection(
-                    rows: rows,
-                    showsHiddenColumn: includeMarkersOutsideClipBoundaries
-                )
+                // Prefer Projection when it produced rows; if annotations existed but
+                // filtering left none (e.g. formatting failure), fall back to Extraction.
+                if !rows.isEmpty {
+                    return MarkersReportSection(
+                        rows: rows,
+                        showsHiddenColumn: includeMarkersOutsideClipBoundaries
+                    )
+                }
             }
 
             return await buildFromExtraction(

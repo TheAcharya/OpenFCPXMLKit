@@ -17,7 +17,7 @@ import Testing
 struct FCPXMLMarkersReportTests {
 
     private func markersOptions(
-        includeChapterMarkersInMarkersReport: Bool = false
+        includeChapterMarkersInMarkersReport: Bool = true
     ) throws -> FinalCutPro.FCPXML.ReportOptions {
         let fcpxml = try requireReportingFixtureFCPXML()
         var options = FinalCutPro.FCPXML.ReportOptions()
@@ -61,8 +61,8 @@ struct FCPXMLMarkersReportTests {
         }
     }
 
-    @Test("Markers report excludes chapter markers by default")
-    func markersReportExcludesChapterMarkersByDefault() async throws {
+    @Test("Markers report can omit chapter markers when opted out")
+    func markersReportCanOmitChapterMarkersWhenOptedOut() async throws {
         let fcpxml = try requireReportingFixtureFCPXML()
         let report = try await fcpxml.buildReport(
             options: try markersOptions(includeChapterMarkersInMarkersReport: false)
@@ -98,19 +98,17 @@ struct FCPXMLMarkersReportTests {
         #expect(Set(chapterRows.map(\.clipName)) == ["Clip"])
     }
 
-    @Test("Full preset includes chapter markers")
-    func fullPresetIncludesChapterMarkers() {
+    @Test("Markers presets include chapter markers by default")
+    func markersPresetsIncludeChapterMarkersByDefault() {
+        #expect(FinalCutPro.FCPXML.ReportOptions().includeChapterMarkersInMarkersReport)
         #expect(FinalCutPro.FCPXML.ReportOptions.full.includeChapterMarkersInMarkersReport)
-        #expect(
-            !FinalCutPro.FCPXML.ReportOptions.markersOnly.includeChapterMarkersInMarkersReport
-        )
+        #expect(FinalCutPro.FCPXML.ReportOptions.markersOnly.includeChapterMarkersInMarkersReport)
     }
 
-    @Test("Chapter marker on audio-video clip fans out when included")
-    func chapterMarkerOnAudioVideoClipFansOutWhenIncluded() async throws {
+    @Test("Chapter marker on audio-video clip fans out by default")
+    func chapterMarkerOnAudioVideoClipFansOutByDefault() async throws {
         let fcpxml = try parseInlineFCPXML(avAssetClipChapterMarkerFixture)
         var options = FinalCutPro.FCPXML.ReportOptions.markersOnly
-        options.includeChapterMarkersInMarkersReport = true
         options.workbookCoverSheet = nil
 
         let report = try await fcpxml.buildReport(options: options)
@@ -122,10 +120,11 @@ struct FCPXMLMarkersReportTests {
         #expect(chapterRows.allSatisfy { $0.type == .chapter })
     }
 
-    @Test("Chapter marker excluded by default markers preset")
-    func chapterMarkerExcludedByDefaultMarkersPreset() async throws {
+    @Test("Chapter marker omitted when includeChapterMarkersInMarkersReport is false")
+    func chapterMarkerOmittedWhenIncludeChapterMarkersIsFalse() async throws {
         let fcpxml = try parseInlineFCPXML(avAssetClipChapterMarkerFixture)
         var options = FinalCutPro.FCPXML.ReportOptions.markersOnly
+        options.includeChapterMarkersInMarkersReport = false
         options.workbookCoverSheet = nil
 
         let report = try await fcpxml.buildReport(options: options)

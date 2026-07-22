@@ -120,7 +120,7 @@ OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 |--------|-------------|
 | `--report` | Build an Excel report workbook from FCPXML/FCPXMLD (normal projects or standalone compound-clip exports). Default: role inventory only (Selected Roles Inventory and per-role sheets). Writes `{project-or-clip-name}.xlsx` to output-dir; prints the output path to stdout. |
 | `--report-full` | Include every optional report sheet (requires `--report`). |
-| `--report-markers` | Include the Markers sheet (requires `--report`). |
+| `--report-markers` | Include the Markers sheet (requires `--report`). Includes chapter markers by default (Type = Chapter); no separate chapter CLI flag. |
 | `--report-keywords` | Include the Keywords sheet (requires `--report`). |
 | `--report-titles-generators` | Include the Titles & Generators sheet (requires `--report`). |
 | `--report-transitions` | Include the Transitions sheet (requires `--report`). |
