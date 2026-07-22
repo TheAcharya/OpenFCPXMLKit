@@ -298,10 +298,11 @@ let report = try await fcpxml.buildReport(options: options)
 // Excel cover A2 + PDF cover/footer centre
 ```
 
-Markers outside clip boundaries + Excel sheet protection:
+Markers outside clip boundaries + Excel sheet protection (chapter markers are already on by default):
 
 ```swift
 var options = FinalCutPro.FCPXML.ReportOptions.markersOnly
+// options.includeChapterMarkersInMarkersReport defaults to true
 options.includeMarkersOutsideClipBoundaries = true  // Hidden column (✓/✗)
 options.protectSheets = true                        // Excel edit lock (not encryption)
 let report = try await fcpxml.buildReport(options: options)

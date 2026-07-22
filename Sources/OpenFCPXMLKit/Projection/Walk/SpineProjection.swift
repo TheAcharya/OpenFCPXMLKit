@@ -87,7 +87,8 @@ extension FinalCutPro.FCPXML {
             )
 
             if let assetClip = element.fcpAsAssetClip {
-                if emitWindows, assetClip.enabled || options.includeDisabled {
+                let includeHost = assetClip.enabled || options.includeDisabled
+                if includeHost, emitWindows {
                     try emitAssetClipWindows(
                         assetClip: assetClip,
                         element: element,
@@ -100,15 +101,16 @@ extension FinalCutPro.FCPXML {
                         options: options,
                         onWindow: onWindow
                     )
-                    emitClipAnnotationsIfNeeded(
+                }
+                if includeHost {
+                    emitHostAnnotationsIfNeeded(
                         element: element,
                         ancestors: ancestors,
                         resources: resources,
                         absoluteStart: absoluteStart,
-                        options: options
+                        options: options,
+                        emitWindows: emitWindows
                     )
-                }
-                if assetClip.enabled || options.includeDisabled {
                     try projectStoryElements(
                         element.fcpStoryElements,
                         resources: resources,
@@ -130,7 +132,8 @@ extension FinalCutPro.FCPXML {
             }
 
             if let video = element.fcpAsVideo {
-                if emitWindows, video.enabled || options.includeDisabled {
+                let includeHost = video.enabled || options.includeDisabled
+                if includeHost, emitWindows {
                     try emitVideoWindows(
                         video: video,
                         element: element,
@@ -143,15 +146,16 @@ extension FinalCutPro.FCPXML {
                         options: options,
                         onWindow: onWindow
                     )
-                    emitClipAnnotationsIfNeeded(
+                }
+                if includeHost {
+                    emitHostAnnotationsIfNeeded(
                         element: element,
                         ancestors: ancestors,
                         resources: resources,
                         absoluteStart: absoluteStart,
-                        options: options
+                        options: options,
+                        emitWindows: emitWindows
                     )
-                }
-                if video.enabled || options.includeDisabled {
                     try projectStoryElements(
                         element.fcpStoryElements,
                         resources: resources,
@@ -170,7 +174,8 @@ extension FinalCutPro.FCPXML {
             }
 
             if let audio = element.fcpAsAudio {
-                if emitWindows, audio.enabled || options.includeDisabled {
+                let includeHost = audio.enabled || options.includeDisabled
+                if includeHost, emitWindows {
                     try emitAudioWindows(
                         audio: audio,
                         element: element,
@@ -183,15 +188,16 @@ extension FinalCutPro.FCPXML {
                         options: options,
                         onWindow: onWindow
                     )
-                    emitClipAnnotationsIfNeeded(
+                }
+                if includeHost {
+                    emitHostAnnotationsIfNeeded(
                         element: element,
                         ancestors: ancestors,
                         resources: resources,
                         absoluteStart: absoluteStart,
-                        options: options
+                        options: options,
+                        emitWindows: emitWindows
                     )
-                }
-                if audio.enabled || options.includeDisabled {
                     try projectStoryElements(
                         element.fcpStoryElements,
                         resources: resources,
@@ -252,6 +258,17 @@ extension FinalCutPro.FCPXML {
 
             if let mcClip = element.fcpAsMCClip {
                 guard mcClip.enabled || options.includeDisabled else { return }
+                // Host-level markers / keywords live on the mc-clip element itself; angle
+                // unfold does not visit those annotation children. Emit even when the host
+                // is occluded so connected / nested mc-clip markers reach the Markers sheet.
+                emitHostAnnotationsIfNeeded(
+                    element: element,
+                    ancestors: ancestors,
+                    resources: resources,
+                    absoluteStart: absoluteStart,
+                    options: options,
+                    emitWindows: emitWindows
+                )
                 try MulticamProjection.project(
                     mcClip: mcClip,
                     element: element,
@@ -270,6 +287,16 @@ extension FinalCutPro.FCPXML {
 
             if let refClip = element.fcpAsRefClip {
                 guard refClip.enabled || options.includeDisabled else { return }
+                // Host-level markers / keywords live on the ref-clip element itself;
+                // compound unfold walks the media sequence, not these annotations.
+                emitHostAnnotationsIfNeeded(
+                    element: element,
+                    ancestors: ancestors,
+                    resources: resources,
+                    absoluteStart: absoluteStart,
+                    options: options,
+                    emitWindows: emitWindows
+                )
                 try RefClipProjection.project(
                     refClip: refClip,
                     element: element,
@@ -290,15 +317,14 @@ extension FinalCutPro.FCPXML {
             // markers, keywords) even when they have no nested story children.
             if let title = element.fcpAsTitle {
                 guard title.enabled || options.includeDisabled else { return }
-                if emitWindows {
-                    emitClipAnnotationsIfNeeded(
-                        element: element,
-                        ancestors: ancestors,
-                        resources: resources,
-                        absoluteStart: absoluteStart,
-                        options: options
-                    )
-                }
+                emitHostAnnotationsIfNeeded(
+                    element: element,
+                    ancestors: ancestors,
+                    resources: resources,
+                    absoluteStart: absoluteStart,
+                    options: options,
+                    emitWindows: emitWindows
+                )
                 try projectStoryElements(
                     title.storyElements,
                     resources: resources,
@@ -318,15 +344,14 @@ extension FinalCutPro.FCPXML {
             // Transitions have no media channel but still need transition (+ marker) annotations
             // even when they have no nested story children.
             if let transition = element.fcpAsTransition {
-                if emitWindows {
-                    emitClipAnnotationsIfNeeded(
-                        element: element,
-                        ancestors: ancestors,
-                        resources: resources,
-                        absoluteStart: absoluteStart,
-                        options: options
-                    )
-                }
+                emitHostAnnotationsIfNeeded(
+                    element: element,
+                    ancestors: ancestors,
+                    resources: resources,
+                    absoluteStart: absoluteStart,
+                    options: options,
+                    emitWindows: emitWindows
+                )
                 try projectStoryElements(
                     transition.storyElements,
                     resources: resources,
@@ -362,15 +387,14 @@ extension FinalCutPro.FCPXML {
             guard includeSubtree else { return }
 
             // Sync-clip / clip shells may host markers and keywords without media leaves.
-            if emitWindows {
-                emitClipAnnotationsIfNeeded(
-                    element: element,
-                    ancestors: ancestors,
-                    resources: resources,
-                    absoluteStart: absoluteStart,
-                    options: options
-                )
-            }
+            emitHostAnnotationsIfNeeded(
+                element: element,
+                ancestors: ancestors,
+                resources: resources,
+                absoluteStart: absoluteStart,
+                options: options,
+                emitWindows: emitWindows
+            )
 
             try projectStoryElements(
                 childElements,
@@ -581,12 +605,36 @@ extension FinalCutPro.FCPXML {
         }
 
         /// Emits clip/title annotations once per host when a collector is installed.
+        ///
+        /// Visible hosts (`emitWindows == true`) get full annotations. Occluded hosts still
+        /// emit markers/keywords so connected-clip Markers/Keywords reports stay complete;
+        /// Titles / Transitions / Effects remain gated to visible occupancy.
+        static func emitHostAnnotationsIfNeeded(
+            element: any OFKXMLElement,
+            ancestors: [any OFKXMLElement],
+            resources: (any OFKXMLElement)?,
+            absoluteStart: Fraction,
+            options: TimelineProjectionOptions,
+            emitWindows: Bool
+        ) {
+            emitClipAnnotationsIfNeeded(
+                element: element,
+                ancestors: ancestors,
+                resources: resources,
+                absoluteStart: absoluteStart,
+                options: options,
+                kind: emitWindows ? .all : .markersAndKeywordsOnly
+            )
+        }
+
+        /// Emits clip/title annotations once per host when a collector is installed.
         static func emitClipAnnotationsIfNeeded(
             element: any OFKXMLElement,
             ancestors: [any OFKXMLElement],
             resources: (any OFKXMLElement)?,
             absoluteStart: Fraction,
-            options: TimelineProjectionOptions
+            options: TimelineProjectionOptions,
+            kind: WindowAnnotationBuilder.ClipAnnotationKind = .all
         ) {
             guard options.includeAnnotations,
                   let collector = TimelineProjectionLocals.clipAnnotationCollector,
@@ -595,7 +643,8 @@ extension FinalCutPro.FCPXML {
                       ancestors: ancestors,
                       resources: resources,
                       absoluteStart: absoluteStart,
-                      options: options
+                      options: options,
+                      kind: kind
                   )
             else { return }
             collector.append(annotations)

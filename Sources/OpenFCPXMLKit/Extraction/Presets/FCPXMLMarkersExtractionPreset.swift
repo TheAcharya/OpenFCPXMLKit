@@ -19,23 +19,17 @@ extension FinalCutPro.FCPXML {
             on extractable: any OFKXMLElement,
             scope: FinalCutPro.FCPXML.ExtractionScope
         ) async -> [FinalCutPro.FCPXML.ExtractedMarker] {
-            // Align depth / occlusion set with report visibility, but filter by *host clip*
-            // occlusion — not the marker element. Marker local starts on titles often trip
+            // Markers on connected / nested hosts remain reportable even when the host is
+            // fully occluded for media occupancy. "Hidden" (outside host media range) is a
+            // separate filter via ``ReportOptions/includeMarkersOutsideClipBoundaries``.
+            // Keep filtering by *marker* self-occlusion off — title-local starts often trip
             // ``effectiveOcclusion`` while remaining visible in FCP (e.g. BasicMarkers).
             var markerScope = scope
             markerScope.occlusions = .allCases
             markerScope.maxContainerDepth = nil
             let basePredicate = scope.extractionPredicate
             markerScope.extractionPredicate = { extracted in
-                if let host = extracted.ancestorClipElement() {
-                    let hostContext = extracted.extractedContext(forClip: host)
-                    if hostContext.value(forContext: .effectiveOcclusion) == .fullyOccluded {
-                        return false
-                    }
-                } else if extracted.value(forContext: .effectiveOcclusion) == .fullyOccluded {
-                    return false
-                }
-                return basePredicate?(extracted) ?? true
+                basePredicate?(extracted) ?? true
             }
 
             let extracted = await extractable.fcpExtract(

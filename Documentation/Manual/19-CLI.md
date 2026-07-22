@@ -35,7 +35,7 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD, with optional PDF 
 |--------|-------------|
 | **--report** | Build a report workbook. Alone, exports the **role inventory only** (Selected Roles Inventory + per-role sheets). |
 | **--report-full** | Include **every** optional sheet (with `--report`). |
-| **--report-markers** | Include the Markers sheet (with `--report`). |
+| **--report-markers** | Include the Markers sheet (with `--report`). Includes chapter markers by default (Type = Chapter); there is no separate chapter CLI flag. |
 | **--report-keywords** | Include the Keywords sheet (with `--report`). |
 | **--report-titles-generators** | Include the Titles & Generators sheet (with `--report`). |
 | **--report-transitions** | Include the Transitions sheet (with `--report`). |

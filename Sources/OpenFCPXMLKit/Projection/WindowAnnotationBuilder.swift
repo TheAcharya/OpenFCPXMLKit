@@ -49,13 +49,24 @@ extension FinalCutPro.FCPXML {
             return (roles, effects, breadcrumbs)
         }
 
+        /// Which clip annotations to collect for a projected host.
+        enum ClipAnnotationKind: Sendable {
+            /// Markers, keywords, titles, transitions, and report effects.
+            case all
+            /// Markers and keywords only — used for occluded hosts so connected-clip
+            /// annotations still reach Markers/Keywords reports without widening
+            /// Titles / Transitions / Effects visibility.
+            case markersAndKeywordsOnly
+        }
+
         /// Clip/title-hosted markers, keywords, and title facts (once per host, not per channel).
         static func clipAnnotations(
             for element: any OFKXMLElement,
             ancestors: [any OFKXMLElement],
             resources: (any OFKXMLElement)?,
             absoluteStart: Fraction,
-            options: TimelineProjectionOptions
+            options: TimelineProjectionOptions,
+            kind: ClipAnnotationKind = .all
         ) -> ProjectedClipAnnotations? {
             guard options.includeAnnotations else { return nil }
 
@@ -67,24 +78,34 @@ extension FinalCutPro.FCPXML {
                 on: element,
                 absoluteStart: absoluteStart
             )
-            let title = titleAnnotation(
-                for: element,
-                resources: resources,
-                absoluteStart: absoluteStart
-            )
-            let transition = transitionAnnotation(
-                for: element,
-                ancestors: ancestors,
-                resources: resources,
-                absoluteStart: absoluteStart
-            )
-            let effects = reportEffectAnnotations(
-                for: element,
-                ancestors: ancestors,
-                resources: resources,
-                absoluteStart: absoluteStart,
-                options: options
-            )
+            let title: WindowTitleAnnotation?
+            let transition: WindowTransitionAnnotation?
+            let effects: [WindowReportEffectAnnotation]
+            switch kind {
+            case .all:
+                title = titleAnnotation(
+                    for: element,
+                    resources: resources,
+                    absoluteStart: absoluteStart
+                )
+                transition = transitionAnnotation(
+                    for: element,
+                    ancestors: ancestors,
+                    resources: resources,
+                    absoluteStart: absoluteStart
+                )
+                effects = reportEffectAnnotations(
+                    for: element,
+                    ancestors: ancestors,
+                    resources: resources,
+                    absoluteStart: absoluteStart,
+                    options: options
+                )
+            case .markersAndKeywordsOnly:
+                title = nil
+                transition = nil
+                effects = []
+            }
             guard !markers.isEmpty
                 || !keywords.isEmpty
                 || title != nil
@@ -340,6 +361,8 @@ extension FinalCutPro.FCPXML {
             absoluteStart: Fraction
         ) -> [WindowKeywordAnnotation] {
             let hostStart = element.fcpStart ?? .zero
+            let hostDuration = element.fcpDuration ?? .zero
+            let hostEnd = ProjectionTiming.adding(hostStart, hostDuration)
             let reel = element._fcpMetadataChildStringValue(forKey: .reel) ?? ""
             let scene = element._fcpMetadataChildStringValue(forKey: .scene) ?? ""
 
@@ -348,9 +371,27 @@ extension FinalCutPro.FCPXML {
                 guard let keyword = child.fcpAsKeyword else { continue }
                 let sourceStart = keyword.start
                 let duration = keyword.duration ?? .zero
-                let relative = ProjectionTiming.subtracting(sourceStart, hostStart)
+                let keywordEnd = ProjectionTiming.adding(sourceStart, duration)
+
+                // Clamp to the host's used media range (same visibility idea as Extraction's
+                // `visibleKeywordRangeOnMainTimeline`). Keywords often use `start="0s"` while
+                // the host clip's media in-point (`start`) is later — without clamping,
+                // timelineIn goes negative and report formatting drops the row.
+                let visibleSourceStart = sourceStart.doubleValue < hostStart.doubleValue
+                    ? hostStart
+                    : sourceStart
+                let visibleSourceEnd = keywordEnd.doubleValue < hostEnd.doubleValue
+                    ? keywordEnd
+                    : hostEnd
+                guard visibleSourceEnd.doubleValue > visibleSourceStart.doubleValue else { continue }
+
+                let visibleDuration = ProjectionTiming.subtracting(
+                    visibleSourceEnd,
+                    visibleSourceStart
+                )
+                let relative = ProjectionTiming.subtracting(visibleSourceStart, hostStart)
                 let timelineIn = ProjectionTiming.adding(absoluteStart, relative)
-                let timelineOut = ProjectionTiming.adding(timelineIn, duration)
+                let timelineOut = ProjectionTiming.adding(timelineIn, visibleDuration)
 
                 result.append(
                     WindowKeywordAnnotation(
@@ -358,7 +399,7 @@ extension FinalCutPro.FCPXML {
                         notes: keyword.note ?? "",
                         timelineIn: timelineIn,
                         timelineOut: timelineOut,
-                        duration: duration,
+                        duration: visibleDuration,
                         reel: reel,
                         scene: scene
                     )

@@ -46,8 +46,10 @@ extension FinalCutPro.FCPXML {
         /// Include per-role clip inventory sheets (Selected Roles and role breakdown).
         public var includeRoleInventory: Bool
         
-        /// When building markers, include `chapter-marker` elements.
-        /// Chapter markers are omitted from the Markers sheet by default.
+        /// When building markers, include `chapter-marker` elements on the Markers sheet.
+        ///
+        /// Default is `true` (chapter markers appear with Type = Chapter; filter in Excel if
+        /// undesired). Set to `false` to omit chapter markers from the Markers sheet.
         public var includeChapterMarkersInMarkersReport: Bool
         
         /// When building markers, include markers whose `start` is outside the host clip’s
@@ -139,7 +141,7 @@ extension FinalCutPro.FCPXML {
             includeSummary: Bool = false,
             includeMediaSummary: Bool = false,
             includeRoleInventory: Bool = false,
-            includeChapterMarkersInMarkersReport: Bool = false,
+            includeChapterMarkersInMarkersReport: Bool = true,
             includeMarkersOutsideClipBoundaries: Bool = false,
             projectName: String? = nil,
             mediaBaseURL: URL? = nil,

@@ -7,6 +7,25 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.2.2](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.2.2) - 2026-07-22
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Markers sheet includes chapter markers by default:** `includeChapterMarkersInMarkersReport` now defaults to `true` (including `.markersOnly` and selective `--report-markers`). Type = Chapter; omit via API `false` or filter in Excel. Manual 20 / CLI / Coverage / agent docs updated.
+- **Markers/Keywords Projection hardening:** When Projection clip annotations exist but filtering yields zero report rows (e.g. formatting failure), Markers and Keywords builders fall back to Extraction. Keyword annotations clamp source ranges to the host media in-point so `start="0s"` keywords on clips with a later media `start` remain visible. Occluded hosts still emit **markers/keywords** (connected clips) while Titles / Transitions / Effects stay gated to visible occupancy. Test counts: **1128** listed (**1122** + **6**).
+- **Documentation sync:** Manual 10–12 / 17 / 19–21, Coverage, Documentation hub, Tests READMEs, CLI README, README, ARCHITECTURE (Mermaid + Projection/Reporting map), AGENT, `.cursorrules`, and GUARDRAILS (Signs: `chapter-markers-on-markers-sheet`, `markers-keywords-survive-host-occlusion`) refreshed for chapter-marker default, Markers/Keywords host/occlusion policy, and suite counts **1128** (**1122** + **6**).
+
+### 🐛 Bug Fixes
+
+- **Markers/Keywords on `mc-clip` / `ref-clip`:** Timeline Projection now emits host-level clip annotations for multicam and compound clips (markers/keywords on the clip element itself were previously skipped). Sequences that omit `tcFormat` default to NDF when resolving frame rate for absolute times, so Projection report formatting no longer blanks Positions / Timeline In. Regression: `FCPXMLMarkersKeywordsProjectionTests` (inline mc-clip fixture + MulticamSample).
+- **Connected-clip markers:** Markers on fully occluded connected / nested hosts now appear on the Markers sheet (and via Markers Extraction). Outside-media-range “Hidden” markers remain opt-in via `includeMarkersOutsideClipBoundaries` / `--include-markers-outside-clip-boundaries`.
+
+---
+
 ## [3.2.1](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.2.1) - 2026-07-20
 
 ### ✨ New Features

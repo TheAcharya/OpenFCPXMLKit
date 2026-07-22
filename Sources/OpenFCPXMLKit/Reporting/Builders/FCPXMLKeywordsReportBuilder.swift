@@ -32,7 +32,11 @@ extension FinalCutPro.FCPXML {
                     roleDisplayPreference: roleDisplayPreference,
                     timecodeFormat: timecodeFormat
                 )
-                return KeywordsReportSection(rows: rows)
+                // Prefer Projection when it produced rows; if annotations existed but
+                // filtering left none (e.g. formatting failure), fall back to Extraction.
+                if !rows.isEmpty {
+                    return KeywordsReportSection(rows: rows)
+                }
             }
 
             return await buildFromExtraction(

@@ -107,8 +107,11 @@ try await projector.project(from: source, fcpxml: fcpxml, options: options) { wi
 - `conform-rate` scale via shared `fcpConformRateScalingFactor`
 - Nested spines / anchored children and J/L cuts (`audioStart` / `audioDuration`)
 - `mc-clip` angles (active or all; split video/audio), `ref-clip` media sequences, auditions
+- Host-level annotations on `mc-clip` / `ref-clip` (and other clip hosts) via `emitHostAnnotationsIfNeeded` — markers/keywords on the clip element itself are not skipped
 - `video` / `audio` leaves with `ChannelKindFilter` / `srcEnable`
-- Optional annotations when `includeAnnotations` is on (roles, volume/effects breadcrumbs, markers/keywords/titles/transitions/effects for reporting). Marker annotations include **`isOutsideClipBoundaries`** (start outside host media range) for Markers report filtering / the opt-in **Hidden** column — see [19 — Reporting](20-Reporting.md#markers).
+- Optional annotations when `includeAnnotations` is on (roles, volume/effects breadcrumbs, markers/keywords/titles/transitions/effects for reporting). Marker annotations include **`isOutsideClipBoundaries`** (start outside host media range) for Markers report filtering / the opt-in **Hidden** column — see [20 — Reporting](20-Reporting.md#markers).
+
+**Annotation occupancy policy:** Visible hosts emit full clip annotations (`.all`). Fully occluded hosts (e.g. covered connected clips) still emit **markers and keywords only** (`.markersAndKeywordsOnly`) so Tags-visible notes remain reportable; Titles / Transitions / Effects stay gated to visible occupancy. Keyword ranges clamp to the host media in-point so `start="0s"` keywords on clips with a later media `start` stay placeable. Sequences that omit `tcFormat` default to **NDF** when resolving absolute times for formatting.
 
 Timing composition uses **`ProjectionTiming`** (Double intermediates → `Fraction` at 12 decimal places). Do not use SwiftTimecode `Fraction.+` / `.-` for absolute timeline placement when mixing conform-scaled values with literal FCPXML rationals — see [03 — Timecode & Timing](03-Timecode-Timing.md).
 
@@ -143,7 +146,7 @@ When Role Inventory, Markers, Keywords, Titles & Generators, Transitions, Effect
 2. Projects the timeline **once**
 3. Shares **`ReportProjectionContext`** with section builders
 
-Markers / Keywords / Titles / Transitions / Effects are **Projection-first** (Extraction fallback when annotations are absent). Inventory / Speed Change / Media Summary / Summary overlay or prefer window geometry.
+Markers / Keywords / Titles / Transitions / Effects are **Projection-first**. Extraction fallback runs when annotations are absent **or** when Projection annotations filter to zero report rows (e.g. formatting failure). Inventory / Speed Change / Media Summary / Summary overlay or prefer window geometry.
 
 ```swift
 var options = FinalCutPro.FCPXML.ReportOptions.full

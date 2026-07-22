@@ -40,6 +40,8 @@ let sortedMarkers = timeline.sortedMarkers
 let sortedChapters = timeline.sortedChapterMarkers
 ```
 
+When building an Excel/PDF **Markers** report, chapter markers are included by default (`includeChapterMarkersInMarkersReport`; Type = Chapter). See [20 — Reporting](20-Reporting.md#markers).
+
 ---
 
 ## Keywords and ratings

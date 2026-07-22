@@ -69,7 +69,7 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 | `includeSummary` | `false` | Summary (project metrics and role-duration totals) |
 | `includeMediaSummary` | `false` | Media Summary (missing media file paths) |
 | `includeRoleInventory` | `false` | Selected Roles Inventory + per-role sheets |
-| `includeChapterMarkersInMarkersReport` | `false` | Add chapter markers to the Markers sheet |
+| `includeChapterMarkersInMarkersReport` | `true` | Include `chapter-marker` rows on the Markers sheet (Type = Chapter). Set `false` to omit; Excel Type filter can also hide them. |
 | `includeMarkersOutsideClipBoundaries` | `false` | Include markers outside the host clip’s media range (hidden in FCP Tags/timeline) and show a **Hidden** column (✓/✗). Not part of `excludedColumns` / `--exclude-column`. |
 
 ### Other configuration
@@ -106,7 +106,7 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 .speedChangeEffectsOnly
 .summaryOnly                       // Summary sheet only (project metrics + role durations)
 .mediaSummaryOnly                  // Media Summary sheet only (missing media paths)
-.full                              // role inventory + every optional sheet (chapter markers included)
+.full                              // role inventory + every optional sheet (chapter markers on Markers by default)
 ```
 
 ```swift
@@ -184,7 +184,7 @@ These contracts define what a “near-zero miss” report must not omit when the
 | Sheet | Obligation (FCPXML-derived) |
 |-------|-----------------------------|
 | Selected Roles Inventory / per-role | One row per visible host clip × role (Projection windows when inventory is enabled); fixed columns after **Row** as listed below; dynamic metadata keys discovered on those clips |
-| Markers | Every non-filtered marker on the report timeline (standard / to-do / chapter when enabled); host clip name and timeline position. Default omits markers whose `start` is outside the host media range unless `includeMarkersOutsideClipBoundaries` is set |
+| Markers | Every non-filtered marker on the report timeline (standard / to-do / **chapter** by default); host clip name and timeline position. Default omits markers whose `start` is outside the host media range unless `includeMarkersOutsideClipBoundaries` is set. Set `includeChapterMarkersInMarkersReport` to `false` to omit chapter markers. |
 | Keywords | Every keyword range attached to timeline hosts in scope |
 | Titles & Generators | Every title / generator clip in scope with clip name and timeline bounds |
 | Transitions | Every transition element on the report spine(s) in scope |
@@ -200,11 +200,11 @@ These contracts define what a “near-zero miss” report must not omit when the
 
 | Sheet | Status |
 |-------|--------|
-| **Markers** | **Projection-first** via ``ProjectedClipAnnotations`` (title + clip hosts). Extraction fallback when Projection has no marker annotations. |
-| **Keywords** | **Projection-first** via ``ProjectedClipAnnotations``. Extraction fallback when Projection has no keyword annotations. |
-| **Titles & Generators** | **Projection-first** via ``WindowTitleAnnotation`` on ``ProjectedClipAnnotations``. Extraction fallback when Projection has no title annotations. |
-| **Transitions** | **Projection-first** via ``WindowTransitionAnnotation`` on ``ProjectedClipAnnotations``. Extraction fallback when Projection has no transition annotations. |
-| **Effects** | **Projection-first** via ``WindowReportEffectAnnotation`` (shared ``EffectsCollector`` semantics + occlusion filter for video filters). Extraction fallback when Projection has no effect annotations. |
+| **Markers** | **Projection-first** via ``ProjectedClipAnnotations`` (title + clip hosts, including `mc-clip` / `ref-clip`; occluded hosts still contribute markers). Extraction fallback when Projection has no marker annotations **or** annotations filter to zero rows. Chapter markers included by default (`includeChapterMarkersInMarkersReport`). |
+| **Keywords** | **Projection-first** via ``ProjectedClipAnnotations`` (same host / occlusion policy as Markers; keyword ranges clamped to host media). Extraction fallback when Projection has no keyword annotations **or** annotations filter to zero rows. |
+| **Titles & Generators** | **Projection-first** via ``WindowTitleAnnotation`` on ``ProjectedClipAnnotations``. Extraction fallback when Projection has no title annotations. Occupancy-gated (visible hosts only). |
+| **Transitions** | **Projection-first** via ``WindowTransitionAnnotation`` on ``ProjectedClipAnnotations``. Extraction fallback when Projection has no transition annotations. Occupancy-gated. |
+| **Effects** | **Projection-first** via ``WindowReportEffectAnnotation`` (shared ``EffectsCollector`` semantics + occlusion filter for video filters). Extraction fallback when Projection has no effect annotations. Occupancy-gated. |
 
 ### Sections and columns
 
@@ -261,9 +261,13 @@ Use **RoleInventoryColumnLayout** (internal layout helper) or `RoleClipReportRow
 
 **MarkersReportSection** of **MarkerReportRow**: **Row**, Marker Name, Type, Notes, Position, Clip Name, Role ▸ Subrole, Reel, Scene, Source Position — and, when `includeMarkersOutsideClipBoundaries` is `true`, a trailing **Hidden** column (✓/✗). (**Row** is added at export unless excluded.)
 
+**Chapter markers** (`chapter-marker`) are included by default (`includeChapterMarkersInMarkersReport == true`, including `.markersOnly` and CLI `--report-markers`). They appear with **Type = Chapter**; filter in Excel or set the option to `false` to omit them.
+
 By default, markers whose `start` lies outside the host clip’s media range (`[start, start + duration)`) are **omitted** — Final Cut Pro hides them from the timeline and Tags list. Set `includeMarkersOutsideClipBoundaries` (CLI `--include-markers-outside-clip-boundaries`) to include them; the sheet then gains **Hidden** (✓ = outside bounds, ✗ = inside). **Hidden** is not a `ReportColumn` / `--exclude-column` target.
 
-This is **not** the FCPXML 1.13+ empty `hidden-clip-marker` element (see [13 — Typed Models](14-Typed-Models.md#hidden-clip-marker-fcpxml-113)). Boundary helper: `FCPXMLMarkerClipBoundary`; Projection annotations expose `isOutsideClipBoundaries`.
+This is **not** the FCPXML 1.13+ empty `hidden-clip-marker` element (see [14 — Typed Models](14-Typed-Models.md#hidden-clip-marker-fcpxml-113)). Boundary helper: `FCPXMLMarkerClipBoundary`; Projection annotations expose `isOutsideClipBoundaries`.
+
+Audio/video hosts may fan out one marker to multiple Role ▸ Subrole rows (e.g. Video + Dialogue) — same position, intentional duplication for role inventory parity.
 
 **MarkerReportType**: `.standard`, `.incompleteToDo`, `.completedToDo`, `.chapter`.
 
