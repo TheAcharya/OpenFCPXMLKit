@@ -471,6 +471,7 @@ enum FCPXMLReportPDFCanvas {
             rows: [[String]],
             rowTextColor: CGColor = FCPXMLReportPDFStyle.textColor,
             rowTextColorForRow: ((Int, [String]) -> CGColor)? = nil,
+            rowIsSectionBanner: ((Int) -> Bool)? = nil,
             footerTotal: FCPXMLReportPDFTableRenderer.TableFooterTotal? = nil
         ) {
             FCPXMLReportPDFTableRenderer.drawTable(
@@ -480,6 +481,7 @@ enum FCPXMLReportPDFCanvas {
                 rows: rows,
                 rowTextColor: rowTextColor,
                 rowTextColorForRow: rowTextColorForRow,
+                rowIsSectionBanner: rowIsSectionBanner,
                 footerTotal: footerTotal
             )
             cursorY += FCPXMLReportPDFStyle.tableSpacing
@@ -580,35 +582,57 @@ enum FCPXMLReportPDFCanvas {
         func drawTableDataRow(
             values: [String],
             columnWidths: [CGFloat],
-            textColor: CGColor = FCPXMLReportPDFStyle.textColor
+            textColor: CGColor = FCPXMLReportPDFStyle.textColor,
+            sectionBanner: Bool = false
         ) {
             ensureVerticalSpace(FCPXMLReportPDFStyle.rowHeight)
             
-            var x = FCPXMLReportPDFStyle.margin
+            let originX = FCPXMLReportPDFStyle.margin
+            var x = originX
             let tableWidth = columnWidths.reduce(0, +)
+            
+            // Visual-section subtotal: black fill + white bold body text (Excel Summary parity).
+            if sectionBanner {
+                let rowRect = CGRect(
+                    x: originX,
+                    y: cursorY,
+                    width: tableWidth,
+                    height: FCPXMLReportPDFStyle.rowHeight
+                )
+                context.setFillColor(FCPXMLReportPDFStyle.headerBackgroundColor)
+                context.fill(rowRect)
+            }
+            
+            let fontName = sectionBanner
+                ? FCPXMLReportPDFStyle.boldFontName
+                : FCPXMLReportPDFStyle.regularFontName
+            let resolvedTextColor = sectionBanner
+                ? FCPXMLReportPDFStyle.headerTextColor
+                : textColor
             
             for (index, value) in values.enumerated() {
                 let width = columnWidths[index]
                 let text = FCPXMLReportPDFTableLayout.truncated(
                     value,
                     maxWidth: width,
+                    bold: sectionBanner,
                     fontSize: FCPXMLReportPDFStyle.bodyFontSize
                 )
                 drawText(
                     text,
                     x: x + FCPXMLReportPDFStyle.cellPadding,
                     y: cursorY + FCPXMLReportPDFStyle.bodyFontSize + 3,
-                    fontName: FCPXMLReportPDFStyle.regularFontName,
+                    fontName: fontName,
                     fontSize: FCPXMLReportPDFStyle.bodyFontSize,
-                    color: textColor
+                    color: resolvedTextColor
                 )
                 x += width
             }
             
             context.setStrokeColor(FCPXMLReportPDFStyle.ruleColor)
             context.setLineWidth(0.5)
-            context.move(to: CGPoint(x: FCPXMLReportPDFStyle.margin, y: cursorY + FCPXMLReportPDFStyle.rowHeight))
-            context.addLine(to: CGPoint(x: FCPXMLReportPDFStyle.margin + tableWidth, y: cursorY + FCPXMLReportPDFStyle.rowHeight))
+            context.move(to: CGPoint(x: originX, y: cursorY + FCPXMLReportPDFStyle.rowHeight))
+            context.addLine(to: CGPoint(x: originX + tableWidth, y: cursorY + FCPXMLReportPDFStyle.rowHeight))
             context.strokePath()
             
             cursorY += FCPXMLReportPDFStyle.rowHeight

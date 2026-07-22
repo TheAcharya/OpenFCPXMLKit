@@ -289,6 +289,15 @@ Audio/video hosts may fan out one marker to multiple Role ▸ Subrole rows (e.g.
 
 Lists **non-Apple** `<effect>` resources from the document (UID does not match Apple-supplied Motion/FxPlug patterns). Missing Motion template paths are flagged like Media Summary’s missing media, but for effects/templates. Sheet tab title is shortened to **Non-Std Effects & Templates** (Excel’s 31-character limit). Enabled via `includeNonStandardEffectsTemplates` / CLI `--report-non-standard-effects`; included in `.full`. Empty inventories omit the sheet at export.
 
+**Row colours (Excel and PDF):** Because this sheet has no Role ▸ Subrole column, colours come from **Kind** (and Effect UID) via `FCPXMLReportRowColorPolicy.bucket(forNonStandardKind:uid:)`:
+
+| Kind | Colour |
+|------|--------|
+| Title | purple `#9933FF` |
+| Transition | gray `#808080` |
+| Generator | blue `#0066FF` |
+| Effect | green `#00AA44` when UID looks audio (`AudioUnit:`, `FFAudio…`); otherwise blue `#0066FF` |
+
 #### Video & Audio Effects
 
 **EffectsReportSection** of **EffectReportRow**: **Row**, Effect, Settings, Enabled, Apple, Clip Name, Role ▸ Subrole, Timeline In/Out.
@@ -303,8 +312,11 @@ Lists **non-Apple** `<effect>` resources from the document (UID does not match A
 
 - `projectSummary: ProjectSummary?` — title, duration, resolution, frame rate, audio sample rate.
 - `roleDurations: [SummaryRoleDurationRow]` — **Row**, Role ▸ Subrole, Estimated Total, % of Total (Row prepended at export).
+  - `percentOfTotal` is a **fraction** (`roleSeconds / projectSeconds`; may exceed `1.0` when summed clip durations overlap).
+  - `formattedPercentOfTotal(_:)` produces the Excel/`0.0%` display string (for example `0.42` → `42.0%`). PDF `columnValues` use this; Excel writes the numeric fraction with `0.0%` format.
+  - `isSectionSubtotal` is `true` for the visual-section subtotal row (empty Role ▸ Subrole, non-empty Estimated Total).
 
-In Excel export, the **project title** is written in **B1** (not A1) with table-header style (bold white text on a black fill) so column **A** stays a narrow **Row** index. Column **B** is auto-fit with a generous title-based minimum width. Project metrics and role-duration body cells use default **black** text (no role colour coding). The **% of Total** value is stored as a fraction (for example `0.42`) and written as a numeric cell with percentage number format (`0.0%`).
+In Excel export, the **project title** is written in **B1** (not A1) with table-header style (bold white text on a black fill) so column **A** stays a narrow **Row** index. Cells **A1**, **C1**, **D1**, and **E1** use the same black fill so row 1 reads as one continuous banner across the metrics width. The role-duration header row also paints **E3** black (empty) so the band aligns with column **E** metrics. Column **B** is auto-fit with a generous title-based minimum width. In Excel and PDF export, when both visual and audio roles are present, a **visual-section subtotal** row (empty Role ▸ Subrole, summed Estimated Total / % of Total) uses black fill and **bold** white text at body size (not centred / larger header styling) across the role-duration columns on whatever row it lands — no blank separator row. In Excel that band spans **A–E**; PDF fills the full table width for that data row. Project metrics and role-duration body cells use default **black** text (no role colour coding). **% of Total** is a fraction (for example `0.42`); Excel writes it as a numeric cell with `0.0%` format, and PDF renders the same display text (for example `42.0%`).
 
 See [Sheet order and formatting](#sheet-order-and-formatting) for colours on other sheets.
 
@@ -432,12 +444,12 @@ let report = try await fcpxml.buildReport(options: options)
 
 ## Role display preference
 
-**RoleDisplayPreference** decides which inherited role to surface when a clip carries more than one, per **Context** (`.markers`, `.videoEffects`, `.audioEffects`). Use **`.builtIn`** for Final Cut Pro's built-in main-role ordering, or supply custom priority tables for project-specific roles:
+**RoleDisplayPreference** decides which inherited role to surface when a clip carries more than one, per **Context** (`.markers`, `.videoEffects`, `.audioEffects`). Use **`.builtIn`** for Final Cut Pro’s built-in main-role ordering only, or supply custom priority tables for project-specific roles (VFX, Atmosphere, Score Composer, Sound Mix, …):
 
 ```swift
 let preference = FinalCutPro.FCPXML.RoleDisplayPreference(
-    markerRolePriority: ["dialogue", "video", "titles"],
-    videoEffectRolePriority: ["video", "titles"],
+    markerRolePriority: ["dialogue", "video", "titles", "srt", "effects", "music"],
+    videoEffectRolePriority: ["video", "titles", "srt"],
     audioEffectRolePriority: ["dialogue", "effects", "music"]
 )
 
@@ -445,7 +457,21 @@ var options = FinalCutPro.FCPXML.ReportOptions.full
 options.roleDisplayPreference = preference
 ```
 
-`preferredRole(from:context:)` returns the first matching role, falling back to a stable sort by role type then name.
+**`.builtIn` priorities** (FCP reserved defaults — Video, Titles, Dialogue, Effects, Music, plus caption formats such as SRT):
+
+| Context | Priority (first match wins) |
+|---------|------------------------------|
+| Markers | dialogue → video → titles → srt → effects → music |
+| Video effects | video → titles → srt |
+| Audio effects | dialogue → effects → music |
+
+`preferredRole(from:context:)`:
+
+- **Effects contexts type-filter** candidates: video/caption roles for `.videoEffects`, audio roles for `.audioEffects`. A clip that only writes `audioRole` cannot paint a **video** filter green via Dialogue/Effects.
+- **Markers** may still cross types (full inherited list).
+- After the priority table, falls back to the first eligible role sorted by role type then name (so custom roles of the correct type remain eligible even when absent from the priority lists).
+
+When a typed preferred role is missing, Video & Audio Effects formatting defaults Role ▸ Subrole to **Video** / **Dialogue** rather than picking a cross-type role.
 
 ---
 
@@ -511,9 +537,9 @@ Sheet order follows the report:
 
 Role/subrole cells are colour-coded by category on inventory sheets (video/caption blue `#0066FF`, titles purple `#9933FF`, audio green `#00AA44`, gap gray `#808080`). The entire row is tinted on those sheets so clip names, timecodes, and other columns match the role colour.
 
-Section sheets without a Category column use sheet-specific colour rules: **Keywords** rows are always blue; **Titles & Generators** infer purple for title roles; **Video & Audio Effects** and **Speed Change Effects** infer blue for video/VFX/title-host rows and green for audio roles; **Transitions** use gray text.
+Section sheets without a Category column use sheet-specific colour rules: **Keywords** rows are always blue; **Titles & Generators** infer purple for title roles; **Video & Audio Effects** and **Speed Change Effects** infer blue for video/title/caption-host rows and green for audio roles (effects Role ▸ Subrole uses type-filtered `preferredRole` so video filters are not painted green from an `audioRole`-only host); **Transitions** use gray text; **Non-Std Effects & Templates** colours by Kind / Effect UID (see [Non-Std Effects & Templates](#non-std-effects--templates)).
 
-The **Summary** sheet uses default black text for project metrics and role-duration data. The **project title** is in **B1** (table header style: bold white on black) so column **A** remains a narrow **Row** index; column **B** uses a generous title-based width. Role-duration column headers (including **Row**) and body cells follow the same black/white header convention as other sheets.
+The **Summary** sheet uses default black text for project metrics and role-duration data. The **project title** is in **B1** (table header style: bold white on black) so column **A** remains a narrow **Row** index; **A1** / **C1–E1** share that black banner fill. Column **B** uses a generous title-based width. Role-duration column headers (including **Row**) and body cells follow the same black/white header convention as other sheets. The visual-section **subtotal** row (Excel and PDF) uses black fill with bold white body text — not header font size or centred alignment.
 
 The **Media Summary** sheet lists missing file paths in **red** (`#FF0000`), with a leading **Row** column unless excluded.
 
@@ -576,7 +602,8 @@ PDF export mirrors Excel **section order** and **sheet names** (via `FCPXMLRepor
 Per-section presentation:
 
 - **Per-sheet tint** — pages that belong to the same workbook section share a subtle background tint between the header rule and footer rule.
-- **Row colours** — the same rules as Excel (`FCPXMLReportRowColorPolicy`): role inventory category colours, marker-type colours, keywords/titles/effects/transitions inference, red missing-media paths.
+- **Row colours** — the same rules as Excel (`FCPXMLReportRowColorPolicy`): role inventory category colours, marker-type colours, keywords/titles/effects/transitions inference, Non-Std Kind/UID colours, red missing-media paths.
+- **Summary role-duration table** — same layout semantics as Excel: injected **Row**, black header row, visual-section **subtotal** as a full-width black banner with bold white **body-size** text (`isSectionSubtotal`), and **% of Total** via `formattedPercentOfTotal` matching Excel’s `0.0%` display (not a raw Double string).
 - **Per-role Total footer** — same blank row + **Total:** / Clip Duration sum as Excel (black/white header style), drawn in the table content area.
 - **Non-Std Effects & Templates** — Name / Kind / Status / Path / UID (no injected Row); omitted when empty.
 - **Tables** — black header row with white text; body uses Menlo. Column widths are measured from content (clamped for horizontal packing), then **expanded proportionally to fill the A4 landscape content width** when leftover space remains (for example after many `excludedColumns`). Wide tables still **paginate horizontally** into column sets (running header shows `Columns 2 of 5` when chunked); each set also fills the page width. Pinned **Row** columns keep their packed width.

@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1128** tests listed in `swift test list` — **1122** in `OpenFCPXMLKitTests` + **6** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1137** tests listed in `swift test list` — **1130** in `OpenFCPXMLKitTests` + **7** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -200,8 +200,20 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1128** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1137** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
+
+### Sign: effects-role-type-filter
+- **Trigger:** Choosing Role ▸ Subrole for Video & Audio Effects / Speed Change Effects rows, or editing `RoleDisplayPreference.preferredRole` / `.builtIn`.
+- **Instruction:** Effects contexts **must** type-filter candidates (video/caption vs audio). Do not let an `audioRole`-only host paint video-filter rows green via Dialogue/Effects. Keep `.builtIn` priorities to FCP default main-role names only; custom library roles belong in `ReportOptions.roleDisplayPreference`.
+- **Reason:** Sample clips often write only `audioRole`; without type-filtering, video effects incorrectly inherit audio roles and green `#00AA44` text.
+- **Provenance:** 2026-07-22 — Effects sheet colour regression on Sample.fcpxmld; fixed in `FCPXMLRoleDisplayPreference` + formatting defaults.
+
+### Sign: summary-percent-is-fraction
+- **Trigger:** Writing or displaying Summary **% of Total** (Excel, PDF, or `SummaryRoleDurationRow.columnValues`).
+- **Instruction:** Store `percentOfTotal` as a **fraction** (`roleSeconds / projectSeconds`). Excel uses `0.0%` number format; PDF/text must use `formattedPercentOfTotal` (e.g. `0.42` → `42.0%`). Never dump `String(percentOfTotal)` in user-visible tables. Values may exceed `1.0` when summed durations overlap (default aggregation); do not “fix” by capping at 100% without an explicit overlap-aware policy change.
+- **Reason:** PDF previously showed raw Doubles (`3.896…`) while Excel showed `389.6%` for the same fraction — user-visible Excel/PDF mismatch.
+- **Provenance:** 2026-07-22 — Summary `% of Total` Excel vs PDF investigation on OFK-Full.
 
 ### Sign: authoring-not-in-reporting
 - **Trigger:** Detached Authoring (`FinalCutPro.FCPXML.Authoring`) or report builders.

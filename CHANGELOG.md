@@ -7,6 +7,27 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.2.3](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.2.3) - 2026-07-22
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Summary visual-section subtotal styling (Excel + PDF):** Black fill with bold white **body-size** text (not header 14pt / centred); Excel spans A–E; PDF fills the full table width; no blank separator row. Driven by `SummaryRoleDurationRow.isSectionSubtotal`.
+- **Summary title banner:** Excel paints **A1** / **C1–E1** (with **B1** title) and role-table **E3** black so the header band matches metrics width.
+- **Effects role preference type-filtering:** `RoleDisplayPreference.preferredRole` filters video/caption vs audio for effects contexts; `.builtIn` priorities use FCP default main-role names only; Video/Dialogue defaults when typed role missing.
+- **Non-Std Effects & Templates row colours:** Kind/UID-based colours via `FCPXMLReportRowColorPolicy.bucket(forNonStandardKind:uid:)` (Title purple, Transition gray, Generator blue, Effect green when audio UID else blue).
+- **ExcelReportTest `OFK-Full.pdf`:** `exportFullReportPDF` writes the full-report PDF beside `OFK-Full.xlsx`.
+- **Documentation sync:** Manual 20, Coverage, Tests READMEs, README, ARCHITECTURE (Mermaid + Reporting map), AGENT, `.cursorrules`, and GUARDRAILS (Signs: `effects-role-type-filter`, `summary-percent-is-fraction`) refreshed. Suite counts **1137** listed (**1130** + **7**).
+
+### 🐛 Bug Fixes
+
+- **Summary `% of Total` PDF vs Excel:** PDF dumped raw `String(percentOfTotal)` fractions; now uses `formattedPercentOfTotal` to match Excel’s `0.0%` display (e.g. `3.896…` → `389.6%`).
+
+---
+
 ## [3.2.2](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.2.2) - 2026-07-22
 
 ### ✨ New Features

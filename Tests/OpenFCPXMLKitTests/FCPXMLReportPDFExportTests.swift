@@ -94,6 +94,62 @@ struct FCPXMLReportPDFExportTests {
         #expect(String(data: data.prefix(4), encoding: .ascii) == "%PDF")
     }
 
+    @Test("Summary visual section subtotal appears in PDF role-duration table")
+    func summaryVisualSectionSubtotalAppearsInPDFRoleDurationTable() throws {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test Project",
+            summary: FinalCutPro.FCPXML.SummaryReportSection(
+                projectSummary: FinalCutPro.FCPXML.ProjectSummary(
+                    title: "Test Project",
+                    duration: "00:01:00:00",
+                    resolution: "1920x1080",
+                    frameRate: "24",
+                    audioSampleRate: "48kHz"
+                ),
+                roleDurations: [
+                    FinalCutPro.FCPXML.SummaryRoleDurationRow(
+                        roleSubrole: "Video",
+                        estimatedTotal: "00:00:07:23",
+                        percentOfTotal: 1.0
+                    ),
+                    FinalCutPro.FCPXML.SummaryRoleDurationRow(
+                        roleSubrole: "Titles",
+                        estimatedTotal: "00:00:00:22",
+                        percentOfTotal: 0.11
+                    ),
+                    FinalCutPro.FCPXML.SummaryRoleDurationRow(
+                        roleSubrole: "",
+                        estimatedTotal: "00:00:10:01",
+                        percentOfTotal: 1.27
+                    ),
+                    FinalCutPro.FCPXML.SummaryRoleDurationRow(
+                        roleSubrole: "Dialogue ▸ Dialogue-1",
+                        estimatedTotal: "00:00:07:23",
+                        percentOfTotal: 1.0
+                    )
+                ]
+            )
+        )
+
+        let data = try FinalCutPro.FCPXML.ReportPDFExport.makePDFData(from: report)
+        #expect(String(data: data.prefix(4), encoding: .ascii) == "%PDF")
+
+        #if canImport(PDFKit)
+        let document = try #require(PDFDocument(data: data))
+        var combined = ""
+        for index in 0 ..< document.pageCount {
+            combined += document.page(at: index)?.string ?? ""
+        }
+        #expect(combined.contains("00:00:10:01"))
+        #expect(combined.contains("Dialogue ▸ Dialogue-1"))
+        #expect(combined.contains("Role Durations"))
+        // Match Excel Summary `0.0%` display (fraction 1.27 → 127.0%).
+        #expect(combined.contains("127.0%"))
+        #expect(combined.contains("100.0%"))
+        #expect(!combined.contains("1.27"))
+        #endif
+    }
+
     @Test("Export synthetic Media Summary report writes PDF file")
     func exportSyntheticMediaSummaryReportWritesPDFFile() throws {
         let report = FinalCutPro.FCPXML.Report(

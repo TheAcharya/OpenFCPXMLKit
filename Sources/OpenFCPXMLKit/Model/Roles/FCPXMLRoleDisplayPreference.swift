@@ -49,18 +49,40 @@ extension FinalCutPro.FCPXML {
         }
         
         /// Returns the preferred role from an inherited role list, if any match the priority table.
-        /// Falls back to the first role sorted by type (video, audio, caption) then name.
+        ///
+        /// Effects contexts only consider matching media types (video/caption for video effects,
+        /// audio for audio effects) so a clip that only writes `audioRole` cannot paint a video
+        /// filter with Dialogue/Effects green text. Markers may still cross types.
+        ///
+        /// Falls back to the first eligible role sorted by type then name.
         public func preferredRole(
             from roles: [AnyInterpolatedRole],
             context: Context
         ) -> AnyInterpolatedRole? {
+            let candidates = rolesEligible(for: context, in: roles)
+            
             for name in rolePriority(for: context) {
-                if let match = roles.first(where: { $0.wrapped.role.lowercased() == name }) {
+                if let match = candidates.first(where: { $0.wrapped.role.lowercased() == name }) {
                     return match
                 }
             }
             
-            return roles.sortedByRoleTypeThenByName().first
+            return candidates.sortedByRoleTypeThenByName().first
+        }
+        
+        /// Roles that may surface for the given report context.
+        private func rolesEligible(
+            for context: Context,
+            in roles: [AnyInterpolatedRole]
+        ) -> [AnyInterpolatedRole] {
+            switch context {
+            case .markers:
+                return roles
+            case .videoEffects:
+                return roles.filter { $0.isVideo || $0.isCaption }
+            case .audioEffects:
+                return roles.filter(\.isAudio)
+            }
         }
         
         /// Sort rank when a keyword expands to multiple main-role display strings.
@@ -77,6 +99,15 @@ extension FinalCutPro.FCPXML {
         }
         
         /// Default priorities using Final Cut Pro built-in main role names only.
+        ///
+        /// FCP reserved defaults are Video, Titles, Dialogue, Effects, and Music
+        /// (plus caption formats such as SRT). Custom library roles such as VFX,
+        /// Atmosphere, Score Composer, or Sound Mix are **not** FCP defaults — put
+        /// those in ``ReportOptions/roleDisplayPreference`` when a project needs them.
+        ///
+        /// Effects contexts also filter by ``RoleType`` (video vs audio), so any
+        /// custom role of the correct type is still eligible via the sorted fallback
+        /// even when it is absent from these priority tables.
         public static let builtIn = RoleDisplayPreference(
             markerRolePriority: [
                 "dialogue",
@@ -89,18 +120,12 @@ extension FinalCutPro.FCPXML {
             videoEffectRolePriority: [
                 "video",
                 "titles",
-                "dialogue",
-                "srt",
-                "effects",
-                "music"
+                "srt"
             ],
             audioEffectRolePriority: [
                 "dialogue",
                 "effects",
-                "music",
-                "video",
-                "titles",
-                "srt"
+                "music"
             ]
         )
     }

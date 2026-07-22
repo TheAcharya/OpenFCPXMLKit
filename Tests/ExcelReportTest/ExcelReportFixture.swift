@@ -19,6 +19,8 @@ enum ExcelReportFixture {
     
     static let defaultOutputFileName = "OFK-Default.xlsx"
     static let fullOutputFileName = "OFK-Full.xlsx"
+    static let defaultOutputPDFFileName = "OFK-Default.pdf"
+    static let fullOutputPDFFileName = "OFK-Full.pdf"
     static let copyrightOutputXLSXFileName = "OFK-Copyright.xlsx"
     static let copyrightOutputPDFFileName = "OFK-Copyright.pdf"
     static let outsideClipBoundariesOutputXLSXFileName = "OFK-OutsideClipBoundaries.xlsx"
