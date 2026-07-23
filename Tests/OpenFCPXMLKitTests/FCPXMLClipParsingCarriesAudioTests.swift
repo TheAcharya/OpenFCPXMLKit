@@ -533,8 +533,8 @@ struct FCPXMLClipParsingCarriesAudioTests {
         #expect(overlay.fcpUsesGenericVideoInventoryLabel())
     }
 
-    @Test("fcpIsNestedConnectedInventoryHost true for audio-only clip on negative lane inside sync-clip")
-    func fcpIsNestedConnectedInventoryHostTrueForAudioOnlyClipOnNegativeLaneInsideSyncClip() throws {
+    @Test("fcpIsNestedConnectedInventoryHost false for audio-only clip with explicit child role")
+    func fcpIsNestedConnectedInventoryHostFalseForAudioOnlyClipWithExplicitChildRole() throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -565,7 +565,81 @@ struct FCPXMLClipParsingCarriesAudioTests {
             firstDescendantElement(in: fcpxml.root.element, named: "clip")
         )
 
+        let isNestedHost = nestedClip.fcpIsNestedConnectedInventoryHost()
+        #expect(!isNestedHost)
+        #expect(nestedClip.fcpHasStandaloneConnectedInventoryAssignment())
+    }
+
+    @Test("fcpIsNestedConnectedInventoryHost true for audio-only clip without role")
+    func fcpIsNestedConnectedInventoryHostTrueForAudioOnlyClipWithoutRole() throws {
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.11">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080"/>
+                <asset id="r2" name="SFX" uid="A1" start="0s" duration="10s" hasAudio="1" audioSources="2" format="r1"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="10s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
+                            <spine>
+                                <sync-clip offset="0s" name="Host" duration="5s" tcFormat="NDF">
+                                    <clip lane="-1" offset="0s" name="Nested Clip" duration="5s" format="r1">
+                                        <audio ref="r2" offset="0s" duration="5s" srcCh="1, 2"/>
+                                    </clip>
+                                </sync-clip>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+
+        let nestedClip = try #require(
+            firstDescendantElement(in: fcpxml.root.element, named: "clip")
+        )
+
         #expect(nestedClip.fcpIsNestedConnectedInventoryHost())
+    }
+
+    @Test("fcpIsNestedConnectedInventoryHost false for asset-clip with audioRole")
+    func fcpIsNestedConnectedInventoryHostFalseForAssetClipWithAudioRole() throws {
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.11">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080"/>
+                <asset id="r2" name="Host" uid="A1" start="0s" duration="10s" hasAudio="1" audioSources="1" format="r1"/>
+                <asset id="r3" name="SFX" uid="A2" start="0s" duration="10s" hasAudio="1" audioSources="1" format="r1"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="10s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
+                            <spine>
+                                <asset-clip ref="r2" offset="0s" name="Host" duration="5s" format="r1" audioRole="music">
+                                    <asset-clip ref="r3" lane="-1" offset="0s" name="Nested SFX" duration="5s" format="r1" audioRole="effects"/>
+                                </asset-clip>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+
+        let nested = try #require(
+            firstDescendantElement(in: fcpxml.root.element, named: "asset-clip") {
+                $0.fcpName == "Nested SFX"
+            }
+        )
+        let isNestedHost = nested.fcpIsNestedConnectedInventoryHost()
+        #expect(!isNestedHost)
+        #expect(nested.fcpHasStandaloneConnectedInventoryAssignment())
     }
 
     @Test("fcpIsNestedConnectedInventoryHost false for video clip on negative lane inside sync-clip")

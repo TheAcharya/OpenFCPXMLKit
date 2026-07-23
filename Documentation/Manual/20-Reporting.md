@@ -183,7 +183,7 @@ These contracts define what a “near-zero miss” report must not omit when the
 
 | Sheet | Obligation (FCPXML-derived) |
 |-------|-----------------------------|
-| Selected Roles Inventory / per-role | One row per visible host clip × role (Projection windows when inventory is enabled); fixed columns after **Row** as listed below; dynamic metadata keys discovered on those clips |
+| Selected Roles Inventory / per-role | One row per inventoried host clip × role (Projection windows when inventory is enabled). Nested connected hosts stay inventoried when they have an **own role assignment**; fully occluded hosts with that assignment are retained (not folded solely for occlusion). Fixed columns after **Row** as listed below; dynamic metadata keys discovered on those clips |
 | Markers | Every non-filtered marker on the report timeline (standard / to-do / **chapter** by default); host clip name and timeline position. Default omits markers whose `start` is outside the host media range unless `includeMarkersOutsideClipBoundaries` is set. Set `includeChapterMarkersInMarkersReport` to `false` to omit chapter markers. |
 | Keywords | Every keyword range attached to timeline hosts in scope |
 | Titles & Generators | Every title / generator clip in scope with clip name and timeline bounds |
@@ -219,6 +219,8 @@ These contracts define what a “near-zero miss” report must not omit when the
 - `metadataColumnKeys: [String]` — dynamic metadata key columns appended after the fixed inventory columns.
 
 Each inventory sheet uses a **Row** index column, then fixed columns, then sorted dynamic metadata keys discovered across all inventory rows. Reel, Scene, Take, Camera Name, **Codecs**, and **Ingest Date** metadata keys that already have dedicated columns are not duplicated in the dynamic metadata block.
+
+**Nested / occluded connected hosts:** Role Inventory does not fold a negative-lane connected host into its parent when the host has an **own role assignment**. Own assignment = active `audio-channel-source` roles, `asset-clip` `audioRole` / `videoRole`, or first-generation `audio` / `video` children with an explicit `role` (`fcpHasStandaloneConnectedInventoryAssignment()`). The same helper gates both nested-host escape (`fcpIsNestedConnectedInventoryHost`) and fully-occluded retention (`retainsFullyOccludedHostForRoleInventory`). Hosts with **no** own assignment may still fold into the parent (for example Nested SFX under a sync-clip). Channel sources still override clip-level `audioRole` when present. Projection windows for these clips were already correct — this is inventory-selection policy in Parsing + `RoleInventoryClipCollector`, not a Projection change. See GUARDRAILS Sign `connected-role-inventory-survives-nesting`.
 
 **Per-role Total footer:** Each non-empty per-role sheet ends with a blank row, then a **Total:** label under **Timeline Out** and an optimistic sum of that sheet’s **Clip Duration** values under **Clip Duration**. Both cells use the same black-background / white-text style as column headers. **Selected Roles Inventory** has no Total footer. If Timeline Out or Clip Duration is excluded, the footer is omitted. The sum is presentation-thin (`RoleInventorySheetTotal` — parses already-formatted `clipDuration` strings); it is **not** overlap-aware (Summary’s `summaryOverlapAwareDurations` stays Summary-only). Excel and PDF draw the same footer in the table content area (not the PDF running page footer).
 

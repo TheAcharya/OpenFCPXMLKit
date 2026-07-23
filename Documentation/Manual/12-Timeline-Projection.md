@@ -148,6 +148,8 @@ When Role Inventory, Markers, Keywords, Titles & Generators, Transitions, Effect
 
 Markers / Keywords / Titles / Transitions / Effects are **Projection-first**. Extraction fallback runs when annotations are absent **or** when Projection annotations filter to zero report rows (e.g. formatting failure). Inventory / Speed Change / Media Summary / Summary overlay or prefer window geometry.
 
+Role Inventory host inclusion for nested / fully occluded connected clips (own `audioRole` / `videoRole` / channel-source / first-gen child `role`) is Reporting + Parsing policy — see [20 — Reporting](20-Reporting.md#role-inventory). Projection occupancy for those clips was already correct.
+
 ```swift
 var options = FinalCutPro.FCPXML.ReportOptions.full
 options.mediaResolutionPolicy = .failSoft   // or .failLoud → throw on projection failure

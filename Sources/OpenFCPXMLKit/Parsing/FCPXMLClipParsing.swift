@@ -331,8 +331,16 @@ extension OFKXMLElement {
         }
     }
     
-    /// Connected storyline `asset-clip` elements on negative lanes inside another
-    /// inventory host are represented through that parent, not as separate workbook rows.
+    /// Connected storyline hosts on negative lanes inside another inventory host are folded
+    /// into that parent **unless** they carry their own role assignment.
+    ///
+    /// Own assignment surfaces (any one is enough):
+    /// - active `audio-channel-source` role remapping
+    /// - `asset-clip` `audioRole` / `videoRole`
+    /// - first-generation `audio` / `video` children with an explicit `role` (compound `clip`)
+    ///
+    /// Hosts without an own assignment stay excluded so sync-clip interiors without roles
+    /// (for example Nested SFX with no `audioRole`) do not duplicate the parent row.
     func fcpIsNestedConnectedInventoryHost() -> Bool {
         let lane = fcpLane ?? 0
         guard lane < 0 else {
@@ -341,22 +349,20 @@ extension OFKXMLElement {
         
         switch fcpElementType {
         case .assetClip:
-            // A connected asset-clip that remaps its own channels via active
-            // audio-channel-source elements is a standalone connected-audio host (for
-            // example an atmosphere or effects clip anchored inside a sync-clip), so it is
-            // inventoried in its own right rather than through the parent host.
-            if fcpHasActiveInventoryAudioChannelSources() {
+            if fcpHasStandaloneConnectedInventoryAssignment() {
                 return false
             }
         case .clip:
+            // Video-carrying compound clips are inventoried as connected video hosts.
             guard fcpCarriesVideo() == false else {
                 return false
             }
-
-            if fcpHasActiveInventoryAudioChannelSources() {
+            
+            if fcpHasStandaloneConnectedInventoryAssignment() {
                 return false
             }
         default:
+            // Connected sync-clip / ref-clip / mc-clip hosts are always inventoried.
             return false
         }
         
@@ -369,6 +375,44 @@ extension OFKXMLElement {
                 return false
             }
         }
+    }
+    
+    /// Whether a connected host owns a distinct role assignment for role inventory.
+    ///
+    /// Used by both nested-host exclusion and fully-occluded retention so a clip that
+    /// escapes nesting cannot later be dropped solely for occlusion.
+    func fcpHasStandaloneConnectedInventoryAssignment() -> Bool {
+        if fcpHasActiveInventoryAudioChannelSources() {
+            return true
+        }
+        
+        switch fcpElementType {
+        case .assetClip:
+            if fcpAsAssetClip?.audioRole != nil { return true }
+            if fcpAsAssetClip?.videoRole != nil { return true }
+            return false
+            
+        case .clip:
+            return childElements.contains { child in
+                switch child.fcpElementType {
+                case .audio:
+                    return child.fcpAsAudio?.role != nil
+                case .video:
+                    return child.fcpAsVideo?.role != nil
+                default:
+                    return false
+                }
+            }
+            
+        default:
+            return false
+        }
+    }
+    
+    /// - Important: Prefer ``fcpHasStandaloneConnectedInventoryAssignment()``.
+    ///   Kept as a narrow audio alias for existing call sites / readability.
+    func fcpHasStandaloneConnectedAudioInventoryAssignment() -> Bool {
+        fcpHasStandaloneConnectedInventoryAssignment()
     }
     
     /// Primary-lane disabled `ref-clip` elements are omitted from role inventory workbooks.

@@ -2,7 +2,7 @@
 
 This directory contains the test suite for OpenFCPXMLKit, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration. The suite runs on **macOS** (Foundation XML backend). The library also supports **iOS 26+** (AEXML backend); CI builds for iOS Simulator; the same tests are not run on iOS because they rely on Foundation XML.
 
-- **Test count:** **1137** tests listed in `swift test list` — **1130** in `OpenFCPXMLKitTests` + **7** in `ExcelReportTest` (all Swift Testing `@Test`; no XCTest remaining; ExcelReportTest cancels without a local fixture)
+- **Test count:** **1144** tests listed in `swift test list` — **1137** in `OpenFCPXMLKitTests` + **7** in `ExcelReportTest` (all Swift Testing `@Test`; no XCTest remaining; ExcelReportTest cancels without a local fixture)
 - **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines, audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), Timeline Projection (`TimelineProjector` / `MediaUsageWindow` / `ReportProjectionContext`, project-once for report sections), Excel and PDF reporting (universal **Row** column on all tabular sheets via `ensuringRowColumn` / `allowsInjectedRowColumn`, role inventory columns, Summary sheet with project title in **B1**, Media Summary sheets, configurable `ReportTimecodeFormat` / DF·NDF notation, format-aware headers, Frames/Feet+Frames sort order, inventory-first `ReportBuildPhase` progress, global column exclusion, disabled-clip filtering, Markers out-of-bounds filter / optional **Hidden** column (`includeMarkersOutsideClipBoundaries`), Excel `protectSheets` worksheet protection, workbook export and cell formatting, PDF cover with black “About This PDF Export” header + `info.circle`, TOC with accent colour chips + content-tint washes keyed to sheet `colorIndex`, remaining columns expanded to fill A4 landscape width after exclusions, section pagination, shared `FCPXMLReportRowColorPolicy`, standalone compound-clip timelines via `allReportTimelineSources()` / `FCPXMLCompoundClipReportTests`), and all supported FCPXML versions and frame rates  
 - **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure; validation and cross-platform XML tests; optional Excel/PDF report integration tests under `ExcelReportTest/`; private investigation inbox under `Submitted FCPXML/` (gitignored contents)
 
@@ -201,8 +201,8 @@ swift test --filter OpenFCPXMLKitTests             # By pattern
 To verify the documented test counts:
 
 ```bash
-swift test list 2>/dev/null | grep -c '\.'                        # 1137
-swift test list 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 1130
+swift test list 2>/dev/null | grep -c '\.'                        # 1144
+swift test list 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 1137
 swift test list 2>/dev/null | grep -c 'ExcelReportTest\.'       # 7
 ```
 
@@ -322,7 +322,7 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 - **FCPXMLReportColumnExclusionTests** — `ReportColumn` alias resolution; `ensuringRowColumn` / `allowsInjectedRowColumn`; header/value filtering; format-suffixed timeline headers still match exclusion; workbook export omits excluded columns on inventory and markers sheets; `--exclude-column Row` removes Row from all tabular Excel/PDF sheets including PDF injection; Selected Roles vs per-role sheets: Row renumbers per sheet, shared `--exclude-column` headers, and matching dynamic metadata cells.
 - **FCPXMLReportExcludeDisabledClipsTests** — `excludeDisabledClips` omits `enabled="0"` clips from role inventory and titles sections (uses `DisabledClips` sample).
 - **FCPXMLRoleDisplayPreferenceTests** — RoleDisplayPreference priority tables and preferred-role selection per context.
-- **FCPXMLRoleInventoryClipCollectorTests** / **FCPXMLRoleInventoryRoleSheetOrderingTests** — Clip collection into role entries; role-sheet ordering.
+- **FCPXMLRoleInventoryClipCollectorTests** / **FCPXMLRoleInventoryRoleSheetOrderingTests** — Clip collection into role entries (nested connected `audioRole` / `videoRole` / child-role hosts inventoried; no-role nested audio folded; occluded hosts with own assignment retained); role-sheet ordering.
 - **FCPXMLSummaryRoleDurationAggregatorTests** — Per-role duration aggregation and percentage calculation.
 - **FCPXMLEffectsReportPolicyTests** / **FCPXMLSpeedChangeFormattingTests** — Effect inclusion policy; speed-change value formatting.
 - **FCPXMLDisplayClipNameTests** / **FCPXMLTitleDisplayTests** — Display clip-name resolution (including multicam angles); title display text.
@@ -342,7 +342,7 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 - **FCPXMLExtractedElementTests** — ExtractedElement/model wrappers and value access.
 - **FCPXMLEffectsCollectorTests** / **FCPXMLRolesExtractionPresetTests** — Semantic effect collection; roles/effects/titles extraction presets.
 - **FCPXMLEffectAppleSuppliedTests** — Detection of Apple-supplied vs third-party effects.
-- **FCPXMLClipParsingCarriesAudioTests** / **FCPXMLTransformAdjustmentParsingTests** / **FCPXMLTransitionSpinePlacementTests** — Clip audio-carry parsing; transform adjustment parsing; transition spine placement.
+- **FCPXMLClipParsingCarriesAudioTests** / **FCPXMLTransformAdjustmentParsingTests** / **FCPXMLTransitionSpinePlacementTests** — Clip audio-carry parsing; `fcpHasStandaloneConnectedInventoryAssignment` / `fcpIsNestedConnectedInventoryHost` for nested connected inventory hosts; transform adjustment parsing; transition spine placement.
 
 **Format, Asset, version & structure**
 
@@ -565,7 +565,7 @@ Add tests for new behaviour or edge cases; place them in the right file and MARK
 - **Final Cut Pro XML (FCPXML)** — [fcp.cafe](https://fcp.cafe) for format reference
 - **SwiftTimecode** (GitHub) — timecode and frame rate types
 
-**Keep counts in sync:** `swift test list` → **1137** total (**1130** OpenFCPXMLKitTests + **7** ExcelReportTest; all Swift Testing); **60** public samples.
+**Keep counts in sync:** `swift test list` → **1144** total (**1137** OpenFCPXMLKitTests + **7** ExcelReportTest; all Swift Testing); **60** public samples.
 
 ---
 
