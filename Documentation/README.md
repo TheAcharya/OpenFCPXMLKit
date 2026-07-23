@@ -43,7 +43,7 @@ The manual covers the **entire public API** with examples: core operations, asyn
 
 Architecture philosophy: [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7. Hard constraints: [GUARDRAILS.md](../GUARDRAILS.md). **Element / layer inventory:** [Coverage.md](Coverage.md) (Model · Authoring · Extraction · Projection · Reporting matrices).
 
-**Test count (keep in sync):** **1137** listed in `swift test list` — **1130** in `OpenFCPXMLKitTests` + **7** optional `ExcelReportTest` (all Swift Testing `@Test`); **60** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
+**Test count (keep in sync):** **1144** listed in `swift test list` — **1137** in `OpenFCPXMLKitTests` + **7** optional `ExcelReportTest` (all Swift Testing `@Test`); **60** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
 
 ---
 

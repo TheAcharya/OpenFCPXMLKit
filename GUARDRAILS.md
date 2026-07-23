@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1137** tests listed in `swift test list` — **1130** in `OpenFCPXMLKitTests` + **7** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1144** tests listed in `swift test list` — **1137** in `OpenFCPXMLKitTests` + **7** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -200,7 +200,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1137** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1144** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -220,6 +220,12 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Instruction:** Keep Authoring parallel to live Model / Timeline Export. Do not import Authoring types into Reporting; do not invent FCPXML meaning only in Authoring when Model/Parsing should own it. Omit-on-write must consult `VersionAvailability` / `VersionFeatureGate`.
 - **Reason:** Reporting consumes Extraction → Projection only; Authoring is a create/round-trip path.
 - **Provenance:** 2026-07-19 — design lock for Authoring layer (3.2.0).
+
+### Sign: connected-role-inventory-survives-nesting
+- **Trigger:** Role Inventory missing a connected / nested clip role (Effects, Music, Dialogue, VFX, custom).
+- **Instruction:** Never fold a negative-lane connected host into its parent when it has an **own role assignment**. Own assignment = active `audio-channel-source` roles, `asset-clip` `audioRole` / `videoRole`, or first-generation `audio`/`video` children with an explicit `role`. Apply the same rule in **both** `fcpIsNestedConnectedInventoryHost` and `retainsFullyOccludedHostForRoleInventory` via `fcpHasStandaloneConnectedInventoryAssignment()`. Hosts with **no** own assignment may still fold into the parent (Nested SFX under sync-clip). Channel sources still override clip-level `audioRole` when present.
+- **Reason:** Audio Only_01 (2026-07-23) dropped Water Lake 3 Effects because only channel-source remaps escaped nesting; `audioRole`-only connected clips were wrongly excluded. Occlusion retention had the same gap.
+- **Provenance:** 2026-07-23 — Audio Only_01 Effects-under-Music regression.
 
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.

@@ -4,7 +4,7 @@ Local-only drop zone for **private / user-supplied** FCPXML exports used when in
 
 **These files are never committed.** Contents are gitignored; only this README (and `.gitkeep`) is tracked. See [GUARDRAILS.md](../../GUARDRAILS.md) (Sign: never-commit-submitted-fcpxml) and [ARCHITECTURE.md](../../ARCHITECTURE.md) §8.
 
-**Public suite counts (keep in sync):** **1137** tests listed (`1130` OpenFCPXMLKitTests + `7` ExcelReportTest; **all Swift Testing**); **60** public samples under `Tests/FCPXML Samples/FCPXML/` (e.g. `HiddenMarkers.fcpxml` was promoted from this workflow).
+**Public suite counts (keep in sync):** **1144** tests listed (`1137` OpenFCPXMLKitTests + `7` ExcelReportTest; **all Swift Testing**); **60** public samples under `Tests/FCPXML Samples/FCPXML/` (e.g. `HiddenMarkers.fcpxml` was promoted from this workflow).
 
 ---
 

@@ -400,7 +400,167 @@ struct FCPXMLRoleInventoryClipCollectorTests {
         
         #expect(entries.filter { $0.extracted.displayClipName() == "Nested SFX" }.isEmpty)
     }
-    
+
+    @Test("Nested connected asset-clip with audioRole is inventoried")
+    func nestedConnectedAssetClipWithAudioRoleIsInventoried() async throws {
+        // Matches Audio Only_01 shape: spine Music clip (channel-source override) with a
+        // connected Effects clip that only sets `audioRole` (no audio-channel-source).
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.11">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080"/>
+                <asset id="r2" name="Forest Day" uid="A1" start="0s" duration="10s" hasAudio="1" audioSources="1" audioChannels="2" format="r1"/>
+                <asset id="r3" name="Water Lake 3" uid="A2" start="0s" duration="10s" hasAudio="1" audioSources="1" audioChannels="2" format="r1"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="10s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
+                            <spine>
+                                <asset-clip ref="r2" offset="0s" name="Forest Day" duration="5s" format="r1" audioRole="effects">
+                                    <asset-clip ref="r3" lane="-1" offset="0s" name="Water Lake 3" duration="5s" format="r1" audioRole="effects"/>
+                                    <audio-channel-source srcCh="1, 2" role="music.music-1"/>
+                                </asset-clip>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
+
+        let entries = await Collector.collectEntries(
+            from: timeline,
+            scope: .init()
+        )
+
+        let musicRows = entries.filter {
+            $0.extracted.displayClipName() == "Forest Day"
+                && $0.roleSubroleField.localizedCaseInsensitiveContains("Music")
+        }
+        let effectsRows = entries.filter {
+            $0.extracted.displayClipName() == "Water Lake 3"
+                && $0.roleSubroleField.localizedCaseInsensitiveContains("Effects")
+        }
+
+        #expect(musicRows.count == 1)
+        #expect(effectsRows.count == 1)
+        #expect(effectsRows.first?.category == .connectedAudio)
+    }
+
+    @Test("Nested connected clip with child audio role is inventoried")
+    func nestedConnectedClipWithChildAudioRoleIsInventoried() async throws {
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.11">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080"/>
+                <asset id="r2" name="Music" uid="A1" start="0s" duration="10s" hasAudio="1" audioSources="1" format="r1"/>
+                <asset id="r3" name="SFX" uid="A2" start="0s" duration="10s" hasAudio="1" audioSources="1" format="r1"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="10s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
+                            <spine>
+                                <asset-clip ref="r2" offset="0s" name="Music Bed" duration="5s" format="r1" audioRole="music">
+                                    <clip lane="-1" offset="0s" name="Whoosh" duration="5s" format="r1">
+                                        <audio ref="r3" offset="0s" duration="5s" role="effects.effects-1" srcCh="1"/>
+                                    </clip>
+                                </asset-clip>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
+
+        let entries = await Collector.collectEntries(from: timeline, scope: .init())
+        let whoosh = entries.filter { $0.extracted.displayClipName() == "Whoosh" }
+        #expect(whoosh.count == 1)
+        #expect(whoosh.first?.roleSubroleField.localizedCaseInsensitiveContains("Effects") == true)
+    }
+
+    @Test("Nested connected asset-clip with videoRole is inventoried")
+    func nestedConnectedAssetClipWithVideoRoleIsInventoried() async throws {
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.11">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080"/>
+                <asset id="r2" name="Plate" uid="A1" start="0s" duration="10s" hasVideo="1" format="r1" videoSources="1"/>
+                <asset id="r3" name="Host" uid="A2" start="0s" duration="10s" hasVideo="1" hasAudio="1" audioSources="1" format="r1" videoSources="1"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="10s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
+                            <spine>
+                                <asset-clip ref="r3" offset="0s" name="Interview" duration="5s" format="r1" audioRole="dialogue">
+                                    <asset-clip ref="r2" lane="-1" offset="0s" name="Lower Third" duration="5s" format="r1" videoRole="VFX.VFX-Background"/>
+                                </asset-clip>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
+
+        let entries = await Collector.collectEntries(from: timeline, scope: .init())
+        let lowerThird = entries.filter { $0.extracted.displayClipName() == "Lower Third" }
+        #expect(!lowerThird.isEmpty)
+        #expect(
+            lowerThird.contains {
+                $0.roleSubroleField.localizedCaseInsensitiveContains("VFX")
+            }
+        )
+    }
+
+    @Test("Nested connected asset-clip with audioRole survives full occlusion")
+    func nestedConnectedAssetClipWithAudioRoleSurvivesFullOcclusion() async throws {
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.11">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080"/>
+                <asset id="r2" name="Cover" uid="A1" start="0s" duration="10s" hasVideo="1" format="r1" videoSources="1"/>
+                <asset id="r3" name="SFX" uid="A2" start="0s" duration="10s" hasAudio="1" audioSources="1" format="r1"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="10s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
+                            <spine>
+                                <asset-clip ref="r2" offset="0s" name="A-Roll" duration="5s" format="r1">
+                                    <asset-clip ref="r3" lane="-1" offset="0s" name="Buried SFX" duration="5s" format="r1" audioRole="effects"/>
+                                </asset-clip>
+                                <asset-clip ref="r2" offset="0s" name="Cover" duration="5s" format="r1"/>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
+
+        let entries = await Collector.collectEntries(from: timeline, scope: .init())
+        let buried = entries.filter {
+            $0.extracted.displayClipName() == "Buried SFX"
+                && $0.roleSubroleField.localizedCaseInsensitiveContains("Effects")
+        }
+        #expect(buried.count == 1)
+    }
 
     @Test("MC-clip uses inherited audio when mc-sources lack audio-role-sources")
     func mCClipUsesInheritedAudioWhenMCSourcesLackAudioRoleSources() async throws {
@@ -558,8 +718,45 @@ struct FCPXMLRoleInventoryClipCollectorTests {
     }
     
 
-    @Test("Nested audio-only clip is excluded from role inventory")
-    func nestedAudioOnlyClipIsExcludedFromRoleInventory() async throws {
+    @Test("Nested audio-only clip without role is excluded from role inventory")
+    func nestedAudioOnlyClipWithoutRoleIsExcludedFromRoleInventory() async throws {
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.11">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080"/>
+                <asset id="r2" name="ADR" uid="A1" start="0s" duration="10s" hasAudio="1" audioSources="1" format="r1"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="10s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
+                            <spine>
+                                <sync-clip offset="0s" name="Host" duration="5s" tcFormat="NDF">
+                                    <clip lane="-2" offset="0s" name="ADR Clip" duration="5s" format="r1">
+                                        <audio ref="r2" offset="0s" duration="5s" srcCh="1"/>
+                                    </clip>
+                                </sync-clip>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
+        
+        let entries = await Collector.collectEntries(
+            from: timeline,
+            scope: .init()
+        )
+        
+        #expect(entries.filter { $0.extracted.displayClipName() == "ADR Clip" }.isEmpty)
+    }
+
+    @Test("Nested audio-only clip with dialogue role is inventoried")
+    func nestedAudioOnlyClipWithDialogueRoleIsInventoried() async throws {
         let fcpxml = try parseInlineFCPXML("""
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -586,13 +783,11 @@ struct FCPXMLRoleInventoryClipCollectorTests {
         </fcpxml>
         """)
         let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
-        
-        let entries = await Collector.collectEntries(
-            from: timeline,
-            scope: .init()
-        )
-        
-        #expect(entries.filter { $0.extracted.displayClipName() == "ADR Clip" }.isEmpty)
+
+        let entries = await Collector.collectEntries(from: timeline, scope: .init())
+        let adr = entries.filter { $0.extracted.displayClipName() == "ADR Clip" }
+        #expect(adr.count == 1)
+        #expect(adr.first?.roleSubroleField.localizedCaseInsensitiveContains("Dialogue") == true)
     }
     
 

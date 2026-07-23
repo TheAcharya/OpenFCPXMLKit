@@ -677,7 +677,9 @@ extension FinalCutPro.FCPXML {
         ) -> Bool {
             let element = extracted.element
             
-            if !audioChannelSourceElements(in: element).isEmpty {
+            // Same standalone-assignment rule as nested-host escape: a connected clip with
+            // its own roles must survive full occlusion (Tags-visible connected audio/video).
+            if element.fcpHasStandaloneConnectedInventoryAssignment() {
                 return true
             }
             if !directAudioRoleSourceElements(in: element).isEmpty {

@@ -7,6 +7,23 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.2.4](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.2.4) - 2026-07-23
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Connected Role Inventory host selection:** Unified `fcpHasStandaloneConnectedInventoryAssignment()` (active `audio-channel-source`, asset-clip `audioRole` / `videoRole`, or first-gen `audio`/`video` child `role`) shared by nested-host escape and fully-occluded retention. GUARDRAILS Sign `connected-role-inventory-survives-nesting`.
+- **Documentation sync:** Manual 12 / 20, Coverage, Tests READMEs, README, ARCHITECTURE (where-to-put + Mermaid counts), AGENT, `.cursorrules`, and GUARDRAILS refreshed. Suite counts **1144** listed (**1137** + **7**).
+
+### 🐛 Bug Fixes
+
+- **Nested connected Role Inventory:** Negative-lane connected hosts with clip-level `audioRole` / `videoRole` (or first-gen child `role`) were folded into the parent when they lacked active `audio-channel-source` elements, so Effects (and similar) roles disappeared from Role Inventory even though Projection windows were correct. The same gap dropped fully occluded hosts that only carried clip-level roles. Both paths now retain those hosts via the shared assignment helper.
+
+---
+
 ## [3.2.3](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.2.3) - 2026-07-22
 
 ### ✨ New Features
