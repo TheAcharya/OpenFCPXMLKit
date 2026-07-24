@@ -241,8 +241,43 @@ struct FCPXMLReportFormattingTests {
         }
     }
 
-    @Test("Title role subrole always returns Titles")
-    func titleRoleSubroleAlwaysReturnsTitles() async throws {
+    @Test("Title role subrole uses title video role attribute")
+    func titleRoleSubroleUsesTitleVideoRoleAttribute() async throws {
+        let fcpxml = try parseInlineFCPXML("""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE fcpxml>
+            <fcpxml version="1.14">
+                <resources>
+                    <format id="r1" name="FFVideoFormat1080p25" frameDuration="100/2500s" width="1920" height="1080"/>
+                    <effect id="r2" name="Basic Title" uid=".../Titles.localized/Basic Title.moti"/>
+                </resources>
+                <library>
+                    <event name="Event">
+                        <project name="Project">
+                            <sequence format="r1" duration="10s" tcStart="0s" tcFormat="NDF">
+                                <spine>
+                                    <gap name="Gap" offset="0s" duration="10s">
+                                        <title ref="r2" lane="-1" offset="0s" name="TO-DO - Basic Title" start="3600s" duration="2s" role="TO-DO.TO-DO-1">
+                                            <text><text-style ref="ts1">TO-DO</text-style></text>
+                                            <text-style-def id="ts1"><text-style font="Helvetica"/></text-style-def>
+                                        </title>
+                                    </gap>
+                                </spine>
+                            </sequence>
+                        </project>
+                    </event>
+                </library>
+            </fcpxml>
+            """)
+        let timeline = try #require(fcpxml.allReportTimelineSources().first?.sequence.element)
+        let titles = await timeline.fcpExtract(types: [.title], scope: .mainTimeline)
+        let title = try #require(titles.first)
+
+        #expect(ReportFormatting.titleRoleSubrole(for: title) == "TO-DO ▸ To-Do-1")
+    }
+
+    @Test("Title role subrole defaults to Titles when role attribute omitted")
+    func titleRoleSubroleDefaultsToTitlesWhenRoleAttributeOmitted() async throws {
         let timeline = try requireTimelineElement(fromSampleNamed: "DisabledClips")
         let titles = await timeline.fcpExtract(types: [.title], scope: .mainTimeline)
         let title = try #require(titles.first)

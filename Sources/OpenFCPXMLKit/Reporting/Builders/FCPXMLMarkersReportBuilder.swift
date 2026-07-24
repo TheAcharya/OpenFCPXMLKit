@@ -172,7 +172,19 @@ extension FinalCutPro.FCPXML {
             for host: ProjectedClipAnnotations,
             roleDisplayPreference: RoleDisplayPreference
         ) -> [String] {
+            // Titles carry a video `role` attribute (default Titles, or a custom library
+            // role). Prefer that over a hard-coded Titles label so markers on under-spine
+            // connected titles attribute correctly.
             if host.hostElementType == ElementType.title.rawValue {
+                if let preferred = roleDisplayPreference.preferredRole(
+                    from: host.roles,
+                    context: .markers
+                ) ?? host.roles.first(where: \.isVideo) {
+                    let display = ReportFormatting.mainRoleDisplay(
+                        from: preferred.collapsingSubRole()
+                    )
+                    return display.isEmpty ? ["Titles"] : [display]
+                }
                 return ["Titles"]
             }
 

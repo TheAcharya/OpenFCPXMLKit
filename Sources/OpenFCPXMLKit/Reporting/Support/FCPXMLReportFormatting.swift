@@ -449,11 +449,22 @@ extension FinalCutPro.FCPXML {
         ) -> String {
             let wrapped = role.titleCasedDefaultRole(derivedOnly: true).wrapped
             
-            if case let .video(videoRole) = wrapped, !videoRole.isMainRoleBuiltIn {
-                return videoRole.role.wordTitleCased
+            // Custom library roles use the same casing policy as Role Inventory main roles
+            // (preserve all-caps acronym-style names).
+            switch wrapped {
+            case let .video(videoRole) where !videoRole.isMainRoleBuiltIn:
+                return inventoryMainRoleDisplay(
+                    mainRole: videoRole.role,
+                    isBuiltInMainRole: false
+                )
+            case let .audio(audioRole) where !audioRole.isMainRoleBuiltIn:
+                return inventoryMainRoleDisplay(
+                    mainRole: audioRole.role,
+                    isBuiltInMainRole: false
+                )
+            default:
+                return wrapped.role.titleCased
             }
-            
-            return wrapped.role.titleCased
         }
         
         static func metadataString(
@@ -724,6 +735,41 @@ extension FinalCutPro.FCPXML {
                 )
             }
             
+            // Prefer the title element's own `role` attribute (video role), including custom
+            // library roles on titles connected under the primary spine.
+            if let videoRole = extracted.element.fcpAsTitle?.role {
+                let display = inventoryRoleSubroleDisplay(from: .assigned(.video(videoRole)))
+                if !display.isEmpty { return display }
+            }
+            
+            let inheritedVideoRoles = extracted.value(forContext: .inheritedRoles)
+                .filter(\.isVideo)
+            if let preferred = roleDisplayPreference.preferredRole(
+                from: inheritedVideoRoles,
+                context: .videoEffects
+            ) ?? inheritedVideoRoles.first {
+                let display = inventoryRoleSubroleDisplay(from: preferred)
+                if !display.isEmpty { return display }
+            }
+            
+            return "Titles"
+        }
+        
+        /// Titles & Generators / inventory role field from Projection host roles.
+        ///
+        /// Falls back to ``Titles`` when the host carries no video role (FCP default).
+        static func titleRoleSubrole(
+            from roles: [AnyInterpolatedRole],
+            roleDisplayPreference: RoleDisplayPreference = .builtIn
+        ) -> String {
+            let videoRoles = roles.filter(\.isVideo)
+            if let preferred = roleDisplayPreference.preferredRole(
+                from: videoRoles,
+                context: .videoEffects
+            ) ?? videoRoles.first {
+                let display = inventoryRoleSubroleDisplay(from: preferred)
+                if !display.isEmpty { return display }
+            }
             return "Titles"
         }
         
@@ -743,10 +789,17 @@ extension FinalCutPro.FCPXML {
                 return "Dialogue"
             case .filterVideo, .transform, .compositing, .spatialConform:
                 if effect.host.element.fcpElementType == .title {
-                    return titleRoleSubrole(
+                    // Effects sheet historically surfaces the main role only.
+                    let full = titleRoleSubrole(
                         for: effect.host,
                         roleDisplayPreference: roleDisplayPreference
                     )
+                    return full
+                        .split(separator: "▸", maxSplits: 1)
+                        .first
+                        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                        .flatMap { $0.isEmpty ? nil : String($0) }
+                        ?? "Titles"
                 }
                 if let preferred = effect.host.preferredRole(
                     for: .videoEffects,
@@ -776,7 +829,15 @@ extension FinalCutPro.FCPXML {
                 return firstMainRoleDisplay(in: roles, ofType: .audio) ?? "Dialogue"
             case .filterVideo, .transform, .compositing, .spatialConform:
                 if hostElementType == ElementType.title.rawValue {
-                    return "Titles"
+                    return titleRoleSubrole(
+                        from: roles,
+                        roleDisplayPreference: roleDisplayPreference
+                    )
+                        .split(separator: "▸", maxSplits: 1)
+                        .first
+                        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                        .flatMap { $0.isEmpty ? nil : $0 }
+                        ?? "Titles"
                 }
                 if let preferred = roleDisplayPreference.preferredRole(
                     from: roles,

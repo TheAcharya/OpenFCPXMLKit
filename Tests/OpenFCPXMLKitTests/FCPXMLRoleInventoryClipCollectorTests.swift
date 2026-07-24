@@ -1264,5 +1264,98 @@ struct FCPXMLRoleInventoryClipCollectorTests {
         #expect(laterRow.timelineIn == "00:03:27:09")
         #expect(laterRow.timelineOut == "00:03:29:15")
     }
+
+    @Test("Under-spine connected titles keep custom video roles")
+    func underSpineConnectedTitlesKeepCustomVideoRoles() async throws {
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.14">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p25" frameDuration="100/2500s" width="1920" height="1080"/>
+                <effect id="r2" name="Metal" uid=".../Generators.localized/Textures.localized/Metal.localized/Metal.motn"/>
+                <effect id="r3" name="Basic Title" uid=".../Titles.localized/Basic Title.moti"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="10s" tcStart="0s" tcFormat="NDF">
+                            <spine>
+                                <video ref="r2" offset="0s" name="Metal" start="3600s" duration="10s">
+                                    <title ref="r3" lane="-1" offset="3600s" name="TO-DO - Basic Title" start="3600s" duration="2s" role="TO-DO.TO-DO-1">
+                                        <text><text-style ref="ts1">TO-DO</text-style></text>
+                                        <text-style-def id="ts1"><text-style font="Helvetica"/></text-style-def>
+                                        <marker start="3600s" duration="100/2500s" value="TD-001" completed="0"/>
+                                    </title>
+                                    <title ref="r3" lane="-2" offset="3602s" name="VFX - Basic Title" start="3600s" duration="2s" role="VFX.VFX-1">
+                                        <text><text-style ref="ts2">VFX</text-style></text>
+                                        <text-style-def id="ts2"><text-style font="Helvetica"/></text-style-def>
+                                    </title>
+                                </video>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
+
+        let entries = await Collector.collectEntries(from: timeline, scope: .init())
+        let titleEntries = entries.filter(\.category.isTitleCategory)
+        #expect(titleEntries.count == 2)
+        #expect(titleEntries.contains { $0.roleSubroleField == "TO-DO ▸ To-Do-1" })
+        #expect(titleEntries.contains { $0.roleSubroleField == "VFX ▸ VFX-1" })
+        #expect(titleEntries.contains { $0.category == .connectedTitle })
+
+        let report = try await fcpxml.buildReport(options: .full)
+        let titleRows = try #require(report.titlesAndGenerators?.rows)
+        #expect(titleRows.contains { $0.roleSubrole == "TO-DO ▸ To-Do-1" })
+        #expect(titleRows.contains { $0.roleSubrole == "VFX ▸ VFX-1" })
+
+        let sheetNames = Set(report.roleInventory?.roleSheets.map(\.sheetName) ?? [])
+        #expect(sheetNames.contains("TO-DO ▸ To-Do-1"))
+        #expect(sheetNames.contains("VFX ▸ VFX-1"))
+
+        let markerRoles = Set(report.markers?.rows.map(\.roleSubrole) ?? [])
+        #expect(markerRoles.contains("TO-DO"))
+    }
+
+    @Test("Under-spine connected video generator is inventoried")
+    func underSpineConnectedVideoGeneratorIsInventoried() async throws {
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.14">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p25" frameDuration="100/2500s" width="1920" height="1080"/>
+                <asset id="r2" name="A-Roll" uid="A1" start="0s" duration="10s" hasVideo="1" format="r1" videoSources="1"/>
+                <effect id="r3" name="Gradient" uid=".../Generators.localized/Textures.localized/Gradient.localized/Gradient.motn"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="10s" tcStart="0s" tcFormat="NDF">
+                            <spine>
+                                <asset-clip ref="r2" offset="0s" name="Interview" duration="10s" format="r1">
+                                    <video ref="r3" lane="-1" offset="0s" name="Gradient Under" start="3600s" duration="5s"/>
+                                </asset-clip>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
+
+        let entries = await Collector.collectEntries(from: timeline, scope: .init())
+        let under = entries.filter { $0.extracted.displayClipName() == "Gradient Under" }
+        #expect(
+            !under.isEmpty,
+            "Connected video/generators under the primary storyline must be inventoried"
+        )
+        #expect(under.contains { $0.category == .connectedGenerator })
+    }
 }
 

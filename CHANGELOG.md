@@ -7,6 +7,24 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.2.5](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.2.5) - 2026-07-24
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Title Role ▸ Subrole honesty:** `ReportFormatting.titleRoleSubrole` (Extraction and Projection host roles) surfaces the title element’s video `role` attribute for Titles & Generators, Role Inventory, Markers (main role), and Effects (main role). Omitting `role` still defaults to **Titles**. Custom library roles use inventory casing (all-caps acronym-style main roles preserved).
+- **Under-spine leaf video / generators:** Role Inventory no longer skips negative-lane leaf `<video>` / generators via `shouldSkipLeafMedia` (negative-lane leaf `<audio>` still folds into host channel/sync sources). Parsing / Extraction / Projection already exposed these facts; Reporting presentation was the gap.
+- **Documentation sync:** Manual 20, Coverage, Tests READMEs, README, ARCHITECTURE (Mermaid counts), AGENT, `.cursorrules`, and GUARDRAILS (Sign `title-roles-honor-attribute`) refreshed. Suite counts **1147** listed (**1140** + **7**).
+
+### 🐛 Bug Fixes
+
+- **Connected titles under the primary storyline:** Titles (and their Markers) connected on negative lanes with custom video roles were inventoried and exported under a hard-coded **Titles** label, so per-role sheets and Role ▸ Subrole columns dropped project-specific roles. Role Inventory, Titles & Generators, Markers, and Effects now honour `Title.role` / Projection host roles.
+
+---
+
 ## [3.2.4](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.2.4) - 2026-07-23
 
 ### ✨ New Features

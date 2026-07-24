@@ -736,7 +736,11 @@ extension FinalCutPro.FCPXML {
             }
             
             if lane < 0 {
-                return true
+                // Connected audio under the primary storyline is inventoried via host
+                // channel-source / sync-source components — skip leaf `<audio>`.
+                // Connected `<video>` / generators under the spine are first-class hosts
+                // (FCP allows video, titles, and generators below the primary storyline).
+                return extracted.element.fcpElementType == .audio
             }
             
             for ancestor in extracted.element.ancestorElements(includingSelf: false) {
@@ -1423,7 +1427,10 @@ extension FinalCutPro.FCPXML {
             roleDisplayPreference: RoleDisplayPreference
         ) -> String {
             if extracted.element.fcpElementType == .title {
-                return "Titles"
+                return ReportFormatting.titleRoleSubrole(
+                    for: extracted,
+                    roleDisplayPreference: roleDisplayPreference
+                )
             }
             
             if extracted.element.fcpElementType == .gap {
