@@ -48,7 +48,7 @@ struct FCPXMLTitlesReportTests {
         for row in rows.prefix(20) {
             let clipNameEmpty = row.clipName.isEmpty
             #expect(!clipNameEmpty)
-            #expect(row.roleSubrole == "Titles")
+            #expect(!row.roleSubrole.isEmpty)
             FCPXMLReportingReportTestSupport.assertCheckmarkOrCross(row.enabled)
             FCPXMLReportingReportTestSupport.assertValidTimecode(row.timelineIn)
             FCPXMLReportingReportTestSupport.assertValidTimecode(row.timelineOut)

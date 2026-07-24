@@ -186,7 +186,7 @@ These contracts define what a “near-zero miss” report must not omit when the
 | Selected Roles Inventory / per-role | One row per inventoried host clip × role (Projection windows when inventory is enabled). Nested connected hosts stay inventoried when they have an **own role assignment**; fully occluded hosts with that assignment are retained (not folded solely for occlusion). Fixed columns after **Row** as listed below; dynamic metadata keys discovered on those clips |
 | Markers | Every non-filtered marker on the report timeline (standard / to-do / **chapter** by default); host clip name and timeline position. Default omits markers whose `start` is outside the host media range unless `includeMarkersOutsideClipBoundaries` is set. Set `includeChapterMarkersInMarkersReport` to `false` to omit chapter markers. |
 | Keywords | Every keyword range attached to timeline hosts in scope |
-| Titles & Generators | Every title / generator clip in scope with clip name and timeline bounds |
+| Titles & Generators | Every title / generator clip in scope with clip name, timeline bounds, and Role ▸ Subrole from the title’s video `role` (default **Titles** when omitted; custom library roles preserved) |
 | Transitions | Every transition element on the report spine(s) in scope |
 | Non-Std Effects & Templates | Every non-Apple `<effect>` resource (optional); missing Motion template paths flagged `MISSING` |
 | Video & Audio Effects | Every reportable filter / adjustment effect with clip association |
@@ -202,7 +202,7 @@ These contracts define what a “near-zero miss” report must not omit when the
 |-------|--------|
 | **Markers** | **Projection-first** via ``ProjectedClipAnnotations`` (title + clip hosts, including `mc-clip` / `ref-clip`; occluded hosts still contribute markers). Extraction fallback when Projection has no marker annotations **or** annotations filter to zero rows. Chapter markers included by default (`includeChapterMarkersInMarkersReport`). |
 | **Keywords** | **Projection-first** via ``ProjectedClipAnnotations`` (same host / occlusion policy as Markers; keyword ranges clamped to host media). Extraction fallback when Projection has no keyword annotations **or** annotations filter to zero rows. |
-| **Titles & Generators** | **Projection-first** via ``WindowTitleAnnotation`` on ``ProjectedClipAnnotations``. Extraction fallback when Projection has no title annotations. Occupancy-gated (visible hosts only). |
+| **Titles & Generators** | **Projection-first** via ``WindowTitleAnnotation`` on ``ProjectedClipAnnotations``; Role ▸ Subrole from host annotation roles via ``ReportFormatting/titleRoleSubrole(from:roleDisplayPreference:)`` (Extraction path uses ``titleRoleSubrole(for:roleDisplayPreference:)``). Extraction fallback when Projection has no title annotations. Occupancy-gated (visible hosts only). |
 | **Transitions** | **Projection-first** via ``WindowTransitionAnnotation`` on ``ProjectedClipAnnotations``. Extraction fallback when Projection has no transition annotations. Occupancy-gated. |
 | **Effects** | **Projection-first** via ``WindowReportEffectAnnotation`` (shared ``EffectsCollector`` semantics + occlusion filter for video filters). Extraction fallback when Projection has no effect annotations. Occupancy-gated. |
 
@@ -221,6 +221,13 @@ These contracts define what a “near-zero miss” report must not omit when the
 Each inventory sheet uses a **Row** index column, then fixed columns, then sorted dynamic metadata keys discovered across all inventory rows. Reel, Scene, Take, Camera Name, **Codecs**, and **Ingest Date** metadata keys that already have dedicated columns are not duplicated in the dynamic metadata block.
 
 **Nested / occluded connected hosts:** Role Inventory does not fold a negative-lane connected host into its parent when the host has an **own role assignment**. Own assignment = active `audio-channel-source` roles, `asset-clip` `audioRole` / `videoRole`, or first-generation `audio` / `video` children with an explicit `role` (`fcpHasStandaloneConnectedInventoryAssignment()`). The same helper gates both nested-host escape (`fcpIsNestedConnectedInventoryHost`) and fully-occluded retention (`retainsFullyOccludedHostForRoleInventory`). Hosts with **no** own assignment may still fold into the parent (for example Nested SFX under a sync-clip). Channel sources still override clip-level `audioRole` when present. Projection windows for these clips were already correct — this is inventory-selection policy in Parsing + `RoleInventoryClipCollector`, not a Projection change. See GUARDRAILS Sign `connected-role-inventory-survives-nesting`.
+
+**Under-spine connected titles / video / generators:** Final Cut Pro commonly places audio under the primary storyline (`lane < 0`), but titles, generators, and other video may also connect there. Role Inventory includes:
+
+- Connected **titles** (category Connected / Secondary title) using `Title.role` via `ReportFormatting.titleRoleSubrole` — not a hard-coded **Titles** label when a custom video role is set.
+- Connected leaf **`<video>` / generators** on negative lanes (Connected generator / Connected video). Negative-lane leaf **`<audio>`** remains folded into host channel/sync sources and is skipped as a separate leaf row.
+
+Markers on title hosts attribute the title’s video **main** role (same casing policy as Role Inventory main roles). Parsing, Extraction, and Projection already discover these elements; Reporting must not collapse or drop them. See GUARDRAILS Sign `title-roles-honor-attribute`.
 
 **Per-role Total footer:** Each non-empty per-role sheet ends with a blank row, then a **Total:** label under **Timeline Out** and an optimistic sum of that sheet’s **Clip Duration** values under **Clip Duration**. Both cells use the same black-background / white-text style as column headers. **Selected Roles Inventory** has no Total footer. If Timeline Out or Clip Duration is excluded, the footer is omitted. The sum is presentation-thin (`RoleInventorySheetTotal` — parses already-formatted `clipDuration` strings); it is **not** overlap-aware (Summary’s `summaryOverlapAwareDurations` stays Summary-only). Excel and PDF draw the same footer in the table content area (not the PDF running page footer).
 
@@ -280,6 +287,8 @@ Audio/video hosts may fan out one marker to multiple Role ▸ Subrole rows (e.g.
 #### Titles & Generators
 
 **TitlesReportSection** of **TitleReportRow**: **Row**, Clip Name, Enabled, Apple, Role ▸ Subrole, Timeline In/Out, Duration, Font, Title Text.
+
+**Role ▸ Subrole:** Taken from the title’s video `role` attribute (`Title.role` / Projection host roles) through `ReportFormatting.titleRoleSubrole`. When `role` is omitted, the field is **Titles** (FCP default). Custom library roles appear as inventory-style `Main ▸ Subrole` strings and drive matching Role Inventory per-role sheets.
 
 #### Transitions
 

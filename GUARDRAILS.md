@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1144** tests listed in `swift test list` — **1137** in `OpenFCPXMLKitTests` + **7** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1147** tests listed in `swift test list` — **1140** in `OpenFCPXMLKitTests` + **7** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -200,7 +200,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1144** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1147** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -226,6 +226,12 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Instruction:** Never fold a negative-lane connected host into its parent when it has an **own role assignment**. Own assignment = active `audio-channel-source` roles, `asset-clip` `audioRole` / `videoRole`, or first-generation `audio`/`video` children with an explicit `role`. Apply the same rule in **both** `fcpIsNestedConnectedInventoryHost` and `retainsFullyOccludedHostForRoleInventory` via `fcpHasStandaloneConnectedInventoryAssignment()`. Hosts with **no** own assignment may still fold into the parent (Nested SFX under sync-clip). Channel sources still override clip-level `audioRole` when present.
 - **Reason:** Audio Only_01 (2026-07-23) dropped Water Lake 3 Effects because only channel-source remaps escaped nesting; `audioRole`-only connected clips were wrongly excluded. Occlusion retention had the same gap.
 - **Provenance:** 2026-07-23 — Audio Only_01 Effects-under-Music regression.
+
+### Sign: title-roles-honor-attribute
+- **Trigger:** Titles & Generators Role ▸ Subrole, Role Inventory title rows, Markers/Effects on title hosts, or connected clips under the primary storyline (`lane < 0`).
+- **Instruction:** Never hard-code **Titles** when `Title.role` / Projection host video roles are present — use `ReportFormatting.titleRoleSubrole`. Default to **Titles** only when the attribute is omitted. Inventory negative-lane leaf `<video>` / generators; keep skipping negative-lane leaf `<audio>` (host channel/sync sources). Do not re-parse title roles only inside Excel/PDF exporters.
+- **Reason:** Under-spine titles with custom library roles were exported under a hard-coded Titles label; leaf video under the spine was dropped by `shouldSkipLeafMedia`. Parsing/Extraction/Projection already had the facts.
+- **Provenance:** 2026-07-24 — under-spine titles / leaf video reporting fix (3.2.5).
 
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.

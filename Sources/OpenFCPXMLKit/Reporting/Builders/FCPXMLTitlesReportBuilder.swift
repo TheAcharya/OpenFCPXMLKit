@@ -83,7 +83,7 @@ extension FinalCutPro.FCPXML {
                         isApple: ReportFormatting.appleCheckmarkForTitle(
                             isAppleSupplied: title.isAppleSupplied
                         ),
-                        roleSubrole: "Titles",
+                        roleSubrole: ReportFormatting.titleRoleSubrole(from: host.roles),
                         timelineIn: formatFraction(
                             title.timelineIn,
                             on: timeline,
