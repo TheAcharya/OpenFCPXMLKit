@@ -37,6 +37,8 @@ let package = Package(
         .package(url: "https://github.com/tadija/AEXML", from: "4.7.0"),
         // Excel file creation
         .package(url: "https://github.com/TheAcharya/XLKit", from: "1.1.7"),
+        // CSV / TSV / delimited text (Shot Extraction manifests)
+        .package(url: "https://github.com/orchetect/swift-textfile", from: "0.5.2"),
     ],
     // Targets: core library, tests, user CLI, and DTD generator utility.
     targets: [
@@ -50,6 +52,7 @@ let package = Package(
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "AEXML", package: "AEXML"),
                 .product(name: "XLKit", package: "XLKit"),
+                .product(name: "TextFile", package: "swift-textfile"),
             ],
             resources: [
                 .process("FCPXML DTDs")

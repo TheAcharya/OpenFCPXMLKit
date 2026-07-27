@@ -15,7 +15,7 @@ The package includes an experimental command-line tool **OpenFCPXMLKit-CLI**. It
 
 ## Commands and options
 
-Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--report`, or `--create-project`. For `--convert-version`, `--media-copy`, `--report` (and default process), `<output-dir>` is required and is **created if missing**. For `--create-project`, the single positional argument is `<output-dir>` (also created if missing). `--extension-type` requires `--convert-version`. REPORT modifiers (`--report-full`, section flags, `--include-markers-outside-clip-boundaries`, `--protect-sheets`, `--timecode-format`, `--media-resolution`, `--label-copyright`, `--create-pdf`, etc.) require `--report`.
+Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--extract-shots`, `--report`, or `--create-project`. For `--convert-version`, `--media-copy`, `--extract-shots`, `--report` (and default process), `<output-dir>` is required and is **created if missing**. For `--create-project`, the single positional argument is `<output-dir>` (also created if missing). `--extension-type` requires `--convert-version`. REPORT modifiers (`--report-full`, section flags, `--include-markers-outside-clip-boundaries`, `--protect-sheets`, `--timecode-format`, `--media-resolution`, `--label-copyright`, `--create-pdf`, etc.) require `--report`. Shot Extraction modifiers (`--extract-format`, `--scene-number`, `--folder-format`, `--result-file-path`, `--extract-project`, `--icon`) require `--extract-shots`; `--scene-number` is required with `--extract-shots`.
 
 ### GENERAL
 
@@ -26,6 +26,25 @@ Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-c
 | **--extension-type &lt;fcpxml\|fcpxmld&gt;** | Output format for convert only (requires `--convert-version`): `fcpxmld` (bundle, default when omitted) or `fcpxml` (single file). |
 | **--validate** | Robust validation: semantic + DTD against declared version. Progress indicator unless `--quiet`. No output-dir required. |
 | **--media-copy** | Extract media refs and copy files to output-dir. Progress bar unless `--quiet`. Paths to stdout; summary to stderr. |
+
+### SHOT EXTRACTION
+
+Extract primary-timeline **still-image** shots to PNG files plus a CSV or Notion JSON manifest. Rejects timelines that contain **video** media on the primary spine. See [21 — Shot Extraction](21-Shot-Extraction.md).
+
+| Option | Description |
+|--------|-------------|
+| **--extract-shots** | Enable Shot Extraction (exclusive with other modes). |
+| **--scene-number &lt;text&gt;** | **Required.** Scene number for Shot ID (`{scene}-001`) and Scene Number column. |
+| **--extract-format &lt;csv\|notion&gt;** | Manifest format (default `csv`). `notion` writes a JSON array of column-keyed objects compatible with [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo). |
+| **--folder-format &lt;short\|medium\|long&gt;** | Output folder naming (default `medium`). |
+| **--icon &lt;text&gt;** | Optional emoji (or any text) for the **Icon Image** column on every row. |
+| **--result-file-path &lt;path&gt;** | Optional JSON result summary path. |
+| **--extract-project &lt;name&gt;** | Optional project / timeline name filter. |
+
+```bash
+OpenFCPXMLKit-CLI --extract-shots --scene-number 50 --extract-format notion --icon "🎬" \
+  /path/to/Scene.fcpxmld /path/to/output-dir
+```
 
 ### REPORT
 
@@ -179,6 +198,10 @@ OpenFCPXMLKit-CLI --convert-version 1.10 /path/to/project.fcpxml /path/to/output
 OpenFCPXMLKit-CLI --convert-version 1.14 --extension-type fcpxmld /path/to/project.fcpxmld /path/to/output-dir
 OpenFCPXMLKit-CLI --media-copy /path/to/project.fcpxmld /path/to/media-folder
 
+# Shot Extraction: stills → PNG + CSV or csv2notion-neo Notion JSON
+OpenFCPXMLKit-CLI --extract-shots --scene-number 50 --extract-format notion --icon "🎬" \
+  /path/to/Scene.fcpxmld /path/to/output-dir
+
 # Build report workbooks (.xlsx written to output-dir)
 OpenFCPXMLKit-CLI --report /path/to/project.fcpxmld /path/to/output-dir
 OpenFCPXMLKit-CLI --report --report-full /path/to/project.fcpxmld /path/to/output-dir
@@ -220,7 +243,8 @@ For source layout, extending the CLI, and regenerating embedded DTDs, see **[Ope
 ## Next
 
 - [20 — Reporting, Excel & PDF Export](20-Reporting.md) — the reporting API behind `--report`.
-- [21 — Examples](21-Examples.md) — End-to-end workflows and code examples.
+- [21 — Shot Extraction](21-Shot-Extraction.md) — still-image Shot Extraction (`--extract-shots`).
+- [22 — Examples](22-Examples.md) — End-to-end workflows and code examples.
 
 [← Manual Index](00-Index.md)
 

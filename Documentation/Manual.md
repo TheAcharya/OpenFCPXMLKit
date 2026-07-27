@@ -32,7 +32,8 @@ From the index you can reach all chapters:
 - **18** — Errors & Utilities
 - **19** — CLI (OpenFCPXMLKit-CLI)
 - **20** — Reporting, Excel & PDF Export (Non-Std Effects & Templates, Duplicate Frames / Total footers, Projection-first sections, ReportTimecodeFormat, ReportBuildPhase, XLKit workbook, CoreGraphics PDF)
-- **21** — Examples (workflows and code)
+- **21** — Shot Extraction (primary-timeline stills → PNG + CSV / [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) Notion JSON)
+- **22** — Examples (workflows and code)
 
 ---
 
@@ -41,5 +42,5 @@ From the index you can reach all chapters:
 - **Documentation index:** [README.md](README.md)
 - **CLI reference:** [../Sources/OpenFCPXMLKitCLI/README.md](../Sources/OpenFCPXMLKitCLI/README.md)
 - **Project README:** [../README.md](../README.md)
-- **Tests:** [../Tests/README.md](../Tests/README.md) — **1151** listed tests (all Swift Testing)
+- **Tests:** [../Tests/README.md](../Tests/README.md) — **1158** listed tests (all Swift Testing)
 

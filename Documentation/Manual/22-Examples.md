@@ -1,4 +1,4 @@
-# 21 — Examples
+# 22 — Examples
 
 [← Manual Index](00-Index.md)
 
@@ -398,6 +398,7 @@ For FCPXML format details see [fcp.cafe/developers/fcpxml](https://fcp.cafe/deve
 ## Next
 
 - [Manual Index](00-Index.md) — return to the table of contents.
+- [21 — Shot Extraction](21-Shot-Extraction.md) — primary-timeline stills → PNG + CSV/Notion JSON.
 
 [← Manual Index](00-Index.md)
 

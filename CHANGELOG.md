@@ -7,15 +7,16 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
-## [Unreleased]
+## [3.3.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.0) - 2026-07-27
 
 ### ✨ New Features
 
-- None in this release.
+- **Shot Extraction:** Primary-timeline still-image shots → PNG dataset + CSV or Notion JSON manifest (`ShotExtractor` / `extractShots(options:)`). Rejects timelines with video media; reuses stills as distinct Shot IDs (`{scene}-001` …); CLI `--extract-shots` with required `--scene-number`, `--extract-format csv|notion`, `--folder-format`, `--result-file-path`, optional `--icon` (emoji/text for **Icon Image** column before **Image Filename**). Notion JSON follows the [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) JSON import convention (array of column-keyed objects). Folder naming: `{timeline}-{yyyy-MM-dd-HH-mm-ss}` (e.g. `Demo_V1-2026-07-27-09-14-21`). Depends on [swift-textfile](https://github.com/orchetect/swift-textfile).
 
 ### 🔧 Improvements
 
-- **Media Summary empty state:** When Media Summary is enabled and no referenced media is missing, Excel and PDF keep the sheet headers and show a **No Missing Media** status row in the path column (**B2** with **Row**; default body colour, not missing-path red). Distinguish Original/Proxy mode places the status under **Missing Original**. Shared via `MediaSummaryReportSection.exportTable()` so both exporters stay identical. Suite counts **1151** listed (**1144** + **7**).
+- **Media Summary empty state:** When Media Summary is enabled and no referenced media is missing, Excel and PDF keep the sheet headers and show a **No Missing Media** status row in the path column (**B2** with **Row**; default body colour, not missing-path red). Distinguish Original/Proxy mode places the status under **Missing Original**. Shared via `MediaSummaryReportSection.exportTable()` so both exporters stay identical.
+- **Documentation sync:** Manual reordered (**21** Shot Extraction, **22** Examples); CLI Manual / agent guides / ARCHITECTURE mermaids; suite counts **1158** listed (**1151** + **7**).
 
 ### 🐛 Bug Fixes
 

@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1151** tests listed in `swift test list` — **1144** in `OpenFCPXMLKitTests` + **7** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1158** tests listed in `swift test list` — **1151** in `OpenFCPXMLKitTests` + **7** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -133,7 +133,7 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 | Rule | Detail |
 |------|--------|
 | **AGENT ↔ .cursorrules** | When you update one, update the other. Same overview, architecture, test structure, and conventions. |
-| **Feature docs** | User-visible behaviour → Manual (esp. [11 Timeline Projection](Documentation/Manual/12-Timeline-Projection.md) / [18 CLI](Documentation/Manual/19-CLI.md) / [19 Reporting](Documentation/Manual/20-Reporting.md) / [20 Examples](Documentation/Manual/21-Examples.md)) and CLI README as needed. Structural boundaries → ARCHITECTURE.md. Hard constraints → this file. |
+| **Feature docs** | User-visible behaviour → Manual (esp. [12 Timeline Projection](Documentation/Manual/12-Timeline-Projection.md) / [19 CLI](Documentation/Manual/19-CLI.md) / [20 Reporting](Documentation/Manual/20-Reporting.md) / [21 Shot Extraction](Documentation/Manual/21-Shot-Extraction.md) / [22 Examples](Documentation/Manual/22-Examples.md)) and CLI README as needed. Structural boundaries → ARCHITECTURE.md. Hard constraints → this file. |
 | **CHANGELOG** | Keep a Changelog format. Version heading links to the GitHub release tag. Sections: **✨ New Features**, **🔧 Improvements**, **🐛 Bug Fixes** (empty → “None in this release.”). |
 | **File headers** | New Swift files use the project header (see ARCHITECTURE.md §5.2): OpenFCPXMLKit URL line, MIT, tabbed purpose block — no `Created by` / extra copyright lines. |
 
@@ -200,7 +200,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1151** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1158** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter

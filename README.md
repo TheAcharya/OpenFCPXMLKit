@@ -9,7 +9,7 @@ A modern Swift 6 framework for working with Final Cut Pro's FCPXML with full con
 
 OpenFCPXMLKit provides a type-safe API for parsing, creating, and manipulating FCPXML with async/await, SwiftTimecode, and Excel/PDF reporting. Targets **macOS 26+** and **iOS 26+** (Foundation XML on macOS; AEXML on iOS).
 
-**Tests:** **1151** listed in `swift test list` — **1144** in `OpenFCPXMLKitTests` + **7** optional `ExcelReportTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
+**Tests:** **1158** listed in `swift test list` — **1151** in `OpenFCPXMLKitTests` + **7** optional `ExcelReportTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
 
 OpenFCPXMLKit is currently in an experimental stage. It covers most core FCPXML attributes and parameters and provides a solid foundation for parsing, creation, and manipulation, with room for future expansion and additional feature coverage.
 
@@ -100,6 +100,13 @@ This codebase is developed using AI agents.
 - Reports project **once** per timeline; Markers / Keywords / Titles / Transitions / Effects are Projection-first (Extraction fallback)
 - See [Manual 12 — Timeline Projection](Documentation/Manual/12-Timeline-Projection.md)
 
+### Shot Extraction
+- Primary-timeline still-image shots → PNG dataset + CSV or Notion JSON (`ShotExtractor` / `extractShots`)
+- Rejects timelines with video media; reused stills get distinct Shot IDs (`{scene}-001` …)
+- Notion JSON (`--extract-format notion`) follows the [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) JSON import convention
+- CLI: `--extract-shots --scene-number … --extract-format csv|notion` (optional `--icon` for Icon Image)
+- See [Manual 21 — Shot Extraction](Documentation/Manual/21-Shot-Extraction.md)
+
 ### Excel & PDF reporting
 - Build once with `buildReport(options:)`, then export `.xlsx` (XLKit) and/or `.pdf` (CoreGraphics)
 - Sheets: Role Inventory, Markers, Keywords, Titles, Transitions, Non-Std Effects & Templates, Effects, Speed Change, Summary, Media Summary
@@ -111,12 +118,12 @@ This codebase is developed using AI agents.
 - See [Manual 20 — Reporting](Documentation/Manual/20-Reporting.md)
 
 ### CLI
-- `OpenFCPXMLKit-CLI`: check / convert / validate / media-copy / create-project / report
+- `OpenFCPXMLKit-CLI`: check / convert / validate / media-copy / extract-shots / create-project / report
 - Single portable binary with embedded DTDs — [CLI README](Sources/OpenFCPXMLKitCLI/README.md)
 
 ### Architecture
 - Protocol-oriented + dependency injection; sync and async APIs
-- Layer stack: `XML → Parsing → Model → Extraction → Projection → Reporting`
+- Layer stack: `XML → Parsing → Model → Extraction → Projection → Reporting` (plus parallel `ShotExtraction/` from Projection)
 - Swift 6 strict concurrency; cross-platform OFKXML (Foundation / AEXML)
 - See [ARCHITECTURE.md](ARCHITECTURE.md) and [GUARDRAILS.md](GUARDRAILS.md)
 
@@ -151,7 +158,7 @@ let package = Package(
         .iOS(.v26)
     ],
     dependencies: [
-        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.2.5")
+        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.3.0")
     ],
     targets: [
         .target(
@@ -214,7 +221,7 @@ sudo rm /usr/local/bin/OpenFCPXMLKit-CLI
 ### Compiled From Source
 
 ```shell
-VERSION=3.2.5 # replace this with the git tag of the version you need
+VERSION=3.3.0 # replace this with the git tag of the version you need
 git clone https://github.com/TheAcharya/OpenFCPXMLKit.git
 cd OpenFCPXMLKit
 git checkout "tags/$VERSION"
@@ -260,6 +267,23 @@ TIMELINE:
 
 EXTRACTION:
   --media-copy            Scan FCPXML/FCPXMLD and copy all referenced media files to output-dir.
+
+SHOT EXTRACTION:
+  --extract-shots         Extract primary-timeline still-image shots to PNG + CSV/JSON (rejects timelines with video
+                          media).
+  --extract-format <extract-format>
+                          Shot Extraction manifest format: csv | notion (JSON). Requires --extract-shots.
+  --scene-number <scene-number>
+                          Scene number for Shot ID / Scene Number columns (required with --extract-shots).
+  --folder-format <folder-format>
+                          Shot Extraction folder naming: short | medium | long (default: medium). Requires
+                          --extract-shots.
+  --result-file-path <result-file-path>
+                          Optional JSON result file path for Shot Extraction. Requires --extract-shots.
+  --extract-project <extract-project>
+                          Optional project / timeline name filter for Shot Extraction. Requires --extract-shots.
+  --icon <icon>           Optional emoji (or any text) for the Icon Image column on every shot row. Requires
+                          --extract-shots.
 
 REPORT:
   --report                Build an Excel report workbook from FCPXML (role inventory only; use --report-full for all
@@ -340,7 +364,7 @@ Complete manual, usage guide, and examples are in the [Documentation](Documentat
 - **[CLI](Sources/OpenFCPXMLKitCLI/README.md)** — Flags, examples, building and extending
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — Layer stack, codebase map, Mermaid diagrams
 - **[GUARDRAILS.md](GUARDRAILS.md)** — Must / must-not constraints for contributors and agents
-- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1151** listed; all Swift Testing)
+- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1158** listed; all Swift Testing)
 - **[AGENT.md](AGENT.md)** — AI agent / contributor briefing
 
 ## FCPXML Version Support
@@ -354,7 +378,7 @@ OpenFCPXMLKit supports FCPXML versions 1.5 through 1.14. All DTDs for these vers
 
 - Protocol-oriented and dependency-injected: core behaviour (parsing, timecode, document ops, error handling) is behind protocols with default implementations you can replace. Inject when creating FCPXMLService or FCPXMLUtility or when using modular extension overloads.
 - Extension APIs that can't take a parameter use a single shared instance (FCPXMLUtility.defaultForExtensions) for consistency and concurrency safety; use overloads with a `using:` parameter for custom services.
-- Built with Swift 6 and strict concurrency; Sendable where possible, no unsafe code. Key dependencies: [SwiftTimecode](https://github.com/orchetect/swift-timecode), [SwiftExtensions](https://github.com/orchetect/swift-extensions) 3.0+, [SwiftSemanticVersion](https://github.com/orchetect/swift-semantic-version), [swift-log](https://github.com/apple/swift-log), [AEXML](https://github.com/tadija/AEXML) (iOS XML backend), [XLKit](https://github.com/TheAcharya/XLKit) (Excel report export), CoreGraphics (PDF report export), and [swift-argument-parser](https://github.com/apple/swift-argument-parser) (CLI only). Minimum versions are defined in `Package.swift`.
+- Built with Swift 6 and strict concurrency; Sendable where possible, no unsafe code. Key dependencies: [SwiftTimecode](https://github.com/orchetect/swift-timecode), [SwiftExtensions](https://github.com/orchetect/swift-extensions) 3.0+, [SwiftSemanticVersion](https://github.com/orchetect/swift-semantic-version), [swift-log](https://github.com/apple/swift-log), [AEXML](https://github.com/tadija/AEXML) (iOS XML backend), [XLKit](https://github.com/TheAcharya/XLKit) (Excel report export), [swift-textfile](https://github.com/orchetect/swift-textfile) (Shot Extraction CSV), CoreGraphics / ImageIO (PDF report export; PNG shot images), and [swift-argument-parser](https://github.com/apple/swift-argument-parser) (CLI only). Minimum versions are defined in `Package.swift`.
 
 ## Architecture Overview
 

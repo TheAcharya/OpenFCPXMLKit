@@ -704,7 +704,8 @@ For real-world exports that must stay off GitHub, drop them in [Tests/Submitted 
 
 ## Next
 
-- [21 — Examples](21-Examples.md) — End-to-end workflows and code examples.
+- [21 — Shot Extraction](21-Shot-Extraction.md) — primary-timeline stills → PNG + CSV/Notion JSON.
+- [22 — Examples](22-Examples.md) — End-to-end workflows and code examples.
 - [12 — Timeline Projection](12-Timeline-Projection.md) — windows, options, occupancy, and how report builders consume Projection.
 - [11 — Extraction & Media](11-Extraction-Media.md) — Extraction presets and media copy (fallback / discovery).
 - [19 — CLI](19-CLI.md) — building reports from the command line.

@@ -2,7 +2,7 @@
 
 This directory contains the test suite for OpenFCPXMLKit, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration. The suite runs on **macOS** (Foundation XML backend). The library also supports **iOS 26+** (AEXML backend); CI builds for iOS Simulator; the same tests are not run on iOS because they rely on Foundation XML.
 
-- **Test count:** **1151** tests listed in `swift test list` — **1144** in `OpenFCPXMLKitTests` + **7** in `ExcelReportTest` (all Swift Testing `@Test`; no XCTest remaining; ExcelReportTest cancels without a local fixture)
+- **Test count:** **1158** tests listed in `swift test list` — **1151** in `OpenFCPXMLKitTests` + **7** in `ExcelReportTest` (all Swift Testing `@Test`; no XCTest remaining; ExcelReportTest cancels without a local fixture)
 - **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines, audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), Timeline Projection (`TimelineProjector` / `MediaUsageWindow` / `ReportProjectionContext`, project-once for report sections), Excel and PDF reporting (universal **Row** column on all tabular sheets via `ensuringRowColumn` / `allowsInjectedRowColumn`, role inventory columns, Summary sheet with project title in **B1**, Media Summary sheets, configurable `ReportTimecodeFormat` / DF·NDF notation, format-aware headers, Frames/Feet+Frames sort order, inventory-first `ReportBuildPhase` progress, global column exclusion, disabled-clip filtering, Markers out-of-bounds filter / optional **Hidden** column (`includeMarkersOutsideClipBoundaries`), Excel `protectSheets` worksheet protection, workbook export and cell formatting, PDF cover with black “About This PDF Export” header + `info.circle`, TOC with accent colour chips + content-tint washes keyed to sheet `colorIndex`, remaining columns expanded to fill A4 landscape width after exclusions, section pagination, shared `FCPXMLReportRowColorPolicy`, standalone compound-clip timelines via `allReportTimelineSources()` / `FCPXMLCompoundClipReportTests`), and all supported FCPXML versions and frame rates  
 - **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure; validation and cross-platform XML tests; optional Excel/PDF report integration tests under `ExcelReportTest/`; private investigation inbox under `Submitted FCPXML/` (gitignored contents)
 
@@ -135,6 +135,7 @@ Tests/
     ├── FCPXMLMIMETypeDetectionTests.swift
     ├── FCPXMLMarkersReportTests.swift
     ├── FCPXMLMediaExtractionTests.swift
+    ├── FCPXMLShotExtractionTests.swift
     ├── FCPXMLParallelFileIOTests.swift
     ├── FCPXMLPerformanceTests.swift
     ├── FCPXMLReportBuildPhaseTests.swift
@@ -201,8 +202,8 @@ swift test --filter OpenFCPXMLKitTests             # By pattern
 To verify the documented test counts:
 
 ```bash
-swift test list 2>/dev/null | grep -c '\.'                        # 1151
-swift test list 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 1144
+swift test list 2>/dev/null | grep -c '\.'                        # 1158
+swift test list 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 1151
 swift test list 2>/dev/null | grep -c 'ExcelReportTest\.'       # 7
 ```
 
@@ -260,6 +261,7 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 **Media & extraction**
 
 - **FCPXMLMediaExtractionTests** — extractMediaReferences, copyReferencedMedia (sync/async); extract-then-copy flow (CLI --media-copy). MediaExtractor, MediaExtractionResult, MediaCopyResult.
+- **FCPXMLShotExtractionTests** — still-image Shot Extraction (`extractShots`): reused stills → distinct Shot IDs / PNGs; CSV + Notion JSON (csv2notion-neo shape); **Icon Image** / `icon`; folder formats; rejects primary-spine video media. See Manual [21 — Shot Extraction](../Documentation/Manual/21-Shot-Extraction.md).
 
 **Timeline & manipulation**
 
@@ -565,7 +567,7 @@ Add tests for new behaviour or edge cases; place them in the right file and MARK
 - **Final Cut Pro XML (FCPXML)** — [fcp.cafe](https://fcp.cafe) for format reference
 - **SwiftTimecode** (GitHub) — timecode and frame rate types
 
-**Keep counts in sync:** `swift test list` → **1151** total (**1144** OpenFCPXMLKitTests + **7** ExcelReportTest; all Swift Testing); **60** public samples.
+**Keep counts in sync:** `swift test list` → **1158** total (**1151** OpenFCPXMLKitTests + **7** ExcelReportTest; all Swift Testing); **60** public samples.
 
 ---
 
