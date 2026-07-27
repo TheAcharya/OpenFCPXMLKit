@@ -515,12 +515,7 @@ enum FCPXMLReportWorkbookExporter {
             name: sanitizeSheetName(FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName)
         )
 
-        let table = mediaSummaryTable(mediaSummary)
-        guard !table.headers.isEmpty, !table.rows.isEmpty else {
-            FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet)
-            return
-        }
-
+        let table = mediaSummary.exportTable()
         let filtered = filteredTabularSection(
             headers: table.headers,
             rows: table.rows,
@@ -550,13 +545,17 @@ enum FCPXMLReportWorkbookExporter {
             sheet.setRow(rowIndex, strings: values)
 
             for pathColumnIndex in pathColumnIndices where values.indices.contains(pathColumnIndex - 1) {
+                let value = values[pathColumnIndex - 1]
+                guard FinalCutPro.FCPXML.MediaSummaryReportSection.isMissingMediaPathCell(value) else {
+                    continue
+                }
                 let coordinate = CellCoordinate(
                     row: rowIndex,
                     column: pathColumnIndex
                 ).excelAddress
                 sheet.setCell(
                     coordinate,
-                    string: values[pathColumnIndex - 1],
+                    string: value,
                     format: missingMediaPathFormat()
                 )
             }
@@ -567,31 +566,6 @@ enum FCPXMLReportWorkbookExporter {
             headers: headers,
             rows: filtered.rows
         )
-    }
-
-    private static func mediaSummaryTable(
-        _ mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection
-    ) -> (headers: [String], rows: [[String]]) {
-        if mediaSummary.distinguishProxyAndOriginal {
-            let originalTitle = FinalCutPro.FCPXML.MediaSummaryReportSection.missingOriginalMediaSectionTitle
-            let proxyTitle = FinalCutPro.FCPXML.MediaSummaryReportSection.missingProxyMediaSectionTitle
-            let originals = mediaSummary.missingOriginalMediaPaths
-            let proxies = mediaSummary.missingProxyMediaPaths
-            let rowCount = max(originals.count, proxies.count)
-            guard rowCount > 0 else { return ([], []) }
-            var rows: [[String]] = []
-            rows.reserveCapacity(rowCount)
-            for index in 0 ..< rowCount {
-                let original = index < originals.count ? originals[index] : ""
-                let proxy = index < proxies.count ? proxies[index] : ""
-                rows.append([original, proxy])
-            }
-            return ([originalTitle, proxyTitle], rows)
-        }
-
-        let title = FinalCutPro.FCPXML.MediaSummaryReportSection.missingMediaSectionTitle
-        guard !mediaSummary.missingMediaPaths.isEmpty else { return ([], []) }
-        return ( [title], mediaSummary.missingMediaPaths.map { [$0] } )
     }
     
     private static func appendRoleInventory(

@@ -146,7 +146,8 @@ let spine = Authoring.Spine(items: [
 - [12 — Timeline Projection](12-Timeline-Projection.md) — analyse authored or parsed timelines
 - [14 — Typed Models](14-Typed-Models.md) — live Model adjustments (Corners, Panner, …)
 - [16 — High-Level Model](16-High-Level-Model.md) — `FinalCutPro.FCPXML` live document API
-- [21 — Examples](21-Examples.md) — end-to-end workflows
+- [21 — Shot Extraction](21-Shot-Extraction.md) — primary-timeline stills → PNG + CSV/Notion JSON
+- [22 — Examples](22-Examples.md) — end-to-end workflows
 
 ---
 

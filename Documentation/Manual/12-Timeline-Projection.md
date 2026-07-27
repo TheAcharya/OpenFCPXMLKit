@@ -174,7 +174,8 @@ For private complex exports used only while debugging Projection/reporting, use 
 
 - [13 — Media Processing](13-Media-Processing.md) — MIME type, asset validation, silence, duration, parallel I/O.
 - [20 — Reporting, Excel & PDF Export](20-Reporting.md) — build Excel/PDF from Projection + Extraction.
-- [21 — Examples](21-Examples.md) — end-to-end workflows.
+- [21 — Shot Extraction](21-Shot-Extraction.md) — still-image shots from primary timeline.
+- [22 — Examples](22-Examples.md) — end-to-end workflows.
 
 [← Manual Index](00-Index.md)
 

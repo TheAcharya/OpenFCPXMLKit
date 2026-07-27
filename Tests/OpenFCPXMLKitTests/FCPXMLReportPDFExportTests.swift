@@ -171,6 +171,28 @@ struct FCPXMLReportPDFExportTests {
         #expect(FileManager.default.fileExists(atPath: outputURL.path))
     }
 
+    @Test("Export empty Media Summary PDF keeps headers and No Missing Media status")
+    func exportEmptyMediaSummaryPDFKeepsHeadersAndNoMissingMediaStatus() throws {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Media Project",
+            mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection()
+        )
+
+        let data = try FinalCutPro.FCPXML.ReportPDFExport.makePDFData(from: report)
+        #expect(String(data: data.prefix(4), encoding: .ascii) == "%PDF")
+
+        #if canImport(PDFKit)
+        let document = try #require(PDFDocument(data: data))
+        var combined = ""
+        for index in 0 ..< document.pageCount {
+            combined += document.page(at: index)?.string ?? ""
+        }
+        #expect(combined.contains(FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName))
+        #expect(combined.contains(FinalCutPro.FCPXML.MediaSummaryReportSection.missingMediaSectionTitle))
+        #expect(combined.contains(FinalCutPro.FCPXML.MediaSummaryReportSection.noMissingMediaMessage))
+        #endif
+    }
+
     @Test("Export markers report writes PDF file from fixture")
     func exportMarkersReportWritesPDFFileFromFixture() async throws {
         let fcpxml = try requireReportingFixtureFCPXML()

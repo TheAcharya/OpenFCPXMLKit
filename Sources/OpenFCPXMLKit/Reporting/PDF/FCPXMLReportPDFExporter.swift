@@ -605,34 +605,7 @@ enum FCPXMLReportPDFExporter {
         recordsSectionStarts: Bool,
         to canvas: FCPXMLReportPDFCanvas.Builder
     ) {
-        let table: (headers: [String], rows: [[String]])
-        if mediaSummary.distinguishProxyAndOriginal {
-            let originals = mediaSummary.missingOriginalMediaPaths
-            let proxies = mediaSummary.missingProxyMediaPaths
-            let rowCount = max(originals.count, proxies.count)
-            guard rowCount > 0 else { return }
-            var rows: [[String]] = []
-            for index in 0 ..< rowCount {
-                rows.append([
-                    index < originals.count ? originals[index] : "",
-                    index < proxies.count ? proxies[index] : ""
-                ])
-            }
-            table = (
-                [
-                    FinalCutPro.FCPXML.MediaSummaryReportSection.missingOriginalMediaSectionTitle,
-                    FinalCutPro.FCPXML.MediaSummaryReportSection.missingProxyMediaSectionTitle
-                ],
-                rows
-            )
-        } else {
-            guard !mediaSummary.missingMediaPaths.isEmpty else { return }
-            table = (
-                [FinalCutPro.FCPXML.MediaSummaryReportSection.missingMediaSectionTitle],
-                mediaSummary.missingMediaPaths.map { [$0] }
-            )
-        }
-
+        let table = mediaSummary.exportTable()
         let filtered = filteredTabularSection(
             headers: table.headers,
             rows: table.rows,
@@ -651,7 +624,14 @@ enum FCPXMLReportPDFExporter {
             ),
             headers: filtered.headers,
             rows: filtered.rows,
-            rowTextColor: FCPXMLReportPDFStyle.missingMediaTextColor
+            rowTextColorForRow: { _, values in
+                let hasMissingPath = values.contains {
+                    FinalCutPro.FCPXML.MediaSummaryReportSection.isMissingMediaPathCell($0)
+                }
+                return hasMissingPath
+                    ? FCPXMLReportPDFStyle.missingMediaTextColor
+                    : FCPXMLReportPDFStyle.textColor
+            }
         )
     }
     

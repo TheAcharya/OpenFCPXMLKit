@@ -32,6 +32,9 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
     @OptionGroup(title: "EXTRACTION")
     var extraction: ExtractionOptions
 
+    @OptionGroup(title: "SHOT EXTRACTION")
+    var shotExtraction: ShotExtractionCLIOptions
+
     @OptionGroup(title: "REPORT")
     var reportOptions: ReportCLIOptions
 
@@ -68,18 +71,33 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
             if let v = timeline.projectVersion, FCPXMLVersion(string: v) == nil {
                 throw ValidationError("Invalid --project-version for --create-project: '\(v)'. Use a version between 1.5 and 1.14 (e.g. 1.10, 1.14).")
             }
-            let modeCount = [general.checkVersion, general.convertVersion != nil, general.validate, extraction.mediaCopy, reportOptions.report].filter { $0 }.count
+            let modeCount = [general.checkVersion, general.convertVersion != nil, general.validate, extraction.mediaCopy, shotExtraction.extractShots, reportOptions.report].filter { $0 }.count
             if modeCount > 0 {
-                throw ValidationError("Use only one of --check-version, --convert-version, --validate, --media-copy, --report, or --create-project.")
+                throw ValidationError("Use only one of --check-version, --convert-version, --validate, --media-copy, --extract-shots, --report, or --create-project.")
             }
             return
         }
-        let modeCount = [general.checkVersion, general.convertVersion != nil, general.validate, extraction.mediaCopy, reportOptions.report].filter { $0 }.count
+        let modeCount = [general.checkVersion, general.convertVersion != nil, general.validate, extraction.mediaCopy, shotExtraction.extractShots, reportOptions.report].filter { $0 }.count
         if modeCount > 1 {
-            throw ValidationError("Use only one of --check-version, --convert-version, --validate, --media-copy, or --report.")
+            throw ValidationError("Use only one of --check-version, --convert-version, --validate, --media-copy, --extract-shots, or --report.")
         }
         if fcpxmlPath == nil {
             throw ValidationError("fcpxml-path is required when not using --create-project.")
+        }
+        if shotExtraction.hasAnyModifier && !shotExtraction.extractShots {
+            throw ValidationError("SHOT EXTRACTION options require --extract-shots.")
+        }
+        if shotExtraction.extractShots {
+            _ = try shotExtraction.resolvedFormat()
+            _ = try shotExtraction.resolvedFolderFormat()
+            let scene = shotExtraction.sceneNumber?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if scene.isEmpty {
+                throw ValidationError("--scene-number is required when using --extract-shots.")
+            }
+            if outputDir == nil {
+                throw ValidationError("output-dir is required when using --extract-shots.")
+            }
+            return
         }
         if reportOptions.hasAnyReportModifier && !reportOptions.report {
             throw ValidationError("REPORT options require --report.")
@@ -148,6 +166,17 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
         }
         if extraction.mediaCopy {
             try ExtractMedia.run(fcpxmlPath: fcpxmlPath, outputDir: outDir, logger: logger, showProgress: !logOptions.quiet)
+            return
+        }
+        if shotExtraction.extractShots {
+            let options = try shotExtraction.makeLibraryOptions(outputDir: outDir, mediaBaseURL: nil)
+            try ExtractShots.runSynchronously(
+                fcpxmlPath: fcpxmlPath,
+                outputDir: outDir,
+                options: options,
+                logger: logger,
+                showProgress: !logOptions.quiet
+            )
             return
         }
         if reportOptions.report {

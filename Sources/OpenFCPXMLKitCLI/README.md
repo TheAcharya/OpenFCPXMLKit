@@ -9,7 +9,7 @@ Command-line interface for the OpenFCPXMLKit library. Use it to inspect and proc
 - **Executable name:** `OpenFCPXMLKit-CLI`
 - **Entry point:** `OpenFCPXMLKitCLI.swift` (root command; no subcommands)
 - **Arguments:** `<fcpxml-path>` (required when not using `--create-project`), `<output-dir>` (optional for `--check-version` and `--validate`; required for `--convert-version`, `--media-copy`, and default process; when using `--create-project`, the single positional argument is the output directory).
-- **Options:** Grouped under **GENERAL**, **TIMELINE**, **EXTRACTION**, **REPORT**, **LOG**, and standard **OPTIONS** (`--version`, `--help`)
+- **Options:** Grouped under **GENERAL**, **TIMELINE**, **EXTRACTION**, **SHOT EXTRACTION**, **REPORT**, **LOG**, and standard **OPTIONS** (`--version`, `--help`)
 
 ---
 
@@ -40,6 +40,10 @@ OpenFCPXMLKit-CLI --convert-version 1.14 --extension-type fcpxml /path/to/projec
 # Extract all media referenced in FCPXML/FCPXMLD to output-dir (progress bar when not --quiet; copied paths to stdout; summary to stderr)
 OpenFCPXMLKit-CLI --media-copy /path/to/project.fcpxml /path/to/output-dir
 OpenFCPXMLKit-CLI --media-copy /path/to/project.fcpxmld /path/to/output-dir
+
+# Shot Extraction: primary-timeline still images → PNG + CSV/Notion JSON (rejects video media)
+OpenFCPXMLKit-CLI --extract-shots --scene-number 50 --extract-format csv /path/to/Scene.fcpxmld /path/to/output-dir
+OpenFCPXMLKit-CLI --extract-shots --scene-number 50 --extract-format notion --icon "🎬" --folder-format medium --result-file-path /tmp/result.json /path/to/Scene.fcpxmld /path/to/output-dir
 
 # Role inventory only (default --report)
 OpenFCPXMLKit-CLI --report /path/to/project.fcpxmld /path/to/output-dir
@@ -102,7 +106,7 @@ OpenFCPXMLKit-CLI --log-level debug --convert-version 1.10 /path/to/project.fcpx
 OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 ```
 
-**Validation:** Use only one of `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--report`, or `--create-project`. When using `--convert-version`, `--media-copy`, or `--report`, or when running the default process, you must provide `<output-dir>` (created automatically if missing). When using `--create-project`, you must provide `--width`, `--height`, `--rate`, and the output directory as the single positional argument (also created if missing). `--report-full`, REPORT section flags, `--exclude-role`, `--exclude-disabled-clips`, `--include-markers-outside-clip-boundaries`, `--protect-sheets`, `--exclude-column`, `--timecode-format`, `--media-resolution`, `--media-summary-distinguish-proxy`, `--label-copyright`, and `--create-pdf` require `--report`. `--extension-type` requires `--convert-version`. If `--log` is set and the file exists, it must be writable. Invalid `--log-level`, `--project-version` (for create-project), `--timecode-format`, or `--media-resolution` values produce an error.
+**Validation:** Use only one of `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--extract-shots`, `--report`, or `--create-project`. When using `--convert-version`, `--media-copy`, `--extract-shots`, or `--report`, or when running the default process, you must provide `<output-dir>` (created automatically if missing). When using `--create-project`, you must provide `--width`, `--height`, `--rate`, and the output directory as the single positional argument (also created if missing). `--report-full`, REPORT section flags, `--exclude-role`, `--exclude-disabled-clips`, `--include-markers-outside-clip-boundaries`, `--protect-sheets`, `--exclude-column`, `--timecode-format`, `--media-resolution`, `--media-summary-distinguish-proxy`, `--label-copyright`, and `--create-pdf` require `--report`. Shot Extraction modifiers (`--extract-format`, `--scene-number`, `--folder-format`, `--result-file-path`, `--extract-project`, `--icon`) require `--extract-shots`; `--scene-number` is required with `--extract-shots`. `--extension-type` requires `--convert-version`. If `--log` is set and the file exists, it must be writable. Invalid `--log-level`, `--project-version` (for create-project), `--timecode-format`, `--media-resolution`, `--extract-format`, or `--folder-format` values produce an error.
 
 ---
 
@@ -111,6 +115,22 @@ OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 | Option | Description |
 |--------|-------------|
 | `--extension-type <fcpxml\|fcpxmld>` | Output format for `--convert-version`: `fcpxmld` (bundle, default) or `fcpxml` (single file). For target versions 1.5–1.9, `.fcpxml` is always used (bundles not supported). |
+
+---
+
+## SHOT EXTRACTION options
+
+| Option | Description |
+|--------|-------------|
+| `--extract-shots` | Extract primary-timeline still-image shots to PNG files plus a CSV or Notion JSON manifest. Rejects timelines that contain video media on the primary spine. |
+| `--scene-number <text>` | **Required** with `--extract-shots`. Scene number for Shot ID (`{scene}-001`) and Scene Number column. |
+| `--extract-format <csv\|notion>` | Manifest format (default `csv`). `notion` writes a JSON array of column-keyed objects compatible with [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo). Requires `--extract-shots`. |
+| `--folder-format <short\|medium\|long>` | Output folder naming (default `medium`). `medium` → `{timeline}-{yyyy-MM-dd-HH-mm-ss}` (e.g. `Demo_V1-2026-07-27-09-14-21`); `long` appends `-[CSV]` / `-[Notion]`. Requires `--extract-shots`. |
+| `--result-file-path <path>` | Optional JSON result summary path. Requires `--extract-shots`. |
+| `--extract-project <name>` | Optional project / timeline name filter. Requires `--extract-shots`. |
+| `--icon <text>` | Optional emoji (or any text) written to the **Icon Image** column on every shot row. Requires `--extract-shots`. |
+
+See [Manual 21 — Shot Extraction](../../Documentation/Manual/21-Shot-Extraction.md).
 
 ---
 
@@ -165,13 +185,14 @@ Log messages include parsing, version conversion, validation, save, and media ex
 
 | Path | Purpose |
 |------|--------|
-| `OpenFCPXMLKitCLI.swift` | Root command: configuration, GENERAL, TIMELINE, EXTRACTION, REPORT, and LOG option groups, arguments, validation, and `run()` dispatch. |
-| `Options/` | Option groups for help sections. `GeneralOptions` supplies **GENERAL** flags and `--extension-type`; `TimelineOptions` supplies **TIMELINE** options for `--create-project`; `ReportCLIOptions` supplies **REPORT** options; `LogOptions` supplies **LOG** options (`--log`, `--log-level`, `--quiet`). |
+| `OpenFCPXMLKitCLI.swift` | Root command: configuration, GENERAL, TIMELINE, EXTRACTION, SHOT EXTRACTION, REPORT, and LOG option groups, arguments, validation, and `run()` dispatch. |
+| `Options/` | Option groups for help sections. `GeneralOptions` supplies **GENERAL** flags and `--extension-type`; `TimelineOptions` supplies **TIMELINE** options for `--create-project`; `ShotExtractionCLIOptions` supplies **SHOT EXTRACTION**; `ReportCLIOptions` supplies **REPORT** options; `LogOptions` supplies **LOG** options (`--log`, `--log-level`, `--quiet`). |
 | `Commands/` | Feature modules. Each feature has its own subfolder and a `run(...)` entry point called from the root command (e.g. **CheckVersion** for `--check-version`). |
 | `Commands/CheckVersion/` | Implements `--check-version`: loads FCPXML and prints the document version. |
 | `Commands/ConvertVersion/` | Implements `--convert-version`: loads FCPXML, converts to target version (1.5–1.14), saves to output-dir as .fcpxmld (default) or .fcpxml per `--extension-type`; 1.5–1.9 always .fcpxml. |
 | `Commands/Validate/` | Implements `--validate`: loads FCPXML/FCPXMLD and runs robust validation (semantic + DTD). |
 | `Commands/ExtractMedia/` | Implements `--media-copy`: loads FCPXML/FCPXMLD and copies all referenced media files to output-dir. |
+| `Commands/ExtractShots/` | Implements `--extract-shots`: primary-timeline still-image Shot Extraction (PNG + CSV/Notion JSON). |
 | `Commands/ExportReport/` | Implements `--report`: loads FCPXML/FCPXMLD, builds report sections (project-once Timeline Projection when needed), writes an `.xlsx` workbook to output-dir, and optionally a `.pdf` when `--create-pdf` is set (same built `Report`; section/column/timecode/media-resolution options apply to both). |
 | `Commands/CreateProject/` | Implements `--create-project`: creates an empty FCPXML project with given width, height, frame rate, and version; runs DTD validation before writing; outputs FCP-style document (DOCTYPE, colorSpace, default smart collections). |
 | `Options/TimelineOptions.swift` | **TIMELINE** option group: `--create-project`, `--width`, `--height`, `--rate`, `--project-version`. |

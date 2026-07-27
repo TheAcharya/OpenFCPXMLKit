@@ -80,6 +80,7 @@ for entry in copyResult.failed { /* error */ }
 - [12 — Timeline Projection](12-Timeline-Projection.md) — playable media windows between Extraction and Reporting.
 - [13 — Media Processing](13-Media-Processing.md) — MIME type, asset validation, silence, duration, parallel I/O.
 - [20 — Reporting, Excel & PDF Export](20-Reporting.md) — build reports from Projection + Extraction and export to `.xlsx` or `.pdf`.
+- [21 — Shot Extraction](21-Shot-Extraction.md) — primary-timeline stills → PNG + CSV / Notion JSON.
 
 [← Manual Index](00-Index.md)
 

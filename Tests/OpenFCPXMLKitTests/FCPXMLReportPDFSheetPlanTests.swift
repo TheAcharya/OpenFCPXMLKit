@@ -79,6 +79,21 @@ struct FCPXMLReportPDFSheetPlanTests {
         )
     }
 
+    @Test("Empty Media Summary remains in PDF sheet plan")
+    func emptyMediaSummaryRemainsInPDFSheetPlan() {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "No Missing",
+            mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection()
+        )
+
+        let planned = FCPXMLReportPDFSheetPlan.plannedSheets(from: report)
+        #expect(
+            planned.map(\.title).contains(
+                FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName
+            )
+        )
+    }
+
     @Test("Table of contents entries preserve color index")
     func tableOfContentsEntriesPreserveColorIndex() {
         let planned = [
