@@ -7,6 +7,22 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [Unreleased]
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Media Summary empty state:** When Media Summary is enabled and no referenced media is missing, Excel and PDF keep the sheet headers and show a **No Missing Media** status row in the path column (**B2** with **Row**; default body colour, not missing-path red). Distinguish Original/Proxy mode places the status under **Missing Original**. Shared via `MediaSummaryReportSection.exportTable()` so both exporters stay identical. Suite counts **1151** listed (**1144** + **7**).
+
+### 🐛 Bug Fixes
+
+- None in this release.
+
+---
+
 ## [3.2.5](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.2.5) - 2026-07-24
 
 ### ✨ New Features

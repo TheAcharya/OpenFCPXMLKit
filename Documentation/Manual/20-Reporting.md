@@ -339,9 +339,9 @@ See [Sheet order and formatting](#sheet-order-and-formatting) for colours on oth
 - `missingOriginalMediaPaths` / `missingProxyMediaPaths` — classified when Projection windows expose `original-media` / `proxy-media` URLs.
 - `distinguishProxyAndOriginal` — mirrors `ReportOptions.mediaSummaryDistinguishProxyAndOriginal`.
 
-Default export: **Row** | **Missing Media** (black header). Paths render in **red** (`#FF0000`).
+Default export: **Row** | **Missing Media** (black header). Paths render in **red** (`#FF0000`). When no referenced files are missing, Excel and PDF still keep those headers and write a single status row with **No Missing Media** in the path column (**B2** when **Row** is present; default body text, not red).
 
-When `mediaSummaryDistinguishProxyAndOriginal` is `true`: **Row** | **Missing Original** | **Missing Proxy** (same red body styling). Document-only fallback (no projection windows) cannot distinguish kinds and places paths in the original bucket.
+When `mediaSummaryDistinguishProxyAndOriginal` is `true`: **Row** | **Missing Original** | **Missing Proxy** (same red body styling for real paths). An empty inventory places **No Missing Media** under **Missing Original** only. Document-only fallback (no projection windows) cannot distinguish kinds and places paths in the original bucket.
 
 Relative paths resolve against `mediaBaseURL` when provided.
 
@@ -552,7 +552,7 @@ Section sheets without a Category column use sheet-specific colour rules: **Keyw
 
 The **Summary** sheet uses default black text for project metrics and role-duration data. The **project title** is in **B1** (table header style: bold white on black) so column **A** remains a narrow **Row** index; **A1** / **C1–E1** share that black banner fill. Column **B** uses a generous title-based width. Role-duration column headers (including **Row**) and body cells follow the same black/white header convention as other sheets. The visual-section **subtotal** row (Excel and PDF) uses black fill with bold white body text — not header font size or centred alignment.
 
-The **Media Summary** sheet lists missing file paths in **red** (`#FF0000`), with a leading **Row** column unless excluded.
+The **Media Summary** sheet lists missing file paths in **red** (`#FF0000`), with a leading **Row** column unless excluded. When there are no missing files, the sheet still exports with headers and a **No Missing Media** status cell (not red) so Excel and PDF stay aligned.
 
 **Markers** use marker-type colours for the whole row: standard blue, incomplete to-do red, completed to-do green, chapter orange.
 

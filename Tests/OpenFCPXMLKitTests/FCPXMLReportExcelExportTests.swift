@@ -227,6 +227,57 @@ struct FCPXMLReportExcelExportTests {
         #expect(sheet?.getCellWithFormat("B3")?.format?.fontColor == "#FF0000")
     }
 
+    @Test("Media Summary empty inventory keeps headers and No Missing Media status")
+    @MainActor
+    func mediaSummaryEmptyInventoryKeepsHeadersAndNoMissingMediaStatus() {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test Project",
+            mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection()
+        )
+
+        let sheet = FinalCutPro.FCPXML.ReportExcelExport
+            .makeWorkbook(from: report)
+            .getSheet(name: FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName)
+
+        #expect(sheet?.getCellWithFormat("A1")?.value.stringValue == "Row")
+        #expect(sheet?.getCellWithFormat("B1")?.value.stringValue == "Missing Media")
+        #expect(sheet?.getCellWithFormat("B1")?.format?.backgroundColor == "#000000")
+        #expect(sheet?.getCellWithFormat("A2")?.value.stringValue == "1")
+        #expect(
+            sheet?.getCellWithFormat("B2")?.value.stringValue
+                == FinalCutPro.FCPXML.MediaSummaryReportSection.noMissingMediaMessage
+        )
+        // Status text must not use missing-path red.
+        #expect(sheet?.getCellWithFormat("B2")?.format?.fontColor != "#FF0000")
+        #expect(sheet?.getCellWithFormat("A3")?.value.stringValue == nil)
+    }
+
+    @Test("Media Summary distinguish empty inventory places status under Missing Original")
+    @MainActor
+    func mediaSummaryDistinguishEmptyInventoryPlacesStatusUnderMissingOriginal() {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test Project",
+            mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection(
+                distinguishProxyAndOriginal: true
+            )
+        )
+
+        let sheet = FinalCutPro.FCPXML.ReportExcelExport
+            .makeWorkbook(from: report)
+            .getSheet(name: FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName)
+
+        #expect(sheet?.getCellWithFormat("A1")?.value.stringValue == "Row")
+        #expect(sheet?.getCellWithFormat("B1")?.value.stringValue == "Missing Original")
+        #expect(sheet?.getCellWithFormat("C1")?.value.stringValue == "Missing Proxy")
+        #expect(sheet?.getCellWithFormat("A2")?.value.stringValue == "1")
+        #expect(
+            sheet?.getCellWithFormat("B2")?.value.stringValue
+                == FinalCutPro.FCPXML.MediaSummaryReportSection.noMissingMediaMessage
+        )
+        #expect(sheet?.getCellWithFormat("C2")?.value.stringValue == "")
+        #expect(sheet?.getCellWithFormat("B2")?.format?.fontColor != "#FF0000")
+    }
+
     @Test("Report table headers use black background and white text")
     @MainActor
     func reportTableHeadersUseBlackBackgroundAndWhiteText() {
