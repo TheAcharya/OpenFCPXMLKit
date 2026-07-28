@@ -208,7 +208,7 @@ These contracts define what a “near-zero miss” report must not omit when the
 
 ### Sections and columns
 
-**Row column (all tabular sheets):** Excel and PDF export prepend a 1-based **Row** column to every tabular sheet — Selected Roles Inventory and per-role sheets, Markers, Keywords, Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects, the Summary role-duration table, and Media Summary — unless `ReportColumn.row` is excluded. Inventory sheets include Row in their layout; other sheets receive it at export via **`ReportColumnExclusion.ensuringRowColumn`**. PDF pagination pins or injects the same column for multi-page / multi-column-set tables (see [PDF export](#pdf-export)). The **Non-Std Effects & Templates** sheet uses its own fixed columns (Name, Kind, Status, Path, UID) without an injected Row column.
+**Row column (all tabular sheets):** Excel and PDF export prepend a 1-based **Row** column to every tabular sheet — Selected Roles Inventory and per-role sheets, Markers, Keywords, Titles & Generators, Transitions, Non-Std Effects & Templates, Video & Audio Effects, Speed Change Effects, the Summary role-duration table, and Media Summary — unless `ReportColumn.row` is excluded. Inventory sheets include Row in their layout; other sheets receive it at export via **`ReportColumnExclusion.ensuringRowColumn`**. PDF pagination pins or injects the same column for multi-page / multi-column-set tables (see [PDF export](#pdf-export)).
 
 #### Role inventory
 
@@ -296,7 +296,7 @@ Audio/video hosts may fan out one marker to multiple Role ▸ Subrole rows (e.g.
 
 #### Non-Std Effects & Templates
 
-**NonStandardEffectsTemplatesReportSection** of **NonStandardEffectTemplateReportRow**: Name, Kind (Effect / Title / Transition / Generator), Status (`MISSING` when the template path is absent on disk), Path, UID.
+**NonStandardEffectsTemplatesReportSection** of **NonStandardEffectTemplateReportRow**: **Row**, Name, Kind (Effect / Title / Transition / Generator), Status (`MISSING` when the template path is absent on disk), Path, UID.
 
 Lists **non-Apple** `<effect>` resources from the document (UID does not match Apple-supplied Motion/FxPlug patterns). Missing Motion template paths are flagged like Media Summary’s missing media, but for effects/templates. Sheet tab title is shortened to **Non-Std Effects & Templates** (Excel’s 31-character limit). Enabled via `includeNonStandardEffectsTemplates` / CLI `--report-non-standard-effects`; included in `.full`. When enabled with an empty inventory, Excel and PDF keep headers and show **No Non-Std Effects Found** (same empty-state pattern as other section sheets).
 
@@ -343,7 +343,7 @@ Default export: **Row** | **Missing Media** (black header). Paths render in **re
 
 When `mediaSummaryDistinguishProxyAndOriginal` is `true`: **Row** | **Missing Original** | **Missing Proxy** (same red body styling for real paths). An empty inventory places **No Missing Media** under **Missing Original** only. Document-only fallback (no projection windows) cannot distinguish kinds and places paths in the original bucket.
 
-**Empty section sheets (other tabs):** The same empty-state pattern applies when a section is enabled (`.full`, a single-section preset, or CLI `--report-*`) but has no rows. Excel and PDF keep headers and write one status cell in the first content column (**B2** with **Row**; Non-Std Effects & Templates uses **A2** / Name, no injected Row):
+**Empty section sheets (other tabs):** The same empty-state pattern applies when a section is enabled (`.full`, a single-section preset, or CLI `--report-*`) but has no rows. Excel and PDF keep headers and write one status cell in the first content column (**B2** with **Row**):
 
 | Sheet | Status text |
 |-------|-------------|
@@ -632,7 +632,7 @@ Per-section presentation:
 - **Row colours** — the same rules as Excel (`FCPXMLReportRowColorPolicy`): role inventory category colours, marker-type colours, keywords/titles/effects/transitions inference, Non-Std Kind/UID colours, red missing-media paths.
 - **Summary role-duration table** — same layout semantics as Excel: injected **Row**, black header row, visual-section **subtotal** as a full-width black banner with bold white **body-size** text (`isSectionSubtotal`), and **% of Total** via `formattedPercentOfTotal` matching Excel’s `0.0%` display (not a raw Double string).
 - **Per-role Total footer** — same blank row + **Total:** / Clip Duration sum as Excel (black/white header style), drawn in the table content area.
-- **Non-Std Effects & Templates** — Name / Kind / Status / Path / UID (no injected Row); empty inventory shows **No Non-Std Effects Found**.
+- **Non-Std Effects & Templates** — Row + Name / Kind / Status / Path / UID; empty inventory shows **No Non-Std Effects Found**.
 - **Tables** — black header row with white text; body uses Menlo. Column widths are measured from content (clamped for horizontal packing), then **expanded proportionally to fill the A4 landscape content width** when leftover space remains (for example after many `excludedColumns`). Wide tables still **paginate horizontally** into column sets (running header shows `Columns 2 of 5` when chunked); each set also fills the page width. Pinned **Row** columns keep their packed width.
 - **Truncation** — cell text that exceeds column width is ellipsized (`…`). For the full untruncated dataset, use the Excel export.
 - **Row column** — included by default on all tabular content (same as Excel) via **`ensuringRowColumn`**. On multi-page or multi-column-set tables, Row is **pinned** on the left; if headers lack Row and injection is allowed, PDF injects it via **`preparePaginatedTable(allowInjectedRowColumn:)`**. Exclude `ReportColumn.row` (CLI `--exclude-column Row`) to omit Row everywhere, including continuation pages.

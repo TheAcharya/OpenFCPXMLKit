@@ -157,6 +157,7 @@ enum FCPXMLReportPDFExporter {
         if let nonStandard = report.nonStandardEffectsTemplates {
             appendNonStandardEffectsTemplates(
                 nonStandard,
+                excludedColumns: excludedColumns,
                 colorIndexByTitle: colorIndexByTitle,
                 recordsSectionStarts: recordsSectionStarts,
                 to: canvas
@@ -457,6 +458,7 @@ enum FCPXMLReportPDFExporter {
     
     private static func appendNonStandardEffectsTemplates(
         _ section: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection,
+        excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>,
         colorIndexByTitle: [String: Int],
         recordsSectionStarts: Bool,
         to canvas: FCPXMLReportPDFCanvas.Builder
@@ -465,7 +467,7 @@ enum FCPXMLReportPDFExporter {
             sheetName: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.defaultSheetName,
             headers: FinalCutPro.FCPXML.NonStandardEffectTemplateReportRow.columnHeaders,
             rows: section.rows.map(\.columnValues),
-            excludedColumns: [],
+            excludedColumns: excludedColumns,
             colorIndexByTitle: colorIndexByTitle,
             recordsSectionStarts: recordsSectionStarts,
             colorContext: .nonStandardEffectsTemplates,

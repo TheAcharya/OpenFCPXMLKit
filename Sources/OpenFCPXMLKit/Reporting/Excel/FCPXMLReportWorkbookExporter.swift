@@ -119,17 +119,17 @@ enum FCPXMLReportWorkbookExporter {
         }
         
         if let nonStandard = report.nonStandardEffectsTemplates {
-            let headers = FinalCutPro.FCPXML.NonStandardEffectTemplateReportRow.columnHeaders
-            let rows = FinalCutPro.FCPXML.ReportEmptySectionStatus.rowsOrEmptyStatus(
-                nonStandard.rows.map(\.columnValues),
-                headers: headers,
-                message: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.emptyStatusMessage
+            let filtered = filteredTabularSection(
+                headers: FinalCutPro.FCPXML.NonStandardEffectTemplateReportRow.columnHeaders,
+                rows: nonStandard.rows.map(\.columnValues),
+                excludedColumns: excludedColumns,
+                emptyStatusMessage: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.emptyStatusMessage
             )
             appendTabularSection(
                 to: workbook,
                 sheetName: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.defaultSheetName,
-                headers: headers,
-                rows: rows,
+                headers: filtered.headers,
+                rows: filtered.rows,
                 colorContext: .nonStandardEffectsTemplates
             )
         }

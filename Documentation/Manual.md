@@ -42,5 +42,5 @@ From the index you can reach all chapters:
 - **Documentation index:** [README.md](README.md)
 - **CLI reference:** [../Sources/OpenFCPXMLKitCLI/README.md](../Sources/OpenFCPXMLKitCLI/README.md)
 - **Project README:** [../README.md](../README.md)
-- **Tests:** [../Tests/README.md](../Tests/README.md) — **1166** listed tests (all Swift Testing)
+- **Tests:** [../Tests/README.md](../Tests/README.md) — **1165** listed tests (all Swift Testing)
 

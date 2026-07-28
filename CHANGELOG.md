@@ -7,6 +7,22 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.3.2](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.2) - 2026-07-28
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Documentation sync:** Manual 19–20, Coverage, Tests READMEs, ARCHITECTURE, AGENT, `.cursorrules`, and GUARDRAILS refreshed for universal **Row** on all tabular sheets. Suite counts **1165** listed (**1158** + **7**).
+
+### 🐛 Bug Fixes
+
+- **Non-Std Effects & Templates Row column:** Excel now injects the universal 1-based **Row** column on Non-Std Effects & Templates (same as Markers, Keywords, Effects, and other tabular sheets) via `filteredTabularSection` / `ensuringRowColumn`. PDF already injected Row; it now also honours `--exclude-column Row` for that sheet. Empty **No Non-Std Effects Found** status lands in **B2**.
+
+---
+
 ## [3.3.1](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.1) - 2026-07-28
 
 ### ✨ New Features

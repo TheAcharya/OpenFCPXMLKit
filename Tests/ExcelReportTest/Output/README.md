@@ -1,6 +1,6 @@
 # Excel and PDF report test output
 
-This folder holds **generated** `.xlsx` workbooks and `.pdf` reports from the `ExcelReportTest` target (**7** optional Swift Testing integration tests; part of the **1166**-test public suite). It is gitignored; files here are produced on your machine when you run the export tests. Without a local fixture, those tests **cancel** via `Test.cancel` and nothing is written.
+This folder holds **generated** `.xlsx` workbooks and `.pdf` reports from the `ExcelReportTest` target (**7** optional Swift Testing integration tests; part of the **1165**-test public suite). It is gitignored; files here are produced on your machine when you run the export tests. Without a local fixture, those tests **cancel** via `Test.cancel` and nothing is written.
 
 ---
 
@@ -9,7 +9,7 @@ This folder holds **generated** `.xlsx` workbooks and `.pdf` reports from the `E
 | File | Report preset | Description |
 |------|---------------|-------------|
 | **`OFK-Default.xlsx`** | `ReportOptions.roleInventoryOnly` | Selected Roles Inventory sheet and per-role inventory tabs only (same as CLI `--report` without `--report-full`) |
-| **`OFK-Full.xlsx`** | `ReportOptions.full` | Default sheets plus Markers … Non-Std Effects & Templates … Speed Change Effects (**Row** on tabular sheets except Non-Std), Summary (project title in **B1**), and Media Summary (**Row** + missing paths; default timecode format `HH:MM:SS:FF`; use CLI `--timecode-format` / `--media-summary-distinguish-proxy` for other modes) |
+| **`OFK-Full.xlsx`** | `ReportOptions.full` | Default sheets plus Markers … Non-Std Effects & Templates … Speed Change Effects (**Row** on all tabular sheets), Summary (project title in **B1**), and Media Summary (**Row** + missing paths; default timecode format `HH:MM:SS:FF`; use CLI `--timecode-format` / `--media-summary-distinguish-proxy` for other modes) |
 | **`OFK-Default.pdf`** | `ReportOptions.roleInventoryOnly` + `ReportPDFExport` | Role-inventory PDF with cover (black “About This PDF Export” + `info.circle`), TOC colour chips / content-tint washes, and tinted section pages (same as CLI `--report --create-pdf` without `--report-full`) |
 | **`OFK-Full.pdf`** | `ReportOptions.full` + `ReportPDFExport` | Full-report PDF (all sections); Summary visual-section subtotal banner + `% of Total` matching Excel `0.0%` (same as CLI `--report --report-full --create-pdf`) |
 | **`OFK-ExcludedColumns.pdf`** | role inventory + many `excludedColumns` | Same inventory with leftover page width redistributed across remaining columns |

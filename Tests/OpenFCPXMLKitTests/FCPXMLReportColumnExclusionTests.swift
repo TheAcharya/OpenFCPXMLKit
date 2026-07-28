@@ -275,6 +275,15 @@ struct FCPXMLReportColumnExclusionTests {
                     duration: "00:00:01:00"
                 )
             ]),
+            nonStandardEffectsTemplates: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection(
+                rows: [
+                    .init(
+                        name: "Custom Effect",
+                        kind: "Effect",
+                        uid: "FFCustomEffect"
+                    )
+                ]
+            ),
             effects: FinalCutPro.FCPXML.EffectsReportSection(rows: [
                 .init(
                     effect: "Gaussian",
@@ -316,6 +325,7 @@ struct FCPXMLReportColumnExclusionTests {
             FinalCutPro.FCPXML.KeywordsReportSection.defaultSheetName,
             FinalCutPro.FCPXML.TitlesReportSection.defaultSheetName,
             FinalCutPro.FCPXML.TransitionsReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.defaultSheetName,
             FinalCutPro.FCPXML.EffectsReportSection.defaultSheetName,
             FinalCutPro.FCPXML.SpeedChangeEffectsReportSection.defaultSheetName,
             FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName
@@ -356,6 +366,15 @@ struct FCPXMLReportColumnExclusionTests {
                     sourcePosition: "01:00:01:00"
                 )
             ]),
+            nonStandardEffectsTemplates: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection(
+                rows: [
+                    .init(
+                        name: "Custom Effect",
+                        kind: "Effect",
+                        uid: "FFCustomEffect"
+                    )
+                ]
+            ),
             mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection(
                 missingMediaPaths: ["/missing/clip.mov"]
             ),
@@ -369,6 +388,12 @@ struct FCPXMLReportColumnExclusionTests {
         )
         #expect(markers?.getCellWithFormat("A1")?.value.stringValue == "Marker Name")
         #expect(markers?.getCellWithFormat("A2")?.value.stringValue == "Marker A")
+
+        let nonStd = workbook.getSheet(
+            name: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.defaultSheetName
+        )
+        #expect(nonStd?.getCellWithFormat("A1")?.value.stringValue == "Name")
+        #expect(nonStd?.getCellWithFormat("A2")?.value.stringValue == "Custom Effect")
 
         let media = workbook.getSheet(
             name: FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName

@@ -311,10 +311,10 @@ struct FCPXMLReportExcelExportTests {
         let nonStd = workbook.getSheet(
             name: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.defaultSheetName
         )
-        // Non-Std has no injected Row — status lands in Name (A2).
-        #expect(nonStd?.getCellWithFormat("A1")?.value.stringValue == "Name")
+        #expect(nonStd?.getCellWithFormat("A1")?.value.stringValue == "Row")
+        #expect(nonStd?.getCellWithFormat("A2")?.value.stringValue == "1")
         #expect(
-            nonStd?.getCellWithFormat("A2")?.value.stringValue
+            nonStd?.getCellWithFormat("B2")?.value.stringValue
                 == FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.emptyStatusMessage
         )
 
