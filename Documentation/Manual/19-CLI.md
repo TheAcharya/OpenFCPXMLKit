@@ -136,7 +136,7 @@ Common values:
 | CLI value | Effect |
 |-----------|--------|
 | `Row` / `Row Numbers` | Removes the Row index column from **every** Excel and PDF tabular sheet, including PDF multi-page Row injection |
-| `Role Subrole` | Removes Role ▸ Subrole |
+| `Role Subrole` / `Role > Subrole` / `Roles > Subrole` | Removes Role ▸ Subrole (ASCII ` > ` normalised to ` ▸ `; colours stay applied from the row model) |
 | `Duplicate Frames` | Removes the Duplicate Frames inventory column |
 | `Codecs`, `Ingest Date` | Removes the named fixed inventory columns |
 | `Frame Size` / `Frame Size / Audio Config` | Removes Frame Size / Audio Config |

@@ -414,7 +414,7 @@ At build time, labels are resolved to `Set<ReportColumn>` and stored on **`Repor
 | Case | Primary header | Notes |
 |------|----------------|-------|
 | `.row` | Row | 1-based row index on **all** Excel/PDF tabular sheets (inventory, Markers … Media Summary, Summary role-duration table). Also suppresses PDF multi-page / multi-column-set Row injection. Aliases: Row Numbers, Row Number. |
-| `.roleSubrole` | Role ▸ Subrole | |
+| `.roleSubrole` | Role ▸ Subrole | Aliases: Role • Subrole, Role > Subrole, Roles > Subrole, Roles ▸ Subrole, Role Subrole, Role-Subrole |
 | `.clipName` | Clip Name | |
 | `.category` | Category | |
 | `.enabled` | Enabled | |
@@ -446,12 +446,14 @@ At build time, labels are resolved to `Set<ReportColumn>` and stored on **`Repor
 
 ### Accepted aliases
 
-Matching is **case- and diacritic-insensitive**. Common aliases include:
+Matching is **case- and diacritic-insensitive**. ASCII ` > ` is normalised to ` ▸ ` before matching. Common aliases include:
 
 - **Row Numbers**, **Row Number** → `.row`
-- **Role Subrole**, **Role • Subrole** → `.roleSubrole`
+- **Role Subrole**, **Role • Subrole**, **Role > Subrole**, **Roles > Subrole**, **Roles ▸ Subrole** → `.roleSubrole`
 - **Metadata** → all dynamic metadata key columns (and keys prefixed with `com.apple.` when matched by header)
 - **Frame Rate**, **Sample Rate** → `.frameRateSampleRate`
+
+Excluding a colour-source column (Role ▸ Subrole, Category, Non-Std Kind) **does not** clear row text colours. Colour is presentation keyed to the underlying row model — see [Sheet order and formatting](#sheet-order-and-formatting).
 
 ```swift
 var options = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
@@ -562,7 +564,9 @@ Sheet order follows the report:
 4. Non-Std Effects & Templates, Video & Audio Effects, Speed Change Effects
 5. Summary, Media Summary
 
-Role/subrole cells are colour-coded by category on inventory sheets (video/caption blue `#0066FF`, titles purple `#9933FF`, audio green `#00AA44`, gap gray `#808080`). The entire row is tinted on those sheets so clip names, timecodes, and other columns match the role colour.
+Role/subrole rows are colour-coded by category on inventory sheets (video/caption blue `#0066FF`, titles purple `#9933FF`, audio green `#00AA44`, gap gray `#808080`). The entire row is tinted on those sheets so clip names, timecodes, and other columns match the role colour.
+
+**Colour survives `--exclude-column`:** Excel and PDF resolve colours from typed row facts (`roleSubrole`, `category`, Non-Std Kind/UID, marker type) via `FCPXMLReportRowColorPolicy.fontColorHex(roleSubrole:categoryLabel:context:)` / `fontColorHex(forNonStandardKind:uid:)` (and matching `textColor` helpers). Excluding Role ▸ Subrole, Category, or Kind omits those columns only — it must **not** blank cell values or drop row colouring. Prefer the semantic APIs when a typed model is available; the header/value overload remains for fallbacks. Empty status rows (`ReportEmptySectionStatus`) stay uncoloured.
 
 Section sheets without a Category column use sheet-specific colour rules: **Keywords** rows are always blue; **Titles & Generators** infer purple for title roles; **Video & Audio Effects** and **Speed Change Effects** infer blue for video/title/caption-host rows and green for audio roles (effects Role ▸ Subrole uses type-filtered `preferredRole` so video filters are not painted green from an `audioRole`-only host); **Transitions** use gray text; **Non-Std Effects & Templates** colours by Kind / Effect UID (see [Non-Std Effects & Templates](#non-std-effects--templates)).
 
@@ -629,7 +633,7 @@ PDF export mirrors Excel **section order** and **sheet names** (via `FCPXMLRepor
 Per-section presentation:
 
 - **Per-sheet tint** — pages that belong to the same workbook section share a subtle background tint between the header rule and footer rule.
-- **Row colours** — the same rules as Excel (`FCPXMLReportRowColorPolicy`): role inventory category colours, marker-type colours, keywords/titles/effects/transitions inference, Non-Std Kind/UID colours, red missing-media paths.
+- **Row colours** — the same rules as Excel (`FCPXMLReportRowColorPolicy`): role inventory category colours, marker-type colours, keywords/titles/effects/transitions inference, Non-Std Kind/UID colours, red missing-media paths. Colours come from typed section/row models (not filtered headers), so excluding Role ▸ Subrole / Category / Kind does not drop tinting.
 - **Summary role-duration table** — same layout semantics as Excel: injected **Row**, black header row, visual-section **subtotal** as a full-width black banner with bold white **body-size** text (`isSectionSubtotal`), and **% of Total** via `formattedPercentOfTotal` matching Excel’s `0.0%` display (not a raw Double string).
 - **Per-role Total footer** — same blank row + **Total:** / Clip Duration sum as Excel (black/white header style), drawn in the table content area.
 - **Non-Std Effects & Templates** — Row + Name / Kind / Status / Path / UID; empty inventory shows **No Non-Std Effects Found**.

@@ -262,15 +262,19 @@ enum FCPXMLReportPDFExporter {
             ),
             headers: headers,
             rows: selectedRows,
-            rowTextColorForRow: { _, values in
+            rowTextColorForRow: { index, values in
                 if values.contains(where: {
                     FinalCutPro.FCPXML.ReportEmptySectionStatus.isStatusMessage($0)
                 }) {
                     return FCPXMLReportPDFStyle.textColor
                 }
+                guard index < roleInventory.selectedRoles.count else {
+                    return FCPXMLReportPDFStyle.textColor
+                }
+                let row = roleInventory.selectedRoles[index]
                 return FCPXMLReportRowColorPolicy.textColor(
-                    forRowValues: values,
-                    headers: headers,
+                    roleSubrole: row.roleSubrole,
+                    categoryLabel: row.category,
                     context: .roleInventory,
                     defaultColor: FCPXMLReportPDFStyle.textColor
                 )
@@ -305,10 +309,14 @@ enum FCPXMLReportPDFExporter {
                 ),
                 headers: headers,
                 rows: rows,
-                rowTextColorForRow: { _, values in
-                    FCPXMLReportRowColorPolicy.textColor(
-                        forRowValues: values,
-                        headers: headers,
+                rowTextColorForRow: { index, _ in
+                    guard index < roleSheet.rows.count else {
+                        return FCPXMLReportPDFStyle.textColor
+                    }
+                    let row = roleSheet.rows[index]
+                    return FCPXMLReportRowColorPolicy.textColor(
+                        roleSubrole: row.roleSubrole,
+                        categoryLabel: row.category,
                         context: .roleInventory,
                         defaultColor: FCPXMLReportPDFStyle.textColor
                     )
@@ -408,8 +416,15 @@ enum FCPXMLReportPDFExporter {
             excludedColumns: excludedColumns,
             colorIndexByTitle: colorIndexByTitle,
             recordsSectionStarts: recordsSectionStarts,
-            colorContext: .keywords,
             emptyStatusMessage: FinalCutPro.FCPXML.KeywordsReportSection.emptyStatusMessage,
+            semanticTextColorForRowIndex: { index in
+                guard index < keywords.rows.count else { return nil }
+                return FCPXMLReportRowColorPolicy.textColor(
+                    roleSubrole: keywords.rows[index].roleSubrole,
+                    context: .keywords,
+                    defaultColor: FCPXMLReportPDFStyle.textColor
+                )
+            },
             to: canvas
         )
     }
@@ -429,8 +444,15 @@ enum FCPXMLReportPDFExporter {
             excludedColumns: excludedColumns,
             colorIndexByTitle: colorIndexByTitle,
             recordsSectionStarts: recordsSectionStarts,
-            colorContext: .titlesAndGenerators,
             emptyStatusMessage: FinalCutPro.FCPXML.TitlesReportSection.emptyStatusMessage,
+            semanticTextColorForRowIndex: { index in
+                guard index < titles.rows.count else { return nil }
+                return FCPXMLReportRowColorPolicy.textColor(
+                    roleSubrole: titles.rows[index].roleSubrole,
+                    context: .titlesAndGenerators,
+                    defaultColor: FCPXMLReportPDFStyle.textColor
+                )
+            },
             to: canvas
         )
     }
@@ -450,8 +472,15 @@ enum FCPXMLReportPDFExporter {
             excludedColumns: excludedColumns,
             colorIndexByTitle: colorIndexByTitle,
             recordsSectionStarts: recordsSectionStarts,
-            colorContext: .transitions,
             emptyStatusMessage: FinalCutPro.FCPXML.TransitionsReportSection.emptyStatusMessage,
+            semanticTextColorForRowIndex: { index in
+                guard index < transitions.rows.count else { return nil }
+                return FCPXMLReportRowColorPolicy.textColor(
+                    roleSubrole: "",
+                    context: .transitions,
+                    defaultColor: FCPXMLReportPDFStyle.textColor
+                )
+            },
             to: canvas
         )
     }
@@ -470,8 +499,16 @@ enum FCPXMLReportPDFExporter {
             excludedColumns: excludedColumns,
             colorIndexByTitle: colorIndexByTitle,
             recordsSectionStarts: recordsSectionStarts,
-            colorContext: .nonStandardEffectsTemplates,
             emptyStatusMessage: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.emptyStatusMessage,
+            semanticTextColorForRowIndex: { index in
+                guard index < section.rows.count else { return nil }
+                let row = section.rows[index]
+                return FCPXMLReportRowColorPolicy.textColor(
+                    forNonStandardKind: row.kind,
+                    uid: row.uid,
+                    defaultColor: FCPXMLReportPDFStyle.textColor
+                )
+            },
             to: canvas
         )
     }
@@ -491,8 +528,15 @@ enum FCPXMLReportPDFExporter {
             excludedColumns: excludedColumns,
             colorIndexByTitle: colorIndexByTitle,
             recordsSectionStarts: recordsSectionStarts,
-            colorContext: .effects,
             emptyStatusMessage: FinalCutPro.FCPXML.EffectsReportSection.emptyStatusMessage,
+            semanticTextColorForRowIndex: { index in
+                guard index < effects.rows.count else { return nil }
+                return FCPXMLReportRowColorPolicy.textColor(
+                    roleSubrole: effects.rows[index].roleSubrole,
+                    context: .effects,
+                    defaultColor: FCPXMLReportPDFStyle.textColor
+                )
+            },
             to: canvas
         )
     }
@@ -512,8 +556,15 @@ enum FCPXMLReportPDFExporter {
             excludedColumns: excludedColumns,
             colorIndexByTitle: colorIndexByTitle,
             recordsSectionStarts: recordsSectionStarts,
-            colorContext: .speedChangeEffects,
             emptyStatusMessage: FinalCutPro.FCPXML.SpeedChangeEffectsReportSection.emptyStatusMessage,
+            semanticTextColorForRowIndex: { index in
+                guard index < speedChangeEffects.rows.count else { return nil }
+                return FCPXMLReportRowColorPolicy.textColor(
+                    roleSubrole: speedChangeEffects.rows[index].roleSubrole,
+                    context: .speedChangeEffects,
+                    defaultColor: FCPXMLReportPDFStyle.textColor
+                )
+            },
             to: canvas
         )
     }
@@ -525,8 +576,8 @@ enum FCPXMLReportPDFExporter {
         excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>,
         colorIndexByTitle: [String: Int],
         recordsSectionStarts: Bool,
-        colorContext: FCPXMLReportRowColorPolicy.Context,
         emptyStatusMessage: String? = nil,
+        semanticTextColorForRowIndex: ((Int) -> CGColor?)? = nil,
         to canvas: FCPXMLReportPDFCanvas.Builder
     ) {
         let filtered = filteredTabularSection(
@@ -547,18 +598,18 @@ enum FCPXMLReportPDFExporter {
             ),
             headers: filtered.headers,
             rows: filtered.rows,
-            rowTextColorForRow: { _, values in
+            rowTextColorForRow: { index, values in
                 if values.contains(where: {
                     FinalCutPro.FCPXML.ReportEmptySectionStatus.isStatusMessage($0)
                 }) {
                     return FCPXMLReportPDFStyle.textColor
                 }
-                return FCPXMLReportRowColorPolicy.textColor(
-                    forRowValues: values,
-                    headers: filtered.headers,
-                    context: colorContext,
-                    defaultColor: FCPXMLReportPDFStyle.textColor
-                )
+                if let semanticTextColorForRowIndex,
+                   let color = semanticTextColorForRowIndex(index)
+                {
+                    return color
+                }
+                return FCPXMLReportPDFStyle.textColor
             }
         )
     }

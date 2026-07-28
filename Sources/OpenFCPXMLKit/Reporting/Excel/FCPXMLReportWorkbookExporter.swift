@@ -78,7 +78,15 @@ enum FCPXMLReportWorkbookExporter {
                 sheetName: FinalCutPro.FCPXML.KeywordsReportSection.defaultSheetName,
                 headers: filtered.headers,
                 rows: filtered.rows,
-                colorContext: .keywords
+                rowFontColorHexes: semanticRowFontColorHexes(
+                    models: keywords.rows,
+                    exportedRowCount: filtered.rows.count
+                ) { row in
+                    FCPXMLReportRowColorPolicy.fontColorHex(
+                        roleSubrole: row.roleSubrole,
+                        context: .keywords
+                    )
+                }
             )
         }
         
@@ -96,7 +104,15 @@ enum FCPXMLReportWorkbookExporter {
                 sheetName: FinalCutPro.FCPXML.TitlesReportSection.defaultSheetName,
                 headers: filtered.headers,
                 rows: filtered.rows,
-                colorContext: .titlesAndGenerators
+                rowFontColorHexes: semanticRowFontColorHexes(
+                    models: titles.rows,
+                    exportedRowCount: filtered.rows.count
+                ) { row in
+                    FCPXMLReportRowColorPolicy.fontColorHex(
+                        roleSubrole: row.roleSubrole,
+                        context: .titlesAndGenerators
+                    )
+                }
             )
         }
         
@@ -114,7 +130,15 @@ enum FCPXMLReportWorkbookExporter {
                 sheetName: FinalCutPro.FCPXML.TransitionsReportSection.defaultSheetName,
                 headers: filtered.headers,
                 rows: filtered.rows,
-                colorContext: .transitions
+                rowFontColorHexes: semanticRowFontColorHexes(
+                    models: transitions.rows,
+                    exportedRowCount: filtered.rows.count
+                ) { _ in
+                    FCPXMLReportRowColorPolicy.fontColorHex(
+                        roleSubrole: "",
+                        context: .transitions
+                    )
+                }
             )
         }
         
@@ -130,7 +154,15 @@ enum FCPXMLReportWorkbookExporter {
                 sheetName: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.defaultSheetName,
                 headers: filtered.headers,
                 rows: filtered.rows,
-                colorContext: .nonStandardEffectsTemplates
+                rowFontColorHexes: semanticRowFontColorHexes(
+                    models: nonStandard.rows,
+                    exportedRowCount: filtered.rows.count
+                ) { row in
+                    FCPXMLReportRowColorPolicy.fontColorHex(
+                        forNonStandardKind: row.kind,
+                        uid: row.uid
+                    )
+                }
             )
         }
         
@@ -148,7 +180,15 @@ enum FCPXMLReportWorkbookExporter {
                 sheetName: FinalCutPro.FCPXML.EffectsReportSection.defaultSheetName,
                 headers: filtered.headers,
                 rows: filtered.rows,
-                colorContext: .effects
+                rowFontColorHexes: semanticRowFontColorHexes(
+                    models: effects.rows,
+                    exportedRowCount: filtered.rows.count
+                ) { row in
+                    FCPXMLReportRowColorPolicy.fontColorHex(
+                        roleSubrole: row.roleSubrole,
+                        context: .effects
+                    )
+                }
             )
         }
         
@@ -166,7 +206,15 @@ enum FCPXMLReportWorkbookExporter {
                 sheetName: FinalCutPro.FCPXML.SpeedChangeEffectsReportSection.defaultSheetName,
                 headers: filtered.headers,
                 rows: filtered.rows,
-                colorContext: .speedChangeEffects
+                rowFontColorHexes: semanticRowFontColorHexes(
+                    models: speedChangeEffects.rows,
+                    exportedRowCount: filtered.rows.count
+                ) { row in
+                    FCPXMLReportRowColorPolicy.fontColorHex(
+                        roleSubrole: row.roleSubrole,
+                        context: .speedChangeEffects
+                    )
+                }
             )
         }
         
@@ -264,20 +312,6 @@ enum FCPXMLReportWorkbookExporter {
         )
     }
     
-    private static func applyMarkerColorToRow(
-        _ sheet: Sheet,
-        row: Int,
-        values: [String],
-        markerType: FinalCutPro.FCPXML.MarkerReportType
-    ) {
-        let rowFormat = markerFontFormat(for: markerType)
-        
-        for (columnIndex, value) in values.enumerated() {
-            let coordinate = CellCoordinate(row: row, column: columnIndex + 1).excelAddress
-            sheet.setCell(coordinate, string: value, format: rowFormat)
-        }
-    }
-    
     private static func markerFontFormat(
         for markerType: FinalCutPro.FCPXML.MarkerReportType
     ) -> CellFormat {
@@ -297,16 +331,21 @@ enum FCPXMLReportWorkbookExporter {
         sheetName: String,
         headers: [String],
         rows: [[String]],
-        colorContext: RoleRowColorContext = .roleInventory
+        colorContext: RoleRowColorContext = .roleInventory,
+        rowFontColorHexes: [String?]? = nil
     ) {
         let sheet = workbook.addSheet(name: sanitizeSheetName(sheetName))
         setTableHeaderRow(sheet, row: 1, strings: headers)
         for (index, values) in rows.enumerated() {
             let rowIndex = index + 2
-            let rowFormat = rowFontFormatIfNeeded(
+            let rowFormat = rowFontFormat(
                 values: values,
                 headers: headers,
-                colorContext: colorContext
+                colorContext: colorContext,
+                semanticHex: rowFontColorHexes.flatMap { hexes in
+                    index < hexes.count ? hexes[index] : nil
+                },
+                preferSemantic: rowFontColorHexes != nil
             )
             for (columnIndex, value) in values.enumerated() {
                 let coordinate = CellCoordinate(row: rowIndex, column: columnIndex + 1).excelAddress
@@ -320,46 +359,44 @@ enum FCPXMLReportWorkbookExporter {
         FCPXMLReportWorkbookColumnAutoFit.apply(to: sheet, headers: headers, rows: rows)
     }
 
-    private static func rowFontFormatIfNeeded(
+    /// Maps typed section rows to per-exported-row colour hexes. Empty models → nil colours
+    /// (status-only sheets stay default body colour).
+    private static func semanticRowFontColorHexes<Row>(
+        models: [Row],
+        exportedRowCount: Int,
+        hex: (Row) -> String
+    ) -> [String?] {
+        if models.isEmpty {
+            return Array(repeating: nil, count: exportedRowCount)
+        }
+        return models.map { hex($0) }
+    }
+
+    private static func rowFontFormat(
         values: [String],
         headers: [String],
-        colorContext: RoleRowColorContext
+        colorContext: RoleRowColorContext,
+        semanticHex: String?,
+        preferSemantic: Bool
     ) -> CellFormat? {
         // Empty-state status rows stay default body colour (same as Media Summary status).
         if values.contains(where: { FinalCutPro.FCPXML.ReportEmptySectionStatus.isStatusMessage($0) }) {
             return nil
         }
-        guard let hex = FCPXMLReportRowColorPolicy.fontColorHex(
-            forRowValues: values,
-            headers: headers,
-            context: colorContext
-        ) else {
-            return nil
+        let hex: String?
+        if preferSemantic {
+            hex = semanticHex
+        } else {
+            hex = FCPXMLReportRowColorPolicy.fontColorHex(
+                forRowValues: values,
+                headers: headers,
+                context: colorContext
+            )
         }
+        guard let hex else { return nil }
         var format = CellFormat()
         format.fontColor = hex
         return format
-    }
-    
-    private static func applyRoleColorToRow(
-        _ sheet: Sheet,
-        row: Int,
-        values: [String],
-        headers: [String],
-        colorContext: RoleRowColorContext = .roleInventory
-    ) {
-        guard let rowFormat = rowFontFormatIfNeeded(
-            values: values,
-            headers: headers,
-            colorContext: colorContext
-        ) else {
-            return
-        }
-        
-        for (columnIndex, value) in values.enumerated() {
-            let coordinate = CellCoordinate(row: row, column: columnIndex + 1).excelAddress
-            sheet.setCell(coordinate, string: value, format: rowFormat)
-        }
     }
     
     private static func setTableHeaderRow(
@@ -619,7 +656,17 @@ enum FCPXMLReportWorkbookExporter {
             to: workbook,
             sheetName: FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName,
             headers: headers,
-            rows: selectedRows
+            rows: selectedRows,
+            rowFontColorHexes: semanticRowFontColorHexes(
+                models: roleInventory.selectedRoles,
+                exportedRowCount: selectedRows.count
+            ) { row in
+                FCPXMLReportRowColorPolicy.fontColorHex(
+                    roleSubrole: row.roleSubrole,
+                    categoryLabel: row.category,
+                    context: .roleInventory
+                )
+            }
         )
         
         for roleSheet in roleInventory.roleSheets {
@@ -663,14 +710,22 @@ enum FCPXMLReportWorkbookExporter {
         )
         setTableHeaderRow(sheet, row: 1, strings: headers)
         
+        // Always write cells; colour comes from the typed row (role / category), not from
+        // whether those columns remain after `--exclude-column`.
         for (index, values) in rows.enumerated() {
-            applyRoleColorToRow(
-                sheet,
-                row: index + 2,
-                values: values,
-                headers: headers,
-                colorContext: .roleInventory
+            let rowIndex = index + 2
+            let model = roleSheet.rows[index]
+            let hex = FCPXMLReportRowColorPolicy.fontColorHex(
+                roleSubrole: model.roleSubrole,
+                categoryLabel: model.category,
+                context: .roleInventory
             )
+            var rowFormat = CellFormat()
+            rowFormat.fontColor = hex
+            for (columnIndex, value) in values.enumerated() {
+                let coordinate = CellCoordinate(row: rowIndex, column: columnIndex + 1).excelAddress
+                sheet.setCell(coordinate, string: value, format: rowFormat)
+            }
         }
         
         if let totalValue = FinalCutPro.FCPXML.RoleInventorySheetTotal.optimisticClipDurationTotal(

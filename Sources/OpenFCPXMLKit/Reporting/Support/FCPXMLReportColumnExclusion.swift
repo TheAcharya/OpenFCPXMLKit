@@ -215,6 +215,8 @@ extension FinalCutPro.FCPXML {
                 .trimmingCharacters(in: .whitespacesAndNewlines)
                 .replacingOccurrences(of: "•", with: "▸")
                 .replacingOccurrences(of: "·", with: "▸")
+                // ASCII ">" is a common shell-friendly stand-in for the ▸ glyph.
+                .replacingOccurrences(of: " > ", with: " ▸ ")
                 .replacingOccurrences(of: "  ", with: " ")
         }
     }
@@ -325,7 +327,15 @@ extension FinalCutPro.FCPXML.ReportColumn {
         case .row:
             return ["Row", "Row Numbers", "Row Number"]
         case .roleSubrole:
-            return ["Role ▸ Subrole", "Role • Subrole", "Role Subrole", "Role-Subrole"]
+            return [
+                "Role ▸ Subrole",
+                "Role • Subrole",
+                "Role > Subrole",
+                "Roles > Subrole",
+                "Roles ▸ Subrole",
+                "Role Subrole",
+                "Role-Subrole",
+            ]
         case .clipName:
             return ["Clip Name"]
         case .category:

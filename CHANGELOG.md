@@ -7,6 +7,25 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.3.3](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.3) - 2026-07-28
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Row colour from semantic facts:** Excel and PDF colour inventory / section rows from typed models (`roleSubrole`, `category`, Non-Std Kind/UID, marker type) via `FCPXMLReportRowColorPolicy.fontColorHex(roleSubrole:categoryLabel:context:)` / `fontColorHex(forNonStandardKind:uid:)`, not from filtered header cells. Excluding Role ▸ Subrole, Category, or Kind no longer drops row colouring.
+- **`--exclude-column` Role aliases:** Accepts shell-friendly `Role > Subrole`, `Roles > Subrole`, and `Roles ▸ Subrole` (normalises ` > ` → ` ▸ `) in addition to `Role ▸ Subrole` / `Role Subrole`.
+- **ExcelReportTest:** Writes `Output/OFK-ExcludeRoleSubrole.xlsx` / `.pdf` for Role ▸ Subrole exclusion regression. `Package.swift` excludes `Output/` from the ExcelReportTest target (avoids SPM treating local `Sample.fcpxmld` as sources).
+- **Documentation sync:** Manual 19–20, Coverage, Tests READMEs, README, ARCHITECTURE (Mermaid ExcelReportTest **8**), AGENT, `.cursorrules`, and GUARDRAILS (Sign `row-colour-survives-column-exclusion`) refreshed. Suite counts **1169** listed (**1161** + **8**).
+
+### 🐛 Bug Fixes
+
+- **Empty per-role inventory sheets when Role ▸ Subrole excluded:** Excel per-role sheets previously wrote cell values only through the colour path, which looked up the Role ▸ Subrole header in filtered headers; excluding that column returned nil colour and left sheets empty (Selected Roles Inventory stayed populated). Excel now always writes cell values; colour is applied independently from the row model. PDF was already drawing rows and stays aligned via the same semantic colour APIs.
+
+---
+
 ## [3.3.2](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.2) - 2026-07-28
 
 ### ✨ New Features

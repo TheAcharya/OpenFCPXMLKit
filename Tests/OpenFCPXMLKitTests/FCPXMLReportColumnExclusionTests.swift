@@ -28,6 +28,14 @@ struct FCPXMLReportColumnExclusionTests {
                 == .roleSubrole
         )
         #expect(
+            FinalCutPro.FCPXML.ReportColumnExclusion.resolveColumn("Role > Subrole")
+                == .roleSubrole
+        )
+        #expect(
+            FinalCutPro.FCPXML.ReportColumnExclusion.resolveColumn("Roles > Subrole")
+                == .roleSubrole
+        )
+        #expect(
             FinalCutPro.FCPXML.ReportColumnExclusion.resolveColumn("frame rate")
                 == .frameRateSampleRate
         )
@@ -519,6 +527,253 @@ struct FCPXMLReportColumnExclusionTests {
         #expect(selected.getCellWithFormat("C2")?.value.stringValue == "Clip A")
         #expect(videoSheet.getCellWithFormat("C2")?.value.stringValue == "Clip A")
         #expect(dialogueSheet.getCellWithFormat("C2")?.value.stringValue == "Clip B")
+    }
+
+    /// Excluding Role ▸ Subrole must still write per-role sheet data (colour is optional).
+    @Test("Workbook keeps per-role sheet data when Role ▸ Subrole is excluded")
+    @MainActor
+    func workbookKeepsPerRoleSheetDataWhenRoleSubroleExcluded() throws {
+        let video = inventoryRow(roleSubrole: "Video", clipName: "Clip A")
+        let dialogue = inventoryRow(roleSubrole: "Dialogue", clipName: "Clip B")
+
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test",
+            roleInventory: FinalCutPro.FCPXML.RoleInventoryReportSection(
+                selectedRoles: [video, dialogue],
+                roleSheets: [
+                    .init(sheetName: "Video", rows: [video]),
+                    .init(sheetName: "Dialogue", rows: [dialogue])
+                ]
+            ),
+            excludedColumns: [.roleSubrole]
+        )
+
+        let headers = Layout.columnHeaders(
+            metadataColumnKeys: [],
+            excludedColumns: [.roleSubrole]
+        )
+        #expect(!headers.contains("Role ▸ Subrole"))
+        #expect(headers.contains("Clip Name"))
+
+        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
+        let selected = try #require(
+            workbook.getSheet(name: FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName)
+        )
+        let videoSheet = try #require(workbook.getSheet(name: "Video"))
+        let dialogueSheet = try #require(workbook.getSheet(name: "Dialogue"))
+
+        let clipNameColumn = try #require(headers.firstIndex(of: "Clip Name"))
+        let clipNameAddress = excelAddress(columnZeroBased: clipNameColumn, row: 2)
+
+        #expect(selected.getCellWithFormat(clipNameAddress)?.value.stringValue == "Clip A")
+        #expect(videoSheet.getCellWithFormat(clipNameAddress)?.value.stringValue == "Clip A")
+        #expect(dialogueSheet.getCellWithFormat(clipNameAddress)?.value.stringValue == "Clip B")
+
+        // Colour comes from the typed row (role / category), even when Role ▸ Subrole is excluded.
+        let categoryColumn = try #require(headers.firstIndex(of: "Category"))
+        let categoryAddress = excelAddress(columnZeroBased: categoryColumn, row: 2)
+        #expect(videoSheet.getCellWithFormat(categoryAddress)?.value.stringValue == "Primary video")
+        #expect(
+            videoSheet.getCellWithFormat(categoryAddress)?.format?.fontColor == "#0066FF"
+        )
+        #expect(
+            dialogueSheet.getCellWithFormat(categoryAddress)?.format?.fontColor == "#00AA44"
+        )
+    }
+
+    /// Colour survives excluding both Role ▸ Subrole and Category (semantic row facts).
+    @Test("Workbook keeps role colours when Role ▸ Subrole and Category are excluded")
+    @MainActor
+    func workbookKeepsRoleColoursWhenRoleAndCategoryExcluded() throws {
+        let video = inventoryRow(roleSubrole: "Video", clipName: "Clip A")
+        let dialogue = inventoryRow(roleSubrole: "Dialogue", clipName: "Clip B")
+
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test",
+            roleInventory: FinalCutPro.FCPXML.RoleInventoryReportSection(
+                selectedRoles: [video, dialogue],
+                roleSheets: [
+                    .init(sheetName: "Video", rows: [video]),
+                    .init(sheetName: "Dialogue", rows: [dialogue])
+                ]
+            ),
+            excludedColumns: [.roleSubrole, .category]
+        )
+
+        let headers = Layout.columnHeaders(
+            metadataColumnKeys: [],
+            excludedColumns: [.roleSubrole, .category]
+        )
+        #expect(!headers.contains("Role ▸ Subrole"))
+        #expect(!headers.contains("Category"))
+
+        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
+        let videoSheet = try #require(workbook.getSheet(name: "Video"))
+        let dialogueSheet = try #require(workbook.getSheet(name: "Dialogue"))
+
+        let clipNameColumn = try #require(headers.firstIndex(of: "Clip Name"))
+        let clipNameAddress = excelAddress(columnZeroBased: clipNameColumn, row: 2)
+        #expect(videoSheet.getCellWithFormat(clipNameAddress)?.format?.fontColor == "#0066FF")
+        #expect(dialogueSheet.getCellWithFormat(clipNameAddress)?.format?.fontColor == "#00AA44")
+    }
+
+    /// No single ``ReportColumn`` exclusion may gate Excel data writes (Role ▸ Subrole regression).
+    @Test(
+        "Workbook keeps data rows when any single column is excluded",
+        arguments: FinalCutPro.FCPXML.ReportColumn.allCases
+    )
+    @MainActor
+    func workbookKeepsDataRowsWhenAnySingleColumnExcluded(
+        excluded: FinalCutPro.FCPXML.ReportColumn
+    ) throws {
+        let video = inventoryRow(roleSubrole: "Video", clipName: "Clip A")
+        let marker = FinalCutPro.FCPXML.MarkerReportRow(
+            markerName: "M1",
+            type: .standard,
+            position: "00:00:00:00",
+            clipName: "Clip A",
+            roleSubrole: "Video",
+            reel: "R1",
+            scene: "S1",
+            sourcePosition: "00:00:00:00"
+        )
+        let keyword = FinalCutPro.FCPXML.KeywordReportRow(
+            keyword: "KW",
+            notes: "",
+            timelineIn: "00:00:00:00",
+            timelineOut: "00:00:01:00",
+            duration: "00:00:01:00",
+            clipName: "Clip A",
+            roleSubrole: "Video",
+            reel: "",
+            scene: ""
+        )
+        let title = FinalCutPro.FCPXML.TitleReportRow(
+            clipName: "Title A",
+            enabled: "✓",
+            isApple: "✓",
+            roleSubrole: "Titles",
+            timelineIn: "00:00:00:00",
+            timelineOut: "00:00:01:00",
+            duration: "00:00:01:00",
+            font: "Helvetica",
+            titleText: "Hello"
+        )
+        let effect = FinalCutPro.FCPXML.EffectReportRow(
+            effect: "Gaussian Blur",
+            settings: "",
+            enabled: "✓",
+            isApple: "✓",
+            clipName: "Clip A",
+            roleSubrole: "Video",
+            timelineIn: "00:00:00:00",
+            timelineOut: "00:00:01:00"
+        )
+        let nonStd = FinalCutPro.FCPXML.NonStandardEffectTemplateReportRow(
+            name: "Custom Effect",
+            kind: "Effect",
+            status: "Missing",
+            path: "/tmp/x.motn",
+            uid: "FFEffect:Custom"
+        )
+
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test",
+            markers: FinalCutPro.FCPXML.MarkersReportSection(rows: [marker]),
+            keywords: FinalCutPro.FCPXML.KeywordsReportSection(rows: [keyword]),
+            titlesAndGenerators: FinalCutPro.FCPXML.TitlesReportSection(rows: [title]),
+            nonStandardEffectsTemplates: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection(
+                rows: [nonStd]
+            ),
+            effects: FinalCutPro.FCPXML.EffectsReportSection(rows: [effect]),
+            mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection(
+                missingMediaPaths: ["/missing/clip.mov"]
+            ),
+            roleInventory: FinalCutPro.FCPXML.RoleInventoryReportSection(
+                selectedRoles: [video],
+                roleSheets: [.init(sheetName: "Video", rows: [video])]
+            ),
+            excludedColumns: [excluded]
+        )
+
+        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
+
+        let videoSheet = try #require(workbook.getSheet(name: "Video"))
+        #expect(
+            sheetHasNonEmptyDataCell(videoSheet),
+            "Per-role sheet emptied when excluding \(excluded.rawValue)"
+        )
+
+        let selected = try #require(
+            workbook.getSheet(name: FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName)
+        )
+        #expect(
+            sheetHasNonEmptyDataCell(selected),
+            "Selected Roles emptied when excluding \(excluded.rawValue)"
+        )
+
+        let markers = try #require(
+            workbook.getSheet(name: FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName)
+        )
+        #expect(
+            sheetHasNonEmptyDataCell(markers),
+            "Markers emptied when excluding \(excluded.rawValue)"
+        )
+
+        let keywords = try #require(
+            workbook.getSheet(name: FinalCutPro.FCPXML.KeywordsReportSection.defaultSheetName)
+        )
+        #expect(
+            sheetHasNonEmptyDataCell(keywords),
+            "Keywords emptied when excluding \(excluded.rawValue)"
+        )
+
+        let titles = try #require(
+            workbook.getSheet(name: FinalCutPro.FCPXML.TitlesReportSection.defaultSheetName)
+        )
+        #expect(
+            sheetHasNonEmptyDataCell(titles),
+            "Titles emptied when excluding \(excluded.rawValue)"
+        )
+
+        let effects = try #require(
+            workbook.getSheet(name: FinalCutPro.FCPXML.EffectsReportSection.defaultSheetName)
+        )
+        #expect(
+            sheetHasNonEmptyDataCell(effects),
+            "Effects emptied when excluding \(excluded.rawValue)"
+        )
+
+        let nonStdSheet = try #require(
+            workbook.getSheet(
+                name: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.defaultSheetName
+            )
+        )
+        #expect(
+            sheetHasNonEmptyDataCell(nonStdSheet),
+            "Non-Std emptied when excluding \(excluded.rawValue)"
+        )
+
+        let media = try #require(
+            workbook.getSheet(name: FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName)
+        )
+        #expect(
+            sheetHasNonEmptyDataCell(media),
+            "Media Summary emptied when excluding \(excluded.rawValue)"
+        )
+    }
+
+    /// True when row 2 has at least one non-empty string cell (headers are row 1).
+    private func sheetHasNonEmptyDataCell(_ sheet: Sheet) -> Bool {
+        for column in 0..<40 {
+            let raw = sheet.getCellWithFormat(excelAddress(columnZeroBased: column, row: 2))?
+                .value.stringValue
+            let value = (raw ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            if !value.isEmpty {
+                return true
+            }
+        }
+        return false
     }
 
     private func inventoryRow(

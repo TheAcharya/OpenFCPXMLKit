@@ -26,6 +26,8 @@ enum ExcelReportFixture {
     static let outsideClipBoundariesOutputXLSXFileName = "OFK-OutsideClipBoundaries.xlsx"
     static let outsideClipBoundariesOutputPDFFileName = "OFK-OutsideClipBoundaries.pdf"
     static let protectedSheetsOutputXLSXFileName = "OFK-ProtectedSheets.xlsx"
+    static let excludeRoleSubroleOutputXLSXFileName = "OFK-ExcludeRoleSubrole.xlsx"
+    static let excludeRoleSubroleOutputPDFFileName = "OFK-ExcludeRoleSubrole.pdf"
     
     /// URL to a `.fcpxml` file or `.fcpxmld` bundle directory.
     static func fixtureURL() -> URL? {

@@ -323,6 +323,79 @@ struct ExcelReportExportTests {
         try assertWorkbookExists(at: xlsxURL)
     }
     
+    /// Writes `Output/OFK-ExcludeRoleSubrole.xlsx` / `.pdf` — Role ▸ Subrole excluded;
+    /// per-role sheets must still contain clip data (regression for empty role tabs).
+    @Test("Export with Role ▸ Subrole excluded keeps per-role sheet data")
+    @MainActor
+    func exportWithRoleSubroleExcludedKeepsPerRoleSheetData() async throws {
+        let fixtureURL = try ExcelReportFixture.requireFixtureURL()
+        let outputDir = ExcelReportFixture.outputDirectoryURL()
+        try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
+        
+        var options = FinalCutPro.FCPXML.ReportOptions.full
+        options.excludedColumns = ["Roles > Subrole"]
+        
+        let report = try await loadReport(options: options, fixtureURL: fixtureURL)
+        #expect(report.excludedColumns.contains(.roleSubrole))
+        
+        let roleInventory = try #require(report.roleInventory)
+        #expect(!roleInventory.selectedRoles.isEmpty)
+        let roleSheetsWithRows = roleInventory.roleSheets.filter { !$0.rows.isEmpty }
+        #expect(!roleSheetsWithRows.isEmpty)
+        
+        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
+        let selected = try #require(
+            workbook.getSheet(name: FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName)
+        )
+        #expect(selected.getCellWithFormat("A1")?.value.stringValue == "Row")
+        #expect(selected.getCellWithFormat("B1")?.value.stringValue == "Clip Name")
+        let selectedClipName = selected.getCellWithFormat("B2")?.value.stringValue
+        #expect(selectedClipName != nil && !(selectedClipName?.isEmpty ?? true))
+        
+        let knownNonRoleSheets: Set<String> = [
+            FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.title,
+            FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.KeywordsReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.TitlesReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.TransitionsReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.EffectsReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.SpeedChangeEffectsReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.SummaryReportSection.defaultSheetName,
+            FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName,
+        ]
+        let roleTabSheets = workbook.getSheets().filter { sheet in
+            !knownNonRoleSheets.contains(sheet.name)
+        }
+        #expect(!roleTabSheets.isEmpty)
+        for sheet in roleTabSheets.prefix(8) {
+            let clipName = sheet.getCellWithFormat("B2")?.value.stringValue
+            #expect(
+                clipName != nil && !(clipName?.isEmpty ?? true),
+                "Per-role sheet '\(sheet.name)' must keep data when Role ▸ Subrole is excluded"
+            )
+        }
+        
+        let xlsxURL = try await writeWorkbook(
+            report,
+            named: ExcelReportFixture.excludeRoleSubroleOutputXLSXFileName,
+            to: outputDir
+        )
+        try assertWorkbookExists(at: xlsxURL)
+        
+        let pdfURL = outputDir.appendingPathComponent(
+            ExcelReportFixture.excludeRoleSubroleOutputPDFFileName
+        )
+        if FileManager.default.fileExists(atPath: pdfURL.path) {
+            try FileManager.default.removeItem(at: pdfURL)
+        }
+        try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
+        let pdfData = try Data(contentsOf: pdfURL)
+        #expect(String(data: pdfData.prefix(4), encoding: .ascii) == "%PDF")
+        #expect(pdfData.count > 5_000)
+    }
+    
     @MainActor
     private func writeWorkbook(
         _ report: FinalCutPro.FCPXML.Report,

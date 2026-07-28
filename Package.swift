@@ -76,7 +76,7 @@ let package = Package(
                 .product(name: "XLKit", package: "XLKit"),
             ],
             path: "Tests/ExcelReportTest",
-            exclude: ["README.md", "Output/README.md"]),
+            exclude: ["README.md", "Output/README.md", "Output"]),
         // End-user CLI target
         .executableTarget(
             name: "OpenFCPXMLKitCLI",

@@ -2,7 +2,7 @@
 
 This directory contains the test suite for OpenFCPXMLKit, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration. The suite runs on **macOS** (Foundation XML backend). The library also supports **iOS 26+** (AEXML backend); CI builds for iOS Simulator; the same tests are not run on iOS because they rely on Foundation XML.
 
-- **Test count:** **1165** tests listed in `swift test list` — **1158** in `OpenFCPXMLKitTests` + **7** in `ExcelReportTest` (all Swift Testing `@Test`; no XCTest remaining; ExcelReportTest cancels without a local fixture)
+- **Test count:** **1169** tests listed in `swift test list` — **1161** in `OpenFCPXMLKitTests` + **8** in `ExcelReportTest` (all Swift Testing `@Test`; no XCTest remaining; ExcelReportTest cancels without a local fixture)
 - **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines, audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), Timeline Projection (`TimelineProjector` / `MediaUsageWindow` / `ReportProjectionContext`, project-once for report sections), Excel and PDF reporting (universal **Row** column on all tabular sheets via `ensuringRowColumn` / `allowsInjectedRowColumn`, role inventory columns, Summary sheet with project title in **B1**, Media Summary sheets, configurable `ReportTimecodeFormat` / DF·NDF notation, format-aware headers, Frames/Feet+Frames sort order, inventory-first `ReportBuildPhase` progress, global column exclusion, disabled-clip filtering, Markers out-of-bounds filter / optional **Hidden** column (`includeMarkersOutsideClipBoundaries`), Excel `protectSheets` worksheet protection, workbook export and cell formatting, PDF cover with black “About This PDF Export” header + `info.circle`, TOC with accent colour chips + content-tint washes keyed to sheet `colorIndex`, remaining columns expanded to fill A4 landscape width after exclusions, section pagination, shared `FCPXMLReportRowColorPolicy`, standalone compound-clip timelines via `allReportTimelineSources()` / `FCPXMLCompoundClipReportTests`), and all supported FCPXML versions and frame rates  
 - **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure; validation and cross-platform XML tests; optional Excel/PDF report integration tests under `ExcelReportTest/`; private investigation inbox under `Submitted FCPXML/` (gitignored contents)
 
@@ -202,9 +202,9 @@ swift test --filter OpenFCPXMLKitTests             # By pattern
 To verify the documented test counts:
 
 ```bash
-swift test list 2>/dev/null | grep -c '\.'                        # 1165
-swift test list 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 1158
-swift test list 2>/dev/null | grep -c 'ExcelReportTest\.'       # 7
+swift test list 2>/dev/null | grep -c '\.'                        # 1169
+swift test list 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 1161
+swift test list 2>/dev/null | grep -c 'ExcelReportTest\.'       # 8
 ```
 
 ### Xcode
@@ -321,7 +321,7 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 - **FCPXMLReportTimecodeFormatTests** — Integration: DF/NDF sample reports; all four `ReportTimecodeFormat` modes; full-report cell/header shape assertions; workbook header suffixes; Keywords Frames-mode numeric row order.
 - **FCPXMLReportBuildPhaseTests** — `ReportBuildPhase.enabledPhases(for:)` product order (Selected Roles Inventory first; **Non-Std Effects & Templates** before Video & Audio Effects); `onPhaseStarted` callback order matches enabled phases for `.full`.
 - **FCPXMLReportRoleExclusionTests** — `excludedRoles` filtering (excluding a main role also excludes subroles).
-- **FCPXMLReportColumnExclusionTests** — `ReportColumn` alias resolution; `ensuringRowColumn` / `allowsInjectedRowColumn`; header/value filtering; format-suffixed timeline headers still match exclusion; workbook export omits excluded columns on inventory and markers sheets; `--exclude-column Row` removes Row from all tabular Excel/PDF sheets including PDF injection; Selected Roles vs per-role sheets: Row renumbers per sheet, shared `--exclude-column` headers, and matching dynamic metadata cells.
+- **FCPXMLReportColumnExclusionTests** — `ReportColumn` alias resolution (including shell-friendly `Role > Subrole` / `Roles > Subrole`); `ensuringRowColumn` / `allowsInjectedRowColumn`; header/value filtering; format-suffixed timeline headers still match exclusion; workbook export omits excluded columns on inventory and markers sheets; `--exclude-column Row` removes Row from all tabular Excel/PDF sheets including PDF injection; Selected Roles vs per-role sheets: Row renumbers per sheet, shared `--exclude-column` headers, and matching dynamic metadata cells; **per-role sheets keep data when Role ▸ Subrole is excluded**; **row colours survive excluding Role ▸ Subrole + Category**; parameterized check that excluding any single `ReportColumn` does not empty inventory sheets.
 - **FCPXMLReportExcludeDisabledClipsTests** — `excludeDisabledClips` omits `enabled="0"` clips from role inventory and titles sections (uses `DisabledClips` sample).
 - **FCPXMLRoleDisplayPreferenceTests** — RoleDisplayPreference priority tables and preferred-role selection per context.
 - **FCPXMLRoleInventoryClipCollectorTests** / **FCPXMLRoleInventoryRoleSheetOrderingTests** — Clip collection into role entries (nested connected `audioRole` / `videoRole` / child-role hosts inventoried; no-role nested audio folded; occluded hosts with own assignment retained; under-spine connected titles keep custom video roles; under-spine leaf video/generators inventoried); role-sheet ordering.
@@ -476,7 +476,7 @@ The **`ExcelReportTest`** target (separate from `OpenFCPXMLKitTests`) builds rea
 | Item | Detail |
 |------|--------|
 | **Location** | `Tests/ExcelReportTest/` |
-| **Test suite** | `@Suite("Excel report export")` / `ExcelReportExportTests` (**7** `@Test`s) — writes `Output/OFK-Default.xlsx`, `Output/OFK-Full.xlsx`, `Output/OFK-Default.pdf`, `Output/OFK-Full.pdf`, `Output/OFK-ExcludedColumns.pdf`, `Output/OFK-Copyright.xlsx` / `.pdf`, `Output/OFK-OutsideClipBoundaries.xlsx` / `.pdf`, and `Output/OFK-ProtectedSheets.xlsx` |
+| **Test suite** | `@Suite("Excel report export")` / `ExcelReportExportTests` (**8** `@Test`s) — writes `Output/OFK-Default.xlsx`, `Output/OFK-Full.xlsx`, `Output/OFK-Default.pdf`, `Output/OFK-Full.pdf`, `Output/OFK-ExcludedColumns.pdf`, `Output/OFK-Copyright.xlsx` / `.pdf`, `Output/OFK-OutsideClipBoundaries.xlsx` / `.pdf`, and `Output/OFK-ProtectedSheets.xlsx`, `Output/OFK-ExcludeRoleSubrole.xlsx` / `.pdf` |
 | **Fixture** | Preferred `Sample.fcpxmld` / `Sample.fcpxml` under this folder or under `Output/`; else `OFK_REPORTING_FCPXML_BUNDLE`; else auto-discovery |
 | **Run** | `swift test --filter ExcelReportExportTests` |
 
@@ -567,7 +567,7 @@ Add tests for new behaviour or edge cases; place them in the right file and MARK
 - **Final Cut Pro XML (FCPXML)** — [fcp.cafe](https://fcp.cafe) for format reference
 - **SwiftTimecode** (GitHub) — timecode and frame rate types
 
-**Keep counts in sync:** `swift test list` → **1165** total (**1158** OpenFCPXMLKitTests + **7** ExcelReportTest; all Swift Testing); **60** public samples.
+**Keep counts in sync:** `swift test list` → **1169** total (**1161** OpenFCPXMLKitTests + **8** ExcelReportTest; all Swift Testing); **60** public samples.
 
 ---
 

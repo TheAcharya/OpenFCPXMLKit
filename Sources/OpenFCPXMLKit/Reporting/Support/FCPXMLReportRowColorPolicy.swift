@@ -156,7 +156,28 @@ enum FCPXMLReportRowColorPolicy {
         cgColor(fromHex: markerFontColorHex(for: markerType))
     }
     
-    /// Font colour hex for a data row, or `nil` when the sheet has no colouring source.
+    /// Colour from semantic row facts.
+    ///
+    /// Independent of whether Role ▸ Subrole / Category are exported (`--exclude-column`).
+    /// Row colour is presentation style keyed to the underlying clip/effect identity, not to
+    /// visible workbook columns.
+    static func fontColorHex(
+        roleSubrole: String,
+        categoryLabel: String? = nil,
+        context: Context
+    ) -> String {
+        bucket(for: roleSubrole, categoryLabel: categoryLabel, context: context).fontColorHex
+    }
+    
+    /// Colour from Non-Std Kind / UID facts (independent of whether Kind/UID columns are exported).
+    static func fontColorHex(forNonStandardKind kind: String, uid: String = "") -> String {
+        bucket(forNonStandardKind: kind, uid: uid).fontColorHex
+    }
+    
+    /// Font colour hex derived from exported header/value cells.
+    ///
+    /// Prefer ``fontColorHex(roleSubrole:categoryLabel:context:)`` / Non-Std Kind APIs when the
+    /// typed row model is available so colour survives column exclusion.
     static func fontColorHex(
         forRowValues values: [String],
         headers: [String],
@@ -175,16 +196,16 @@ enum FCPXMLReportRowColorPolicy {
             {
                 uid = values[uidColumnIndex]
             }
-            return bucket(forNonStandardKind: values[kindColumnIndex], uid: uid).fontColorHex
+            return fontColorHex(forNonStandardKind: values[kindColumnIndex], uid: uid)
             
         case .keywords, .transitions, .effects, .speedChangeEffects, .titlesAndGenerators, .roleInventory:
-            guard let roleColumnIndex = headers.firstIndex(of: roleSubroleColumnHeader),
-                  values.indices.contains(roleColumnIndex)
-            else {
-                return nil
+            var roleValue = ""
+            if let roleColumnIndex = headers.firstIndex(of: roleSubroleColumnHeader),
+               values.indices.contains(roleColumnIndex)
+            {
+                roleValue = values[roleColumnIndex]
             }
             
-            let roleValue = values[roleColumnIndex]
             var categoryValue: String?
             if let categoryColumnIndex = headers.firstIndex(of: categoryColumnHeader),
                values.indices.contains(categoryColumnIndex)
@@ -192,11 +213,30 @@ enum FCPXMLReportRowColorPolicy {
                 categoryValue = values[categoryColumnIndex]
             }
             
-            return bucket(
-                for: roleValue,
-                categoryLabel: categoryValue,
-                context: context
-            ).fontColorHex
+            switch context {
+            case .keywords, .transitions:
+                return fontColorHex(
+                    roleSubrole: roleValue,
+                    categoryLabel: categoryValue,
+                    context: context
+                )
+            case .roleInventory:
+                guard !roleValue.isEmpty || categoryValue != nil else { return nil }
+                return fontColorHex(
+                    roleSubrole: roleValue,
+                    categoryLabel: categoryValue,
+                    context: context
+                )
+            case .effects, .speedChangeEffects, .titlesAndGenerators:
+                guard !roleValue.isEmpty else { return nil }
+                return fontColorHex(
+                    roleSubrole: roleValue,
+                    categoryLabel: categoryValue,
+                    context: context
+                )
+            case .nonStandardEffectsTemplates:
+                return nil
+            }
         }
     }
     
@@ -210,6 +250,28 @@ enum FCPXMLReportRowColorPolicy {
             return defaultColor
         }
         return cgColor(fromHex: hex) ?? defaultColor
+    }
+    
+    static func textColor(
+        roleSubrole: String,
+        categoryLabel: String? = nil,
+        context: Context,
+        defaultColor: CGColor
+    ) -> CGColor {
+        let hex = fontColorHex(
+            roleSubrole: roleSubrole,
+            categoryLabel: categoryLabel,
+            context: context
+        )
+        return cgColor(fromHex: hex) ?? defaultColor
+    }
+    
+    static func textColor(
+        forNonStandardKind kind: String,
+        uid: String = "",
+        defaultColor: CGColor
+    ) -> CGColor {
+        cgColor(fromHex: fontColorHex(forNonStandardKind: kind, uid: uid)) ?? defaultColor
     }
     
     private static func isAudioEffectUID(_ uid: String) -> Bool {
