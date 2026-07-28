@@ -252,6 +252,83 @@ struct FCPXMLReportExcelExportTests {
         #expect(sheet?.getCellWithFormat("A3")?.value.stringValue == nil)
     }
 
+    @Test("Empty Markers sheet keeps headers and No Markers Found status")
+    @MainActor
+    func emptyMarkersSheetKeepsHeadersAndNoMarkersFoundStatus() {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test Project",
+            markers: FinalCutPro.FCPXML.MarkersReportSection(rows: [])
+        )
+
+        let sheet = FinalCutPro.FCPXML.ReportExcelExport
+            .makeWorkbook(from: report)
+            .getSheet(name: FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName)
+
+        #expect(sheet?.getCellWithFormat("A1")?.value.stringValue == "Row")
+        #expect(sheet?.getCellWithFormat("B1")?.value.stringValue == "Marker Name")
+        #expect(sheet?.getCellWithFormat("A2")?.value.stringValue == "1")
+        #expect(
+            sheet?.getCellWithFormat("B2")?.value.stringValue
+                == FinalCutPro.FCPXML.MarkersReportSection.emptyStatusMessage
+        )
+        #expect(sheet?.getCellWithFormat("A3")?.value.stringValue == nil)
+    }
+
+    @Test("Empty Keywords / Effects / Non-Std sheets keep headers and status messages")
+    @MainActor
+    func emptySectionSheetsKeepHeadersAndStatusMessages() {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test Project",
+            keywords: FinalCutPro.FCPXML.KeywordsReportSection(rows: []),
+            nonStandardEffectsTemplates: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection(
+                rows: []
+            ),
+            effects: FinalCutPro.FCPXML.EffectsReportSection(rows: []),
+            roleInventory: FinalCutPro.FCPXML.RoleInventoryReportSection()
+        )
+
+        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
+
+        let keywords = workbook.getSheet(
+            name: FinalCutPro.FCPXML.KeywordsReportSection.defaultSheetName
+        )
+        #expect(keywords?.getCellWithFormat("A1")?.value.stringValue == "Row")
+        #expect(keywords?.getCellWithFormat("A2")?.value.stringValue == "1")
+        #expect(
+            keywords?.getCellWithFormat("B2")?.value.stringValue
+                == FinalCutPro.FCPXML.KeywordsReportSection.emptyStatusMessage
+        )
+
+        let effects = workbook.getSheet(
+            name: FinalCutPro.FCPXML.EffectsReportSection.defaultSheetName
+        )
+        #expect(effects?.getCellWithFormat("A2")?.value.stringValue == "1")
+        #expect(
+            effects?.getCellWithFormat("B2")?.value.stringValue
+                == FinalCutPro.FCPXML.EffectsReportSection.emptyStatusMessage
+        )
+
+        let nonStd = workbook.getSheet(
+            name: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.defaultSheetName
+        )
+        // Non-Std has no injected Row — status lands in Name (A2).
+        #expect(nonStd?.getCellWithFormat("A1")?.value.stringValue == "Name")
+        #expect(
+            nonStd?.getCellWithFormat("A2")?.value.stringValue
+                == FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.emptyStatusMessage
+        )
+
+        let inventory = workbook.getSheet(
+            name: FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName
+        )
+        #expect(inventory?.getCellWithFormat("A1")?.value.stringValue == "Row")
+        #expect(inventory?.getCellWithFormat("A2")?.value.stringValue == "1")
+        #expect(
+            inventory?.getCellWithFormat("B2")?.value.stringValue
+                == FinalCutPro.FCPXML.RoleInventoryReportSection.emptyStatusMessage
+        )
+    }
+
     @Test("Media Summary distinguish empty inventory places status under Missing Original")
     @MainActor
     func mediaSummaryDistinguishEmptyInventoryPlacesStatusUnderMissingOriginal() {

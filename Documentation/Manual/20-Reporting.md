@@ -298,7 +298,7 @@ Audio/video hosts may fan out one marker to multiple Role ▸ Subrole rows (e.g.
 
 **NonStandardEffectsTemplatesReportSection** of **NonStandardEffectTemplateReportRow**: Name, Kind (Effect / Title / Transition / Generator), Status (`MISSING` when the template path is absent on disk), Path, UID.
 
-Lists **non-Apple** `<effect>` resources from the document (UID does not match Apple-supplied Motion/FxPlug patterns). Missing Motion template paths are flagged like Media Summary’s missing media, but for effects/templates. Sheet tab title is shortened to **Non-Std Effects & Templates** (Excel’s 31-character limit). Enabled via `includeNonStandardEffectsTemplates` / CLI `--report-non-standard-effects`; included in `.full`. Empty inventories omit the sheet at export.
+Lists **non-Apple** `<effect>` resources from the document (UID does not match Apple-supplied Motion/FxPlug patterns). Missing Motion template paths are flagged like Media Summary’s missing media, but for effects/templates. Sheet tab title is shortened to **Non-Std Effects & Templates** (Excel’s 31-character limit). Enabled via `includeNonStandardEffectsTemplates` / CLI `--report-non-standard-effects`; included in `.full`. When enabled with an empty inventory, Excel and PDF keep headers and show **No Non-Std Effects Found** (same empty-state pattern as other section sheets).
 
 **Row colours (Excel and PDF):** Because this sheet has no Role ▸ Subrole column, colours come from **Kind** (and Effect UID) via `FCPXMLReportRowColorPolicy.bucket(forNonStandardKind:uid:)`:
 
@@ -342,6 +342,22 @@ See [Sheet order and formatting](#sheet-order-and-formatting) for colours on oth
 Default export: **Row** | **Missing Media** (black header). Paths render in **red** (`#FF0000`). When no referenced files are missing, Excel and PDF still keep those headers and write a single status row with **No Missing Media** in the path column (**B2** when **Row** is present; default body text, not red).
 
 When `mediaSummaryDistinguishProxyAndOriginal` is `true`: **Row** | **Missing Original** | **Missing Proxy** (same red body styling for real paths). An empty inventory places **No Missing Media** under **Missing Original** only. Document-only fallback (no projection windows) cannot distinguish kinds and places paths in the original bucket.
+
+**Empty section sheets (other tabs):** The same empty-state pattern applies when a section is enabled (`.full`, a single-section preset, or CLI `--report-*`) but has no rows. Excel and PDF keep headers and write one status cell in the first content column (**B2** with **Row**; Non-Std Effects & Templates uses **A2** / Name, no injected Row):
+
+| Sheet | Status text |
+|-------|-------------|
+| Selected Roles Inventory | **No Roles Found** |
+| Markers | **No Markers Found** |
+| Keywords | **No Keywords Found** |
+| Titles & Generators | **No Titles & Generators Found** |
+| Transitions | **No Transitions Found** |
+| Non-Std Effects & Templates | **No Non-Std Effects Found** |
+| Video & Audio Effects | **No Effects Found** |
+| Speed Change Effects | **No Speed Change Effects Found** |
+| Media Summary | **No Missing Media** (above) |
+
+Per-role inventory tabs are still omitted when empty. Summary keeps its project-metrics layout (no status-row substitute). Shared helper: `ReportEmptySectionStatus`.
 
 Relative paths resolve against `mediaBaseURL` when provided.
 
@@ -552,7 +568,7 @@ Section sheets without a Category column use sheet-specific colour rules: **Keyw
 
 The **Summary** sheet uses default black text for project metrics and role-duration data. The **project title** is in **B1** (table header style: bold white on black) so column **A** remains a narrow **Row** index; **A1** / **C1–E1** share that black banner fill. Column **B** uses a generous title-based width. Role-duration column headers (including **Row**) and body cells follow the same black/white header convention as other sheets. The visual-section **subtotal** row (Excel and PDF) uses black fill with bold white body text — not header font size or centred alignment.
 
-The **Media Summary** sheet lists missing file paths in **red** (`#FF0000`), with a leading **Row** column unless excluded. When there are no missing files, the sheet still exports with headers and a **No Missing Media** status cell (not red) so Excel and PDF stay aligned.
+The **Media Summary** sheet lists missing file paths in **red** (`#FF0000`), with a leading **Row** column unless excluded. When there are no missing files, the sheet still exports with headers and a **No Missing Media** status cell (not red) so Excel and PDF stay aligned. Other enabled section sheets use the same empty-state pattern (`ReportEmptySectionStatus` — e.g. **No Markers Found**).
 
 **Markers** use marker-type colours for the whole row: standard blue, incomplete to-do red, completed to-do green, chapter orange.
 
@@ -616,7 +632,7 @@ Per-section presentation:
 - **Row colours** — the same rules as Excel (`FCPXMLReportRowColorPolicy`): role inventory category colours, marker-type colours, keywords/titles/effects/transitions inference, Non-Std Kind/UID colours, red missing-media paths.
 - **Summary role-duration table** — same layout semantics as Excel: injected **Row**, black header row, visual-section **subtotal** as a full-width black banner with bold white **body-size** text (`isSectionSubtotal`), and **% of Total** via `formattedPercentOfTotal` matching Excel’s `0.0%` display (not a raw Double string).
 - **Per-role Total footer** — same blank row + **Total:** / Clip Duration sum as Excel (black/white header style), drawn in the table content area.
-- **Non-Std Effects & Templates** — Name / Kind / Status / Path / UID (no injected Row); omitted when empty.
+- **Non-Std Effects & Templates** — Name / Kind / Status / Path / UID (no injected Row); empty inventory shows **No Non-Std Effects Found**.
 - **Tables** — black header row with white text; body uses Menlo. Column widths are measured from content (clamped for horizontal packing), then **expanded proportionally to fill the A4 landscape content width** when leftover space remains (for example after many `excludedColumns`). Wide tables still **paginate horizontally** into column sets (running header shows `Columns 2 of 5` when chunked); each set also fills the page width. Pinned **Row** columns keep their packed width.
 - **Truncation** — cell text that exceeds column width is ellipsized (`…`). For the full untruncated dataset, use the Excel export.
 - **Row column** — included by default on all tabular content (same as Excel) via **`ensuringRowColumn`**. On multi-page or multi-column-set tables, Row is **pinned** on the left; if headers lack Row and injection is allowed, PDF injects it via **`preparePaginatedTable(allowInjectedRowColumn:)`**. Exclude `ReportColumn.row` (CLI `--exclude-column Row`) to omit Row everywhere, including continuation pages.

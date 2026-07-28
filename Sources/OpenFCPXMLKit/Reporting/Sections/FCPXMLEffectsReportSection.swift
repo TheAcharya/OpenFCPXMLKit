@@ -108,6 +108,8 @@ extension FinalCutPro.FCPXML {
     /// Video & Audio Effects report section.
     public struct EffectsReportSection: ReportSection, Sendable, Equatable {
         public static let defaultSheetName = "Video & Audio Effects"
+        /// Status text when the Effects sheet is enabled but has no effect rows.
+        public static let emptyStatusMessage = "No Effects Found"
         public var rows: [EffectReportRow]
         
         public init(rows: [EffectReportRow] = []) {

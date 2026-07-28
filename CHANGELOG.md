@@ -7,6 +7,24 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.3.1](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.1) - 2026-07-28
+
+### ✨ New Features
+
+- **Shot Extraction dry-run:** `ShotExtractor.plan(from:options:)` / `planShots(options:)` validates the timeline and returns ``ShotExtractionPlan`` (`shotCount`, planned folder, shot rows) without writing PNGs or manifests. CLI `--extract-shots --dry-run` (output-dir optional; optional `--result-file-path` writes a dry-run JSON summary). Designed for future GUI open/drop preflight. Invalid timelines throw ``ShotExtractionError`` with `LocalizedError` messages the GUI can display.
+
+### 🔧 Improvements
+
+- **Empty report sheet status rows:** When a section is enabled (full report or a single sheet) but has no data, Excel and PDF keep the sheet headers and show a status row — **No Markers Found**, **No Keywords Found**, **No Titles & Generators Found**, **No Transitions Found**, **No Effects Found**, **No Speed Change Effects Found**, **No Non-Std Effects Found**, **No Roles Found** (Selected Roles Inventory), matching Media Summary’s **No Missing Media**. Shared via `ReportEmptySectionStatus`; PDF sheet plan includes empty enabled sections. Per-role inventory tabs still omit when empty. Summary layout unchanged.
+- **Shot Extraction primary-spine rules:** Reject titles / generators / Motion templates (`containsTitlesOrGenerators`) and primary audio clips (`containsPrimaryAudio`) in addition to non-still video. Connected lanes remain ignored. `extract` and `plan` share one validation path.
+- **Documentation sync:** Manual 19–22, Coverage, Tests READMEs, README, ARCHITECTURE (Mermaid ShotExtraction / CLI), AGENT, `.cursorrules`, and GUARDRAILS refreshed for dry-run, empty-sheet status rows, and expanded rejection rules. Suite counts **1166** listed (**1159** + **7**).
+
+### 🐛 Bug Fixes
+
+- None in this release.
+
+---
+
 ## [3.3.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.0) - 2026-07-27
 
 ### ✨ New Features

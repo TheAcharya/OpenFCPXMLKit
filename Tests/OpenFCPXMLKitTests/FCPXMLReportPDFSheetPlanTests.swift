@@ -94,6 +94,39 @@ struct FCPXMLReportPDFSheetPlanTests {
         )
     }
 
+    @Test("Empty enabled section sheets remain in PDF sheet plan with status messages")
+    func emptyEnabledSectionSheetsRemainInPDFSheetPlan() {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Empty Sections",
+            markers: FinalCutPro.FCPXML.MarkersReportSection(rows: []),
+            keywords: FinalCutPro.FCPXML.KeywordsReportSection(rows: []),
+            titlesAndGenerators: FinalCutPro.FCPXML.TitlesReportSection(rows: []),
+            transitions: FinalCutPro.FCPXML.TransitionsReportSection(rows: []),
+            nonStandardEffectsTemplates: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection(
+                rows: []
+            ),
+            effects: FinalCutPro.FCPXML.EffectsReportSection(rows: []),
+            speedChangeEffects: FinalCutPro.FCPXML.SpeedChangeEffectsReportSection(rows: []),
+            mediaSummary: FinalCutPro.FCPXML.MediaSummaryReportSection(),
+            roleInventory: FinalCutPro.FCPXML.RoleInventoryReportSection()
+        )
+
+        let titles = FCPXMLReportPDFSheetPlan.plannedSheets(from: report).map(\.title)
+        #expect(titles.contains(FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName))
+        #expect(titles.contains(FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName))
+        #expect(titles.contains(FinalCutPro.FCPXML.KeywordsReportSection.defaultSheetName))
+        #expect(titles.contains(FinalCutPro.FCPXML.TitlesReportSection.defaultSheetName))
+        #expect(titles.contains(FinalCutPro.FCPXML.TransitionsReportSection.defaultSheetName))
+        #expect(
+            titles.contains(
+                FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.defaultSheetName
+            )
+        )
+        #expect(titles.contains(FinalCutPro.FCPXML.EffectsReportSection.defaultSheetName))
+        #expect(titles.contains(FinalCutPro.FCPXML.SpeedChangeEffectsReportSection.defaultSheetName))
+        #expect(titles.contains(FinalCutPro.FCPXML.MediaSummaryReportSection.defaultSheetName))
+    }
+
     @Test("Table of contents entries preserve color index")
     func tableOfContentsEntriesPreserveColorIndex() {
         let planned = [

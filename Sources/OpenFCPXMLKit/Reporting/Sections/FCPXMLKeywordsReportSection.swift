@@ -81,6 +81,8 @@ extension FinalCutPro.FCPXML {
     /// Keywords report section.
     public struct KeywordsReportSection: ReportSection, Sendable, Equatable {
         public static let defaultSheetName = "Keywords"
+        /// Status text when the Keywords sheet is enabled but has no keyword rows.
+        public static let emptyStatusMessage = "No Keywords Found"
         public var rows: [KeywordReportRow]
         
         public init(rows: [KeywordReportRow] = []) {

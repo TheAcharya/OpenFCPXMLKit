@@ -50,6 +50,8 @@ extension FinalCutPro.FCPXML {
     /// Non-Apple / missing template inventory (effects, titles, transitions, generators).
     public struct NonStandardEffectsTemplatesReportSection: ReportSection, Sendable, Equatable {
         public static let defaultSheetName = "Non-Std Effects & Templates"
+        /// Status text when the Non-Std sheet is enabled but has no effect/template rows.
+        public static let emptyStatusMessage = "No Non-Std Effects Found"
         
         public var rows: [NonStandardEffectTemplateReportRow]
         
