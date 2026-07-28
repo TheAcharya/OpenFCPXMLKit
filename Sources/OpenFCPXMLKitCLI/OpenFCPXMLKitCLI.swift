@@ -94,8 +94,8 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
             if scene.isEmpty {
                 throw ValidationError("--scene-number is required when using --extract-shots.")
             }
-            if outputDir == nil {
-                throw ValidationError("output-dir is required when using --extract-shots.")
+            if !shotExtraction.dryRun, outputDir == nil {
+                throw ValidationError("output-dir is required when using --extract-shots (optional with --dry-run).")
             }
             return
         }
@@ -150,6 +150,22 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
             try Validate.run(fcpxmlPath: fcpxmlPath, logger: logger, showProgress: !logOptions.quiet)
             return
         }
+        if shotExtraction.extractShots {
+            let outDir = outputDir ?? FileManager.default.temporaryDirectory
+            if !shotExtraction.dryRun {
+                try CLIOutputDirectory.ensureExists(outDir)
+            }
+            let options = try shotExtraction.makeLibraryOptions(outputDir: outDir, mediaBaseURL: nil)
+            try ExtractShots.runSynchronously(
+                fcpxmlPath: fcpxmlPath,
+                outputDir: outDir,
+                options: options,
+                dryRun: shotExtraction.dryRun,
+                logger: logger,
+                showProgress: !logOptions.quiet
+            )
+            return
+        }
         guard let outDir = outputDir else {
             throw ValidationError("output-dir is required.")
         }
@@ -166,17 +182,6 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
         }
         if extraction.mediaCopy {
             try ExtractMedia.run(fcpxmlPath: fcpxmlPath, outputDir: outDir, logger: logger, showProgress: !logOptions.quiet)
-            return
-        }
-        if shotExtraction.extractShots {
-            let options = try shotExtraction.makeLibraryOptions(outputDir: outDir, mediaBaseURL: nil)
-            try ExtractShots.runSynchronously(
-                fcpxmlPath: fcpxmlPath,
-                outputDir: outDir,
-                options: options,
-                logger: logger,
-                showProgress: !logOptions.quiet
-            )
             return
         }
         if reportOptions.report {

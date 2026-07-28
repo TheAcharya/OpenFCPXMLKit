@@ -70,7 +70,8 @@ enum FCPXMLReportWorkbookExporter {
                     timecodeFormat: timecodeFormat
                 ),
                 rows: keywords.rows.map(\.columnValues),
-                excludedColumns: excludedColumns
+                excludedColumns: excludedColumns,
+                emptyStatusMessage: FinalCutPro.FCPXML.KeywordsReportSection.emptyStatusMessage
             )
             appendTabularSection(
                 to: workbook,
@@ -87,7 +88,8 @@ enum FCPXMLReportWorkbookExporter {
                     timecodeFormat: timecodeFormat
                 ),
                 rows: titles.rows.map(\.columnValues),
-                excludedColumns: excludedColumns
+                excludedColumns: excludedColumns,
+                emptyStatusMessage: FinalCutPro.FCPXML.TitlesReportSection.emptyStatusMessage
             )
             appendTabularSection(
                 to: workbook,
@@ -104,7 +106,8 @@ enum FCPXMLReportWorkbookExporter {
                     timecodeFormat: timecodeFormat
                 ),
                 rows: transitions.rows.map(\.columnValues),
-                excludedColumns: excludedColumns
+                excludedColumns: excludedColumns,
+                emptyStatusMessage: FinalCutPro.FCPXML.TransitionsReportSection.emptyStatusMessage
             )
             appendTabularSection(
                 to: workbook,
@@ -115,12 +118,18 @@ enum FCPXMLReportWorkbookExporter {
             )
         }
         
-        if let nonStandard = report.nonStandardEffectsTemplates, !nonStandard.rows.isEmpty {
+        if let nonStandard = report.nonStandardEffectsTemplates {
+            let headers = FinalCutPro.FCPXML.NonStandardEffectTemplateReportRow.columnHeaders
+            let rows = FinalCutPro.FCPXML.ReportEmptySectionStatus.rowsOrEmptyStatus(
+                nonStandard.rows.map(\.columnValues),
+                headers: headers,
+                message: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.emptyStatusMessage
+            )
             appendTabularSection(
                 to: workbook,
                 sheetName: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.defaultSheetName,
-                headers: FinalCutPro.FCPXML.NonStandardEffectTemplateReportRow.columnHeaders,
-                rows: nonStandard.rows.map(\.columnValues),
+                headers: headers,
+                rows: rows,
                 colorContext: .nonStandardEffectsTemplates
             )
         }
@@ -131,7 +140,8 @@ enum FCPXMLReportWorkbookExporter {
                     timecodeFormat: timecodeFormat
                 ),
                 rows: effects.rows.map(\.columnValues),
-                excludedColumns: excludedColumns
+                excludedColumns: excludedColumns,
+                emptyStatusMessage: FinalCutPro.FCPXML.EffectsReportSection.emptyStatusMessage
             )
             appendTabularSection(
                 to: workbook,
@@ -148,7 +158,8 @@ enum FCPXMLReportWorkbookExporter {
                     timecodeFormat: timecodeFormat
                 ),
                 rows: speedChangeEffects.rows.map(\.columnValues),
-                excludedColumns: excludedColumns
+                excludedColumns: excludedColumns,
+                emptyStatusMessage: FinalCutPro.FCPXML.SpeedChangeEffectsReportSection.emptyStatusMessage
             )
             appendTabularSection(
                 to: workbook,
@@ -222,7 +233,8 @@ enum FCPXMLReportWorkbookExporter {
         let filtered = filteredTabularSection(
             headers: markers.columnHeaders(timecodeFormat: timecodeFormat),
             rows: markers.rows.map { markers.columnValues(for: $0) },
-            excludedColumns: excludedColumns
+            excludedColumns: excludedColumns,
+            emptyStatusMessage: FinalCutPro.FCPXML.MarkersReportSection.emptyStatusMessage
         )
         let headers = filtered.headers
         let sheet = workbook.addSheet(
@@ -230,13 +242,18 @@ enum FCPXMLReportWorkbookExporter {
         )
         setTableHeaderRow(sheet, row: 1, strings: headers)
         
-        for (index, marker) in markers.rows.enumerated() {
+        for (index, values) in filtered.rows.enumerated() {
             let rowIndex = index + 2
-            let values = filtered.rows[index]
-            let rowFormat = markerFontFormat(for: marker.type)
+            let rowFormat: CellFormat? = index < markers.rows.count
+                ? markerFontFormat(for: markers.rows[index].type)
+                : nil
             for (columnIndex, value) in values.enumerated() {
                 let coordinate = CellCoordinate(row: rowIndex, column: columnIndex + 1).excelAddress
-                sheet.setCell(coordinate, string: value, format: rowFormat)
+                if let rowFormat {
+                    sheet.setCell(coordinate, string: value, format: rowFormat)
+                } else {
+                    sheet.setCell(coordinate, string: value)
+                }
             }
         }
         
@@ -308,6 +325,10 @@ enum FCPXMLReportWorkbookExporter {
         headers: [String],
         colorContext: RoleRowColorContext
     ) -> CellFormat? {
+        // Empty-state status rows stay default body colour (same as Media Summary status).
+        if values.contains(where: { FinalCutPro.FCPXML.ReportEmptySectionStatus.isStatusMessage($0) }) {
+            return nil
+        }
         guard let hex = FCPXMLReportRowColorPolicy.fontColorHex(
             forRowValues: values,
             headers: headers,
@@ -582,18 +603,23 @@ enum FCPXMLReportWorkbookExporter {
             timecodeFormat: timecodeFormat
         )
         
-        appendTabularSection(
-            to: workbook,
-            sheetName: FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName,
-            headers: headers,
-            rows: roleInventory.selectedRoles.enumerated().map { index, row in
+        let selectedRows = FinalCutPro.FCPXML.ReportEmptySectionStatus.rowsOrEmptyStatus(
+            roleInventory.selectedRoles.enumerated().map { index, row in
                 FinalCutPro.FCPXML.RoleInventoryColumnLayout.columnValues(
                     for: row,
                     rowIndex: index + 1,
                     metadataColumnKeys: metadataColumnKeys,
                     excludedColumns: excludedColumns
                 )
-            }
+            },
+            headers: headers,
+            message: FinalCutPro.FCPXML.RoleInventoryReportSection.emptyStatusMessage
+        )
+        appendTabularSection(
+            to: workbook,
+            sheetName: FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName,
+            headers: headers,
+            rows: selectedRows
         )
         
         for roleSheet in roleInventory.roleSheets {
@@ -683,11 +709,22 @@ enum FCPXMLReportWorkbookExporter {
         headers: [String],
         rows: [[String]],
         excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>,
-        metadataColumnKeys: [String] = []
+        metadataColumnKeys: [String] = [],
+        emptyStatusMessage: String? = nil
     ) -> (headers: [String], rows: [[String]]) {
-        FinalCutPro.FCPXML.ReportColumnExclusion.filter(
+        let preparedRows: [[String]]
+        if let emptyStatusMessage {
+            preparedRows = FinalCutPro.FCPXML.ReportEmptySectionStatus.rowsOrEmptyStatus(
+                rows,
+                headers: headers,
+                message: emptyStatusMessage
+            )
+        } else {
+            preparedRows = rows
+        }
+        return FinalCutPro.FCPXML.ReportColumnExclusion.filter(
             headers: headers,
-            rows: rows,
+            rows: preparedRows,
             excluded: excludedColumns,
             metadataColumnKeys: metadataColumnKeys
         )

@@ -238,6 +238,150 @@ struct FCPXMLShotExtractionTests {
         }
     }
 
+    @Test("Rejects primary timeline with title or generator")
+    func rejectsPrimaryTimelineWithTitleOrGenerator() async throws {
+        let workspace = try makeWorkspace()
+        defer { try? FileManager.default.removeItem(at: workspace.root) }
+
+        let png = try writeSolidPNG(to: workspace.mediaDir.appendingPathComponent("still.png"), seed: 4)
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.14">
+            <resources>
+                <format id="r1" frameDuration="100/2400s" width="1920" height="1080"/>
+                <asset id="r2" name="still" uid="STILL1" start="0s" duration="0s" hasVideo="1" format="r1" videoSources="1">
+                    <media-rep kind="original-media" src="\(png.absoluteString)"/>
+                </asset>
+                <effect id="r3" name="Basic Title" uid=".../Titles.motn:Basic Title"/>
+            </resources>
+            <library>
+                <event name="Event">
+                    <project name="Title Project">
+                        <sequence format="r1" duration="5s" tcStart="0s" tcFormat="NDF">
+                            <spine>
+                                <video ref="r2" offset="0s" name="still" start="0s" duration="3s"/>
+                                <title ref="r3" offset="3s" name="Basic Title" duration="2s"/>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """
+
+        let fcpxml = try FinalCutPro.FCPXML(fileContent: Data(xml.utf8))
+        let options = FinalCutPro.FCPXML.ShotExtractionOptions(
+            sceneNumber: "1",
+            extractFormat: .csv,
+            outputDir: workspace.outputDir,
+            folderFormat: .short,
+            mediaBaseURL: workspace.mediaDir
+        )
+
+        do {
+            _ = try await fcpxml.planShots(options: options)
+            Issue.record("Expected containsTitlesOrGenerators")
+        } catch let error as FinalCutPro.FCPXML.ShotExtractionError {
+            guard case .containsTitlesOrGenerators(let names) = error else {
+                Issue.record("Unexpected error: \(error)")
+                return
+            }
+            #expect(names.contains("Basic Title"))
+        }
+    }
+
+    @Test("Rejects primary timeline with audio clip")
+    func rejectsPrimaryTimelineWithAudioClip() async throws {
+        let workspace = try makeWorkspace()
+        defer { try? FileManager.default.removeItem(at: workspace.root) }
+
+        let png = try writeSolidPNG(to: workspace.mediaDir.appendingPathComponent("still.png"), seed: 5)
+        let audioURL = workspace.mediaDir.appendingPathComponent("bed.wav")
+        try Data([0, 1, 2, 3]).write(to: audioURL)
+
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.14">
+            <resources>
+                <format id="r1" frameDuration="100/2400s" width="1920" height="1080"/>
+                <asset id="r2" name="still" uid="STILL1" start="0s" duration="0s" hasVideo="1" format="r1" videoSources="1">
+                    <media-rep kind="original-media" src="\(png.absoluteString)"/>
+                </asset>
+                <asset id="r3" name="bed" uid="AUD1" start="0s" duration="5s" hasAudio="1" audioSources="1" audioChannels="2">
+                    <media-rep kind="original-media" src="\(audioURL.absoluteString)"/>
+                </asset>
+            </resources>
+            <library>
+                <event name="Event">
+                    <project name="Audio Project">
+                        <sequence format="r1" duration="5s" tcStart="0s" tcFormat="NDF">
+                            <spine>
+                                <video ref="r2" offset="0s" name="still" start="0s" duration="5s"/>
+                                <audio ref="r3" offset="0s" name="bed" duration="5s"/>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """
+
+        let fcpxml = try FinalCutPro.FCPXML(fileContent: Data(xml.utf8))
+        let options = FinalCutPro.FCPXML.ShotExtractionOptions(
+            sceneNumber: "1",
+            extractFormat: .csv,
+            outputDir: workspace.outputDir,
+            folderFormat: .short,
+            mediaBaseURL: workspace.mediaDir
+        )
+
+        do {
+            _ = try await fcpxml.planShots(options: options)
+            Issue.record("Expected containsPrimaryAudio")
+        } catch let error as FinalCutPro.FCPXML.ShotExtractionError {
+            guard case .containsPrimaryAudio(let names) = error else {
+                Issue.record("Unexpected error: \(error)")
+                return
+            }
+            #expect(names.contains("bed"))
+        }
+    }
+
+    @Test("Dry-run plans shots without writing PNGs or manifest")
+    func dryRunPlansShotsWithoutWritingPNGsOrManifest() async throws {
+        let workspace = try makeWorkspace()
+        defer { try? FileManager.default.removeItem(at: workspace.root) }
+
+        let png = try writeSolidPNG(to: workspace.mediaDir.appendingPathComponent("a.png"), seed: 6)
+        let xml = stillTimelineXML(
+            projectName: "Dry Run Scene",
+            clips: [("r2", png, "0s", "2s"), ("r2", png, "2s", "3s")]
+        )
+        let fcpxml = try FinalCutPro.FCPXML(fileContent: Data(xml.utf8))
+        let options = FinalCutPro.FCPXML.ShotExtractionOptions(
+            sceneNumber: "50",
+            extractFormat: .csv,
+            outputDir: workspace.outputDir,
+            folderFormat: .short,
+            mediaBaseURL: workspace.mediaDir
+        )
+
+        let plan = try await fcpxml.planShots(options: options)
+        #expect(plan.isValid)
+        #expect(plan.shotCount == 2)
+        #expect(plan.shots.map(\.shotID) == ["50-001", "50-002"])
+        #expect(plan.timelineName == "Dry Run Scene")
+        #expect(plan.plannedFolderName == "Dry Run Scene")
+
+        let contents = try FileManager.default.contentsOfDirectory(
+            at: workspace.outputDir,
+            includingPropertiesForKeys: nil
+        )
+        #expect(contents.isEmpty)
+    }
+
     // MARK: - Helpers
 
     private struct Workspace {

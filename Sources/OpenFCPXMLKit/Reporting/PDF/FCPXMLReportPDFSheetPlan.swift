@@ -29,9 +29,8 @@ enum FCPXMLReportPDFSheetPlan {
         var titles: [String] = []
         
         if let roleInventory = report.roleInventory {
-            if !roleInventory.selectedRoles.isEmpty {
-                titles.append(FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName)
-            }
+            // Always include Selected Roles Inventory when enabled (empty → status row).
+            titles.append(FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName)
             
             for roleSheet in roleInventory.roleSheets where !roleSheet.rows.isEmpty {
                 titles.append(
@@ -42,31 +41,31 @@ enum FCPXMLReportPDFSheetPlan {
             }
         }
         
-        if let markers = report.markers, !markers.rows.isEmpty {
+        if report.markers != nil {
             titles.append(FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName)
         }
         
-        if let keywords = report.keywords, !keywords.rows.isEmpty {
+        if report.keywords != nil {
             titles.append(FinalCutPro.FCPXML.KeywordsReportSection.defaultSheetName)
         }
         
-        if let titlesAndGenerators = report.titlesAndGenerators, !titlesAndGenerators.rows.isEmpty {
+        if report.titlesAndGenerators != nil {
             titles.append(FinalCutPro.FCPXML.TitlesReportSection.defaultSheetName)
         }
         
-        if let transitions = report.transitions, !transitions.rows.isEmpty {
+        if report.transitions != nil {
             titles.append(FinalCutPro.FCPXML.TransitionsReportSection.defaultSheetName)
         }
         
-        if let nonStandard = report.nonStandardEffectsTemplates, !nonStandard.rows.isEmpty {
+        if report.nonStandardEffectsTemplates != nil {
             titles.append(FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.defaultSheetName)
         }
         
-        if let effects = report.effects, !effects.rows.isEmpty {
+        if report.effects != nil {
             titles.append(FinalCutPro.FCPXML.EffectsReportSection.defaultSheetName)
         }
         
-        if let speedChangeEffects = report.speedChangeEffects, !speedChangeEffects.rows.isEmpty {
+        if report.speedChangeEffects != nil {
             titles.append(FinalCutPro.FCPXML.SpeedChangeEffectsReportSection.defaultSheetName)
         }
         

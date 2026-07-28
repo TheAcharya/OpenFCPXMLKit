@@ -59,6 +59,8 @@ extension FinalCutPro.FCPXML {
     /// Transitions report section.
     public struct TransitionsReportSection: ReportSection, Sendable, Equatable {
         public static let defaultSheetName = "Transitions"
+        /// Status text when the Transitions sheet is enabled but has no transition rows.
+        public static let emptyStatusMessage = "No Transitions Found"
         public var rows: [TransitionReportRow]
         
         public init(rows: [TransitionReportRow] = []) {

@@ -372,6 +372,39 @@ print("Union video occupancy:", videoSeconds, "s across", windows.count, "window
 
 Full Projection API: [12 — Timeline Projection](12-Timeline-Projection.md). Reporting project-once is automatic inside `buildReport` when sections need windows.
 
+## Extract still-image shots (Shot Extraction)
+
+```swift
+var options = FinalCutPro.FCPXML.ShotExtractionOptions(
+    sceneNumber: "50",
+    extractFormat: .notion,
+    outputDir: outputDirectory,
+    folderFormat: .medium,
+    icon: "🎬"
+)
+
+// Dry-run / GUI preflight — same validation as extract; no writes
+let plan = try await fcpxml.planShots(options: options)
+print(plan.shotCount, plan.plannedExportFolder)
+
+let result = try await fcpxml.extractShots(options: options)
+// result.exportFolder, result.manifestPath, result.shots
+```
+
+```bash
+OpenFCPXMLKit-CLI --extract-shots --dry-run --scene-number 50 /path/to/Scene.fcpxmld
+
+OpenFCPXMLKit-CLI --extract-shots \
+  --scene-number 50 \
+  --extract-format notion \
+  --folder-format medium \
+  --icon "🎬" \
+  /path/to/Scene.fcpxmld \
+  /path/to/output-dir
+```
+
+Primary-spine **video**, **titles / generators**, and **audio** abort with ``ShotExtractionError`` (GUI can show `localizedDescription`). See [21 — Shot Extraction](21-Shot-Extraction.md).
+
 ---
 
 Excel-only CLI (omit `--create-pdf`):
@@ -398,7 +431,7 @@ For FCPXML format details see [fcp.cafe/developers/fcpxml](https://fcp.cafe/deve
 ## Next
 
 - [Manual Index](00-Index.md) — return to the table of contents.
-- [21 — Shot Extraction](21-Shot-Extraction.md) — primary-timeline stills → PNG + CSV/Notion JSON.
+- [21 — Shot Extraction](21-Shot-Extraction.md) — primary stills → PNG + CSV/Notion JSON; `planShots` / `--dry-run`.
 
 [← Manual Index](00-Index.md)
 

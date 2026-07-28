@@ -14,6 +14,8 @@ extension FinalCutPro.FCPXML {
     /// Markers report section containing timeline marker rows.
     public struct MarkersReportSection: ReportSection, Sendable, Equatable {
         public static let defaultSheetName = "Markers"
+        /// Status text when the Markers sheet is enabled but has no marker rows.
+        public static let emptyStatusMessage = "No Markers Found"
         
         public var rows: [MarkerReportRow]
         

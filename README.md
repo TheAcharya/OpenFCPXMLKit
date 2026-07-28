@@ -9,7 +9,7 @@ A modern Swift 6 framework for working with Final Cut Pro's FCPXML with full con
 
 OpenFCPXMLKit provides a type-safe API for parsing, creating, and manipulating FCPXML with async/await, SwiftTimecode, and Excel/PDF reporting. Targets **macOS 26+** and **iOS 26+** (Foundation XML on macOS; AEXML on iOS).
 
-**Tests:** **1158** listed in `swift test list` — **1151** in `OpenFCPXMLKitTests` + **7** optional `ExcelReportTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
+**Tests:** **1166** listed in `swift test list` — **1159** in `OpenFCPXMLKitTests` + **7** optional `ExcelReportTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
 
 OpenFCPXMLKit is currently in an experimental stage. It covers most core FCPXML attributes and parameters and provides a solid foundation for parsing, creation, and manipulation, with room for future expansion and additional feature coverage.
 
@@ -101,16 +101,17 @@ This codebase is developed using AI agents.
 - See [Manual 12 — Timeline Projection](Documentation/Manual/12-Timeline-Projection.md)
 
 ### Shot Extraction
-- Primary-timeline still-image shots → PNG dataset + CSV or Notion JSON (`ShotExtractor` / `extractShots`)
-- Rejects timelines with video media; reused stills get distinct Shot IDs (`{scene}-001` …)
+- Primary-timeline still-image shots → PNG dataset + CSV or Notion JSON (`ShotExtractor` / `extractShots` / `planShots` dry-run)
+- Rejects primary-spine **video**, **titles / generators / Motion templates**, and **audio**; connected lanes ignored; reused stills get distinct Shot IDs (`{scene}-001` …)
 - Notion JSON (`--extract-format notion`) follows the [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) JSON import convention
-- CLI: `--extract-shots --scene-number … --extract-format csv|notion` (optional `--icon` for Icon Image)
+- CLI: `--extract-shots --scene-number …` (optional `--dry-run`, `--extract-format`, `--icon`)
 - See [Manual 21 — Shot Extraction](Documentation/Manual/21-Shot-Extraction.md)
 
 ### Excel & PDF reporting
 - Build once with `buildReport(options:)`, then export `.xlsx` (XLKit) and/or `.pdf` (CoreGraphics)
 - Sheets: Role Inventory, Markers, Keywords, Titles, Transitions, Non-Std Effects & Templates, Effects, Speed Change, Summary, Media Summary
   - Role inventory: **26** fixed columns (Duplicate Frames, Codecs, Ingest Date, Frame Size / Audio Config, …) + per-role **Total:** footers
+  - Empty enabled sheets keep headers + status rows (**No Markers Found**, **No Missing Media**, …) via `ReportEmptySectionStatus`
 - Filters: roles, columns (incl. **Row**), disabled clips, project name, timecode format, copyright label
 - Markers: default omits out-of-bounds starts; `--include-markers-outside-clip-boundaries` adds them + **Hidden** column
 - Excel: `--protect-sheets` / `protectSheets` applies worksheet edit locks (not encryption; PDF unaffected)
@@ -269,8 +270,10 @@ EXTRACTION:
   --media-copy            Scan FCPXML/FCPXMLD and copy all referenced media files to output-dir.
 
 SHOT EXTRACTION:
-  --extract-shots         Extract primary-timeline still-image shots to PNG + CSV/JSON (rejects timelines with video
-                          media).
+  --extract-shots         Extract primary-timeline still-image shots to PNG + CSV/JSON. Rejects primary-spine video,
+                          titles/generators/Motion templates, and audio clips.
+  --dry-run               Validate the timeline and report shot count without writing PNGs or manifests. Requires
+                          --extract-shots. Suitable for GUI preflight. output-dir is optional.
   --extract-format <extract-format>
                           Shot Extraction manifest format: csv | notion (JSON). Requires --extract-shots.
   --scene-number <scene-number>
@@ -279,7 +282,8 @@ SHOT EXTRACTION:
                           Shot Extraction folder naming: short | medium | long (default: medium). Requires
                           --extract-shots.
   --result-file-path <result-file-path>
-                          Optional JSON result file path for Shot Extraction. Requires --extract-shots.
+                          Optional JSON result file path for Shot Extraction (also written on --dry-run). Requires
+                          --extract-shots.
   --extract-project <extract-project>
                           Optional project / timeline name filter for Shot Extraction. Requires --extract-shots.
   --icon <icon>           Optional emoji (or any text) for the Icon Image column on every shot row. Requires
@@ -364,7 +368,7 @@ Complete manual, usage guide, and examples are in the [Documentation](Documentat
 - **[CLI](Sources/OpenFCPXMLKitCLI/README.md)** — Flags, examples, building and extending
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — Layer stack, codebase map, Mermaid diagrams
 - **[GUARDRAILS.md](GUARDRAILS.md)** — Must / must-not constraints for contributors and agents
-- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1158** listed; all Swift Testing)
+- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1166** listed; all Swift Testing)
 - **[AGENT.md](AGENT.md)** — AI agent / contributor briefing
 
 ## FCPXML Version Support

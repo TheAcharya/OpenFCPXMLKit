@@ -31,8 +31,8 @@ From the index you can reach all chapters:
 - **17** — Cross-Platform & iOS (OFKXML abstraction, Foundation vs AEXML)
 - **18** — Errors & Utilities
 - **19** — CLI (OpenFCPXMLKit-CLI)
-- **20** — Reporting, Excel & PDF Export (Non-Std Effects & Templates, Duplicate Frames / Total footers, Projection-first sections, ReportTimecodeFormat, ReportBuildPhase, XLKit workbook, CoreGraphics PDF)
-- **21** — Shot Extraction (primary-timeline stills → PNG + CSV / [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) Notion JSON)
+- **20** — Reporting, Excel & PDF Export (Non-Std Effects & Templates, Duplicate Frames / Total footers, empty-sheet status rows, Projection-first sections, ReportTimecodeFormat, ReportBuildPhase, XLKit workbook, CoreGraphics PDF)
+- **21** — Shot Extraction (primary stills → PNG + CSV / [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) Notion JSON; `planShots` / `--dry-run`; reject video / titles / audio)
 - **22** — Examples (workflows and code)
 
 ---
@@ -42,5 +42,5 @@ From the index you can reach all chapters:
 - **Documentation index:** [README.md](README.md)
 - **CLI reference:** [../Sources/OpenFCPXMLKitCLI/README.md](../Sources/OpenFCPXMLKitCLI/README.md)
 - **Project README:** [../README.md](../README.md)
-- **Tests:** [../Tests/README.md](../Tests/README.md) — **1158** listed tests (all Swift Testing)
+- **Tests:** [../Tests/README.md](../Tests/README.md) — **1166** listed tests (all Swift Testing)
 

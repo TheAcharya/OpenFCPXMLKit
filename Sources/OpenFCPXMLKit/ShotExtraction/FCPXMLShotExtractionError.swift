@@ -23,6 +23,12 @@ extension FinalCutPro.FCPXML {
         /// Primary timeline contains one or more video (non-still) media files.
         case containsVideoMedia(names: [String])
 
+        /// Primary timeline contains titles, generators, or Motion templates (`<title>`).
+        case containsTitlesOrGenerators(names: [String])
+
+        /// Primary timeline contains audio clips (standalone `<audio>` or audio-only media).
+        case containsPrimaryAudio(names: [String])
+
         /// No still-image shots were found on the primary spine.
         case noStillImageShots
 
@@ -50,6 +56,12 @@ extension FinalCutPro.FCPXML {
             case .containsVideoMedia(let names):
                 let list = names.joined(separator: ", ")
                 return "Shot Extraction requires a still-image primary timeline. Video media is present: \(list)."
+            case .containsTitlesOrGenerators(let names):
+                let list = names.joined(separator: ", ")
+                return "Shot Extraction requires a still-image primary timeline. Titles, generators, or Motion templates are present: \(list)."
+            case .containsPrimaryAudio(let names):
+                let list = names.joined(separator: ", ")
+                return "Shot Extraction requires a still-image primary timeline. Audio clips are present on the primary spine: \(list)."
             case .noStillImageShots:
                 return "No still-image shots were found on the primary timeline."
             case .mediaFileMissing(let path):

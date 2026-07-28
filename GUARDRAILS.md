@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1158** tests listed in `swift test list` — **1151** in `OpenFCPXMLKitTests` + **7** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1166** tests listed in `swift test list` — **1159** in `OpenFCPXMLKitTests` + **7** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -109,6 +109,7 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 | **Markers “Hidden”** | Out-of-bounds markers (`start` outside host media range) are **not** FCPXML `hidden-clip-marker` (1.13+). Default omits out-of-bounds markers; `--include-markers-outside-clip-boundaries` adds them + a **Hidden** column. **Hidden** is not a `--exclude-column` / `ReportColumn` target. |
 | **Chapter markers on Markers** | `includeChapterMarkersInMarkersReport` defaults **`true`**. No separate CLI chapter flag; Excel Type = Chapter filter is the user-facing opt-out. API may set `false`. |
 | **Universal Row** | Tabular Excel/PDF sheets get a 1-based **Row** column by default (`ensuringRowColumn` / `allowsInjectedRowColumn`) unless explicitly excluded. **Exception:** Non-Std Effects & Templates uses its own fixed columns (Name, Kind, Status, Path, UID) without an injected Row. |
+| **Empty enabled section sheets** | When a section is enabled but has no data rows, Excel and PDF **keep** headers and show one status cell via `ReportEmptySectionStatus` (**No Markers Found**, **No Keywords Found**, **No Titles & Generators Found**, **No Transitions Found**, **No Effects Found**, **No Speed Change Effects Found**, **No Non-Std Effects Found**, **No Roles Found**; Media Summary **No Missing Media**). Do **not** omit empty Markers/Keywords/Titles/Transitions/Effects/Non-Std/Selected Roles Inventory/Media Summary when that section is enabled. Per-role inventory tabs may still omit when empty. Summary keeps its project-metrics layout. |
 | **Per-role Total footer** | Per-role inventory sheets may show an optimistic **Clip Duration** sum (`RoleInventorySheetTotal`). It is **not** overlap-aware; do not conflate with Summary’s `summaryOverlapAwareDurations`. Selected Roles Inventory has no Total footer. |
 | **CLI modifiers need `--report`** | Report-only flags (`--report-full`, section flags including `--report-non-standard-effects`, `--protect-sheets`, `--create-pdf`, exclusions, …) must require `--report`. |
 | **No help-submenu refactor by default** | Keep flat ArgumentParser flags + `@OptionGroup` unless a maintainer explicitly requests a subcommand redesign. |
@@ -200,7 +201,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1158** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1166** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -232,6 +233,18 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Instruction:** Never hard-code **Titles** when `Title.role` / Projection host video roles are present — use `ReportFormatting.titleRoleSubrole`. Default to **Titles** only when the attribute is omitted. Inventory negative-lane leaf `<video>` / generators; keep skipping negative-lane leaf `<audio>` (host channel/sync sources). Do not re-parse title roles only inside Excel/PDF exporters.
 - **Reason:** Under-spine titles with custom library roles were exported under a hard-coded Titles label; leaf video under the spine was dropped by `shouldSkipLeafMedia`. Parsing/Extraction/Projection already had the facts.
 - **Provenance:** 2026-07-24 — under-spine titles / leaf video reporting fix (3.2.5).
+
+### Sign: empty-enabled-report-sheets-keep-status
+- **Trigger:** Exporting Excel/PDF when an enabled section has zero data rows.
+- **Instruction:** Keep sheet headers and write one `ReportEmptySectionStatus` / Media Summary **No Missing Media** status row. Never omit Markers, Keywords, Titles, Transitions, Effects, Speed Change, Non-Std, Selected Roles Inventory, or Media Summary solely because rows are empty when the section was requested. Per-role inventory tabs may still omit when empty.
+- **Reason:** Matches Media Summary empty-state product behaviour; Excel and PDF stay aligned for full and single-section reports.
+- **Provenance:** 2026-07-28 — empty-sheet status rows (3.3.1).
+
+### Sign: shot-extraction-primary-stills-only
+- **Trigger:** Shot Extraction `extract` / `plan` / CLI `--extract-shots` / `--dry-run`.
+- **Instruction:** Reject primary-spine (lane absent or `0`) **video**, **titles / generators / Motion templates** (`<title>`), and **audio** clips. Connected lanes stay ignored. `plan` and `extract` share one validation path; dry-run throws the same ``ShotExtractionError`` messages (no writes).
+- **Reason:** Shot Extraction is a stills-only primary timeline tool; GUI preflight needs identical validity rules.
+- **Provenance:** 2026-07-28 — dry-run + expanded rejection (3.3.1).
 
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.

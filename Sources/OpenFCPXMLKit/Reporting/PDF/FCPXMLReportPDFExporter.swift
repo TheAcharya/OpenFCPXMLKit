@@ -154,7 +154,7 @@ enum FCPXMLReportPDFExporter {
             )
         }
         
-        if let nonStandard = report.nonStandardEffectsTemplates, !nonStandard.rows.isEmpty {
+        if let nonStandard = report.nonStandardEffectsTemplates {
             appendNonStandardEffectsTemplates(
                 nonStandard,
                 colorIndexByTitle: colorIndexByTitle,
@@ -236,38 +236,45 @@ enum FCPXMLReportPDFExporter {
         guard !headers.isEmpty else { return }
         
         let selectedSheetName = FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName
-        let selectedRows = roleInventory.selectedRoles.enumerated().map { index, row in
-            FinalCutPro.FCPXML.RoleInventoryColumnLayout.columnValues(
-                for: row,
-                rowIndex: index + 1,
-                metadataColumnKeys: metadataColumnKeys,
-                excludedColumns: excludedColumns
-            )
-        }
-        
-        if !selectedRows.isEmpty {
-            canvas.drawTable(
-                context: tableDrawContext(
-                    pageTitle: selectedSheetName,
-                    sheetColorIndex: sheetColorIndex(
-                        for: selectedSheetName,
-                        colorIndexByTitle: colorIndexByTitle
-                    ),
-                    recordsSectionStart: recordsSectionStarts,
+        let selectedRows = FinalCutPro.FCPXML.ReportEmptySectionStatus.rowsOrEmptyStatus(
+            roleInventory.selectedRoles.enumerated().map { index, row in
+                FinalCutPro.FCPXML.RoleInventoryColumnLayout.columnValues(
+                    for: row,
+                    rowIndex: index + 1,
+                    metadataColumnKeys: metadataColumnKeys,
                     excludedColumns: excludedColumns
+                )
+            },
+            headers: headers,
+            message: FinalCutPro.FCPXML.RoleInventoryReportSection.emptyStatusMessage
+        )
+        
+        canvas.drawTable(
+            context: tableDrawContext(
+                pageTitle: selectedSheetName,
+                sheetColorIndex: sheetColorIndex(
+                    for: selectedSheetName,
+                    colorIndexByTitle: colorIndexByTitle
                 ),
-                headers: headers,
-                rows: selectedRows,
-                rowTextColorForRow: { _, values in
-                    FCPXMLReportRowColorPolicy.textColor(
-                        forRowValues: values,
-                        headers: headers,
-                        context: .roleInventory,
-                        defaultColor: FCPXMLReportPDFStyle.textColor
-                    )
+                recordsSectionStart: recordsSectionStarts,
+                excludedColumns: excludedColumns
+            ),
+            headers: headers,
+            rows: selectedRows,
+            rowTextColorForRow: { _, values in
+                if values.contains(where: {
+                    FinalCutPro.FCPXML.ReportEmptySectionStatus.isStatusMessage($0)
+                }) {
+                    return FCPXMLReportPDFStyle.textColor
                 }
-            )
-        }
+                return FCPXMLReportRowColorPolicy.textColor(
+                    forRowValues: values,
+                    headers: headers,
+                    context: .roleInventory,
+                    defaultColor: FCPXMLReportPDFStyle.textColor
+                )
+            }
+        )
         
         for roleSheet in roleInventory.roleSheets {
             let rows = roleSheet.rows.enumerated().map { index, row in
@@ -354,7 +361,8 @@ enum FCPXMLReportPDFExporter {
         let filtered = filteredTabularSection(
             headers: markers.columnHeaders(timecodeFormat: timecodeFormat),
             rows: markers.rows.map { markers.columnValues(for: $0) },
-            excludedColumns: excludedColumns
+            excludedColumns: excludedColumns,
+            emptyStatusMessage: FinalCutPro.FCPXML.MarkersReportSection.emptyStatusMessage
         )
         
         guard !filtered.headers.isEmpty else { return }
@@ -369,8 +377,16 @@ enum FCPXMLReportPDFExporter {
             ),
             headers: filtered.headers,
             rows: filtered.rows,
-            rowTextColorForRow: { index, _ in
-                FCPXMLReportRowColorPolicy.markerCGColor(for: markers.rows[index].type)
+            rowTextColorForRow: { index, values in
+                if values.contains(where: {
+                    FinalCutPro.FCPXML.ReportEmptySectionStatus.isStatusMessage($0)
+                }) {
+                    return FCPXMLReportPDFStyle.textColor
+                }
+                guard index < markers.rows.count else {
+                    return FCPXMLReportPDFStyle.textColor
+                }
+                return FCPXMLReportRowColorPolicy.markerCGColor(for: markers.rows[index].type)
                     ?? FCPXMLReportPDFStyle.textColor
             }
         )
@@ -392,6 +408,7 @@ enum FCPXMLReportPDFExporter {
             colorIndexByTitle: colorIndexByTitle,
             recordsSectionStarts: recordsSectionStarts,
             colorContext: .keywords,
+            emptyStatusMessage: FinalCutPro.FCPXML.KeywordsReportSection.emptyStatusMessage,
             to: canvas
         )
     }
@@ -412,6 +429,7 @@ enum FCPXMLReportPDFExporter {
             colorIndexByTitle: colorIndexByTitle,
             recordsSectionStarts: recordsSectionStarts,
             colorContext: .titlesAndGenerators,
+            emptyStatusMessage: FinalCutPro.FCPXML.TitlesReportSection.emptyStatusMessage,
             to: canvas
         )
     }
@@ -432,6 +450,7 @@ enum FCPXMLReportPDFExporter {
             colorIndexByTitle: colorIndexByTitle,
             recordsSectionStarts: recordsSectionStarts,
             colorContext: .transitions,
+            emptyStatusMessage: FinalCutPro.FCPXML.TransitionsReportSection.emptyStatusMessage,
             to: canvas
         )
     }
@@ -450,6 +469,7 @@ enum FCPXMLReportPDFExporter {
             colorIndexByTitle: colorIndexByTitle,
             recordsSectionStarts: recordsSectionStarts,
             colorContext: .nonStandardEffectsTemplates,
+            emptyStatusMessage: FinalCutPro.FCPXML.NonStandardEffectsTemplatesReportSection.emptyStatusMessage,
             to: canvas
         )
     }
@@ -470,6 +490,7 @@ enum FCPXMLReportPDFExporter {
             colorIndexByTitle: colorIndexByTitle,
             recordsSectionStarts: recordsSectionStarts,
             colorContext: .effects,
+            emptyStatusMessage: FinalCutPro.FCPXML.EffectsReportSection.emptyStatusMessage,
             to: canvas
         )
     }
@@ -490,6 +511,7 @@ enum FCPXMLReportPDFExporter {
             colorIndexByTitle: colorIndexByTitle,
             recordsSectionStarts: recordsSectionStarts,
             colorContext: .speedChangeEffects,
+            emptyStatusMessage: FinalCutPro.FCPXML.SpeedChangeEffectsReportSection.emptyStatusMessage,
             to: canvas
         )
     }
@@ -502,12 +524,14 @@ enum FCPXMLReportPDFExporter {
         colorIndexByTitle: [String: Int],
         recordsSectionStarts: Bool,
         colorContext: FCPXMLReportRowColorPolicy.Context,
+        emptyStatusMessage: String? = nil,
         to canvas: FCPXMLReportPDFCanvas.Builder
     ) {
         let filtered = filteredTabularSection(
             headers: headers,
             rows: rows,
-            excludedColumns: excludedColumns
+            excludedColumns: excludedColumns,
+            emptyStatusMessage: emptyStatusMessage
         )
         
         guard !filtered.headers.isEmpty, !filtered.rows.isEmpty else { return }
@@ -522,7 +546,12 @@ enum FCPXMLReportPDFExporter {
             headers: filtered.headers,
             rows: filtered.rows,
             rowTextColorForRow: { _, values in
-                FCPXMLReportRowColorPolicy.textColor(
+                if values.contains(where: {
+                    FinalCutPro.FCPXML.ReportEmptySectionStatus.isStatusMessage($0)
+                }) {
+                    return FCPXMLReportPDFStyle.textColor
+                }
+                return FCPXMLReportRowColorPolicy.textColor(
                     forRowValues: values,
                     headers: filtered.headers,
                     context: colorContext,
@@ -657,11 +686,22 @@ enum FCPXMLReportPDFExporter {
         headers: [String],
         rows: [[String]],
         excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>,
-        metadataColumnKeys: [String] = []
+        metadataColumnKeys: [String] = [],
+        emptyStatusMessage: String? = nil
     ) -> (headers: [String], rows: [[String]]) {
-        FinalCutPro.FCPXML.ReportColumnExclusion.filter(
+        let preparedRows: [[String]]
+        if let emptyStatusMessage {
+            preparedRows = FinalCutPro.FCPXML.ReportEmptySectionStatus.rowsOrEmptyStatus(
+                rows,
+                headers: headers,
+                message: emptyStatusMessage
+            )
+        } else {
+            preparedRows = rows
+        }
+        return FinalCutPro.FCPXML.ReportColumnExclusion.filter(
             headers: headers,
-            rows: rows,
+            rows: preparedRows,
             excluded: excludedColumns,
             metadataColumnKeys: metadataColumnKeys
         )

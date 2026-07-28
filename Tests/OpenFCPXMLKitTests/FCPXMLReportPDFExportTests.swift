@@ -193,6 +193,27 @@ struct FCPXMLReportPDFExportTests {
         #endif
     }
 
+    @Test("Export empty Markers PDF keeps headers and No Markers Found status")
+    func exportEmptyMarkersPDFKeepsHeadersAndNoMarkersFoundStatus() throws {
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Markers Project",
+            markers: FinalCutPro.FCPXML.MarkersReportSection(rows: [])
+        )
+
+        let data = try FinalCutPro.FCPXML.ReportPDFExport.makePDFData(from: report)
+        #expect(String(data: data.prefix(4), encoding: .ascii) == "%PDF")
+
+        #if canImport(PDFKit)
+        let document = try #require(PDFDocument(data: data))
+        var combined = ""
+        for index in 0 ..< document.pageCount {
+            combined += document.page(at: index)?.string ?? ""
+        }
+        #expect(combined.contains(FinalCutPro.FCPXML.MarkersReportSection.defaultSheetName))
+        #expect(combined.contains(FinalCutPro.FCPXML.MarkersReportSection.emptyStatusMessage))
+        #endif
+    }
+
     @Test("Export markers report writes PDF file from fixture")
     func exportMarkersReportWritesPDFFileFromFixture() async throws {
         let fcpxml = try requireReportingFixtureFCPXML()

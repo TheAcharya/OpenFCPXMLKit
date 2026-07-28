@@ -15,7 +15,7 @@ The package includes an experimental command-line tool **OpenFCPXMLKit-CLI**. It
 
 ## Commands and options
 
-Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--extract-shots`, `--report`, or `--create-project`. For `--convert-version`, `--media-copy`, `--extract-shots`, `--report` (and default process), `<output-dir>` is required and is **created if missing**. For `--create-project`, the single positional argument is `<output-dir>` (also created if missing). `--extension-type` requires `--convert-version`. REPORT modifiers (`--report-full`, section flags, `--include-markers-outside-clip-boundaries`, `--protect-sheets`, `--timecode-format`, `--media-resolution`, `--label-copyright`, `--create-pdf`, etc.) require `--report`. Shot Extraction modifiers (`--extract-format`, `--scene-number`, `--folder-format`, `--result-file-path`, `--extract-project`, `--icon`) require `--extract-shots`; `--scene-number` is required with `--extract-shots`.
+Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--extract-shots`, `--report`, or `--create-project`. For `--convert-version`, `--media-copy`, `--extract-shots` (without `--dry-run`), `--report` (and default process), `<output-dir>` is required and is **created if missing**. `--extract-shots --dry-run` may omit `<output-dir>`. For `--create-project`, the single positional argument is `<output-dir>` (also created if missing). `--extension-type` requires `--convert-version`. REPORT modifiers (`--report-full`, section flags, `--include-markers-outside-clip-boundaries`, `--protect-sheets`, `--timecode-format`, `--media-resolution`, `--label-copyright`, `--create-pdf`, etc.) require `--report`. Shot Extraction modifiers (`--dry-run`, `--extract-format`, `--scene-number`, `--folder-format`, `--result-file-path`, `--extract-project`, `--icon`) require `--extract-shots`; `--scene-number` is required with `--extract-shots`.
 
 ### GENERAL
 
@@ -29,21 +29,24 @@ Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-c
 
 ### SHOT EXTRACTION
 
-Extract primary-timeline **still-image** shots to PNG files plus a CSV or Notion JSON manifest. Rejects timelines that contain **video** media on the primary spine. See [21 — Shot Extraction](21-Shot-Extraction.md).
+Extract primary-timeline **still-image** shots to PNG files plus a CSV or Notion JSON manifest. Rejects primary-spine **video**, **titles / generators / Motion templates**, and **audio** clips. See [21 — Shot Extraction](21-Shot-Extraction.md).
 
 | Option | Description |
 |--------|-------------|
 | **--extract-shots** | Enable Shot Extraction (exclusive with other modes). |
+| **--dry-run** | Validate + shot count only; no PNG/manifest writes. `output-dir` optional. |
 | **--scene-number &lt;text&gt;** | **Required.** Scene number for Shot ID (`{scene}-001`) and Scene Number column. |
 | **--extract-format &lt;csv\|notion&gt;** | Manifest format (default `csv`). `notion` writes a JSON array of column-keyed objects compatible with [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo). |
 | **--folder-format &lt;short\|medium\|long&gt;** | Output folder naming (default `medium`). |
 | **--icon &lt;text&gt;** | Optional emoji (or any text) for the **Icon Image** column on every row. |
-| **--result-file-path &lt;path&gt;** | Optional JSON result summary path. |
+| **--result-file-path &lt;path&gt;** | Optional JSON result summary path (also on dry-run). |
 | **--extract-project &lt;name&gt;** | Optional project / timeline name filter. |
 
 ```bash
 OpenFCPXMLKit-CLI --extract-shots --scene-number 50 --extract-format notion --icon "🎬" \
   /path/to/Scene.fcpxmld /path/to/output-dir
+
+OpenFCPXMLKit-CLI --extract-shots --dry-run --scene-number 50 /path/to/Scene.fcpxmld
 ```
 
 ### REPORT

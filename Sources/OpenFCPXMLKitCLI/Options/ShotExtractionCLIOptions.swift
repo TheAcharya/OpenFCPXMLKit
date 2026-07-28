@@ -16,9 +16,21 @@ import OpenFCPXMLKit
 struct ShotExtractionCLIOptions: ParsableArguments {
     @Flag(
         name: .long,
-        help: "Extract primary-timeline still-image shots to PNG + CSV/JSON (rejects timelines with video media)."
+        help: """
+            Extract primary-timeline still-image shots to PNG + CSV/JSON. \
+            Rejects primary-spine video, titles/generators/Motion templates, and audio clips.
+            """
     )
     var extractShots: Bool = false
+
+    @Flag(
+        name: .customLong("dry-run"),
+        help: """
+            Validate the timeline and report shot count without writing PNGs or manifests. \
+            Requires --extract-shots. Suitable for GUI preflight. output-dir is optional.
+            """
+    )
+    var dryRun: Bool = false
 
     @Option(
         name: .customLong("extract-format"),
@@ -40,7 +52,7 @@ struct ShotExtractionCLIOptions: ParsableArguments {
 
     @Option(
         name: .customLong("result-file-path"),
-        help: "Optional JSON result file path for Shot Extraction. Requires --extract-shots.",
+        help: "Optional JSON result file path for Shot Extraction (also written on --dry-run). Requires --extract-shots.",
         transform: URL.init(fileURLWithPath:)
     )
     var resultFilePath: URL?
@@ -58,7 +70,8 @@ struct ShotExtractionCLIOptions: ParsableArguments {
     var icon: String?
 
     var hasAnyModifier: Bool {
-        extractFormat != nil
+        dryRun
+            || extractFormat != nil
             || sceneNumber != nil
             || folderFormat != nil
             || resultFilePath != nil

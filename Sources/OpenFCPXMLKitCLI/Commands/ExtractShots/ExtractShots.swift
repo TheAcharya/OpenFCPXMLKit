@@ -15,6 +15,7 @@ import OpenFCPXMLKit
 enum ExtractShots {
     private final class Box: @unchecked Sendable {
         var result: FinalCutPro.FCPXML.ShotExtractionResult?
+        var plan: FinalCutPro.FCPXML.ShotExtractionPlan?
         var error: Error?
     }
 
@@ -23,6 +24,7 @@ enum ExtractShots {
         fcpxmlPath: URL,
         outputDir: URL,
         options: FinalCutPro.FCPXML.ShotExtractionOptions,
+        dryRun: Bool = false,
         logger: ServiceLogger = NoOpServiceLogger(),
         showProgress: Bool = true
     ) throws {
@@ -31,13 +33,22 @@ enum ExtractShots {
 
         Task { @MainActor in
             do {
-                box.result = try await run(
-                    fcpxmlPath: fcpxmlPath,
-                    outputDir: outputDir,
-                    options: options,
-                    logger: logger,
-                    showProgress: showProgress
-                )
+                if dryRun {
+                    box.plan = try await runDryRun(
+                        fcpxmlPath: fcpxmlPath,
+                        options: options,
+                        logger: logger,
+                        showProgress: showProgress
+                    )
+                } else {
+                    box.result = try await run(
+                        fcpxmlPath: fcpxmlPath,
+                        outputDir: outputDir,
+                        options: options,
+                        logger: logger,
+                        showProgress: showProgress
+                    )
+                }
             } catch {
                 box.error = error
             }
@@ -93,5 +104,56 @@ enum ExtractShots {
         print("Manifest: \(result.manifestPath.path)")
         logger.log(level: .info, message: "Manifest: \(result.manifestPath.path)", metadata: nil)
         return result
+    }
+
+    @MainActor
+    static func runDryRun(
+        fcpxmlPath: URL,
+        options: FinalCutPro.FCPXML.ShotExtractionOptions,
+        logger: ServiceLogger = NoOpServiceLogger(),
+        showProgress: Bool = true
+    ) async throws -> FinalCutPro.FCPXML.ShotExtractionPlan {
+        let progress = showProgress ? ProgressBar(total: 2, desc: "Shot Extraction dry-run") : nil
+        defer { progress?.finish() }
+
+        logger.log(
+            level: .info,
+            message: "Shot Extraction dry-run: loading \(fcpxmlPath.path)",
+            metadata: nil
+        )
+        progress?.update(1)
+
+        let document = try FCPXMLFileLoader().loadFCPXMLDocument(from: fcpxmlPath)
+        let fcpxml = FinalCutPro.FCPXML(fileContent: document)
+
+        var options = options
+        if options.mediaBaseURL == nil {
+            options.mediaBaseURL = fcpxmlPath.hasDirectoryPath
+                ? fcpxmlPath
+                : fcpxmlPath.deletingLastPathComponent()
+        }
+
+        let plan = try await fcpxml.planShots(options: options)
+        progress?.update(2)
+
+        let message = """
+            Shot Extraction dry-run OK: \(plan.shotCount) shot(s) on timeline '\(plan.timelineName)' \
+            (planned folder: \(plan.plannedFolderName))
+            """
+        print(message)
+        logger.log(level: .info, message: message, metadata: nil)
+
+        if let resultFilePath = options.resultFilePath {
+            let dict = plan.resultFileDictionary(date: options.now)
+            let data = try JSONSerialization.data(
+                withJSONObject: dict,
+                options: [.prettyPrinted, .sortedKeys]
+            )
+            try data.write(to: resultFilePath, options: .atomic)
+            print("Result file: \(resultFilePath.path)")
+            logger.log(level: .info, message: "Result file: \(resultFilePath.path)", metadata: nil)
+        }
+
+        return plan
     }
 }

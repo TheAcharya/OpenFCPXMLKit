@@ -162,6 +162,8 @@ extension FinalCutPro.FCPXML {
     /// Role-based clip inventory (Selected Roles Inventory + per-role sheets).
     public struct RoleInventoryReportSection: ReportSection, Sendable, Equatable {
         public static let defaultSheetName = "Selected Roles Inventory"
+        /// Status text when Role Inventory is enabled but Selected Roles Inventory has no rows.
+        public static let emptyStatusMessage = "No Roles Found"
         
         public var selectedRoles: [RoleClipReportRow]
         public var roleSheets: [RoleSheet]

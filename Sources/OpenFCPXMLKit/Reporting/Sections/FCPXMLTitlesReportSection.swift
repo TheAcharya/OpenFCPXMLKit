@@ -81,6 +81,8 @@ extension FinalCutPro.FCPXML {
     /// Titles & Generators report section.
     public struct TitlesReportSection: ReportSection, Sendable, Equatable {
         public static let defaultSheetName = "Titles & Generators"
+        /// Status text when the Titles & Generators sheet is enabled but has no rows.
+        public static let emptyStatusMessage = "No Titles & Generators Found"
         public var rows: [TitleReportRow]
         
         public init(rows: [TitleReportRow] = []) {
