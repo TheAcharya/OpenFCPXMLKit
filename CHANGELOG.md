@@ -7,6 +7,24 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.3.4](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.4) - 2026-08-06
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Shot Extraction Notion JSON key order:** Notion (`.json`) manifests emit object keys in the same order as the CSV Shot Data columns (`ShotManifestSchema.columns`), and keep the shot array in Shot ID / timeline order. Previously `JSONSerialization` + `.sortedKeys` alphabetised keys.
+- **ShotExtractionTest:** Optional Swift Testing integration target (**4** `@Test`) mirroring `ExcelReportTest` — local stills fixture → PNG + CSV / Notion JSON under `Tests/ShotExtractionTest/Output/` (`OFK-Shots.csv` / `.json` aliases); cancels without fixture or when media is missing.
+- **Documentation sync:** Manual 19 / 21, Coverage, Documentation README, Tests READMEs (incl. Submitted FCPXML), README, ARCHITECTURE (Mermaid `ShotExtractionTest` **4**), AGENT, `.cursorrules`, and GUARDRAILS refreshed for Notion CSV-parity key order and the new integration target. Suite counts **1173** listed (**1161** + **8** + **4**).
+
+### 🐛 Bug Fixes
+
+- None in this release.
+
+---
+
 ## [3.3.3](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.3) - 2026-07-28
 
 ### ✨ New Features

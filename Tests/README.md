@@ -2,9 +2,9 @@
 
 This directory contains the test suite for OpenFCPXMLKit, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration. The suite runs on **macOS** (Foundation XML backend). The library also supports **iOS 26+** (AEXML backend); CI builds for iOS Simulator; the same tests are not run on iOS because they rely on Foundation XML.
 
-- **Test count:** **1169** tests listed in `swift test list` — **1161** in `OpenFCPXMLKitTests` + **8** in `ExcelReportTest` (all Swift Testing `@Test`; no XCTest remaining; ExcelReportTest cancels without a local fixture)
+- **Test count:** **1173** tests listed in `swift test list` — **1161** in `OpenFCPXMLKitTests` + **8** in `ExcelReportTest` + **4** in `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest remaining; optional targets cancel without a local fixture)
 - **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines, audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), Timeline Projection (`TimelineProjector` / `MediaUsageWindow` / `ReportProjectionContext`, project-once for report sections), Excel and PDF reporting (universal **Row** column on all tabular sheets via `ensuringRowColumn` / `allowsInjectedRowColumn`, role inventory columns, Summary sheet with project title in **B1**, Media Summary sheets, configurable `ReportTimecodeFormat` / DF·NDF notation, format-aware headers, Frames/Feet+Frames sort order, inventory-first `ReportBuildPhase` progress, global column exclusion, disabled-clip filtering, Markers out-of-bounds filter / optional **Hidden** column (`includeMarkersOutsideClipBoundaries`), Excel `protectSheets` worksheet protection, workbook export and cell formatting, PDF cover with black “About This PDF Export” header + `info.circle`, TOC with accent colour chips + content-tint washes keyed to sheet `colorIndex`, remaining columns expanded to fill A4 landscape width after exclusions, section pagination, shared `FCPXMLReportRowColorPolicy`, standalone compound-clip timelines via `allReportTimelineSources()` / `FCPXMLCompoundClipReportTests`), and all supported FCPXML versions and frame rates  
-- **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure; validation and cross-platform XML tests; optional Excel/PDF report integration tests under `ExcelReportTest/`; private investigation inbox under `Submitted FCPXML/` (gitignored contents)
+- **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure; validation and cross-platform XML tests; optional Excel/PDF report integration tests under `ExcelReportTest/`; optional Shot Extraction integration under `ShotExtractionTest/`; private investigation inbox under `Submitted FCPXML/` (gitignored contents)
 
 ---
 
@@ -54,6 +54,11 @@ Tests/
 │   ├── ExcelReportFixture.swift
 │   ├── ExcelReportExportTests.swift
 │   └── Output/                   # Generated workbooks (gitignored)
+├── ShotExtractionTest/           # Optional integration: stills → PNG + CSV/Notion from local fixture
+│   ├── README.md
+│   ├── ShotExtractionFixture.swift
+│   ├── ShotExtractionExportTests.swift
+│   └── Output/                   # Generated PNGs / manifests (gitignored)
 ├── Submitted FCPXML/             # Private inbox (Inbox/ Notes/ gitignored — never commit FCPXML)
 │   ├── README.md
 │   ├── Inbox/
@@ -202,9 +207,10 @@ swift test --filter OpenFCPXMLKitTests             # By pattern
 To verify the documented test counts:
 
 ```bash
-swift test list 2>/dev/null | grep -c '\.'                        # 1169
+swift test list 2>/dev/null | grep -E '^(OpenFCPXMLKitTests|ExcelReportTest|ShotExtractionTest)\.' | wc -l   # 1173
 swift test list 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 1161
 swift test list 2>/dev/null | grep -c 'ExcelReportTest\.'       # 8
+swift test list 2>/dev/null | grep -c 'ShotExtractionTest\.'    # 4
 ```
 
 ### Xcode
@@ -261,7 +267,7 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 **Media & extraction**
 
 - **FCPXMLMediaExtractionTests** — extractMediaReferences, copyReferencedMedia (sync/async); extract-then-copy flow (CLI --media-copy). MediaExtractor, MediaExtractionResult, MediaCopyResult.
-- **FCPXMLShotExtractionTests** — still-image Shot Extraction (**10** `@Test`; `extractShots` / `planShots`): reused stills → distinct Shot IDs / PNGs; CSV + Notion JSON (csv2notion-neo shape); **Icon Image** / `icon`; folder formats; rejects primary-spine video, titles/generators, and audio; dry-run writes nothing. See Manual [21 — Shot Extraction](../Documentation/Manual/21-Shot-Extraction.md).
+- **FCPXMLShotExtractionTests** — still-image Shot Extraction (**10** `@Test`; `extractShots` / `planShots`): reused stills → distinct Shot IDs / PNGs; CSV + Notion JSON (csv2notion-neo shape; **keys in CSV column order**; Shot ID array order); **Icon Image** / `icon`; folder formats; rejects primary-spine video, titles/generators, and audio; dry-run writes nothing. Optional end-to-end: **`ShotExtractionTest`**. See Manual [21 — Shot Extraction](../Documentation/Manual/21-Shot-Extraction.md).
 
 **Timeline & manipulation**
 
@@ -486,7 +492,22 @@ Use this target for end-to-end workbook/PDF generation on a real fixture (open `
 
 ---
 
-## 12a. Submitted FCPXML (private inbox)
+## 12a. Shot Extraction integration tests
+
+The **`ShotExtractionTest`** target builds real PNG + CSV / Notion JSON exports from a **local** stills-only FCPXML fixture. It uses **Swift Testing**; without a fixture (or when media is missing / the timeline is unsuitable), tests **cancel** via `Test.cancel` and CI stays green.
+
+| Item | Detail |
+|------|--------|
+| **Location** | `Tests/ShotExtractionTest/` |
+| **Test suite** | `@Suite("Shot Extraction export")` / `ShotExtractionExportTests` (**4** `@Test`s) — writes dated `[CSV]` / `[Notion]` folders plus `Output/OFK-Shots.csv`, `OFK-Shots.json`, `OFK-Shots-result.json` |
+| **Fixture** | Preferred `Sample.fcpxmld` / `Sample.fcpxml`; else `OFK_SHOT_EXTRACTION_FCPXML`; else auto-discovery |
+| **Run** | `swift test --filter ShotExtractionExportTests` |
+
+Full setup: **[ShotExtractionTest/README.md](ShotExtractionTest/README.md)**. Unit coverage: **`FCPXMLShotExtractionTests`** in `OpenFCPXMLKitTests`.
+
+---
+
+## 12b. Submitted FCPXML (private inbox)
 
 Local-only drop zone for **private user FCPXML** used when investigating parsing or reporting edge cases. Contents of `Inbox/` and `Notes/` are **gitignored**; only the README is tracked.
 
@@ -512,7 +533,7 @@ Full workflow (anonymise → reproduce → fix → promote): **[Submitted FCPXML
 | Layer | API | Behaviour |
 |-------|-----|-----------|
 | Core | `tryLoadFCPXMLSample(named:)`, `tryTimelineElement(fromSampleNamed:)`, … | Throws `FCPXMLTestSampleError` |
-| Swift Testing | `requireFCPXMLSample(named:)`, `requireTimelineElement(…)`, … | Bundled samples **fail** if missing; optional fixtures use `Test.cancel` (`requireSubmittedInboxItems`, `requireReportingFixtureFCPXML`, ExcelReportFixture) |
+| Swift Testing | `requireFCPXMLSample(named:)`, `requireTimelineElement(…)`, … | Bundled samples **fail** if missing; optional fixtures use `Test.cancel` (`requireSubmittedInboxItems`, `requireReportingFixtureFCPXML`, ExcelReportFixture, ShotExtractionFixture) |
 
 Do **not** use `XCTSkip` (XCTest is not part of this suite). Use `try Test.cancel("…")` or `.enabled(if:)` / `.disabled(if:)` traits for optional fixtures.
 
@@ -567,7 +588,7 @@ Add tests for new behaviour or edge cases; place them in the right file and MARK
 - **Final Cut Pro XML (FCPXML)** — [fcp.cafe](https://fcp.cafe) for format reference
 - **SwiftTimecode** (GitHub) — timecode and frame rate types
 
-**Keep counts in sync:** `swift test list` → **1169** total (**1161** OpenFCPXMLKitTests + **8** ExcelReportTest; all Swift Testing); **60** public samples.
+**Keep counts in sync:** `swift test list` → **1173** total (**1161** OpenFCPXMLKitTests + **8** ExcelReportTest + **4** ShotExtractionTest; all Swift Testing); **60** public samples.
 
 ---
 

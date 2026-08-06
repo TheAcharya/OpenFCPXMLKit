@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1169** tests listed in `swift test list` — **1161** in `OpenFCPXMLKitTests` + **8** optional `ExcelReportTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1173** tests listed in `swift test list` — **1161** in `OpenFCPXMLKitTests` + **8** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -123,9 +123,9 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 |------|--------|
 | **Tests with behaviour** | Public API and report behaviour changes need tests. Prefer core (parse / extract / project) tests **plus** report shape tests when fixing a report gap. |
 | **Swift Testing only** | The suite is **100% Swift Testing** (`import Testing`, `@Suite` / `@Test` / `#expect` / `#require`). There is **no** `import XCTest` in `Tests/`. Do not reintroduce XCTest or mix frameworks in one file. Performance smoke uses `ContinuousClock` budgets, not XCTest `measure {}`. |
-| **Bundled samples fail; optional fixtures cancel** | Bundled public samples **fail** if missing (`requireFCPXMLSample`). Optional fixtures (Submitted inbox, `OFK_REPORTING_FCPXML_BUNDLE`, ExcelReportTest Sample) **cancel** via `Test.cancel` (`requireSubmittedInboxItems` / `requireReportingFixtureFCPXML` / `ExcelReportFixture.requireFixtureURL`). Never throw `XCTSkip`. Harness: `FCPXMLTestSampleLoading` (`tryLoad*`) + `FCPXMLTestingSampleSupport` (`require*`). |
-| **Never commit private FCPXML** | `Tests/Submitted FCPXML/` inbox contents and private ExcelReportTest fixtures (`.fcpxml` / `.fcpxmld` under those trees) are **gitignored**. Never commit or push private project XML to GitHub. Anonymise → reproduce → fix → promote a **minimal public** sample when appropriate. |
-| **ExcelReportTest is optional** | Integration target **cancels** without a local fixture; do not make CI depend on private Sample bundles. |
+| **Bundled samples fail; optional fixtures cancel** | Bundled public samples **fail** if missing (`requireFCPXMLSample`). Optional fixtures (Submitted inbox, `OFK_REPORTING_FCPXML_BUNDLE`, ExcelReportTest Sample, `OFK_SHOT_EXTRACTION_FCPXML` / ShotExtractionTest Sample) **cancel** via `Test.cancel` (`requireSubmittedInboxItems` / `requireReportingFixtureFCPXML` / `ExcelReportFixture.requireFixtureURL` / `ShotExtractionFixture.requireFixtureURL`). Never throw `XCTSkip`. Harness: `FCPXMLTestSampleLoading` (`tryLoad*`) + `FCPXMLTestingSampleSupport` (`require*`). |
+| **Never commit private FCPXML** | `Tests/Submitted FCPXML/` inbox contents and private ExcelReportTest / ShotExtractionTest fixtures (`.fcpxml` / `.fcpxmld` under those trees) are **gitignored**. Never commit or push private project XML to GitHub. Anonymise → reproduce → fix → promote a **minimal public** sample when appropriate. |
+| **ExcelReportTest / ShotExtractionTest are optional** | Integration targets **cancel** without a local fixture; do not make CI depend on private Sample bundles. |
 | **Update counts when adding tests** | Keep listed counts aligned in `Tests/README.md`, `GUARDRAILS.md`, `ARCHITECTURE.md`, `AGENT.md`, and `.cursorrules` when you add or remove tests (`swift test list`). |
 
 ---
@@ -202,7 +202,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1169** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1173** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter

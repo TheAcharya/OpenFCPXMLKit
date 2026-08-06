@@ -165,10 +165,14 @@ struct FCPXMLShotExtractionTests {
         let workspace = try makeWorkspace()
         defer { try? FileManager.default.removeItem(at: workspace.root) }
 
-        let png = try writeSolidPNG(to: workspace.mediaDir.appendingPathComponent("only.png"), seed: 3)
+        let pngA = try writeSolidPNG(to: workspace.mediaDir.appendingPathComponent("a.png"), seed: 3)
+        let pngB = try writeSolidPNG(to: workspace.mediaDir.appendingPathComponent("b.png"), seed: 4)
         let xml = stillTimelineXML(
             projectName: "Scene 7",
-            clips: [("r2", png, "0s", "1s")]
+            clips: [
+                ("r2", pngA, "0s", "1s"),
+                ("r3", pngB, "1s", "1s"),
+            ]
         )
         let fcpxml = try FinalCutPro.FCPXML(fileContent: Data(xml.utf8))
         let options = FinalCutPro.FCPXML.ShotExtractionOptions(
@@ -184,12 +188,27 @@ struct FCPXMLShotExtractionTests {
 
         let data = try Data(contentsOf: result.manifestPath)
         let json = try #require(JSONSerialization.jsonObject(with: data) as? [[String: Any]])
-        #expect(json.count == 1)
+        #expect(json.count == 2)
         #expect(json[0]["Shot ID"] as? String == "7-001")
         #expect(json[0]["Shot Number"] as? String == "1")
         #expect(json[0]["Scene Number"] as? String == "7")
         #expect(json[0]["Icon Image"] as? String == "")
         #expect(json[0]["Image Filename"] as? String == "7-001.png")
+        #expect(json[1]["Shot ID"] as? String == "7-002")
+        #expect(json[1]["Image Filename"] as? String == "7-002.png")
+
+        // Key order must match CSV ``ShotManifestSchema.columns`` (not alphabetical `.sortedKeys`).
+        let text = try #require(String(data: data, encoding: .utf8))
+        let columns = FinalCutPro.FCPXML.ShotManifestSchema.columns
+        var searchFrom = text.startIndex
+        for column in columns {
+            let needle = "\"\(column)\""
+            let match = try #require(
+                text.range(of: needle, range: searchFrom..<text.endIndex),
+                "Missing or out-of-order Notion JSON key: \(column)"
+            )
+            searchFrom = match.upperBound
+        }
     }
 
     @Test("Rejects primary timeline that contains video media")

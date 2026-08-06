@@ -128,7 +128,7 @@ OpenFCPXMLKit-CLI --quiet --media-copy /path/to/project.fcpxml /path/to/media
 | `--extract-shots` | Extract primary-timeline still-image shots to PNG files plus a CSV or Notion JSON manifest. Rejects primary-spine **video**, **titles / generators / Motion templates**, and **audio** clips. |
 | `--dry-run` | Validate the timeline and report shot count without writing PNGs or manifests. Requires `--extract-shots`. `output-dir` optional. Suitable for GUI preflight. |
 | `--scene-number <text>` | **Required** with `--extract-shots`. Scene number for Shot ID (`{scene}-001`) and Scene Number column. |
-| `--extract-format <csv\|notion>` | Manifest format (default `csv`). `notion` writes a JSON array of column-keyed objects compatible with [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo). Requires `--extract-shots`. |
+| `--extract-format <csv\|notion>` | Manifest format (default `csv`). `notion` writes a JSON array of column-keyed objects compatible with [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo). Object keys match **CSV column order**; the array is in **Shot ID / timeline order**. Requires `--extract-shots`. |
 | `--folder-format <short\|medium\|long>` | Output folder naming (default `medium`). `medium` → `{timeline}-{yyyy-MM-dd-HH-mm-ss}` (e.g. `Demo_V1-2026-07-27-09-14-21`); `long` appends `-[CSV]` / `-[Notion]`. Requires `--extract-shots`. |
 | `--result-file-path <path>` | Optional JSON result summary path (also written on `--dry-run`). Requires `--extract-shots`. |
 | `--extract-project <name>` | Optional project / timeline name filter. Requires `--extract-shots`. |

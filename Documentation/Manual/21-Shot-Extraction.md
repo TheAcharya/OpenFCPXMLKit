@@ -4,7 +4,7 @@
 
 ---
 
-Still-image **Shot Extraction** builds a shot dataset from the **primary timeline** only: one PNG per still-image clip (in timeline order), plus a CSV or Notion-compatible JSON manifest. Excel/PDF reporting is unrelated and unchanged.
+Still-image **Shot Extraction** builds a shot dataset from the **primary timeline** only: one PNG per still-image clip (in timeline order), plus a CSV or Notion-compatible JSON manifest. Notion JSON object keys follow the **same column order as the CSV**. Excel/PDF reporting is unrelated and unchanged.
 
 ## Requirements
 
@@ -69,7 +69,7 @@ Shot IDs use three-digit padding: scene `50` with 30 shots → `50-001` … `50-
 
 ### Notion JSON (`--extract-format notion`)
 
-The Notion JSON shape follows the [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) JSON import convention: a top-level array of objects whose keys match the Shot Data column headers (including **Icon Image** and **Image Filename**). Empty template columns are present as empty strings so the file can be uploaded/merged into a Notion database with csv2notion-neo alongside the PNG files in the same export folder.
+The Notion JSON shape follows the [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) JSON import convention: a top-level array of objects whose keys match the Shot Data column headers (including **Icon Image** and **Image Filename**). Objects are emitted in **Shot ID / timeline order**, and keys within each object follow the **same column order as the CSV** (not alphabetical). Empty template columns are present as empty strings so the file can be uploaded/merged into a Notion database with csv2notion-neo alongside the PNG files in the same export folder.
 
 ## CLI
 
@@ -109,6 +109,7 @@ See also [19 — CLI](19-CLI.md) and [OpenFCPXMLKitCLI/README.md](../../Sources/
 - Titles / generators are detected via a primary-spine story walk; audio via that walk plus primary-lane Projection audio windows.
 - Independent of `Reporting/` (Excel/PDF); consumes Projection only.
 - Dependency: [swift-textfile](https://github.com/orchetect/swift-textfile) (`TextFile`) for CSV encoding.
+- Optional local integration: `Tests/ShotExtractionTest/` (`swift test --filter ShotExtractionExportTests`) — mirrors `ExcelReportTest`; cancels without a stills fixture.
 
 ---
 

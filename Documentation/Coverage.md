@@ -2,9 +2,9 @@
 
 Living inventory of how OpenFCPXMLKit covers Final Cut Pro FCPXML across layers. Prefer this file when asking “is element *X* typed / authored / projected / reported?” Prefer [GUARDRAILS.md](../GUARDRAILS.md) for must / must-not, and [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7 for where new work belongs.
 
-**Keep in sync** when adding Model types, Authoring encode/decode, Extraction presets, Projection walks, or Reporting sheets. Suite context: **1169** tests listed (`swift test list`); FCPXML **1.5–1.14**.
+**Keep in sync** when adding Model types, Authoring encode/decode, Extraction presets, Projection walks, Reporting sheets, or Shot Extraction behaviour. Suite context: **1173** tests listed (`swift test list` — **1161** + **8** ExcelReportTest + **4** ShotExtractionTest); FCPXML **1.5–1.14**.
 
-**Related Manual:** [08 — Detached Authoring](Manual/08-Detached-Authoring.md) · [11 — Extraction](Manual/11-Extraction-Media.md) · [12 — Projection](Manual/12-Timeline-Projection.md) · [14 — Typed Models](Manual/14-Typed-Models.md) · [20 — Reporting](Manual/20-Reporting.md)
+**Related Manual:** [08 — Detached Authoring](Manual/08-Detached-Authoring.md) · [11 — Extraction](Manual/11-Extraction-Media.md) · [12 — Projection](Manual/12-Timeline-Projection.md) · [14 — Typed Models](Manual/14-Typed-Models.md) · [20 — Reporting](Manual/20-Reporting.md) · [21 — Shot Extraction](Manual/21-Shot-Extraction.md)
 
 ---
 
@@ -67,7 +67,7 @@ Living inventory of how OpenFCPXMLKit covers Final Cut Pro FCPXML across layers.
 
 ```text
 XML / DTD  →  Parsing  →  Model  →  Extraction  →  Projection  →  Reporting
-                                                              ↘  ShotExtraction  (PNG + CSV / Notion JSON; independent of Reporting)
+                                                              ↘  ShotExtraction  (PNG + CSV / Notion JSON, CSV key order; independent of Reporting)
                               ↘
                          Authoring   (parallel create; omit-on-write)
                               ↘
@@ -81,7 +81,7 @@ XML / DTD  →  Parsing  →  Model  →  Extraction  →  Projection  →  Repo
 | **Extraction** | Discovery + context (roles, occlusion, presets) | Sheet layout |
 | **Projection** | Playable occupancy, retiming, unfold | Excel/PDF styling |
 | **Reporting** | Rows, columns, colours, workbooks/PDFs | New FCPXML semantics |
-| **ShotExtraction** | Primary-timeline stills → PNG + CSV / csv2notion-neo Notion JSON; `planShots` dry-run; reject primary video / titles / audio | Reporting sheets; invent FCP semantics |
+| **ShotExtraction** | Primary-timeline stills → PNG + CSV / csv2notion-neo Notion JSON (keys in CSV column order; Shot ID array order); `planShots` dry-run; reject primary video / titles / audio; optional `ShotExtractionTest` | Reporting sheets; invent FCP semantics |
 | **Timeline Export** | In-memory `Timeline` → FCPXML | Authoring types |
 
 ---
