@@ -32,7 +32,7 @@ The manual is split into **chapters** for easier navigation and maintenance:
 | [18 — Errors & Utilities](Manual/18-Errors-Utilities.md) | Error types, ErrorHandling, ProgressBar, FCPXMLUID |
 | [19 — CLI](Manual/19-CLI.md) | Experimental command-line interface (OpenFCPXMLKit-CLI) |
 | [20 — Reporting, Excel & PDF Export](Manual/20-Reporting.md) | Report builder, ReportOptions (`includeNonStandardEffectsTemplates`, `includeChapterMarkersInMarkersReport` default on, `copyrightLabel`, `includeMarkersOutsideClipBoundaries`, `protectSheets`, …), inventory Total / Duplicate Frames, Projection-first sections, Excel/PDF export |
-| [21 — Shot Extraction](Manual/21-Shot-Extraction.md) | Primary stills → PNG + CSV / [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) Notion JSON; `planShots` / `--dry-run`; reject video / titles / audio |
+| [21 — Shot Extraction](Manual/21-Shot-Extraction.md) | Primary stills → PNG + CSV / [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) Notion JSON (CSV column key order); `planShots` / `--dry-run`; reject video / titles / audio; optional `ShotExtractionTest` |
 | [22 — Examples](Manual/22-Examples.md) | End-to-end workflows and code examples |
 
 The manual covers the **entire public API** with examples: core operations, async/await, file I/O, validation, timeline creation and manipulation, **detached Authoring**, metadata, media processing, typed models, version conversion, **Timeline Projection**, reporting and Excel/PDF export, **Shot Extraction**, CLI, and utilities.
@@ -41,11 +41,11 @@ The manual covers the **entire public API** with examples: core operations, asyn
 - **Chapter 12** — Projection (`MediaUsageWindow`, project-once for reports)
 - **Chapter 17** — Cross-platform XML abstraction (OFKXML)
 - **Chapter 20** — Reporting (Excel & PDF; empty-sheet status rows)
-- **Chapter 21** — Shot Extraction (PNG + CSV/Notion JSON; `planShots` / `--dry-run`)
+- **Chapter 21** — Shot Extraction (PNG + CSV/Notion JSON with CSV column key order; `planShots` / `--dry-run`; optional `ShotExtractionTest`)
 
 Architecture philosophy: [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7. Hard constraints: [GUARDRAILS.md](../GUARDRAILS.md). **Element / layer inventory:** [Coverage.md](Coverage.md) (Model · Authoring · Extraction · Projection · Reporting matrices).
 
-**Test count (keep in sync):** **1169** listed in `swift test list` — **1161** in `OpenFCPXMLKitTests` + **8** optional `ExcelReportTest` (all Swift Testing `@Test`); **60** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
+**Test count (keep in sync):** **1173** listed in `swift test list` — **1161** in `OpenFCPXMLKitTests` + **8** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`); **60** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
 
 ---
 

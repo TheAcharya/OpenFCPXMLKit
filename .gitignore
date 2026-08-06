@@ -31,6 +31,15 @@ Tests/ExcelReportTest/Output/*.xlsx
 Tests/ExcelReportTest/Output/*.pdf
 Tests/ExcelReportTest/Output/~$*
 
+# Local Shot Extraction integration fixtures and generated exports (not committed).
+Tests/ShotExtractionTest/*.fcpxmld/
+Tests/ShotExtractionTest/*.fcpxml
+Tests/ShotExtractionTest/Output/*.fcpxmld/
+Tests/ShotExtractionTest/Output/*.fcpxml
+Tests/ShotExtractionTest/Output/*
+!Tests/ShotExtractionTest/Output/README.md
+!Tests/ShotExtractionTest/Output/.gitkeep
+
 # Private user-submitted FCPXML inbox (never commit contents — only README / .gitkeep).
 Tests/Submitted FCPXML/Inbox/**
 !Tests/Submitted FCPXML/Inbox/.gitkeep

@@ -26,7 +26,7 @@ let package = Package(
         // CLI argument parsing
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.8.2"),
         // Timecode operations
-        .package(url: "https://github.com/orchetect/swift-timecode", from: "3.1.2"),
+        .package(url: "https://github.com/orchetect/swift-timecode", from: "3.1.3"),
         // Utility extensions (String, Collection, Optional helpers)
         .package(url: "https://github.com/orchetect/swift-extensions", from: "3.0.0"),
         // Semantic versioning (extracted from swift-extensions 3.0.0)
@@ -65,7 +65,7 @@ let package = Package(
                 .product(name: "XLKit", package: "XLKit"),
             ],
             path: "Tests",
-            exclude: ["README.md", "ExcelReportTest", "Submitted FCPXML"],
+            exclude: ["README.md", "ExcelReportTest", "ShotExtractionTest", "Submitted FCPXML"],
             sources: ["OpenFCPXMLKitTests"],
             resources: [.process("FCPXML Samples/FCPXML")]),
         // ExcelReportTest READMEs are docs only (not test sources/resources).
@@ -76,6 +76,14 @@ let package = Package(
                 .product(name: "XLKit", package: "XLKit"),
             ],
             path: "Tests/ExcelReportTest",
+            exclude: ["README.md", "Output/README.md", "Output"]),
+        // ShotExtractionTest READMEs / Output are docs and generated artefacts only.
+        .testTarget(
+            name: "ShotExtractionTest",
+            dependencies: [
+                "OpenFCPXMLKit",
+            ],
+            path: "Tests/ShotExtractionTest",
             exclude: ["README.md", "Output/README.md", "Output"]),
         // End-user CLI target
         .executableTarget(

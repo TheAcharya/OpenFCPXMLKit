@@ -51,8 +51,8 @@ let version = root?.stringValue(forAttributeNamed: "version")
 
 ## Testing
 
-- The suite uses **Swift Testing** exclusively (`@Suite` / `@Test` / `#expect` / `#require`). **1169** tests are listed in `swift test list` (**1161** in `OpenFCPXMLKitTests` + **8** optional `ExcelReportTest`). See [Tests/README.md](../../Tests/README.md).
-- Tests run on **macOS** and exercise the Foundation XML backend. Optional fixtures cancel via `Test.cancel` when unset (ExcelReportTest Sample, `OFK_REPORTING_FCPXML_BUNDLE`, Submitted inbox).
+- The suite uses **Swift Testing** exclusively (`@Suite` / `@Test` / `#expect` / `#require`). **1173** tests are listed in `swift test list` (**1161** in `OpenFCPXMLKitTests` + **8** optional `ExcelReportTest` + **4** optional `ShotExtractionTest`). See [Tests/README.md](../../Tests/README.md).
+- Tests run on **macOS** and exercise the Foundation XML backend. Optional fixtures cancel via `Test.cancel` when unset (ExcelReportTest Sample, `OFK_REPORTING_FCPXML_BUNDLE`, ShotExtractionTest Sample, `OFK_SHOT_EXTRACTION_FCPXML`, Submitted inbox).
 - Public fixtures: `Tests/FCPXML Samples/FCPXML/` (committed). Private investigation: [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) (`Inbox/` gitignored — never commit private FCPXML to GitHub).
 - **iOS** is supported for building the library (e.g. iOS Simulator); running the same tests on iOS is not required for CI because they depend on Foundation XML. AEXML parity and structural validation are covered by tests that run on macOS.
 

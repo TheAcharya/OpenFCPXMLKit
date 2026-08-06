@@ -403,7 +403,7 @@ OpenFCPXMLKit-CLI --extract-shots \
   /path/to/output-dir
 ```
 
-Primary-spine **video**, **titles / generators**, and **audio** abort with ``ShotExtractionError`` (GUI can show `localizedDescription`). See [21 — Shot Extraction](21-Shot-Extraction.md).
+Primary-spine **video**, **titles / generators**, and **audio** abort with ``ShotExtractionError`` (GUI can show `localizedDescription`). Notion JSON keys match CSV column order; shots are in Shot ID / timeline order. See [21 — Shot Extraction](21-Shot-Extraction.md).
 
 ---
 
@@ -431,7 +431,7 @@ For FCPXML format details see [fcp.cafe/developers/fcpxml](https://fcp.cafe/deve
 ## Next
 
 - [Manual Index](00-Index.md) — return to the table of contents.
-- [21 — Shot Extraction](21-Shot-Extraction.md) — primary stills → PNG + CSV/Notion JSON; `planShots` / `--dry-run`.
+- [21 — Shot Extraction](21-Shot-Extraction.md) — primary stills → PNG + CSV/Notion JSON (CSV column key order); `planShots` / `--dry-run`.
 
 [← Manual Index](00-Index.md)
 

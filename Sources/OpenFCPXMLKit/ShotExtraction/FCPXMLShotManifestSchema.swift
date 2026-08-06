@@ -77,8 +77,9 @@ extension FinalCutPro.FCPXML {
             }
         }
 
-        static func dictionary(for shot: ShotRecord) -> [String: String] {
-            Dictionary(uniqueKeysWithValues: zip(columns, rowValues(for: shot)))
+        /// Column / value pairs in ``columns`` order (CSV and Notion JSON key order).
+        static func orderedFields(for shot: ShotRecord) -> [(key: String, value: String)] {
+            zip(columns, rowValues(for: shot)).map { (key: $0, value: $1) }
         }
     }
 }

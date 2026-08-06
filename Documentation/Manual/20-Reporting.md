@@ -718,7 +718,7 @@ OpenFCPXMLKit-CLI --report --report-full --create-pdf \
 
 ## Investigating private / complex FCPXML
 
-For real-world exports that must stay off GitHub, drop them in [Tests/Submitted FCPXML/Inbox/](../../Tests/Submitted%20FCPXML/README.md) (gitignored). Reproduce with `FCPXMLSubmittedFCPXMLSmokeTests`, CLI `--report`, or `ExcelReportTest` via `OFK_REPORTING_FCPXML_BUNDLE`. Anonymise before promoting a minimal fixture into `Tests/FCPXML Samples/FCPXML/`.
+For real-world exports that must stay off GitHub, drop them in [Tests/Submitted FCPXML/Inbox/](../../Tests/Submitted%20FCPXML/README.md) (gitignored). Reproduce with `FCPXMLSubmittedFCPXMLSmokeTests`, CLI `--report`, or `ExcelReportTest` via `OFK_REPORTING_FCPXML_BUNDLE`. For stills Shot Extraction, use `ShotExtractionTest` via `OFK_SHOT_EXTRACTION_FCPXML`. Anonymise before promoting a minimal fixture into `Tests/FCPXML Samples/FCPXML/`.
 
 ---
 

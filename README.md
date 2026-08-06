@@ -9,7 +9,7 @@ A modern Swift 6 framework for working with Final Cut Pro's FCPXML with full con
 
 OpenFCPXMLKit provides a type-safe API for parsing, creating, and manipulating FCPXML with async/await, SwiftTimecode, and Excel/PDF reporting. Targets **macOS 26+** and **iOS 26+** (Foundation XML on macOS; AEXML on iOS).
 
-**Tests:** **1169** listed in `swift test list` — **1161** in `OpenFCPXMLKitTests` + **8** optional `ExcelReportTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
+**Tests:** **1173** listed in `swift test list` — **1161** in `OpenFCPXMLKitTests` + **8** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
 
 OpenFCPXMLKit is currently in an experimental stage. It covers most core FCPXML attributes and parameters and provides a solid foundation for parsing, creation, and manipulation, with room for future expansion and additional feature coverage.
 
@@ -103,7 +103,8 @@ This codebase is developed using AI agents.
 ### Shot Extraction
 - Primary-timeline still-image shots → PNG dataset + CSV or Notion JSON (`ShotExtractor` / `extractShots` / `planShots` dry-run)
 - Rejects primary-spine **video**, **titles / generators / Motion templates**, and **audio**; connected lanes ignored; reused stills get distinct Shot IDs (`{scene}-001` …)
-- Notion JSON (`--extract-format notion`) follows the [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) JSON import convention
+- Notion JSON (`--extract-format notion`) follows the [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) JSON import convention; object keys match **CSV column order**; shots are in **Shot ID / timeline order**
+- Optional integration: [`Tests/ShotExtractionTest/`](Tests/ShotExtractionTest/README.md) (`swift test --filter ShotExtractionExportTests`)
 - CLI: `--extract-shots --scene-number …` (optional `--dry-run`, `--extract-format`, `--icon`)
 - See [Manual 21 — Shot Extraction](Documentation/Manual/21-Shot-Extraction.md)
 
@@ -159,7 +160,7 @@ let package = Package(
         .iOS(.v26)
     ],
     dependencies: [
-        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.3.3")
+        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.3.4")
     ],
     targets: [
         .target(
@@ -222,7 +223,7 @@ sudo rm /usr/local/bin/OpenFCPXMLKit-CLI
 ### Compiled From Source
 
 ```shell
-VERSION=3.3.3 # replace this with the git tag of the version you need
+VERSION=3.3.4 # replace this with the git tag of the version you need
 git clone https://github.com/TheAcharya/OpenFCPXMLKit.git
 cd OpenFCPXMLKit
 git checkout "tags/$VERSION"
@@ -368,7 +369,7 @@ Complete manual, usage guide, and examples are in the [Documentation](Documentat
 - **[CLI](Sources/OpenFCPXMLKitCLI/README.md)** — Flags, examples, building and extending
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — Layer stack, codebase map, Mermaid diagrams
 - **[GUARDRAILS.md](GUARDRAILS.md)** — Must / must-not constraints for contributors and agents
-- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1169** listed; all Swift Testing)
+- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1173** listed; all Swift Testing)
 - **[AGENT.md](AGENT.md)** — AI agent / contributor briefing
 
 ## FCPXML Version Support
@@ -401,6 +402,16 @@ See [AGENT.md](AGENT.md) for a detailed breakdown for AI agents and contributors
 <p>
 
 <p align="center"> <img src="https://github.com/TheAcharya/ProductionData-Website/blob/main/docs/assets/pd-main.png?raw=true"> </p>
+
+</p>
+</details>
+
+### [Shot Data](https://shotdata.theacharya.co)
+
+<details><summary>Shot Data's Main Window</summary>
+<p>
+
+<p align="center"> <img src="https://github.com/TheAcharya/ShotData-Website/blob/main/docs/assets/sd-main.png?raw=true"> </p>
 
 </p>
 </details>

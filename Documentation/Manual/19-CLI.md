@@ -36,7 +36,7 @@ Extract primary-timeline **still-image** shots to PNG files plus a CSV or Notion
 | **--extract-shots** | Enable Shot Extraction (exclusive with other modes). |
 | **--dry-run** | Validate + shot count only; no PNG/manifest writes. `output-dir` optional. |
 | **--scene-number &lt;text&gt;** | **Required.** Scene number for Shot ID (`{scene}-001`) and Scene Number column. |
-| **--extract-format &lt;csv\|notion&gt;** | Manifest format (default `csv`). `notion` writes a JSON array of column-keyed objects compatible with [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo). |
+| **--extract-format &lt;csv\|notion&gt;** | Manifest format (default `csv`). `notion` writes a JSON array of column-keyed objects compatible with [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo). Keys follow the **same order as the CSV columns**; shots are in **Shot ID / timeline order**. |
 | **--folder-format &lt;short\|medium\|long&gt;** | Output folder naming (default `medium`). |
 | **--icon &lt;text&gt;** | Optional emoji (or any text) for the **Icon Image** column on every row. |
 | **--result-file-path &lt;path&gt;** | Optional JSON result summary path (also on dry-run). |
