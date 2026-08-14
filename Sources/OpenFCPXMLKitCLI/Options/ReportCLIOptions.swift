@@ -125,6 +125,16 @@ struct ReportCLIOptions: ParsableArguments {
     var includeMarkersOutsideClipBoundaries: Bool = false
     
     @Flag(
+        name: .customLong("include-role-inventory-speed-change-settings"),
+        help: """
+        Add a Speed Change Settings column (retime percent, e.g. 50.0%) after Effects on Role \
+        Inventory sheets (with --report). Default omits the column. Independent of \
+        --report-speed-change-effects. Not available via --exclude-column.
+        """
+    )
+    var includeRoleInventorySpeedChangeSettings: Bool = false
+    
+    @Flag(
         name: .customLong("protect-sheets"),
         help: """
         Protect every sheet in the Excel workbook against casual edits (with --report). \
@@ -198,6 +208,7 @@ struct ReportCLIOptions: ParsableArguments {
             || !excludeRole.isEmpty
             || excludeDisabledClips
             || includeMarkersOutsideClipBoundaries
+            || includeRoleInventorySpeedChangeSettings
             || protectSheets
             || !excludeColumn.isEmpty
             || timecodeFormat != nil
@@ -233,6 +244,7 @@ struct ReportCLIOptions: ParsableArguments {
         options.excludedRoles = excludeRole
         options.excludeDisabledClips = excludeDisabledClips
         options.includeMarkersOutsideClipBoundaries = includeMarkersOutsideClipBoundaries
+        options.includeSpeedChangeSettingsInRoleInventory = includeRoleInventorySpeedChangeSettings
         options.protectSheets = protectSheets
         options.excludedColumns = excludeColumn
         options.timecodeFormat = try resolvedTimecodeFormat()

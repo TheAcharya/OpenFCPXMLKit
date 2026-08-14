@@ -624,10 +624,19 @@ extension FinalCutPro.FCPXML {
                 || category == .connectedGenerator
         }
         
+        /// Source File Name / Path for Role Inventory.
+        ///
+        /// Uses ``OFKXMLElement/fcpMediaURL(in:preferAudioAngle:)`` so non-flattened hosts
+        /// (`mc-clip`, `sync-clip`, `ref-clip`) resolve to a primary leaf media file.
+        /// Pass `preferAudioAngle: true` for multicam audio-component rows.
         static func inventorySourceFileInfo(
-            for clipContext: ExtractedElement
+            for clipContext: ExtractedElement,
+            preferAudioAngle: Bool = false
         ) -> (name: String, path: String) {
-            guard let url = clipContext.element.fcpMediaURL(in: clipContext.resources) else {
+            guard let url = clipContext.element.fcpMediaURL(
+                in: clipContext.resources,
+                preferAudioAngle: preferAudioAngle
+            ) else {
                 return ("", "")
             }
             return (url.lastPathComponent, url.path)

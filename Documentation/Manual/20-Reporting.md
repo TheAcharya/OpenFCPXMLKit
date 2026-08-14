@@ -12,7 +12,7 @@ Everything lives under **`FinalCutPro.FCPXML`**:
 
 - **buildReport(options:scope:onPhaseStarted:)** — convenience entry point on a parsed document.
 - **ReportBuilder** — assembles a **Report** from a document or a single **Project**.
-- **ReportOptions** — selects which sections to include, plus project filter, media base URL, role display preference, cover sheet, role exclusions, disabled-clip filtering, column exclusions, **timecodeFormat**, **mediaResolutionPolicy**, **mediaSummaryDistinguishProxyAndOriginal**, optional **copyrightLabel**, **includeMarkersOutsideClipBoundaries**, and **protectSheets** (Excel edit lock).
+- **ReportOptions** — selects which sections to include, plus project filter, media base URL, role display preference, cover sheet, role exclusions, disabled-clip filtering, column exclusions, **timecodeFormat**, **mediaResolutionPolicy**, **mediaSummaryDistinguishProxyAndOriginal**, optional **copyrightLabel**, **includeMarkersOutsideClipBoundaries**, **includeSpeedChangeSettingsInRoleInventory**, and **protectSheets** (Excel edit lock).
 - **ReportTimecodeFormat** — how timeline time values appear in workbook/PDF cells (`HH:MM:SS:FF`, Frames, Feet+Frames, `HH:MM:SS`).
 - **Report** — the assembled value type (one optional property per section, plus resolved column exclusions, `timecodeFormat`, `copyrightLabel`, and `protectSheets`).
 - **ReportBuildPhase** — content phases in product / workbook order; use `enabledPhases(for:)` for GUI progress bars.
@@ -24,7 +24,7 @@ All **build** APIs are **async**. PDF export is **synchronous** once a `Report` 
 
 **Project-once Projection:** When Role Inventory, Markers, Keywords, Titles & Generators, Transitions, Effects, Speed Change Effects, Media Summary, or Summary is enabled, `ReportBuilder` projects the timeline **once** (progress phase `.projecting`) and shares `ReportProjectionContext` across those sections. Markers / Keywords / Titles / Transitions / Effects are Projection-first with Extraction fallback. See [12 — Timeline Projection](12-Timeline-Projection.md).
 
-**Configuration parity:** Build the report **once** with `ReportOptions`, then export to Excel, PDF, or both. Section flags, `excludedColumns`, `excludedRoles`, `excludeDisabledClips`, `timecodeFormat`, `copyrightLabel`, `includeMarkersOutsideClipBoundaries`, and `projectName` all apply to both exporters (they shape the shared `Report`). **`protectSheets` is Excel-only** (worksheet edit lock — not encryption). PDF adds presentation-only features (cover page, TOC with sheet colour chips + tint washes, per-sheet content tints, pagination, remaining-column width expansion after exclusions, truncation) on top of the same `Report` data.
+**Configuration parity:** Build the report **once** with `ReportOptions`, then export to Excel, PDF, or both. Section flags, `excludedColumns`, `excludedRoles`, `excludeDisabledClips`, `timecodeFormat`, `copyrightLabel`, `includeMarkersOutsideClipBoundaries`, `includeSpeedChangeSettingsInRoleInventory`, and `projectName` all apply to both exporters (they shape the shared `Report`). **`protectSheets` is Excel-only** (worksheet edit lock — not encryption). PDF adds presentation-only features (cover page, TOC with sheet colour chips + tint washes, per-sheet content tints, pagination, remaining-column width expansion after exclusions, truncation) on top of the same `Report` data.
 
 ---
 
@@ -71,6 +71,7 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 | `includeRoleInventory` | `false` | Selected Roles Inventory + per-role sheets |
 | `includeChapterMarkersInMarkersReport` | `true` | Include `chapter-marker` rows on the Markers sheet (Type = Chapter). Set `false` to omit; Excel Type filter can also hide them. |
 | `includeMarkersOutsideClipBoundaries` | `false` | Include markers outside the host clip’s media range (hidden in FCP Tags/timeline) and show a **Hidden** column (✓/✗). Not part of `excludedColumns` / `--exclude-column`. |
+| `includeSpeedChangeSettingsInRoleInventory` | `false` | Add a **Speed Change Settings** column (retime percent, e.g. `50.0%`) after **Effects** on Role Inventory sheets. Not part of `excludedColumns` / `--exclude-column`. Independent of `includeSpeedChangeEffects`. |
 
 ### Other configuration
 
@@ -249,6 +250,7 @@ Markers on title hosts attribute the title’s video **main** role (same casing 
 | Markers | `markers` |
 | Keywords | `keywords` |
 | Effects | `effects` |
+| Speed Change Settings *(opt-in)* | `speedChangeSettings` — shown only when `includeSpeedChangeSettingsInRoleInventory` is `true` (CLI `--include-role-inventory-speed-change-settings`); blank for identity clips |
 | Notes | `notes` |
 | Reel | `reel` |
 | Scene | `scene` |
@@ -654,6 +656,7 @@ Per-section presentation:
 | `workbookCoverSheet` | `exportBrandingText` on cover and footer (Excel cover tab is separate) |
 | `copyrightLabel` | Cover line below branding; centred running footer (Excel cover **A2**) |
 | `includeMarkersOutsideClipBoundaries` | Applied at build time (Markers rows + optional **Hidden** column) |
+| `includeSpeedChangeSettingsInRoleInventory` | Applied at build time (Role Inventory optional **Speed Change Settings** column) |
 | `protectSheets` | **Ignored** — Excel-only worksheet edit lock; use Preview → Encrypt for PDF open passwords |
 
 Headers such as **Marker Name**, **Type**, or the opt-in **Hidden** column on the Markers sheet are **not** `ReportColumn` cases; `--exclude-column` cannot remove them in Excel or PDF.
@@ -680,6 +683,7 @@ The same reports are available through **OpenFCPXMLKit-CLI**:
 | `--exclude-role <name>` | Omit roles from role inventory (repeatable) |
 | `--exclude-disabled-clips` | Omit `enabled="0"` clips from all timeline sections |
 | `--include-markers-outside-clip-boundaries` | Include out-of-bounds markers + Markers **Hidden** column |
+| `--include-role-inventory-speed-change-settings` | Add Role Inventory **Speed Change Settings** column after Effects |
 | `--protect-sheets` | Excel worksheet edit lock on every sheet (not encryption; PDF unaffected) |
 | `--exclude-column <name>` | Omit a column from every applicable sheet (repeatable) |
 | `--timecode-format <format>` | Timeline cell format: `HH:MM:SS:FF` (default), `Frames`, `Feet+Frames`, `HH:MM:SS` |

@@ -4,8 +4,8 @@ Optional integration tests that build real `.xlsx` workbooks and `.pdf` reports 
 
 **Target:** `ExcelReportTest` (Swift Testing)  
 **Depends on:** `OpenFCPXMLKit`, `XLKit`  
-**Tests:** **8** `@Test` methods in `@Suite("Excel report export")` / `ExcelReportExportTests`  
-**Public suite (keep in sync):** **1173** listed (`1161` OpenFCPXMLKitTests + **8** ExcelReportTest + **4** ShotExtractionTest; all Swift Testing); **60** public samples
+**Tests:** **9** `@Test` methods in `@Suite("Excel report export")` / `ExcelReportExportTests`  
+**Public suite (keep in sync):** **1188** listed (1175 OpenFCPXMLKitTests + **9** ExcelReportTest + **4** ShotExtractionTest; all Swift Testing); **60** public samples
 
 Unit-level reporting behaviour (universal **Row** on all tabular sheets, Summary title in **B1**, column layout including **Duplicate Frames** / **Codecs** / **Ingest Date** / **Frame Size / Audio Config**, per-role **Total:** footers, nested connected Role Inventory own-assignment hosts, under-spine titles honouring `Title.role` / leaf `<video>` inventory, Non-Std Effects & Templates sheet, column exclusion including `ReportColumn.row` and Role ▸ Subrole aliases (`Role > Subrole`), row colours from typed models when colour-source columns are excluded, disabled-clip filtering, timecode formats / DF·NDF, format-aware headers, build-phase order including `.projecting` and Non-Std before Effects, workbook cell formatting, optional `copyrightLabel` cover/footer branding, chapter markers on Markers by default, `includeMarkersOutsideClipBoundaries` / Markers **Hidden** column, `protectSheets` worksheet protection, `ReportMediaResolutionPolicy` / Media Summary proxy-original distinction, PDF cover notes / black header + `info.circle`, TOC colour chips, column-width expansion after exclusions, pagination, shared row colours, **standalone compound-clip timeline resolution**, **Projection-first** Markers/Keywords/Titles/Transitions/Effects) lives in **`OpenFCPXMLKitTests`** — see [Tests/README.md](../README.md#reporting--excelpdf-export) (`FCPXMLCompoundClipReportTests`, `FCPXMLTimelineProjectionTests`, `FCPXMLReportObligationCorpusTests`, `FCPXMLMarkersReportTests`, `FCPXMLReportPDFExportTests`, `FCPXMLReportPDFSheetPlanTests`, `FCPXMLReportPDFTableLayoutTests`, `FCPXMLReportColumnExclusionTests`, `FCPXMLReportExcelExportTests`, `FCPXMLRoleInventorySheetTotalTests`, `FCPXMLRoleInventoryDuplicateFramesTests`, `FCPXMLRoleInventoryClipCollectorTests`, `FCPXMLNonStandardEffectsTemplatesReportTests`, and related files).
 
@@ -67,6 +67,7 @@ Running the export tests writes workbooks and a sample PDF to **`Output/`** (als
 | `Output/OFK-ExcludedColumns.pdf` | role inventory + many `excludedColumns` | `--report --create-pdf --exclude-column …` | Same sheets with remaining columns expanded to fill A4 landscape width |
 | `Output/OFK-Copyright.xlsx` / `Output/OFK-Copyright.pdf` | role inventory + `copyrightLabel` | `--report --create-pdf --label-copyright "…"` | Cover/footer copyright line for manual review of `--label-copyright` |
 | `Output/OFK-OutsideClipBoundaries.xlsx` / `Output/OFK-OutsideClipBoundaries.pdf` | markers + `includeMarkersOutsideClipBoundaries` | `--report --report-markers --include-markers-outside-clip-boundaries --create-pdf` | Markers sheet with **Hidden** column (✓/✗) for out-of-bounds markers |
+| `Output/OFK-SpeedChangeSettings.xlsx` / `Output/OFK-SpeedChangeSettings.pdf` | role inventory + `includeSpeedChangeSettingsInRoleInventory` | `--report --include-role-inventory-speed-change-settings --create-pdf` | Role Inventory with **Speed Change Settings** after **Effects** |
 | `Output/OFK-ProtectedSheets.xlsx` | role inventory + `protectSheets` | `--report --protect-sheets` | Every worksheet protected (edit lock; not encryption; Excel only) |
 | `Output/OFK-ExcludeRoleSubrole.xlsx` / `.pdf` | full report + `excludedColumns: Role ▸ Subrole` | `--report --report-full --exclude-column "Roles > Subrole" --create-pdf` | Regression: per-role sheets keep clip data when Role ▸ Subrole is excluded |
 
@@ -85,6 +86,8 @@ See [Output/README.md](Output/README.md) for details on that folder.
 `exportRoleInventoryWithCopyrightLabel` writes `OFK-Copyright.xlsx` / `OFK-Copyright.pdf` and asserts Excel cover **A2** plus PDF cover/footer text for `--label-copyright` parity.
 
 `exportMarkersIncludingOutsideClipBoundaries` writes `OFK-OutsideClipBoundaries.xlsx` / `OFK-OutsideClipBoundaries.pdf` with `includeMarkersOutsideClipBoundaries` (CLI `--include-markers-outside-clip-boundaries`), asserts the Markers **Hidden** column, and compares row counts against the default Markers filter.
+
+`exportRoleInventoryWithSpeedChangeSettingsColumn` writes `OFK-SpeedChangeSettings.xlsx` / `OFK-SpeedChangeSettings.pdf` with `includeSpeedChangeSettingsInRoleInventory` (CLI `--include-role-inventory-speed-change-settings`) and asserts the **Speed Change Settings** column after **Effects**.
 
 `exportProtectedSheetsWorkbook` writes `OFK-ProtectedSheets.xlsx` with `protectSheets` (CLI `--protect-sheets`) and asserts every worksheet has XLKit sheet protection.
 
@@ -149,7 +152,7 @@ First run on a large fixture can take ~1–2 minutes (report build + XLKit save;
 | File | Purpose |
 |------|---------|
 | `ExcelReportFixture.swift` | Resolves fixture URL (including under `Output/`), `mediaBaseURL`, and `Output/` path; defines output file names |
-| `ExcelReportExportTests.swift` | Builds and writes `OFK-Default.xlsx`, `OFK-Full.xlsx`, `OFK-Default.pdf`, `OFK-Full.pdf`, `OFK-ExcludedColumns.pdf`, `OFK-Copyright.xlsx`, `OFK-Copyright.pdf`, `OFK-OutsideClipBoundaries.xlsx` / `.pdf`, `, `OFK-ProtectedSheets.xlsx`, and `OFK-ExcludeRoleSubrole.xlsx` / `.pdf` |
+| `ExcelReportExportTests.swift` | Builds and writes `OFK-Default.xlsx`, `OFK-Full.xlsx`, `OFK-Default.pdf`, `OFK-Full.pdf`, `OFK-ExcludedColumns.pdf`, `OFK-Copyright.xlsx`, `OFK-Copyright.pdf`, `OFK-OutsideClipBoundaries.xlsx` / `.pdf`, `OFK-SpeedChangeSettings.xlsx` / `.pdf`, `OFK-ProtectedSheets.xlsx`, and `OFK-ExcludeRoleSubrole.xlsx` / `.pdf` |
 | `Output/` | Generated workbooks and PDFs (created by tests; gitignored); may also hold local investigation fixtures such as `Sample.fcpxmld` |
 
 ---

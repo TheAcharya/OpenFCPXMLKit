@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1173** tests listed in `swift test list` — **1161** in `OpenFCPXMLKitTests` + **8** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1188** tests listed in `swift test list` — **1175** in `OpenFCPXMLKitTests` + **9** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -202,7 +202,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1173** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1188** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -234,6 +234,18 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Instruction:** Never hard-code **Titles** when `Title.role` / Projection host video roles are present — use `ReportFormatting.titleRoleSubrole`. Default to **Titles** only when the attribute is omitted. Inventory negative-lane leaf `<video>` / generators; keep skipping negative-lane leaf `<audio>` (host channel/sync sources). Do not re-parse title roles only inside Excel/PDF exporters.
 - **Reason:** Under-spine titles with custom library roles were exported under a hard-coded Titles label; leaf video under the spine was dropped by `shouldSkipLeafMedia`. Parsing/Extraction/Projection already had the facts.
 - **Provenance:** 2026-07-24 — under-spine titles / leaf video reporting fix (3.2.5).
+
+### Sign: host-roles-exclude-connected-titles
+- **Trigger:** Role Inventory host `<clip>` / sync / angle video Role ▸ Subrole when a connected `<title>` has a custom `role` (e.g. VFX).
+- **Instruction:** `_fcpRolesForNearestDescendant` must skip `.title` (with `.gap`) so connected title roles never become the host’s video role. Titles keep their own `role` for title inventory / Titles sheets; unrole’d hosts default via `addDefaultRoles` (typically **Video**). Do not “fix” this only in Reporting — Parsing owns local/inherited role facts.
+- **Reason:** Spine clips with unrole’d media + connected VFX titles were inventoried under the title’s VFX role (Sample: 6 hosts mis-hosted onto Vfx Shot No-1).
+- **Provenance:** 2026-08-14 — Sample.fcpxmld connected-title host role contamination.
+
+### Sign: speed-change-merge-extraction-when-projection-incomplete
+- **Trigger:** Speed Change Effects sheet missing optical-flow / wrapper `timeMap` rows that Extraction finds.
+- **Instruction:** When Projection yields any speed rows, still **merge** Extraction rows whose `clipName` is absent from Projection (do not treat non-empty Projection as exclusive). Skip nested leaf `timeMap` rows when an ancestor already has `timeMap` (`hasRetimedAncestorClipHost`) to avoid duplicates. Prefer Projection display when both agree.
+- **Reason:** Projection-first discarded Extraction entirely once any projected rows existed (Sample: ~37 projected vs ~59 extractable; optical-flow spine `<clip>` wrappers omitted).
+- **Provenance:** 2026-08-14 — Sample.fcpxmld Speed Change / optical-flow merge.
 
 ### Sign: empty-enabled-report-sheets-keep-status
 - **Trigger:** Exporting Excel/PDF when an enabled section has zero data rows.

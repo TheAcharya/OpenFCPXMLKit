@@ -634,10 +634,12 @@ enum FCPXMLReportWorkbookExporter {
         to workbook: Workbook
     ) {
         let metadataColumnKeys = roleInventory.metadataColumnKeys
+        let includeSpeedChangeSettings = roleInventory.showsSpeedChangeSettingsColumn
         let headers = FinalCutPro.FCPXML.RoleInventoryColumnLayout.columnHeaders(
             metadataColumnKeys: metadataColumnKeys,
             excludedColumns: excludedColumns,
-            timecodeFormat: timecodeFormat
+            timecodeFormat: timecodeFormat,
+            includeSpeedChangeSettings: includeSpeedChangeSettings
         )
         
         let selectedRows = FinalCutPro.FCPXML.ReportEmptySectionStatus.rowsOrEmptyStatus(
@@ -646,7 +648,8 @@ enum FCPXMLReportWorkbookExporter {
                     for: row,
                     rowIndex: index + 1,
                     metadataColumnKeys: metadataColumnKeys,
-                    excludedColumns: excludedColumns
+                    excludedColumns: excludedColumns,
+                    includeSpeedChangeSettings: includeSpeedChangeSettings
                 )
             },
             headers: headers,
@@ -675,6 +678,7 @@ enum FCPXMLReportWorkbookExporter {
                 headers: headers,
                 metadataColumnKeys: metadataColumnKeys,
                 excludedColumns: excludedColumns,
+                includeSpeedChangeSettings: includeSpeedChangeSettings,
                 timecodeFormat: timecodeFormat,
                 projectFrameRateHint: projectFrameRateHint,
                 to: workbook
@@ -687,6 +691,7 @@ enum FCPXMLReportWorkbookExporter {
         headers: [String],
         metadataColumnKeys: [String],
         excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>,
+        includeSpeedChangeSettings: Bool,
         timecodeFormat: FinalCutPro.FCPXML.ReportTimecodeFormat,
         projectFrameRateHint: String?,
         to workbook: Workbook
@@ -696,7 +701,8 @@ enum FCPXMLReportWorkbookExporter {
                 for: row,
                 rowIndex: index + 1,
                 metadataColumnKeys: metadataColumnKeys,
-                excludedColumns: excludedColumns
+                excludedColumns: excludedColumns,
+                includeSpeedChangeSettings: includeSpeedChangeSettings
             )
         }
         guard !rows.isEmpty else { return }

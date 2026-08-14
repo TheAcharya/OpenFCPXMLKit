@@ -92,7 +92,10 @@ extension FinalCutPro.FCPXML {
                 timecodeFormat: timecodeFormat
             )
             let metadataValues = ReportFormatting.inventoryMetadataValueMap(from: metadata)
-            let sourceFile = ReportFormatting.inventorySourceFileInfo(for: clipContext)
+            let sourceFile = ReportFormatting.inventorySourceFileInfo(
+                for: clipContext,
+                preferAudioAngle: entry.usesAudioAngleClipName
+            )
             let codecs = ReportFormatting.metadataString(from: metadata, key: .codecs)
             let ingestDate = ReportFormatting.metadataString(from: metadata, key: .ingestDate)
             let duplicateFrames = RoleInventoryDuplicateFrames.formattedDuration(
@@ -101,6 +104,13 @@ extension FinalCutPro.FCPXML {
                 projectionWindows: projectionWindows,
                 windowIndex: windowIndex,
                 timecodeFormat: timecodeFormat
+            )
+            let speedChangeSettings = RoleInventorySpeedChangeSettings.formattedSettings(
+                for: extracted,
+                clipContext: clipContext,
+                usesAudioTimelineBounds: entry.usesAudioTimelineBounds,
+                projectionWindows: projectionWindows,
+                windowIndex: windowIndex
             )
             
             return RoleClipReportRow(
@@ -118,6 +128,7 @@ extension FinalCutPro.FCPXML {
                 markers: markersDisplay(in: clipContext),
                 keywords: keywordsDisplay(for: clipContext),
                 effects: effectsDisplay(on: clipContext),
+                speedChangeSettings: speedChangeSettings,
                 notes: ReportFormatting.clipNotesDisplay(for: clipContext.element),
                 reel: ReportFormatting.metadataString(from: metadata, key: .reel),
                 scene: ReportFormatting.metadataString(from: metadata, key: .scene),

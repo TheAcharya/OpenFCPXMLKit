@@ -467,11 +467,15 @@ extension OFKXMLElement {
         }
     }
     
-    /// Connected `asset-clip` elements without an explicit `videoRole` use the generic `Video`
-    /// inventory label instead of roles inherited from a parent `clip` wrapper.
+    /// `asset-clip` elements without an explicit `videoRole` use the generic `Video`
+    /// inventory label.
+    ///
+    /// - Connected (`lane != 0`): avoids inheriting roles from a parent `clip` wrapper.
+    /// - Primary spine (`lane` absent or `0`): matches Final Cut Pro’s default Video role when
+    ///   the attribute is omitted. Without this, Role Inventory resolves an empty Role ▸ Subrole
+    ///   and drops the row (`appendRow` requires a non-empty role field).
     func fcpUsesGenericVideoInventoryLabel() -> Bool {
         guard fcpElementType == .assetClip,
-              (fcpLane ?? 0) != 0,
               fcpScanlineVideoInventoryRoleLabel() == nil
         else {
             return false

@@ -29,6 +29,38 @@ struct FCPXMLRoleInventoryColumnLayoutTests {
         #expect(headers.contains("Frame Size / Audio Config"))
         #expect(headers.contains("Codecs"))
         #expect(headers.contains("Ingest Date"))
+        #expect(!headers.contains(Layout.speedChangeSettingsColumnHeader))
+    }
+
+    @Test("Speed Change Settings column inserts after Effects when opted in")
+    func speedChangeSettingsColumnInsertsAfterEffectsWhenOptedIn() throws {
+        let headers = Layout.columnHeaders(
+            metadataColumnKeys: [],
+            includeSpeedChangeSettings: true
+        )
+        let effectsIndex = try #require(headers.firstIndex(of: "Effects"))
+        #expect(headers[effectsIndex + 1] == Layout.speedChangeSettingsColumnHeader)
+
+        let row = RoleRow(
+            roleSubrole: "Video",
+            clipName: "Clip",
+            category: "Primary video",
+            enabled: "✓",
+            timelineIn: "00:00:00:00",
+            timelineOut: "00:00:01:00",
+            clipDuration: "00:00:01:00",
+            sourceIn: "",
+            sourceOut: "",
+            sourceDuration: "",
+            speedChangeSettings: "50.0%"
+        )
+        let values = Layout.columnValues(
+            for: row,
+            rowIndex: 1,
+            metadataColumnKeys: [],
+            includeSpeedChangeSettings: true
+        )
+        #expect(values[effectsIndex + 1] == "50.0%")
     }
 
     @Test("Metadata column keys exclude dedicated fixed columns")

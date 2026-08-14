@@ -61,6 +61,15 @@ extension FinalCutPro.FCPXML {
         /// The Hidden column is not part of ``ReportColumn`` / `--exclude-column`.
         public var includeMarkersOutsideClipBoundaries: Bool
         
+        /// When building Role Inventory, add a **Speed Change Settings** column (retime percent,
+        /// e.g. `50.0%` / `-100.0%`) after **Effects**.
+        ///
+        /// Default is `false` (column omitted). When `true`, the column appears on Selected Roles
+        /// Inventory and per-role sheets; cells are blank for clips without a non-identity retime.
+        /// Not part of ``ReportColumn`` / `--exclude-column`. Independent of
+        /// ``includeSpeedChangeEffects`` (which toggles the Speed Change Effects sheet).
+        public var includeSpeedChangeSettingsInRoleInventory: Bool
+        
         /// Optional timeline name filter. When `nil`, the first project is preferred; if the
         /// document has no `<project>`, the first event-level compound clip (`ref-clip` →
         /// `media`/`sequence`) is used. Matching uses the project name or compound clip name.
@@ -143,6 +152,7 @@ extension FinalCutPro.FCPXML {
             includeRoleInventory: Bool = false,
             includeChapterMarkersInMarkersReport: Bool = true,
             includeMarkersOutsideClipBoundaries: Bool = false,
+            includeSpeedChangeSettingsInRoleInventory: Bool = false,
             projectName: String? = nil,
             mediaBaseURL: URL? = nil,
             roleDisplayPreference: RoleDisplayPreference = .builtIn,
@@ -170,6 +180,7 @@ extension FinalCutPro.FCPXML {
             self.includeRoleInventory = includeRoleInventory
             self.includeChapterMarkersInMarkersReport = includeChapterMarkersInMarkersReport
             self.includeMarkersOutsideClipBoundaries = includeMarkersOutsideClipBoundaries
+            self.includeSpeedChangeSettingsInRoleInventory = includeSpeedChangeSettingsInRoleInventory
             self.projectName = projectName
             self.mediaBaseURL = mediaBaseURL
             self.roleDisplayPreference = roleDisplayPreference

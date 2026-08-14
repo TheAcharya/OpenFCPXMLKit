@@ -291,6 +291,70 @@ struct ExcelReportExportTests {
         #expect(pdfData.count > 5_000)
     }
     
+    /// Writes `Output/OFK-SpeedChangeSettings.xlsx` / `.pdf` with
+    /// `--include-role-inventory-speed-change-settings` parity (Speed Change Settings
+    /// column after Effects on Role Inventory sheets).
+    @Test("Export role inventory with Speed Change Settings column")
+    @MainActor
+    func exportRoleInventoryWithSpeedChangeSettingsColumn() async throws {
+        let fixtureURL = try ExcelReportFixture.requireFixtureURL()
+        let outputDir = ExcelReportFixture.outputDirectoryURL()
+        try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
+        
+        var options = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
+        options.includeSpeedChangeSettingsInRoleInventory = true
+        
+        let report = try await loadReport(options: options, fixtureURL: fixtureURL)
+        let inventory = try #require(report.roleInventory)
+        #expect(inventory.showsSpeedChangeSettingsColumn)
+        
+        let rowsWithSettings = inventory.selectedRoles.filter { !$0.speedChangeSettings.isEmpty }
+        #expect(
+            !rowsWithSettings.isEmpty,
+            "Sample fixture should include at least one retimed inventory clip"
+        )
+        
+        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
+        let selected = try #require(
+            workbook.getSheet(name: FinalCutPro.FCPXML.RoleInventoryReportSection.defaultSheetName)
+        )
+        #expect(selected.getCellWithFormat("A1")?.value.stringValue == "Row")
+        
+        var effectsColumn: Int?
+        var speedSettingsColumn: Int?
+        for column in 1 ... 64 {
+            let header = selected.getCellWithFormat("\(excelColumnLetters(column))1")?.value.stringValue
+            if header == "Effects" {
+                effectsColumn = column
+            }
+            if header == "Speed Change Settings" {
+                speedSettingsColumn = column
+            }
+        }
+        let effects = try #require(effectsColumn)
+        let speedSettings = try #require(speedSettingsColumn)
+        #expect(speedSettings == effects + 1)
+        
+        let xlsxURL = try await writeWorkbook(
+            report,
+            named: ExcelReportFixture.speedChangeSettingsOutputXLSXFileName,
+            to: outputDir
+        )
+        try assertWorkbookExists(at: xlsxURL)
+        
+        let pdfURL = outputDir.appendingPathComponent(
+            ExcelReportFixture.speedChangeSettingsOutputPDFFileName
+        )
+        if FileManager.default.fileExists(atPath: pdfURL.path) {
+            try FileManager.default.removeItem(at: pdfURL)
+        }
+        try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
+        
+        let pdfData = try Data(contentsOf: pdfURL)
+        #expect(String(data: pdfData.prefix(4), encoding: .ascii) == "%PDF")
+        #expect(pdfData.count > 5_000)
+    }
+    
     /// Writes `Output/OFK-ProtectedSheets.xlsx` with worksheet protection on every sheet
     /// (CLI `--protect-sheets` parity). Excel only — PDF is unaffected.
     @Test("Export protected sheets workbook")
@@ -442,6 +506,19 @@ struct ExcelReportExportTests {
             (fileSize?.intValue ?? 0) > 0,
             "Workbook at \(url.lastPathComponent) is empty"
         )
+    }
+    
+    /// 1-based Excel column index → letters (`1` → `A`, `27` → `AA`).
+    private func excelColumnLetters(_ column: Int) -> String {
+        var remaining = column
+        var letters = ""
+        while remaining > 0 {
+            remaining -= 1
+            let digit = remaining % 26
+            letters = String(UnicodeScalar(UInt8(65 + digit))) + letters
+            remaining /= 26
+        }
+        return letters
     }
 }
 

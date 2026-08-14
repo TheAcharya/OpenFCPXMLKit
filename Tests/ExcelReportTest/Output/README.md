@@ -1,6 +1,6 @@
 # Excel and PDF report test output
 
-This folder holds **generated** `.xlsx` workbooks and `.pdf` reports from the `ExcelReportTest` target (**8** optional Swift Testing integration tests; part of the **1173**-test public suite). It is gitignored; files here are produced on your machine when you run the export tests. Without a local fixture, those tests **cancel** via `Test.cancel` and nothing is written.
+This folder holds **generated** `.xlsx` workbooks and `.pdf` reports from the `ExcelReportTest` target (**9** optional Swift Testing integration tests; part of the **1186**-test public suite). It is gitignored; files here are produced on your machine when you run the export tests. Without a local fixture, those tests **cancel** via `Test.cancel` and nothing is written.
 
 ---
 
@@ -15,6 +15,7 @@ This folder holds **generated** `.xlsx` workbooks and `.pdf` reports from the `E
 | **`OFK-ExcludedColumns.pdf`** | role inventory + many `excludedColumns` | Same inventory with leftover page width redistributed across remaining columns |
 | **`OFK-Copyright.xlsx`** / **`OFK-Copyright.pdf`** | role inventory + `copyrightLabel` | Same as default, with Excel cover **A2** and PDF cover/footer centre copyright line (`--label-copyright` parity) |
 | **`OFK-OutsideClipBoundaries.xlsx`** / **`OFK-OutsideClipBoundaries.pdf`** | markers + `includeMarkersOutsideClipBoundaries` | Markers sheet with **Hidden** column (✓ outside host media range / ✗ inside); CLI `--include-markers-outside-clip-boundaries` |
+| **`OFK-SpeedChangeSettings.xlsx`** / **`OFK-SpeedChangeSettings.pdf`** | role inventory + `includeSpeedChangeSettingsInRoleInventory` | Role Inventory with **Speed Change Settings** after **Effects**; CLI `--include-role-inventory-speed-change-settings` |
 | **`OFK-ProtectedSheets.xlsx`** | role inventory + `protectSheets` | Every worksheet protected (edit lock, no password); CLI `--protect-sheets`; Excel only |
 | **`OFK-ExcludeRoleSubrole.xlsx`** / **`OFK-ExcludeRoleSubrole.pdf`** | full report + Role ▸ Subrole excluded | Per-role sheets keep clip data and row colours when Role ▸ Subrole is omitted; CLI `--exclude-column "Roles > Subrole"` |
 

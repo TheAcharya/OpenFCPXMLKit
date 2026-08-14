@@ -46,7 +46,9 @@ extension FinalCutPro.FCPXML {
                     timecodeFormat: timecodeFormat,
                     sequence: sequence
                 )
-                rows = projectedRows.isEmpty ? extractionRows : projectedRows
+                rows = projectedRows.isEmpty
+                    ? extractionRows
+                    : mergingExtractionRows(extractionRows, into: projectedRows)
             } else {
                 rows = extractionRows
             }
@@ -54,6 +56,18 @@ extension FinalCutPro.FCPXML {
             return SpeedChangeEffectsReportSection(
                 rows: rows.sorted { sortSpeedChangeRows($0, $1, timecodeFormat: timecodeFormat) }
             )
+        }
+
+        /// Keeps Projection rows and appends Extraction-only retimes Projection missed
+        /// (e.g. optical-flow `timeMap` on a spine `<clip>` wrapper).
+        private static func mergingExtractionRows(
+            _ extractionRows: [EffectReportRow],
+            into projectedRows: [EffectReportRow]
+        ) -> [EffectReportRow] {
+            let projectedNames = Set(projectedRows.map(\.clipName))
+            let extras = extractionRows.filter { !projectedNames.contains($0.clipName) }
+            guard !extras.isEmpty else { return projectedRows }
+            return projectedRows + extras
         }
 
         /// Groups non-identity projected windows into one workbook row per clip usage.
@@ -148,6 +162,12 @@ extension FinalCutPro.FCPXML {
                   )
             else { return nil }
 
+            // Prefer the outermost retimed host when both a wrapper `<clip>` and a nested
+            // `<video>` carry a `timeMap` (common with optical-flow exports).
+            if hasRetimedAncestorClipHost(extracted.element) {
+                return nil
+            }
+
             return EffectReportRow(
                 effect: retime.effect,
                 settings: retime.settings,
@@ -161,6 +181,20 @@ extension FinalCutPro.FCPXML {
                 timelineIn: ReportFormatting.timecodeString(timelineIn, format: timecodeFormat),
                 timelineOut: ReportFormatting.timecodeString(timelineOut, format: timecodeFormat)
             )
+        }
+
+        private static func hasRetimedAncestorClipHost(
+            _ element: any OFKXMLElement
+        ) -> Bool {
+            let hostTypes: Set<ElementType> = [
+                .clip, .assetClip, .syncClip, .refClip, .mcClip, .video, .audio
+            ]
+            return element.ancestorElements(includingSelf: false).contains { ancestor in
+                guard let type = ancestor.fcpElementType, hostTypes.contains(type) else {
+                    return false
+                }
+                return ancestor.firstChild(whereFCPElement: .timeMap) != nil
+            }
         }
 
         private static func sortSpeedChangeRows(

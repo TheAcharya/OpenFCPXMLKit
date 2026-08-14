@@ -41,6 +41,6 @@ Complete manual and usage guide for **OpenFCPXMLKit**, a Swift 6 framework for F
 - **Coverage:** [../Coverage.md](../Coverage.md) — FCPXML element / layer matrices (Model · Authoring · Extraction · Projection · Reporting)
 - **Guardrails:** [../../GUARDRAILS.md](../../GUARDRAILS.md) — must / must-not for contributors and agents
 - **CLI reference:** [../../Sources/OpenFCPXMLKitCLI/README.md](../../Sources/OpenFCPXMLKitCLI/README.md)
-- **Tests:** [../../Tests/README.md](../../Tests/README.md) — suite layout (**1173** listed tests, all Swift Testing); [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) for private local investigation (never commit private FCPXML); optional [ShotExtractionTest](../../Tests/ShotExtractionTest/README.md) / [ExcelReportTest](../../Tests/ExcelReportTest/README.md)
+- **Tests:** [../../Tests/README.md](../../Tests/README.md) — suite layout (**1188** listed tests, all Swift Testing); [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) for private local investigation (never commit private FCPXML); optional [ShotExtractionTest](../../Tests/ShotExtractionTest/README.md) / [ExcelReportTest](../../Tests/ExcelReportTest/README.md)
 - **FCPXML reference:** [fcp.cafe/developers/fcpxml](https://fcp.cafe/developers/fcpxml)
 

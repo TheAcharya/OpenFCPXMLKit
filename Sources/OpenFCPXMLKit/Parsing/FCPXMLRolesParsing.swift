@@ -290,8 +290,15 @@ extension OFKXMLElement {
             // gaps may appear before an actual clip in a multicam angle.
             // FCP skips them and looks to the first clip in the angle.
             // (gaps are timelines but also cannot have roles)
+            //
+            // Titles keep their own `role` for title inventory / Titles sheets; they must not
+            // become the host clip’s video role when connected to a `<clip>` / sync / angle
+            // (FCP still shows the host as Video / the media’s role).
             elements = elements
-                .filter { $0.fcpElementType != .gap }
+                .filter {
+                    $0.fcpElementType != .gap
+                        && $0.fcpElementType != .title
+                }
                 .asAnySequence
             
             return elements

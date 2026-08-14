@@ -28,6 +28,9 @@ extension FinalCutPro.FCPXML {
         public var markers: String
         public var keywords: String
         public var effects: String
+        /// Retime percent (`50.0%`) when the clip has a non-identity speed change; blank otherwise.
+        /// Exported only when ``RoleInventoryReportSection/showsSpeedChangeSettingsColumn`` is `true`.
+        public var speedChangeSettings: String
         public var notes: String
         public var reel: String
         public var scene: String
@@ -68,6 +71,7 @@ extension FinalCutPro.FCPXML {
             markers: String = "",
             keywords: String = "",
             effects: String = "",
+            speedChangeSettings: String = "",
             notes: String = "",
             reel: String = "",
             scene: String = "",
@@ -96,6 +100,7 @@ extension FinalCutPro.FCPXML {
             self.markers = markers
             self.keywords = keywords
             self.effects = effects
+            self.speedChangeSettings = speedChangeSettings
             self.notes = notes
             self.reel = reel
             self.scene = scene
@@ -111,7 +116,8 @@ extension FinalCutPro.FCPXML {
             self.metadataValues = metadataValues
         }
         
-        /// Values for ``fixedColumnHeaders`` in column order.
+        /// Values for ``fixedColumnHeaders`` in column order (always-on 26 columns; excludes
+        /// optional ``speedChangeSettings``).
         public var fixedColumnValues: [String] {
             [
                 roleSubrole,
@@ -169,15 +175,20 @@ extension FinalCutPro.FCPXML {
         public var roleSheets: [RoleSheet]
         /// Dynamic metadata key columns appended after the fixed inventory columns.
         public var metadataColumnKeys: [String]
+        /// When `true` (opt-in via ``ReportOptions/includeSpeedChangeSettingsInRoleInventory``),
+        /// inventory sheets include a **Speed Change Settings** column after **Effects**.
+        public var showsSpeedChangeSettingsColumn: Bool
         
         public init(
             selectedRoles: [RoleClipReportRow] = [],
             roleSheets: [RoleSheet] = [],
-            metadataColumnKeys: [String] = []
+            metadataColumnKeys: [String] = [],
+            showsSpeedChangeSettingsColumn: Bool = false
         ) {
             self.selectedRoles = selectedRoles
             self.roleSheets = roleSheets
             self.metadataColumnKeys = metadataColumnKeys
+            self.showsSpeedChangeSettingsColumn = showsSpeedChangeSettingsColumn
         }
     }
 }

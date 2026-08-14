@@ -228,10 +228,12 @@ enum FCPXMLReportPDFExporter {
         to canvas: FCPXMLReportPDFCanvas.Builder
     ) {
         let metadataColumnKeys = roleInventory.metadataColumnKeys
+        let includeSpeedChangeSettings = roleInventory.showsSpeedChangeSettingsColumn
         let headers = FinalCutPro.FCPXML.RoleInventoryColumnLayout.columnHeaders(
             metadataColumnKeys: metadataColumnKeys,
             excludedColumns: excludedColumns,
-            timecodeFormat: timecodeFormat
+            timecodeFormat: timecodeFormat,
+            includeSpeedChangeSettings: includeSpeedChangeSettings
         )
         
         guard !headers.isEmpty else { return }
@@ -243,7 +245,8 @@ enum FCPXMLReportPDFExporter {
                     for: row,
                     rowIndex: index + 1,
                     metadataColumnKeys: metadataColumnKeys,
-                    excludedColumns: excludedColumns
+                    excludedColumns: excludedColumns,
+                    includeSpeedChangeSettings: includeSpeedChangeSettings
                 )
             },
             headers: headers,
@@ -287,7 +290,8 @@ enum FCPXMLReportPDFExporter {
                     for: row,
                     rowIndex: index + 1,
                     metadataColumnKeys: metadataColumnKeys,
-                    excludedColumns: excludedColumns
+                    excludedColumns: excludedColumns,
+                    includeSpeedChangeSettings: includeSpeedChangeSettings
                 )
             }
             

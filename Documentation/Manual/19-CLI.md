@@ -15,7 +15,7 @@ The package includes an experimental command-line tool **OpenFCPXMLKit-CLI**. It
 
 ## Commands and options
 
-Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--extract-shots`, `--report`, or `--create-project`. For `--convert-version`, `--media-copy`, `--extract-shots` (without `--dry-run`), `--report` (and default process), `<output-dir>` is required and is **created if missing**. `--extract-shots --dry-run` may omit `<output-dir>`. For `--create-project`, the single positional argument is `<output-dir>` (also created if missing). `--extension-type` requires `--convert-version`. REPORT modifiers (`--report-full`, section flags, `--include-markers-outside-clip-boundaries`, `--protect-sheets`, `--timecode-format`, `--media-resolution`, `--label-copyright`, `--create-pdf`, etc.) require `--report`. Shot Extraction modifiers (`--dry-run`, `--extract-format`, `--scene-number`, `--folder-format`, `--result-file-path`, `--extract-project`, `--icon`) require `--extract-shots`; `--scene-number` is required with `--extract-shots`.
+Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-copy`, `--extract-shots`, `--report`, or `--create-project`. For `--convert-version`, `--media-copy`, `--extract-shots` (without `--dry-run`), `--report` (and default process), `<output-dir>` is required and is **created if missing**. `--extract-shots --dry-run` may omit `<output-dir>`. For `--create-project`, the single positional argument is `<output-dir>` (also created if missing). `--extension-type` requires `--convert-version`. REPORT modifiers (`--report-full`, section flags, `--include-markers-outside-clip-boundaries`, `--include-role-inventory-speed-change-settings`, `--protect-sheets`, `--timecode-format`, `--media-resolution`, `--label-copyright`, `--create-pdf`, etc.) require `--report`. Shot Extraction modifiers (`--dry-run`, `--extract-format`, `--scene-number`, `--folder-format`, `--result-file-path`, `--extract-project`, `--icon`) require `--extract-shots`; `--scene-number` is required with `--extract-shots`.
 
 ### GENERAL
 
@@ -74,6 +74,7 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD, with optional PDF 
 | **--exclude-role &lt;role&gt;** | Exclude a role or subrole from the role inventory (repeatable). Excluding a main role also excludes its subroles. |
 | **--exclude-disabled-clips** | Omit disabled clips (`enabled="0"`) from all timeline-based report sections (with `--report`). |
 | **--include-markers-outside-clip-boundaries** | Include markers outside the host clip’s media range (hidden in FCP Tags/timeline) and add a **Hidden** column (✓/✗) on the Markers sheet (with `--report`). Default omits those markers. Not available via `--exclude-column`. |
+| **--include-role-inventory-speed-change-settings** | Add a **Speed Change Settings** column (retime percent, e.g. `50.0%`) after **Effects** on Role Inventory sheets (with `--report`). Default omits the column. Independent of `--report-speed-change-effects`. Not available via `--exclude-column`. |
 | **--protect-sheets** | Protect every sheet in the Excel workbook against casual edits (with `--report`). Cover + all content sheets. **Edit lock only** — not file-open encryption; Excel still opens freely and protection can be turned off. PDF export is unaffected (use Preview → Encrypt for a PDF open password). |
 | **--exclude-column &lt;column&gt;** | Exclude a workbook column from every applicable report sheet (repeatable; with `--report`). |
 | **--timecode-format &lt;format&gt;** | Timeline time display format for report cells in Excel and PDF (with `--report`). Values: `HH:MM:SS:FF` (default; SMPTE with frames, `;` before frames for drop-frame), `Frames`, `Feet+Frames`, `HH:MM:SS`. |
@@ -103,6 +104,8 @@ OpenFCPXMLKit-CLI --report --exclude-role Music --exclude-role Dialogue --exclud
 #### Markers outside clip boundaries
 
 `--include-markers-outside-clip-boundaries` is a **boolean flag** (no value). By default the Markers sheet matches Final Cut Pro’s Tags list: markers whose `start` is outside the host clip’s media range are omitted and no **Hidden** column is shown. Pass the flag to include those markers and append **Hidden** (✓ = outside bounds, ✗ = inside). The Hidden column cannot be removed with `--exclude-column`.
+
+`--include-role-inventory-speed-change-settings` is a **boolean flag** (no value). By default Role Inventory omits **Speed Change Settings**. Pass the flag to insert that column after **Effects** (cells use the same retime percent labels as the Speed Change Effects sheet, e.g. `50.0%` / `-100.0%`; blank for identity clips). Independent of `--report-speed-change-effects`. Not available via `--exclude-column`.
 
 ```bash
 OpenFCPXMLKit-CLI --report --report-markers --include-markers-outside-clip-boundaries \

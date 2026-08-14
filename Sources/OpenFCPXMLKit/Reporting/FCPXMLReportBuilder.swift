@@ -183,7 +183,8 @@ extension FinalCutPro.FCPXML {
                     roleDisplayPreference: options.roleDisplayPreference,
                     timecodeFormat: options.timecodeFormat,
                     projection: projection,
-                    entries: inventoryEntries
+                    entries: inventoryEntries,
+                    includeSpeedChangeSettings: options.includeSpeedChangeSettingsInRoleInventory
                 )
                 if !options.excludedRoles.isEmpty {
                     roleInventory = ReportRoleExclusion.applying(
