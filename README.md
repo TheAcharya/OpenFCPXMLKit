@@ -9,7 +9,7 @@ A modern Swift 6 framework for working with Final Cut Pro's FCPXML with full con
 
 OpenFCPXMLKit provides a type-safe API for parsing, creating, and manipulating FCPXML with async/await, SwiftTimecode, and Excel/PDF reporting. Targets **macOS 26+** and **iOS 26+** (Foundation XML on macOS; AEXML on iOS).
 
-**Tests:** **1173** listed in `swift test list` — **1161** in `OpenFCPXMLKitTests` + **8** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
+**Tests:** **1193** listed in `swift test list` — **1179** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
 
 OpenFCPXMLKit is currently in an experimental stage. It covers most core FCPXML attributes and parameters and provides a solid foundation for parsing, creation, and manipulation, with room for future expansion and additional feature coverage.
 
@@ -34,6 +34,7 @@ This codebase is developed using AI agents.
   - [Detached Authoring](#detached-authoring)
   - [Extraction & media](#extraction--media)
   - [Timeline Projection](#timeline-projection)
+  - [Shot Extraction](#shot-extraction)
   - [Excel & PDF reporting](#excel--pdf-reporting)
   - [CLI](#cli)
   - [Architecture](#architecture)
@@ -112,11 +113,13 @@ This codebase is developed using AI agents.
 - Build once with `buildReport(options:)`, then export `.xlsx` (XLKit) and/or `.pdf` (CoreGraphics)
 - Sheets: Role Inventory, Markers, Keywords, Titles, Transitions, Non-Std Effects & Templates, Effects, Speed Change, Summary, Media Summary
   - Role inventory: **26** fixed columns (Duplicate Frames, Codecs, Ingest Date, Frame Size / Audio Config, …) + per-role **Total:** footers
+  - Optional **Screenshot** column (Excel Source In embeds, 480px max long edge) and **Speed Change Settings** column
   - Empty enabled sheets keep headers + status rows (**No Markers Found**, **No Missing Media**, …) via `ReportEmptySectionStatus`
+- Cover branding: **Created by** → **Created on** → **Visit** (API `visitURL`) → optional copyright (`--label-copyright`)
 - Filters: roles, columns (incl. **Row**), disabled clips, project name, timecode format, copyright label
 - Markers: default omits out-of-bounds starts; `--include-markers-outside-clip-boundaries` adds them + **Hidden** column
 - Excel: `--protect-sheets` / `protectSheets` applies worksheet edit locks (not encryption; PDF unaffected)
-- CLI: `--report`, `--report-full`, `--report-non-standard-effects`, `--create-pdf`, `--media-resolution`, `--timecode-format`, `--protect-sheets`, …
+- CLI: `--report`, `--report-full`, `--report-non-standard-effects`, `--include-role-inventory-screenshots`, `--create-pdf`, `--media-resolution`, `--timecode-format`, `--protect-sheets`, …
 - See [Manual 20 — Reporting](Documentation/Manual/20-Reporting.md)
 
 ### CLI
@@ -160,7 +163,7 @@ let package = Package(
         .iOS(.v26)
     ],
     dependencies: [
-        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.3.4")
+        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.3.5")
     ],
     targets: [
         .target(
@@ -223,7 +226,7 @@ sudo rm /usr/local/bin/OpenFCPXMLKit-CLI
 ### Compiled From Source
 
 ```shell
-VERSION=3.3.4 # replace this with the git tag of the version you need
+VERSION=3.3.5 # replace this with the git tag of the version you need
 git clone https://github.com/TheAcharya/OpenFCPXMLKit.git
 cd OpenFCPXMLKit
 git checkout "tags/$VERSION"
@@ -314,9 +317,9 @@ REPORT:
                           when the document has more than one reportable timeline.
   --label-copyright <label-copyright>
                           Optional copyright / attribution line for Excel and PDF reports (with --report). Excel:
-                          cover sheet cell A2 below the Created-by brand row. PDF: same subtitle style below
-                          Created-by on the cover, and centred in the running footer (same footer font/size as the
-                          Created-by branding).
+                          cover sheet cell A4 (after Created-by, Created-on, and Visit). PDF: same subtitle style
+                          below those lines on the cover, and centred in the running footer (same footer font/size as
+                          the Created-by branding).
   --exclude-role <exclude-role>
                           Exclude a role or subrole from role inventory (repeatable). Excluding a main role also
                           excludes its subroles.
@@ -326,6 +329,15 @@ REPORT:
                           Include markers whose start is outside the host clip’s media range (hidden in FCP
                           timeline/Tags) and add a Hidden column (✓/✗) on the Markers sheet (with --report /
                           --report-markers). Default omits those markers and does not show Hidden.
+  --include-role-inventory-speed-change-settings
+                          Add a Speed Change Settings column (retime percent, e.g. 50.0%) after Effects on Role
+                          Inventory sheets (with --report). Default omits the column. Independent of
+                          --report-speed-change-effects. Not available via --exclude-column.
+  --include-role-inventory-screenshots
+                          Add a Screenshot column after Row on Role Inventory sheets (Selected Roles Inventory and
+                          every per-role tab) and embed a Source In frame grab in Excel (with --report). Uses
+                          aspect-preserving XLKit embeds. Default omits the column. PDF export ignores this flag.
+                          Missing media leaves a blank cell. Not available via --exclude-column.
   --protect-sheets        Protect every sheet in the Excel workbook against casual edits (with --report). Applies to
                           the cover sheet and all content sheets. This is an edit lock, not file-open encryption —
                           Excel can still open the file, and anyone can turn protection off. PDF export is unaffected
@@ -369,7 +381,7 @@ Complete manual, usage guide, and examples are in the [Documentation](Documentat
 - **[CLI](Sources/OpenFCPXMLKitCLI/README.md)** — Flags, examples, building and extending
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — Layer stack, codebase map, Mermaid diagrams
 - **[GUARDRAILS.md](GUARDRAILS.md)** — Must / must-not constraints for contributors and agents
-- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1173** listed; all Swift Testing)
+- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1193** listed; all Swift Testing)
 - **[AGENT.md](AGENT.md)** — AI agent / contributor briefing
 
 ## FCPXML Version Support

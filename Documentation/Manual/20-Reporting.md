@@ -12,19 +12,19 @@ Everything lives under **`FinalCutPro.FCPXML`**:
 
 - **buildReport(options:scope:onPhaseStarted:)** — convenience entry point on a parsed document.
 - **ReportBuilder** — assembles a **Report** from a document or a single **Project**.
-- **ReportOptions** — selects which sections to include, plus project filter, media base URL, role display preference, cover sheet, role exclusions, disabled-clip filtering, column exclusions, **timecodeFormat**, **mediaResolutionPolicy**, **mediaSummaryDistinguishProxyAndOriginal**, optional **copyrightLabel**, **includeMarkersOutsideClipBoundaries**, and **protectSheets** (Excel edit lock).
+- **ReportOptions** — selects which sections to include, plus project filter, media base URL, role display preference, cover sheet, role exclusions, disabled-clip filtering, column exclusions, **timecodeFormat**, **mediaResolutionPolicy**, **mediaSummaryDistinguishProxyAndOriginal**, optional **copyrightLabel**, **includeMarkersOutsideClipBoundaries**, **includeSpeedChangeSettingsInRoleInventory**, **includeScreenshotsInRoleInventory** (Excel Screenshot column + embeds), and **protectSheets** (Excel edit lock).
 - **ReportTimecodeFormat** — how timeline time values appear in workbook/PDF cells (`HH:MM:SS:FF`, Frames, Feet+Frames, `HH:MM:SS`).
 - **Report** — the assembled value type (one optional property per section, plus resolved column exclusions, `timecodeFormat`, `copyrightLabel`, and `protectSheets`).
 - **ReportBuildPhase** — content phases in product / workbook order; use `enabledPhases(for:)` for GUI progress bars.
 - **ReportColumn** — logical columns that can be omitted globally at export (Excel and PDF).
-- **ReportExcelExport** — turns a `Report` into an XLKit `Workbook` or writes it to disk (honours `protectSheets`).
-- **ReportPDFExport** — turns a `Report` into PDF `Data` or writes a multi-page `.pdf` file (ignores `protectSheets`).
+- **ReportExcelExport** — turns a `Report` into an XLKit `Workbook` or writes it to disk (honours `protectSheets` and Role Inventory screenshots).
+- **ReportPDFExport** — turns a `Report` into PDF `Data` or writes a multi-page `.pdf` file (ignores `protectSheets` and screenshot embeds).
 
 All **build** APIs are **async**. PDF export is **synchronous** once a `Report` exists.
 
 **Project-once Projection:** When Role Inventory, Markers, Keywords, Titles & Generators, Transitions, Effects, Speed Change Effects, Media Summary, or Summary is enabled, `ReportBuilder` projects the timeline **once** (progress phase `.projecting`) and shares `ReportProjectionContext` across those sections. Markers / Keywords / Titles / Transitions / Effects are Projection-first with Extraction fallback. See [12 — Timeline Projection](12-Timeline-Projection.md).
 
-**Configuration parity:** Build the report **once** with `ReportOptions`, then export to Excel, PDF, or both. Section flags, `excludedColumns`, `excludedRoles`, `excludeDisabledClips`, `timecodeFormat`, `copyrightLabel`, `includeMarkersOutsideClipBoundaries`, and `projectName` all apply to both exporters (they shape the shared `Report`). **`protectSheets` is Excel-only** (worksheet edit lock — not encryption). PDF adds presentation-only features (cover page, TOC with sheet colour chips + tint washes, per-sheet content tints, pagination, remaining-column width expansion after exclusions, truncation) on top of the same `Report` data.
+**Configuration parity:** Build the report **once** with `ReportOptions`, then export to Excel, PDF, or both. Section flags, `excludedColumns`, `excludedRoles`, `excludeDisabledClips`, `timecodeFormat`, `copyrightLabel`, `includeMarkersOutsideClipBoundaries`, `includeSpeedChangeSettingsInRoleInventory`, `includeScreenshotsInRoleInventory`, and `projectName` all apply where noted. **`protectSheets` is Excel-only** (worksheet edit lock — not encryption). **`includeScreenshotsInRoleInventory` is Excel-only** (Screenshot column + embeds; PDF omits it). PDF adds presentation-only features (cover page, TOC with sheet colour chips + tint washes, per-sheet content tints, pagination, remaining-column width expansion after exclusions, truncation) on top of the same `Report` data.
 
 ---
 
@@ -71,6 +71,8 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 | `includeRoleInventory` | `false` | Selected Roles Inventory + per-role sheets |
 | `includeChapterMarkersInMarkersReport` | `true` | Include `chapter-marker` rows on the Markers sheet (Type = Chapter). Set `false` to omit; Excel Type filter can also hide them. |
 | `includeMarkersOutsideClipBoundaries` | `false` | Include markers outside the host clip’s media range (hidden in FCP Tags/timeline) and show a **Hidden** column (✓/✗). Not part of `excludedColumns` / `--exclude-column`. |
+| `includeSpeedChangeSettingsInRoleInventory` | `false` | Add a **Speed Change Settings** column (retime percent, e.g. `50.0%`) after **Effects** on Role Inventory sheets. Not part of `excludedColumns` / `--exclude-column`. Independent of `includeSpeedChangeEffects`. |
+| `includeScreenshotsInRoleInventory` | `false` | Add a **Screenshot** column after **Row** on Role Inventory sheets (Selected Roles + every per-role tab) and embed a **Source In** frame grab in **Excel** only (XLKit aspect-preserving; **480px** max long edge). PDF ignores this flag. Missing media → blank cell. Not part of `excludedColumns` / `--exclude-column`. |
 
 ### Other configuration
 
@@ -80,7 +82,8 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 | `mediaBaseURL` | `nil` | Base URL for resolving relative media paths when building the Media Summary missing-media list. The CLI defaults this to the document/bundle location. |
 | `roleDisplayPreference` | `.builtIn` | Which inherited role to surface on compound clips (see [Role display preference](#role-display-preference)). |
 | `workbookCoverSheet` | `.openFCPXMLKitDefault` | Optional cover sheet; set to `nil` to omit. |
-| `copyrightLabel` | `nil` | Optional copyright / attribution line: Excel cover **A2**, PDF cover below Created-by, PDF footer centre. |
+| `copyrightLabel` | `nil` | Optional copyright / attribution line: Excel cover **A4**, PDF cover below Created-by / Created-on / Visit, PDF footer centre. |
+| `workbookCoverSheet.visitURL` | OpenFCPXMLKit GitHub | Excel cover **A3** / PDF Visit line (`Visit <url>`). Override for a GUI host product URL. |
 | `excludedRoles` | `[]` | Role or subrole names to omit from the role inventory. Excluding a main role also excludes its subroles. |
 | `excludeDisabledClips` | `false` | Omit clips with `enabled="0"` from every timeline-based section. |
 | `excludedColumns` | `[]` | Header names / aliases removed at Excel and PDF export (see [Column exclusion](#column-exclusion)). |
@@ -168,12 +171,13 @@ let report = try await fcpxml.buildReport(options: options)
 - `speedChangeEffects: SpeedChangeEffectsReportSection?`
 - `summary: SummaryReportSection?`
 - `mediaSummary: MediaSummaryReportSection?`
-- `workbookCoverSheet: ReportWorkbookCoverSheet?` — optional Excel cover worksheet; branding text is also used on the PDF cover page and running footer
-- `copyrightLabel: String?` — optional copyright / attribution line (Excel cover **A2**; PDF cover below branding; PDF footer centre)
+- `workbookCoverSheet: ReportWorkbookCoverSheet?` — optional Excel cover worksheet; branding text and Visit URL are also used on the PDF cover (branding also on the running footer)
+- `copyrightLabel: String?` — optional copyright / attribution line (Excel cover **A4**; PDF cover below branding / Created-on / Visit; PDF footer centre)
 - `excludedColumns: Set<ReportColumn>` — resolved from `ReportOptions.excludedColumns` at build time
 - `timecodeFormat: ReportTimecodeFormat` — copied from options; drives Excel and PDF headers and cell formatting
 - `protectSheets: Bool` — copied from options; Excel export applies worksheet protection when `true` (PDF ignores)
 - **`exportBrandingText`** — resolved branding label from `workbookCoverSheet` (or the OpenFCPXMLKit default) for Excel cover cell A1 and PDF cover/footer
+- **`exportVisitURL`** — resolved Visit URL from `workbookCoverSheet.visitURL` (default GitHub repo) for Excel **A3** and PDF cover
 
 A section property is `nil` when that section was not requested. Every section conforms to **ReportSection** and exposes a `defaultSheetName`. Row models expose `columnHeaders` / `columnHeaders(timecodeFormat:)` and `columnValues` in matching order, so sections can be rendered by either export backend.
 
@@ -231,10 +235,11 @@ Markers on title hosts attribute the title’s video **main** role (same casing 
 
 **Per-role Total footer:** Each non-empty per-role sheet ends with a blank row, then a **Total:** label under **Timeline Out** and an optimistic sum of that sheet’s **Clip Duration** values under **Clip Duration**. Both cells use the same black-background / white-text style as column headers. **Selected Roles Inventory** has no Total footer. If Timeline Out or Clip Duration is excluded, the footer is omitted. The sum is presentation-thin (`RoleInventorySheetTotal` — parses already-formatted `clipDuration` strings); it is **not** overlap-aware (Summary’s `summaryOverlapAwareDurations` stays Summary-only). Excel and PDF draw the same footer in the table content area (not the PDF running page footer).
 
-**RoleClipReportRow** fixed columns (in export order, after **Row**):
+**RoleClipReportRow** fixed columns (in export order, after **Row**; optional **Screenshot** after **Row** when `includeScreenshotsInRoleInventory` is `true` — Excel embeds only):
 
 | Column | Field |
 |--------|-------|
+| Screenshot *(opt-in, Excel only)* | Source In frame embed when `includeScreenshotsInRoleInventory` / `--include-role-inventory-screenshots` (480px max long edge); blank if media missing. PDF omits. |
 | Role ▸ Subrole | `roleSubrole` |
 | Clip Name | `clipName` |
 | Category | `category` |
@@ -249,6 +254,7 @@ Markers on title hosts attribute the title’s video **main** role (same casing 
 | Markers | `markers` |
 | Keywords | `keywords` |
 | Effects | `effects` |
+| Speed Change Settings *(opt-in)* | `speedChangeSettings` — shown only when `includeSpeedChangeSettingsInRoleInventory` is `true` (CLI `--include-role-inventory-speed-change-settings`); blank for identity clips |
 | Notes | `notes` |
 | Reel | `reel` |
 | Scene | `scene` |
@@ -580,15 +586,25 @@ Table headers on tabular sheets use a black fill with white text. Data columns a
 
 ### Cover sheet
 
-**ReportWorkbookCoverSheet** (`title`, `headerText`) adds an intro worksheet to the Excel workbook. Use **`.openFCPXMLKitDefault`** for the built-in "Created by OpenFCPXMLKit" sheet, a custom value, or `nil` to omit the Excel cover tab. **`headerText`** (via **`Report.exportBrandingText`**) is also shown on the PDF cover page and running footer even when the Excel cover sheet is omitted.
+**ReportWorkbookCoverSheet** (`title`, `headerText`, `visitURL`) adds an intro worksheet to the Excel workbook. Use **`.openFCPXMLKitDefault`** for the built-in "Created by OpenFCPXMLKit" sheet, a custom value, or `nil` to omit the Excel cover tab. **`headerText`** (via **`Report.exportBrandingText`**) is also shown on the PDF cover page and running footer even when the Excel cover sheet is omitted. **`visitURL`** defaults to the OpenFCPXMLKit GitHub repository; GUI hosts should set their product URL.
 
-Optional **`ReportOptions.copyrightLabel`** / **`Report.copyrightLabel`** (CLI `--label-copyright`) adds a second line: Excel cover **A2** (same black/white banner style as A1), PDF cover below Created-by (same subtitle font/size), and PDF running footer **centre** (same footer font/size as Created-by branding).
+When a cover sheet is written, Excel rows are:
+
+| Cell | Content |
+|------|---------|
+| **A1** | Created-by (`headerText`) |
+| **A2** | `Created on yyyy-MM-dd-HH-mm-ss` (export time, local) |
+| **A3** | `Visit <visitURL>` |
+| **A4** | Optional `copyrightLabel` |
+
+Optional **`ReportOptions.copyrightLabel`** / **`Report.copyrightLabel`** (CLI `--label-copyright`) adds **A4** (same black/white banner style as A1–A3), shows the same line on the PDF cover below Created-by / Created-on / Visit (subtitle font/size), and centres it in the PDF running footer (footer font/size). Override **`visitURL`** on ``ReportWorkbookCoverSheet`` from the API (no CLI flag).
 
 ```swift
 var options = FinalCutPro.FCPXML.ReportOptions.full
 options.workbookCoverSheet = FinalCutPro.FCPXML.ReportWorkbookCoverSheet(
     title: "Created by My Studio",
-    headerText: "Created by My Studio"
+    headerText: "Created by My Studio",
+    visitURL: URL(string: "https://example.com/production-data")!
 )
 options.copyrightLabel = "© 2026 My Studio"
 ```
@@ -626,7 +642,7 @@ Throws **ReportPDFExportError** (`couldNotCreateDocument`, `couldNotWriteFile`) 
 
 PDF export mirrors Excel **section order** and **sheet names** (via `FCPXMLReportPDFSheetPlan`):
 
-1. **Cover page** — project name, event name (when present), generated timestamp, `exportBrandingText`, optional `copyrightLabel` (same subtitle style), and an info box with a **black header band** (white **`info.circle`** SF Symbol + title **“About This PDF Export”**) and a smaller body paragraph describing experimental A4-landscape export, pagination/truncation, the default **Row** column (excludable like Excel), tinted matching pages, and a pointer to the companion `.xlsx` for the full dataset.
+1. **Cover page** — project name, event name (when present), `exportBrandingText`, `Created on yyyy-MM-dd-HH-mm-ss`, Visit URL (`exportVisitURL`), optional `copyrightLabel` (same subtitle style), and an info box with a **black header band** (white **`info.circle`** SF Symbol + title **“About This PDF Export”**) and a smaller body paragraph describing experimental A4-landscape export, pagination/truncation, the default **Row** column (excludable like Excel), tinted matching pages, and a pointer to the companion `.xlsx` for the full dataset.
 2. **Table of contents** — one or more pages listing every included section with start page numbers (built dynamically in a two-pass render so page numbers are accurate). The TOC is not a workbook sheet in Excel; it is PDF-only. Each TOC row uses the **same colour index** as that sheet’s content pages: a small **accent-palette colour chip** beside the row number, plus a light **content-tint wash** on the row (Menlo text stays high-contrast on the near-white wash).
 3. **Content pages** — each enabled section, in workbook order, with running header (project name + section title) and footer (branding + page number).
 
@@ -651,9 +667,10 @@ Per-section presentation:
 | `excludedRoles` | Applied at build time (fewer role-inventory rows/sheets) |
 | `excludeDisabledClips` | Applied at build time (fewer rows in all timeline sections) |
 | `projectName` | Applied at build time (timeline source and `report.projectName`) |
-| `workbookCoverSheet` | `exportBrandingText` on cover and footer (Excel cover tab is separate) |
-| `copyrightLabel` | Cover line below branding; centred running footer (Excel cover **A2**) |
+| `workbookCoverSheet` | `exportBrandingText` on cover and footer; `visitURL` on cover Visit line (Excel cover tab is separate) |
+| `copyrightLabel` | Cover line below branding / Created-on / Visit; centred running footer (Excel cover **A4**) |
 | `includeMarkersOutsideClipBoundaries` | Applied at build time (Markers rows + optional **Hidden** column) |
+| `includeSpeedChangeSettingsInRoleInventory` | Applied at build time (Role Inventory optional **Speed Change Settings** column) |
 | `protectSheets` | **Ignored** — Excel-only worksheet edit lock; use Preview → Encrypt for PDF open passwords |
 
 Headers such as **Marker Name**, **Type**, or the opt-in **Hidden** column on the Markers sheet are **not** `ReportColumn` cases; `--exclude-column` cannot remove them in Excel or PDF.
@@ -675,11 +692,13 @@ The same reports are available through **OpenFCPXMLKit-CLI**:
 | `--media-resolution <mode>` | `fail-soft` (default) or `fail-loud` for Projection failures |
 | `--media-summary-distinguish-proxy` | Separate Missing Original / Missing Proxy columns on Media Summary |
 | `--create-pdf` | Also write `{project-or-clip-name}.pdf` alongside the `.xlsx` (same report configuration) |
-| `--label-copyright <text>` | Optional copyright / attribution line (Excel cover A2; PDF cover + footer centre) |
+| `--label-copyright <text>` | Optional copyright / attribution line (Excel cover **A4**; PDF cover + footer centre) |
 | `--report-project <name>` | Timeline name filter (project or standalone compound-clip name) |
 | `--exclude-role <name>` | Omit roles from role inventory (repeatable) |
 | `--exclude-disabled-clips` | Omit `enabled="0"` clips from all timeline sections |
 | `--include-markers-outside-clip-boundaries` | Include out-of-bounds markers + Markers **Hidden** column |
+| `--include-role-inventory-speed-change-settings` | Add Role Inventory **Speed Change Settings** column after Effects |
+| `--include-role-inventory-screenshots` | Add Role Inventory **Screenshot** column after Row + Excel Source In embeds (PDF ignores) |
 | `--protect-sheets` | Excel worksheet edit lock on every sheet (not encryption; PDF unaffected) |
 | `--exclude-column <name>` | Omit a column from every applicable sheet (repeatable) |
 | `--timecode-format <format>` | Timeline cell format: `HH:MM:SS:FF` (default), `Frames`, `Feet+Frames`, `HH:MM:SS` |

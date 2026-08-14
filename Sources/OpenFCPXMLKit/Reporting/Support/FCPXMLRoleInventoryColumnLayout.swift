@@ -16,6 +16,17 @@ extension FinalCutPro.FCPXML {
         /// Row index column prepended to every inventory sheet.
         static let rowColumnHeader = "Row"
         
+        /// Optional Role Inventory column (opt-in via
+        /// ``ReportOptions/includeSpeedChangeSettingsInRoleInventory``). Inserted after **Effects**.
+        /// Not part of ``ReportColumn`` / `--exclude-column`.
+        static let speedChangeSettingsColumnHeader = "Speed Change Settings"
+        
+        /// Optional Role Inventory column (opt-in via
+        /// ``ReportOptions/includeScreenshotsInRoleInventory``). Inserted after **Row**.
+        /// Excel-only embeds; PDF omits this column. Not part of ``ReportColumn`` /
+        /// `--exclude-column`.
+        static let screenshotColumnHeader = "Screenshot"
+        
         /// Fixed inventory columns in export order (excluding ``rowColumnHeader`` and metadata keys).
         static let fixedColumns: [ReportColumn] = [
             .roleSubrole,
@@ -70,7 +81,9 @@ extension FinalCutPro.FCPXML {
         static func columnHeaders(
             metadataColumnKeys: [String],
             excludedColumns: Set<ReportColumn> = [],
-            timecodeFormat: ReportTimecodeFormat = .smpteFrames
+            timecodeFormat: ReportTimecodeFormat = .smpteFrames,
+            includeSpeedChangeSettings: Bool = false,
+            includeScreenshots: Bool = false
         ) -> [String] {
             var headers: [String] = []
             
@@ -80,11 +93,20 @@ extension FinalCutPro.FCPXML {
                 headers.append(header)
             }
             
+            if includeScreenshots {
+                headers.append(screenshotColumnHeader)
+            }
+            
             for column in fixedColumns {
-                guard !excludedColumns.contains(column),
-                      let header = column.workbookHeader(timecodeFormat: timecodeFormat)
-                else { continue }
-                headers.append(header)
+                if !excludedColumns.contains(column),
+                   let header = column.workbookHeader(timecodeFormat: timecodeFormat)
+                {
+                    headers.append(header)
+                }
+                
+                if column == .effects, includeSpeedChangeSettings {
+                    headers.append(speedChangeSettingsColumnHeader)
+                }
             }
             
             if !excludedColumns.contains(.metadata) {
@@ -108,13 +130,17 @@ extension FinalCutPro.FCPXML {
         static func columnValues(
             for row: RoleClipReportRow,
             metadataColumnKeys: [String],
-            excludedColumns: Set<ReportColumn> = []
+            excludedColumns: Set<ReportColumn> = [],
+            includeSpeedChangeSettings: Bool = false,
+            includeScreenshots: Bool = false
         ) -> [String] {
             columnEntries(
                 for: row,
                 rowIndex: 0,
                 metadataColumnKeys: metadataColumnKeys,
-                excludedColumns: excludedColumns
+                excludedColumns: excludedColumns,
+                includeSpeedChangeSettings: includeSpeedChangeSettings,
+                includeScreenshots: includeScreenshots
             ).map(\.value)
         }
         
@@ -123,13 +149,17 @@ extension FinalCutPro.FCPXML {
             for row: RoleClipReportRow,
             rowIndex: Int,
             metadataColumnKeys: [String],
-            excludedColumns: Set<ReportColumn> = []
+            excludedColumns: Set<ReportColumn> = [],
+            includeSpeedChangeSettings: Bool = false,
+            includeScreenshots: Bool = false
         ) -> [String] {
             columnEntries(
                 for: row,
                 rowIndex: rowIndex,
                 metadataColumnKeys: metadataColumnKeys,
-                excludedColumns: excludedColumns
+                excludedColumns: excludedColumns,
+                includeSpeedChangeSettings: includeSpeedChangeSettings,
+                includeScreenshots: includeScreenshots
             ).map(\.value)
         }
         
@@ -142,7 +172,9 @@ extension FinalCutPro.FCPXML {
             for row: RoleClipReportRow,
             rowIndex: Int,
             metadataColumnKeys: [String],
-            excludedColumns: Set<ReportColumn>
+            excludedColumns: Set<ReportColumn>,
+            includeSpeedChangeSettings: Bool,
+            includeScreenshots: Bool
         ) -> [ColumnEntry] {
             var entries: [ColumnEntry] = []
             
@@ -152,14 +184,27 @@ extension FinalCutPro.FCPXML {
                 entries.append(ColumnEntry(header: header, value: String(rowIndex)))
             }
             
+            if includeScreenshots {
+                entries.append(ColumnEntry(header: screenshotColumnHeader, value: ""))
+            }
+            
             for column in fixedColumns {
-                guard !excludedColumns.contains(column),
-                      let header = column.exportHeader
-                else { continue }
+                if !excludedColumns.contains(column),
+                   let header = column.exportHeader
+                {
+                    entries.append(
+                        ColumnEntry(header: header, value: value(for: column, in: row))
+                    )
+                }
                 
-                entries.append(
-                    ColumnEntry(header: header, value: value(for: column, in: row))
-                )
+                if column == .effects, includeSpeedChangeSettings {
+                    entries.append(
+                        ColumnEntry(
+                            header: speedChangeSettingsColumnHeader,
+                            value: row.speedChangeSettings
+                        )
+                    )
+                }
             }
             
             if !excludedColumns.contains(.metadata) {

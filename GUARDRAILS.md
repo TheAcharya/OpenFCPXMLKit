@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1173** tests listed in `swift test list` — **1161** in `OpenFCPXMLKitTests` + **8** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1193** tests listed in `swift test list` — **1179** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -202,7 +202,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1173** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1193** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -235,6 +235,18 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Reason:** Under-spine titles with custom library roles were exported under a hard-coded Titles label; leaf video under the spine was dropped by `shouldSkipLeafMedia`. Parsing/Extraction/Projection already had the facts.
 - **Provenance:** 2026-07-24 — under-spine titles / leaf video reporting fix (3.2.5).
 
+### Sign: host-roles-exclude-connected-titles
+- **Trigger:** Role Inventory host `<clip>` / sync / angle video Role ▸ Subrole when a connected `<title>` has a custom `role` (e.g. VFX).
+- **Instruction:** `_fcpRolesForNearestDescendant` must skip `.title` (with `.gap`) so connected title roles never become the host’s video role. Titles keep their own `role` for title inventory / Titles sheets; unrole’d hosts default via `addDefaultRoles` (typically **Video**). Do not “fix” this only in Reporting — Parsing owns local/inherited role facts.
+- **Reason:** Spine clips with unrole’d media + connected VFX titles were inventoried under the title’s VFX role (Sample: 6 hosts mis-hosted onto Vfx Shot No-1).
+- **Provenance:** 2026-08-14 — Sample.fcpxmld connected-title host role contamination.
+
+### Sign: speed-change-merge-extraction-when-projection-incomplete
+- **Trigger:** Speed Change Effects sheet missing optical-flow / wrapper `timeMap` rows that Extraction finds.
+- **Instruction:** When Projection yields any speed rows, still **merge** Extraction rows whose `clipName` is absent from Projection (do not treat non-empty Projection as exclusive). Skip nested leaf `timeMap` rows when an ancestor already has `timeMap` (`hasRetimedAncestorClipHost`) to avoid duplicates. Prefer Projection display when both agree.
+- **Reason:** Projection-first discarded Extraction entirely once any projected rows existed (Sample: ~37 projected vs ~59 extractable; optical-flow spine `<clip>` wrappers omitted).
+- **Provenance:** 2026-08-14 — Sample.fcpxmld Speed Change / optical-flow merge.
+
 ### Sign: empty-enabled-report-sheets-keep-status
 - **Trigger:** Exporting Excel/PDF when an enabled section has zero data rows.
 - **Instruction:** Keep sheet headers and write one `ReportEmptySectionStatus` / Media Summary **No Missing Media** status row. Never omit Markers, Keywords, Titles, Transitions, Effects, Speed Change, Non-Std, Selected Roles Inventory, or Media Summary solely because rows are empty when the section was requested. Per-role inventory tabs may still omit when empty.
@@ -252,6 +264,18 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Instruction:** Always write remaining cell values independently of colour. Colour from typed row models (`fontColorHex(roleSubrole:categoryLabel:context:)` / Non-Std Kind APIs / marker type) — never require those columns to be present in filtered headers. Accept shell-friendly Role aliases (`Role > Subrole`, `Roles > Subrole`). Do not make colour “optional” when columns are excluded.
 - **Reason:** Excluding Role ▸ Subrole emptied per-role Excel sheets because writes were gated on colour lookup of that header (3.3.3).
 - **Provenance:** 2026-07-28 — Sample.fcpxmld Role ▸ Subrole exclusion / colour independence (3.3.3).
+
+### Sign: role-inventory-screenshots-excel-only
+- **Trigger:** Role Inventory Screenshot column / `--include-role-inventory-screenshots` / `includeScreenshotsInRoleInventory`.
+- **Instruction:** Default **off**. When on, insert **Screenshot** after **Row** on Selected Roles Inventory and every per-role sheet; embed Source In frames via XLKit (aspect-preserving) at Excel export only. Scale thumbnails from source resolution with a **480px max long edge**. PDF must omit the column and never embed. Grab asset-relative Source In (clip `start` − asset `start`); blank cell when media is missing/unreadable. Not a `ReportColumn` / `--exclude-column` target. Do not use legacy marketing names in code.
+- **Reason:** Opt-in keeps default exports fast/small; Source In matches FCP source viewer; Excel-only matches XLKit image APIs.
+- **Provenance:** 2026-08-14 — Role Inventory screenshots feature (3.3.5).
+
+### Sign: report-cover-four-row-branding
+- **Trigger:** Excel cover sheet / PDF cover branding / `ReportWorkbookCoverSheet` / `copyrightLabel`.
+- **Instruction:** Excel cover order is **A1** Created-by (`headerText`), **A2** `Created on yyyy-MM-dd-HH-mm-ss`, **A3** `Visit <visitURL>`, **A4** optional `copyrightLabel`. PDF cover matches that branding stack (after project/event). Customize Visit via `ReportWorkbookCoverSheet.visitURL` (API / GUI only — no CLI flag). Default Visit URL is the OpenFCPXMLKit GitHub repository.
+- **Reason:** Stable four-row cover for product hosts; Visit URL is an integration concern, not a CLI switch.
+- **Provenance:** 2026-08-14 — Cover branding expansion (3.3.5).
 
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.

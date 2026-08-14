@@ -454,8 +454,10 @@ struct FCPXMLReportPDFExportTests {
 
         let coverText = document.page(at: 0)?.string ?? ""
         let coverHasBranding = coverText.contains(branding)
+        let coverHasVisit = coverText.contains("Visit https://github.com/TheAcharya/OpenFCPXMLKit")
         let coverHasCopyright = coverText.contains(copyright)
         #expect(coverHasBranding)
+        #expect(coverHasVisit)
         #expect(coverHasCopyright)
 
         let contentPageIndex = document.pageCount > 2 ? 2 : 1

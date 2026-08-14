@@ -13,18 +13,29 @@ import Foundation
 extension FinalCutPro.FCPXML {
     /// Workbook cover sheet settings used by Excel export and PDF cover/footer branding.
     public struct ReportWorkbookCoverSheet: Sendable, Equatable {
+        /// Default project / documentation URL written on Excel cover **A3** / PDF cover visit line.
+        public static let defaultVisitURL = URL(string: "https://github.com/TheAcharya/OpenFCPXMLKit")!
+        
         /// Worksheet tab title.
         public var title: String
         
         /// Header text written into Excel cell `A1` and used for PDF cover/footer branding.
         public var headerText: String
         
+        /// Project or product URL for the Excel cover **Visit** line (**A3**) and PDF cover.
+        ///
+        /// Defaults to the OpenFCPXMLKit GitHub repository. GUI hosts (for example a Production
+        /// Data app) should set this to their own product or support URL.
+        public var visitURL: URL
+        
         public init(
             title: String = "Created by OpenFCPXMLKit",
-            headerText: String = "Created by OpenFCPXMLKit"
+            headerText: String = "Created by OpenFCPXMLKit",
+            visitURL: URL = ReportWorkbookCoverSheet.defaultVisitURL
         ) {
             self.title = title
             self.headerText = headerText
+            self.visitURL = visitURL
         }
         
         /// Default OpenFCPXMLKit-branded cover sheet.
@@ -32,6 +43,23 @@ extension FinalCutPro.FCPXML {
         
         /// Branding label shared by Excel cover cell A1 and PDF cover/footer.
         public var brandingText: String { headerText }
+        
+        /// Excel cover **A2** / PDF “Created on …” line (`yyyy-MM-dd-HH-mm-ss`, local time).
+        public static func createdOnLabel(date: Date = Date()) -> String {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = .current
+            formatter.dateFormat = "yyyy-MM-dd-HH-mm-ss"
+            return "Created on \(formatter.string(from: date))"
+        }
+        
+        /// Excel cover **A3** / PDF visit line (`Visit <url>`).
+        public static func visitLabel(url: URL) -> String {
+            "Visit \(url.absoluteString)"
+        }
+        
+        /// Visit line using ``visitURL``.
+        public var visitLabel: String { Self.visitLabel(url: visitURL) }
     }
     
     /// Structured report data extracted from an FCPXML project.
@@ -79,8 +107,9 @@ extension FinalCutPro.FCPXML {
         
         /// Optional copyright / label line shown below export branding.
         ///
-        /// Excel: cover sheet cell `A2` (when a cover sheet is written). PDF: cover page below
-        /// branding (same subtitle font/size) and running footer centre (same footer font/size).
+        /// Excel: cover sheet cell `A4` (when a cover sheet is written; after Created-by, Created-on,
+        /// and Visit). PDF: cover page below branding / Created-on / Visit (same subtitle font/size)
+        /// and running footer centre (same footer font/size).
         public var copyrightLabel: String?
         
         /// Columns omitted from every applicable workbook sheet at export.
@@ -136,6 +165,11 @@ extension FinalCutPro.FCPXML {
         /// Uses ``workbookCoverSheet`` when set; otherwise ``ReportWorkbookCoverSheet/openFCPXMLKitDefault``.
         public var exportBrandingText: String {
             workbookCoverSheet?.brandingText ?? ReportWorkbookCoverSheet.openFCPXMLKitDefault.brandingText
+        }
+        
+        /// Resolved Visit URL for Excel cover **A3** and the PDF cover visit line.
+        public var exportVisitURL: URL {
+            workbookCoverSheet?.visitURL ?? ReportWorkbookCoverSheet.defaultVisitURL
         }
     }
 }

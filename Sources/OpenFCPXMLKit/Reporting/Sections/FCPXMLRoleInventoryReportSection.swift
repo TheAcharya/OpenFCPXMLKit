@@ -28,6 +28,14 @@ extension FinalCutPro.FCPXML {
         public var markers: String
         public var keywords: String
         public var effects: String
+        /// Retime percent (`50.0%`) when the clip has a non-identity speed change; blank otherwise.
+        /// Exported only when ``RoleInventoryReportSection/showsSpeedChangeSettingsColumn`` is `true`.
+        public var speedChangeSettings: String
+        /// Resolved media file for Excel Screenshot embeds when
+        /// ``RoleInventoryReportSection/showsScreenshotsColumn`` is `true`.
+        public var screenshotMediaFileURL: URL?
+        /// Seconds into the media file for the Source In frame (asset-relative).
+        public var screenshotFileTimeSeconds: Double?
         public var notes: String
         public var reel: String
         public var scene: String
@@ -68,6 +76,9 @@ extension FinalCutPro.FCPXML {
             markers: String = "",
             keywords: String = "",
             effects: String = "",
+            speedChangeSettings: String = "",
+            screenshotMediaFileURL: URL? = nil,
+            screenshotFileTimeSeconds: Double? = nil,
             notes: String = "",
             reel: String = "",
             scene: String = "",
@@ -96,6 +107,9 @@ extension FinalCutPro.FCPXML {
             self.markers = markers
             self.keywords = keywords
             self.effects = effects
+            self.speedChangeSettings = speedChangeSettings
+            self.screenshotMediaFileURL = screenshotMediaFileURL
+            self.screenshotFileTimeSeconds = screenshotFileTimeSeconds
             self.notes = notes
             self.reel = reel
             self.scene = scene
@@ -111,7 +125,8 @@ extension FinalCutPro.FCPXML {
             self.metadataValues = metadataValues
         }
         
-        /// Values for ``fixedColumnHeaders`` in column order.
+        /// Values for ``fixedColumnHeaders`` in column order (always-on 26 columns; excludes
+        /// optional ``speedChangeSettings``).
         public var fixedColumnValues: [String] {
             [
                 roleSubrole,
@@ -169,15 +184,26 @@ extension FinalCutPro.FCPXML {
         public var roleSheets: [RoleSheet]
         /// Dynamic metadata key columns appended after the fixed inventory columns.
         public var metadataColumnKeys: [String]
+        /// When `true` (opt-in via ``ReportOptions/includeSpeedChangeSettingsInRoleInventory``),
+        /// inventory sheets include a **Speed Change Settings** column after **Effects**.
+        public var showsSpeedChangeSettingsColumn: Bool
+        /// When `true` (opt-in via ``ReportOptions/includeScreenshotsInRoleInventory``), Excel
+        /// inventory sheets include a **Screenshot** column after **Row** and embed Source In
+        /// frames. PDF export ignores this flag.
+        public var showsScreenshotsColumn: Bool
         
         public init(
             selectedRoles: [RoleClipReportRow] = [],
             roleSheets: [RoleSheet] = [],
-            metadataColumnKeys: [String] = []
+            metadataColumnKeys: [String] = [],
+            showsSpeedChangeSettingsColumn: Bool = false,
+            showsScreenshotsColumn: Bool = false
         ) {
             self.selectedRoles = selectedRoles
             self.roleSheets = roleSheets
             self.metadataColumnKeys = metadataColumnKeys
+            self.showsSpeedChangeSettingsColumn = showsSpeedChangeSettingsColumn
+            self.showsScreenshotsColumn = showsScreenshotsColumn
         }
     }
 }

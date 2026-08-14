@@ -17,7 +17,9 @@ extension FinalCutPro.FCPXML {
             from entry: RoleInventoryClipEntry,
             timecodeFormat: ReportTimecodeFormat = .smpteFrames,
             projectionWindows: [MediaUsageWindow]? = nil,
-            windowIndex: ProjectionWindowIndex? = nil
+            windowIndex: ProjectionWindowIndex? = nil,
+            includeScreenshots: Bool = false,
+            mediaBaseURL: URL? = nil
         ) -> RoleClipReportRow? {
             let extracted = entry.extracted
             let element = extracted.element
@@ -92,7 +94,10 @@ extension FinalCutPro.FCPXML {
                 timecodeFormat: timecodeFormat
             )
             let metadataValues = ReportFormatting.inventoryMetadataValueMap(from: metadata)
-            let sourceFile = ReportFormatting.inventorySourceFileInfo(for: clipContext)
+            let sourceFile = ReportFormatting.inventorySourceFileInfo(
+                for: clipContext,
+                preferAudioAngle: entry.usesAudioAngleClipName
+            )
             let codecs = ReportFormatting.metadataString(from: metadata, key: .codecs)
             let ingestDate = ReportFormatting.metadataString(from: metadata, key: .ingestDate)
             let duplicateFrames = RoleInventoryDuplicateFrames.formattedDuration(
@@ -102,6 +107,21 @@ extension FinalCutPro.FCPXML {
                 windowIndex: windowIndex,
                 timecodeFormat: timecodeFormat
             )
+            let speedChangeSettings = RoleInventorySpeedChangeSettings.formattedSettings(
+                for: extracted,
+                clipContext: clipContext,
+                usesAudioTimelineBounds: entry.usesAudioTimelineBounds,
+                projectionWindows: projectionWindows,
+                windowIndex: windowIndex
+            )
+            let screenshot = includeScreenshots
+                ? screenshotTarget(
+                    for: clipContext,
+                    category: entry.category,
+                    preferAudioAngle: entry.usesAudioAngleClipName,
+                    mediaBaseURL: mediaBaseURL
+                )
+                : nil
             
             return RoleClipReportRow(
                 roleSubrole: entry.roleSubroleField,
@@ -118,6 +138,9 @@ extension FinalCutPro.FCPXML {
                 markers: markersDisplay(in: clipContext),
                 keywords: keywordsDisplay(for: clipContext),
                 effects: effectsDisplay(on: clipContext),
+                speedChangeSettings: speedChangeSettings,
+                screenshotMediaFileURL: screenshot?.url,
+                screenshotFileTimeSeconds: screenshot?.fileTimeSeconds,
                 notes: ReportFormatting.clipNotesDisplay(for: clipContext.element),
                 reel: ReportFormatting.metadataString(from: metadata, key: .reel),
                 scene: ReportFormatting.metadataString(from: metadata, key: .scene),
@@ -167,6 +190,100 @@ extension FinalCutPro.FCPXML {
             }
             
             return extracted.ancestorClipContext() ?? extracted
+        }
+        
+        /// Resolves a media file URL and asset-relative Source In time for Excel screenshots.
+        /// Skips titles / captions / audio-only categories (no useful video frame).
+        private static func screenshotTarget(
+            for clipContext: ExtractedElement,
+            category: ReportClipCategory,
+            preferAudioAngle: Bool,
+            mediaBaseURL: URL?
+        ) -> (url: URL, fileTimeSeconds: Double)? {
+            guard category.isVideoCategory
+                || category == .primaryClip
+                || category == .connectedClip
+                || category == .connectedGenerator
+            else {
+                return nil
+            }
+            
+            guard let mediaURL = clipContext.element.fcpMediaURL(
+                in: clipContext.resources,
+                preferAudioAngle: preferAudioAngle
+            ) else {
+                return nil
+            }
+            
+            let resolved = resolveScreenshotFileURL(mediaURL, mediaBaseURL: mediaBaseURL)
+            let clipStart = clipContext.element.fcpStart?.doubleValue
+                ?? clipContext.element._fcpStartAsTimecode(
+                    frameRateSource: .localToElement,
+                    default: nil
+                )?.realTimeValue
+                ?? 0
+            let assetStart = screenshotAssetStartSeconds(
+                for: clipContext.element,
+                resources: clipContext.resources,
+                preferAudioAngle: preferAudioAngle
+            )
+            let fileTime = max(0, clipStart - assetStart)
+            return (resolved, fileTime)
+        }
+        
+        private static func resolveScreenshotFileURL(
+            _ url: URL,
+            mediaBaseURL: URL?
+        ) -> URL {
+            if url.isFileURL {
+                if FileManager.default.fileExists(atPath: url.path) {
+                    return url
+                }
+                if let mediaBaseURL {
+                    let relative = url.path.hasPrefix("/")
+                        ? String(url.path.dropFirst())
+                        : url.path
+                    let joined = mediaBaseURL.appendingPathComponent(relative)
+                    if FileManager.default.fileExists(atPath: joined.path) {
+                        return joined
+                    }
+                    let byName = mediaBaseURL.appendingPathComponent(url.lastPathComponent)
+                    if FileManager.default.fileExists(atPath: byName.path) {
+                        return byName
+                    }
+                }
+                return url
+            }
+            if let mediaBaseURL {
+                return mediaBaseURL.appendingPathComponent(url.lastPathComponent)
+            }
+            return url
+        }
+        
+        private static func screenshotAssetStartSeconds(
+            for element: any OFKXMLElement,
+            resources: (any OFKXMLElement)?,
+            preferAudioAngle: Bool
+        ) -> Double {
+            if let ref = element.fcpRef,
+               let asset = element.fcpResource(forID: ref, in: resources)?.fcpAsAsset
+            {
+                return asset.start?.doubleValue ?? 0
+            }
+            
+            switch element.fcpElementType {
+            case .clip, .syncClip, .mcClip, .refClip, .audition:
+                if let leaf = element._fcpFirstChildTimelineElement(excluding: [.gap, .title]) {
+                    return screenshotAssetStartSeconds(
+                        for: leaf,
+                        resources: resources,
+                        preferAudioAngle: preferAudioAngle
+                    )
+                }
+            default:
+                break
+            }
+            return 0
         }
         
         private static func sourceTimecodes(

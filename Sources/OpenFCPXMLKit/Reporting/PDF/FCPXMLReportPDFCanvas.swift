@@ -24,7 +24,9 @@ enum FCPXMLReportPDFCanvas {
         private var projectName = ""
         private var eventName: String?
         private var exportBrandingText = FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.brandingText
+        private var exportVisitURL = FinalCutPro.FCPXML.ReportWorkbookCoverSheet.defaultVisitURL
         private var copyrightLabel: String?
+        private var createdOn = Date()
         private var pageNumber = 0
         private var cursorY = FCPXMLReportPDFStyle.contentTop
         private var hasOpenPage = false
@@ -47,14 +49,18 @@ enum FCPXMLReportPDFCanvas {
             projectName: String,
             eventName: String?,
             exportBrandingText: String,
+            exportVisitURL: URL = FinalCutPro.FCPXML.ReportWorkbookCoverSheet.defaultVisitURL,
             copyrightLabel: String? = nil,
+            createdOn: Date = Date(),
             sectionStartRecorder: ((String, Int) -> Void)? = nil,
             layoutOnly: Bool = false
         ) {
             self.projectName = projectName
             self.eventName = eventName
             self.exportBrandingText = exportBrandingText
+            self.exportVisitURL = exportVisitURL
             self.copyrightLabel = FinalCutPro.FCPXML.ReportOptions.normalizedCopyrightLabel(copyrightLabel)
+            self.createdOn = createdOn
             self.sectionStartRecorder = sectionStartRecorder
             self.layoutOnly = layoutOnly
         }
@@ -139,12 +145,9 @@ enum FCPXMLReportPDFCanvas {
                 y += FCPXMLReportPDFStyle.coverSubtitleFontSize + 14
             }
             
-            let formatter = DateFormatter()
-            formatter.dateStyle = .medium
-            formatter.timeStyle = .short
-            
+            // Match Excel cover order: Created by → Created on → Visit → optional copyright.
             drawText(
-                "Generated on \(formatter.string(from: Date()))",
+                exportBrandingText,
                 x: FCPXMLReportPDFStyle.margin,
                 y: y + FCPXMLReportPDFStyle.coverSubtitleFontSize,
                 fontName: FCPXMLReportPDFStyle.regularFontName,
@@ -154,7 +157,17 @@ enum FCPXMLReportPDFCanvas {
             y += FCPXMLReportPDFStyle.coverSubtitleFontSize + 14
             
             drawText(
-                exportBrandingText,
+                FinalCutPro.FCPXML.ReportWorkbookCoverSheet.createdOnLabel(date: createdOn),
+                x: FCPXMLReportPDFStyle.margin,
+                y: y + FCPXMLReportPDFStyle.coverSubtitleFontSize,
+                fontName: FCPXMLReportPDFStyle.regularFontName,
+                fontSize: FCPXMLReportPDFStyle.coverSubtitleFontSize,
+                color: FCPXMLReportPDFStyle.mutedTextColor
+            )
+            y += FCPXMLReportPDFStyle.coverSubtitleFontSize + 14
+            
+            drawText(
+                FinalCutPro.FCPXML.ReportWorkbookCoverSheet.visitLabel(url: exportVisitURL),
                 x: FCPXMLReportPDFStyle.margin,
                 y: y + FCPXMLReportPDFStyle.coverSubtitleFontSize,
                 fontName: FCPXMLReportPDFStyle.regularFontName,

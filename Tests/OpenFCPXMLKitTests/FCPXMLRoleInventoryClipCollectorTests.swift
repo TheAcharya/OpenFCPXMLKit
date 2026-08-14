@@ -1191,7 +1191,168 @@ struct FCPXMLRoleInventoryClipCollectorTests {
         let hasBlankDialogue = sheetNames.contains("Dialogue ▸ <Blank>")
         #expect(!hasBlankDialogue)
     }
-    
+
+    @Test("Primary video-only asset-clip without videoRole inventories as Video")
+    func primaryVideoOnlyAssetClipWithoutVideoRoleInventoriesAsVideo() async throws {
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.11">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p25" frameDuration="100/2500s" width="1920" height="1080"/>
+                <asset id="r2" name="Shot" uid="A1" start="0s" duration="10s" hasVideo="1" format="r1" videoSources="1"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="10s" tcStart="0s" tcFormat="NDF">
+                            <spine>
+                                <asset-clip ref="r2" offset="0s" name="Speed Shot" duration="10s" format="r1">
+                                    <timeMap>
+                                        <timept time="0s" value="0s" interp="smooth2"/>
+                                        <timept time="50s" value="10s" interp="smooth2"/>
+                                    </timeMap>
+                                </asset-clip>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
+
+        let entries = await Collector.collectEntries(from: timeline, scope: .init())
+        let shotEntries = entries.filter { $0.extracted.displayClipName() == "Speed Shot" }
+        #expect(shotEntries.count == 1)
+        #expect(shotEntries[0].category == .primaryVideo)
+        #expect(shotEntries[0].roleSubroleField == "Video")
+
+        let report = try await fcpxml.buildReport(options: .roleInventoryOnly)
+        let inventoryRows = try #require(report.roleInventory?.selectedRoles)
+        #expect(inventoryRows.contains { $0.clipName == "Speed Shot" && $0.roleSubrole == "Video" })
+
+        let sheetNames = Set(report.roleInventory?.roleSheets.map(\.sheetName) ?? [])
+        #expect(sheetNames.contains("Video"))
+    }
+
+    @Test("Role Inventory Speed Change Settings column opt-in fills retime percent")
+    func roleInventorySpeedChangeSettingsColumnOptInFillsRetimePercent() async throws {
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.11">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p25" frameDuration="100/2500s" width="1920" height="1080"/>
+                <asset id="r2" name="Shot" uid="A1" start="0s" duration="10s" hasVideo="1" format="r1" videoSources="1"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="15s" tcStart="0s" tcFormat="NDF">
+                            <spine>
+                                <asset-clip ref="r2" offset="0s" name="Speed Shot" duration="10s" format="r1">
+                                    <timeMap>
+                                        <timept time="0s" value="0s" interp="smooth2"/>
+                                        <timept time="50s" value="10s" interp="smooth2"/>
+                                    </timeMap>
+                                </asset-clip>
+                                <asset-clip ref="r2" offset="10s" name="Normal Shot" duration="5s" format="r1"/>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+
+        var options = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
+        options.includeSpeedChangeSettingsInRoleInventory = true
+        let report = try await fcpxml.buildReport(options: options)
+        let inventory = try #require(report.roleInventory)
+        #expect(inventory.showsSpeedChangeSettingsColumn)
+
+        let headers = FinalCutPro.FCPXML.RoleInventoryColumnLayout.columnHeaders(
+            metadataColumnKeys: inventory.metadataColumnKeys,
+            includeSpeedChangeSettings: inventory.showsSpeedChangeSettingsColumn
+        )
+        let effectsIndex = try #require(headers.firstIndex(of: "Effects"))
+        #expect(headers[effectsIndex + 1] == "Speed Change Settings")
+
+        let speedRow = try #require(inventory.selectedRoles.first { $0.clipName == "Speed Shot" })
+        #expect(speedRow.speedChangeSettings == "20.0%")
+
+        let normalRow = try #require(inventory.selectedRoles.first { $0.clipName == "Normal Shot" })
+        #expect(normalRow.speedChangeSettings.isEmpty)
+
+        let defaultOptions = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
+        let defaultReport = try await fcpxml.buildReport(options: defaultOptions)
+        #expect(!(defaultReport.roleInventory?.showsSpeedChangeSettingsColumn ?? true))
+        let defaultHeaders = FinalCutPro.FCPXML.RoleInventoryColumnLayout.columnHeaders(
+            metadataColumnKeys: defaultReport.roleInventory?.metadataColumnKeys ?? []
+        )
+        #expect(!defaultHeaders.contains("Speed Change Settings"))
+        // Row values are still populated when the column is hidden (Markers Hidden pattern).
+        let defaultSpeed = try #require(
+            defaultReport.roleInventory?.selectedRoles.first { $0.clipName == "Speed Shot" }
+        )
+        #expect(defaultSpeed.speedChangeSettings == "20.0%")
+    }
+
+    @Test("Spine clip with connected title keeps Video; title keeps custom role")
+    func spineClipWithConnectedTitleKeepsVideoTitleKeepsCustomRole() async throws {
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.11">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p25" frameDuration="100/2500s" width="1920" height="1080"/>
+                <asset id="r2" name="Shot" uid="A1" start="0s" duration="10s" hasVideo="1" format="r1" videoSources="1"/>
+                <effect id="r3" name="Basic Title" uid=".../Titles.localized/Basic Title.localized/Basic Title.moti"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="10s" tcStart="0s" tcFormat="NDF">
+                            <spine>
+                                <clip offset="0s" name="Host Shot" start="0s" duration="10s" format="r1" tcFormat="NDF">
+                                    <video ref="r2" offset="0s" start="0s" duration="10s"/>
+                                    <title ref="r3" lane="1" offset="0s" name="VFX Tag" start="3600s" duration="2s" role="VFX Shot No.VFX Shot No-1">
+                                        <text><text-style ref="ts1">VFX</text-style></text>
+                                        <text-style-def id="ts1"><text-style font="Helvetica"/></text-style-def>
+                                    </title>
+                                </clip>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
+
+        let entries = await Collector.collectEntries(from: timeline, scope: .init())
+        let host = try #require(entries.first { $0.extracted.displayClipName() == "Host Shot" })
+        #expect(host.category == .primaryVideo || host.category == .primaryClip)
+        #expect(host.roleSubroleField == "Video")
+
+        // Titles use the effect resource name as the workbook clip name ("Basic Title").
+        let title = try #require(
+            entries.first {
+                $0.category.isTitleCategory
+                    && $0.roleSubroleField == "Vfx Shot No ▸ Vfx Shot No-1"
+            }
+        )
+        #expect(title.extracted.displayClipName() == "Basic Title")
+
+        let report = try await fcpxml.buildReport(options: .roleInventoryOnly)
+        let sheets = Set(report.roleInventory?.roleSheets.map(\.sheetName) ?? [])
+        #expect(sheets.contains("Video"))
+        #expect(sheets.contains("Vfx Shot No ▸ Vfx Shot No-1"))
+        #expect(report.roleInventory?.selectedRoles.contains {
+            $0.clipName == "Host Shot" && $0.roleSubrole == "Video"
+        } == true)
+    }
 
     @Test("Caption from sample fixture is inventoried with floored timeline bounds")
     func captionFromSampleFixtureIsInventoriedWithFlooredTimelineBounds() async throws {

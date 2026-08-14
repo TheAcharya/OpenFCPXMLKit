@@ -356,8 +356,36 @@ extension OFKXMLElement {
     }
     
     /// FCPXML: Looks up the resource for the element and returns its media url, if any.
+    ///
+    /// Direct `asset` / `locator` refs resolve immediately. Non-flattened hosts that only
+    /// reference a `media` resource (`mc-clip`, `ref-clip`) or have no `ref` (`sync-clip`)
+    /// resolve to a **primary leaf** media URL:
+    /// - `mc-clip`: active video angle leaf (or active audio angle when `preferAudioAngle`)
+    /// - `sync-clip` / generic `clip`: first non-gap child timeline leaf
+    /// - `ref-clip`: first spine story element inside the compound `media` sequence that
+    ///   resolves to a file URL (skips titles/generators without media)
+    ///
+    /// - Parameter preferAudioAngle: When `true` on an `mc-clip`, prefer the active audio
+    ///   angle’s leaf file (Role Inventory audio-component rows). Default is the video angle.
     func fcpMediaURL(
-        in resources: (any OFKXMLElement)? = nil
+        in resources: (any OFKXMLElement)? = nil,
+        preferAudioAngle: Bool = false
+    ) -> URL? {
+        if let url = _fcpDirectMediaURL(in: resources) {
+            return url
+        }
+        
+        return _fcpNestedHostMediaURL(
+            in: resources,
+            preferAudioAngle: preferAudioAngle,
+            depth: 0
+        )
+    }
+    
+    /// Resolves a file URL only when the nearest `ref` / ancestor resource is an `asset` or
+    /// `locator`. Returns `nil` for `media` (compound / multicam) so callers can unfold.
+    private func _fcpDirectMediaURL(
+        in resources: (any OFKXMLElement)?
     ) -> URL? {
         guard let resource = _fcpFirstResourceForElementOrAncestors(in: resources),
               let elementType = resource.fcpElementType,
@@ -366,12 +394,88 @@ extension OFKXMLElement {
         
         switch elementType {
         case .asset: return resource.fcpAsAsset?.mediaRep.src
-        case .effect: return nil
-        case .format: return nil
         case .locator: return resource.fcpAsLocator?.url
-        case .media: return nil // Note: media can contain sequence or multicam.
-        case .objectTracker: return nil
-        default: return nil
+        case .effect, .format, .media, .objectTracker:
+            return nil
+        default:
+            return nil
         }
+    }
+    
+    /// Unfolds non-flattened hosts to a leaf `asset` / `locator` media URL.
+    private func _fcpNestedHostMediaURL(
+        in resources: (any OFKXMLElement)?,
+        preferAudioAngle: Bool,
+        depth: Int
+    ) -> URL? {
+        // Guard against cyclic media refs (compound → ref-clip → same media).
+        guard depth < 8 else { return nil }
+        
+        switch fcpElementType {
+        case .mcClip:
+            guard let mcClip = fcpAsMCClip else { return nil }
+            let (audioAngle, videoAngle) = mcClip.audioVideoMCAngles
+            let preferredAngle = preferAudioAngle
+                ? (audioAngle ?? videoAngle)
+                : (videoAngle ?? audioAngle)
+            guard let leaf = preferredAngle?.element
+                ._fcpFirstChildTimelineElement(excluding: [.gap])
+            else { return nil }
+            return leaf._fcpResolvedMediaURL(
+                in: resources,
+                preferAudioAngle: preferAudioAngle,
+                depth: depth + 1
+            )
+            
+        case .syncClip, .clip:
+            guard let leaf = _fcpFirstChildTimelineElement(excluding: [.gap]) else {
+                return nil
+            }
+            return leaf._fcpResolvedMediaURL(
+                in: resources,
+                preferAudioAngle: preferAudioAngle,
+                depth: depth + 1
+            )
+            
+        case .refClip:
+            guard let sequence = fcpAsRefClip?.mediaSequence else { return nil }
+            for story in sequence.spine.storyElements {
+                if let url = story._fcpResolvedMediaURL(
+                    in: resources,
+                    preferAudioAngle: preferAudioAngle,
+                    depth: depth + 1
+                ) {
+                    return url
+                }
+            }
+            return nil
+            
+        case .audition:
+            guard let active = fcpAsAudition?.activeClip else { return nil }
+            return active._fcpResolvedMediaURL(
+                in: resources,
+                preferAudioAngle: preferAudioAngle,
+                depth: depth + 1
+            )
+            
+        default:
+            return nil
+        }
+    }
+    
+    /// Direct URL when present; otherwise nested-host unfold.
+    private func _fcpResolvedMediaURL(
+        in resources: (any OFKXMLElement)?,
+        preferAudioAngle: Bool,
+        depth: Int
+    ) -> URL? {
+        if let url = _fcpDirectMediaURL(in: resources) {
+            return url
+        }
+        return _fcpNestedHostMediaURL(
+            in: resources,
+            preferAudioAngle: preferAudioAngle,
+            depth: depth
+        )
     }
 }

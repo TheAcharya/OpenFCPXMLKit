@@ -29,6 +29,71 @@ struct FCPXMLRoleInventoryColumnLayoutTests {
         #expect(headers.contains("Frame Size / Audio Config"))
         #expect(headers.contains("Codecs"))
         #expect(headers.contains("Ingest Date"))
+        #expect(!headers.contains(Layout.speedChangeSettingsColumnHeader))
+        #expect(!headers.contains(Layout.screenshotColumnHeader))
+    }
+
+    @Test("Screenshot column inserts after Row when opted in")
+    func screenshotColumnInsertsAfterRowWhenOptedIn() throws {
+        let headers = Layout.columnHeaders(
+            metadataColumnKeys: [],
+            includeScreenshots: true
+        )
+        #expect(headers.first == "Row")
+        #expect(headers.dropFirst().first == Layout.screenshotColumnHeader)
+
+        let row = RoleRow(
+            roleSubrole: "Video",
+            clipName: "Clip",
+            category: "Primary video",
+            enabled: "✓",
+            timelineIn: "00:00:00:00",
+            timelineOut: "00:00:01:00",
+            clipDuration: "00:00:01:00",
+            sourceIn: "00:00:00:00",
+            sourceOut: "00:00:01:00",
+            sourceDuration: "00:00:01:00"
+        )
+        let values = Layout.columnValues(
+            for: row,
+            rowIndex: 1,
+            metadataColumnKeys: [],
+            includeScreenshots: true
+        )
+        #expect(values.count == headers.count)
+        #expect(values[0] == "1")
+        #expect(values[1] == "")
+    }
+
+    @Test("Speed Change Settings column inserts after Effects when opted in")
+    func speedChangeSettingsColumnInsertsAfterEffectsWhenOptedIn() throws {
+        let headers = Layout.columnHeaders(
+            metadataColumnKeys: [],
+            includeSpeedChangeSettings: true
+        )
+        let effectsIndex = try #require(headers.firstIndex(of: "Effects"))
+        #expect(headers[effectsIndex + 1] == Layout.speedChangeSettingsColumnHeader)
+
+        let row = RoleRow(
+            roleSubrole: "Video",
+            clipName: "Clip",
+            category: "Primary video",
+            enabled: "✓",
+            timelineIn: "00:00:00:00",
+            timelineOut: "00:00:01:00",
+            clipDuration: "00:00:01:00",
+            sourceIn: "",
+            sourceOut: "",
+            sourceDuration: "",
+            speedChangeSettings: "50.0%"
+        )
+        let values = Layout.columnValues(
+            for: row,
+            rowIndex: 1,
+            metadataColumnKeys: [],
+            includeSpeedChangeSettings: true
+        )
+        #expect(values[effectsIndex + 1] == "50.0%")
     }
 
     @Test("Metadata column keys exclude dedicated fixed columns")

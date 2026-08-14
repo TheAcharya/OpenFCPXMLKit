@@ -61,6 +61,23 @@ extension FinalCutPro.FCPXML {
         /// The Hidden column is not part of ``ReportColumn`` / `--exclude-column`.
         public var includeMarkersOutsideClipBoundaries: Bool
         
+        /// When building Role Inventory, add a **Speed Change Settings** column (retime percent,
+        /// e.g. `50.0%` / `-100.0%`) after **Effects**.
+        ///
+        /// Default is `false` (column omitted). When `true`, the column appears on Selected Roles
+        /// Inventory and per-role sheets; cells are blank for clips without a non-identity retime.
+        /// Not part of ``ReportColumn`` / `--exclude-column`. Independent of
+        /// ``includeSpeedChangeEffects`` (which toggles the Speed Change Effects sheet).
+        public var includeSpeedChangeSettingsInRoleInventory: Bool
+        
+        /// When building Role Inventory, add a **Screenshot** column after **Row** and embed a
+        /// Source In frame grab in Excel cells (Selected Roles Inventory and every per-role sheet).
+        ///
+        /// Default is `false`. Uses XLKit image embed with aspect-ratio preservation. PDF export
+        /// ignores this flag (no Screenshot column, no embeds). Missing / unreadable media leaves
+        /// a blank cell. Not part of ``ReportColumn`` / `--exclude-column`.
+        public var includeScreenshotsInRoleInventory: Bool
+        
         /// Optional timeline name filter. When `nil`, the first project is preferred; if the
         /// document has no `<project>`, the first event-level compound clip (`ref-clip` →
         /// `media`/`sequence`) is used. Matching uses the project name or compound clip name.
@@ -77,9 +94,11 @@ extension FinalCutPro.FCPXML {
         /// Set to `nil` to omit this sheet.
         public var workbookCoverSheet: ReportWorkbookCoverSheet?
         
-        /// Optional copyright / attribution label for Excel cover (`A2`) and PDF cover/footer centre.
+        /// Optional copyright / attribution label for Excel cover (`A4`) and PDF cover/footer centre.
         ///
         /// Whitespace-only values are treated as omitted. Mapped onto ``Report/copyrightLabel``.
+        /// Excel cover order when a cover sheet is present: **A1** Created-by, **A2** Created-on,
+        /// **A3** Visit URL (``ReportWorkbookCoverSheet/visitURL``), **A4** this label.
         public var copyrightLabel: String?
         
         /// Role or subrole names to omit from role inventory sheets.
@@ -143,6 +162,8 @@ extension FinalCutPro.FCPXML {
             includeRoleInventory: Bool = false,
             includeChapterMarkersInMarkersReport: Bool = true,
             includeMarkersOutsideClipBoundaries: Bool = false,
+            includeSpeedChangeSettingsInRoleInventory: Bool = false,
+            includeScreenshotsInRoleInventory: Bool = false,
             projectName: String? = nil,
             mediaBaseURL: URL? = nil,
             roleDisplayPreference: RoleDisplayPreference = .builtIn,
@@ -170,6 +191,8 @@ extension FinalCutPro.FCPXML {
             self.includeRoleInventory = includeRoleInventory
             self.includeChapterMarkersInMarkersReport = includeChapterMarkersInMarkersReport
             self.includeMarkersOutsideClipBoundaries = includeMarkersOutsideClipBoundaries
+            self.includeSpeedChangeSettingsInRoleInventory = includeSpeedChangeSettingsInRoleInventory
+            self.includeScreenshotsInRoleInventory = includeScreenshotsInRoleInventory
             self.projectName = projectName
             self.mediaBaseURL = mediaBaseURL
             self.roleDisplayPreference = roleDisplayPreference

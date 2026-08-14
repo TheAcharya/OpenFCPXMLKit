@@ -32,7 +32,10 @@ enum FCPXMLReportWorkbookExporter {
     private typealias RoleRowColorContext = FCPXMLReportRowColorPolicy.Context
     
     @MainActor
-    static func makeWorkbook(from report: FinalCutPro.FCPXML.Report) -> Workbook {
+    static func makeWorkbook(
+        from report: FinalCutPro.FCPXML.Report,
+        createdOn: Date = Date()
+    ) -> Workbook {
         let workbook = Workbook()
         let excludedColumns = report.excludedColumns
         let timecodeFormat = report.timecodeFormat
@@ -41,6 +44,7 @@ enum FCPXMLReportWorkbookExporter {
             appendWorkbookCoverSheet(
                 workbookCoverSheet,
                 copyrightLabel: report.copyrightLabel,
+                createdOn: createdOn,
                 to: workbook
             )
         }
@@ -254,15 +258,27 @@ enum FCPXMLReportWorkbookExporter {
     private static func appendWorkbookCoverSheet(
         _ workbookCoverSheet: FinalCutPro.FCPXML.ReportWorkbookCoverSheet,
         copyrightLabel: String?,
+        createdOn: Date,
         to workbook: Workbook
     ) {
         let sheet = workbook.addSheet(name: sanitizeSheetName(workbookCoverSheet.title))
-        sheet.setCell("A1", string: workbookCoverSheet.headerText, format: tableHeaderFormat())
+        let banner = tableHeaderFormat()
         
-        var longestCoverLine = workbookCoverSheet.headerText.count
+        // A1 Created by … · A2 Created on … · A3 Visit … · A4 optional copyright.
+        let createdOnLine = FinalCutPro.FCPXML.ReportWorkbookCoverSheet.createdOnLabel(date: createdOn)
+        let visitLine = workbookCoverSheet.visitLabel
+        
+        sheet.setCell("A1", string: workbookCoverSheet.headerText, format: banner)
+        sheet.setCell("A2", string: createdOnLine, format: banner)
+        sheet.setCell("A3", string: visitLine, format: banner)
+        
+        var longestCoverLine = max(
+            workbookCoverSheet.headerText.count,
+            createdOnLine.count,
+            visitLine.count
+        )
         if let copyrightLabel {
-            // Same black/white banner style as the Created-by brand row, on the next row.
-            sheet.setCell("A2", string: copyrightLabel, format: tableHeaderFormat())
+            sheet.setCell("A4", string: copyrightLabel, format: banner)
             longestCoverLine = max(longestCoverLine, copyrightLabel.count)
         }
         
@@ -634,10 +650,14 @@ enum FCPXMLReportWorkbookExporter {
         to workbook: Workbook
     ) {
         let metadataColumnKeys = roleInventory.metadataColumnKeys
+        let includeSpeedChangeSettings = roleInventory.showsSpeedChangeSettingsColumn
+        let includeScreenshots = roleInventory.showsScreenshotsColumn
         let headers = FinalCutPro.FCPXML.RoleInventoryColumnLayout.columnHeaders(
             metadataColumnKeys: metadataColumnKeys,
             excludedColumns: excludedColumns,
-            timecodeFormat: timecodeFormat
+            timecodeFormat: timecodeFormat,
+            includeSpeedChangeSettings: includeSpeedChangeSettings,
+            includeScreenshots: includeScreenshots
         )
         
         let selectedRows = FinalCutPro.FCPXML.ReportEmptySectionStatus.rowsOrEmptyStatus(
@@ -646,7 +666,9 @@ enum FCPXMLReportWorkbookExporter {
                     for: row,
                     rowIndex: index + 1,
                     metadataColumnKeys: metadataColumnKeys,
-                    excludedColumns: excludedColumns
+                    excludedColumns: excludedColumns,
+                    includeSpeedChangeSettings: includeSpeedChangeSettings,
+                    includeScreenshots: includeScreenshots
                 )
             },
             headers: headers,
@@ -675,6 +697,8 @@ enum FCPXMLReportWorkbookExporter {
                 headers: headers,
                 metadataColumnKeys: metadataColumnKeys,
                 excludedColumns: excludedColumns,
+                includeSpeedChangeSettings: includeSpeedChangeSettings,
+                includeScreenshots: includeScreenshots,
                 timecodeFormat: timecodeFormat,
                 projectFrameRateHint: projectFrameRateHint,
                 to: workbook
@@ -687,6 +711,8 @@ enum FCPXMLReportWorkbookExporter {
         headers: [String],
         metadataColumnKeys: [String],
         excludedColumns: Set<FinalCutPro.FCPXML.ReportColumn>,
+        includeSpeedChangeSettings: Bool,
+        includeScreenshots: Bool,
         timecodeFormat: FinalCutPro.FCPXML.ReportTimecodeFormat,
         projectFrameRateHint: String?,
         to workbook: Workbook
@@ -696,7 +722,9 @@ enum FCPXMLReportWorkbookExporter {
                 for: row,
                 rowIndex: index + 1,
                 metadataColumnKeys: metadataColumnKeys,
-                excludedColumns: excludedColumns
+                excludedColumns: excludedColumns,
+                includeSpeedChangeSettings: includeSpeedChangeSettings,
+                includeScreenshots: includeScreenshots
             )
         }
         guard !rows.isEmpty else { return }

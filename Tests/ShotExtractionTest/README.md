@@ -5,7 +5,7 @@ Optional integration tests that extract still-image shots (PNG + CSV / Notion JS
 **Target:** `ShotExtractionTest` (Swift Testing)  
 **Depends on:** `OpenFCPXMLKit`  
 **Tests:** **4** `@Test` methods in `@Suite("Shot Extraction export")` / `ShotExtractionExportTests`  
-**Public suite (keep in sync):** **1173** listed (`1161` OpenFCPXMLKitTests + **8** ExcelReportTest + **4** ShotExtractionTest; all Swift Testing); **60** public samples
+**Public suite (keep in sync):** **1193** listed (1179 OpenFCPXMLKitTests + **10** ExcelReportTest + **4** ShotExtractionTest; all Swift Testing); **60** public samples
 
 Unit-level Shot Extraction behaviour (Shot ID padding, duration flooring, folder formats, reject video/titles/audio, dry-run, Notion key order) lives in **`OpenFCPXMLKitTests`** — see [Tests/README.md](../README.md) (`FCPXMLShotExtractionTests`).
 

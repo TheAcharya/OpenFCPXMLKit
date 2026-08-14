@@ -19,7 +19,10 @@ extension FinalCutPro.FCPXML {
             roleDisplayPreference: RoleDisplayPreference = .builtIn,
             timecodeFormat: ReportTimecodeFormat = .smpteFrames,
             projection: ReportProjectionContext? = nil,
-            entries: [RoleInventoryClipEntry]? = nil
+            entries: [RoleInventoryClipEntry]? = nil,
+            includeSpeedChangeSettings: Bool = false,
+            includeScreenshots: Bool = false,
+            mediaBaseURL: URL? = nil
         ) async -> RoleInventoryReportSection {
             let resolvedEntries: [RoleInventoryClipEntry]
             if let entries {
@@ -42,7 +45,9 @@ extension FinalCutPro.FCPXML {
                         from: $0,
                         timecodeFormat: timecodeFormat,
                         projectionWindows: windows,
-                        windowIndex: windowIndex
+                        windowIndex: windowIndex,
+                        includeScreenshots: includeScreenshots,
+                        mediaBaseURL: mediaBaseURL
                     )
                 }
 
@@ -54,7 +59,9 @@ extension FinalCutPro.FCPXML {
             return RoleInventoryReportSection(
                 selectedRoles: selectedRoles,
                 roleSheets: roleSheets,
-                metadataColumnKeys: metadataColumnKeys
+                metadataColumnKeys: metadataColumnKeys,
+                showsSpeedChangeSettingsColumn: includeSpeedChangeSettings,
+                showsScreenshotsColumn: includeScreenshots
             )
         }
     }

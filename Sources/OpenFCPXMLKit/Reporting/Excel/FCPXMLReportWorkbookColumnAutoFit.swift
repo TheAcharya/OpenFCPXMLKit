@@ -78,6 +78,11 @@ enum FCPXMLReportWorkbookColumnAutoFit {
                     widthsByColumn[column] = rowColumnWidth
                     continue
                 }
+                if header == FinalCutPro.FCPXML.RoleInventoryColumnLayout.screenshotColumnHeader {
+                    // Room for up to ~480px long-edge thumbnails (Excel width ≈ px / 8).
+                    widthsByColumn[column] = 62.0
+                    continue
+                }
                 if let floor = minimumWidthForHeader(header) {
                     widthsByColumn[column] = max(widthsByColumn[column] ?? minimumWidth, floor)
                 }

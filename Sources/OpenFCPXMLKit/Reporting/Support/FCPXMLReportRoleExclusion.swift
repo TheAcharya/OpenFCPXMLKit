@@ -33,7 +33,9 @@ extension FinalCutPro.FCPXML {
             return RoleInventoryReportSection(
                 selectedRoles: filteredSelectedRoles,
                 roleSheets: filteredRoleSheets,
-                metadataColumnKeys: section.metadataColumnKeys
+                metadataColumnKeys: section.metadataColumnKeys,
+                showsSpeedChangeSettingsColumn: section.showsSpeedChangeSettingsColumn,
+                showsScreenshotsColumn: section.showsScreenshotsColumn
             )
         }
         

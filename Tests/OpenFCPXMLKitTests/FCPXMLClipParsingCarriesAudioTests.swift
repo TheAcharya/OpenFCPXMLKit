@@ -533,6 +533,73 @@ struct FCPXMLClipParsingCarriesAudioTests {
         #expect(overlay.fcpUsesGenericVideoInventoryLabel())
     }
 
+    @Test("fcpUsesGenericVideoInventoryLabel for primary-spine asset-clip without video role")
+    func fcpUsesGenericVideoInventoryLabelForPrimarySpineAssetClipWithoutVideoRole() throws {
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.11">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080"/>
+                <asset id="r2" name="Shot" uid="A1" start="0s" duration="10s" hasVideo="1" format="r1" videoSources="1"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="10s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
+                            <spine>
+                                <asset-clip ref="r2" offset="0s" name="Shot" duration="10s" format="r1">
+                                    <timeMap>
+                                        <timept time="0s" value="0s" interp="smooth2"/>
+                                        <timept time="50s" value="10s" interp="smooth2"/>
+                                    </timeMap>
+                                </asset-clip>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+
+        let clip = try #require(
+            firstDescendantElement(in: fcpxml.root.element, named: "asset-clip")
+        )
+        #expect((clip.fcpLane ?? 0) == 0)
+        #expect(clip.fcpAsAssetClip?.videoRole == nil)
+        #expect(clip.fcpUsesGenericVideoInventoryLabel())
+    }
+
+    @Test("fcpUsesGenericVideoInventoryLabel false when primary-spine videoRole is set")
+    func fcpUsesGenericVideoInventoryLabelFalseWhenPrimarySpineVideoRoleIsSet() throws {
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.11">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080"/>
+                <asset id="r2" name="Shot" uid="A1" start="0s" duration="10s" hasVideo="1" format="r1" videoSources="1"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="10s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
+                            <spine>
+                                <asset-clip ref="r2" offset="0s" name="Shot" duration="10s" format="r1" videoRole="Vfx Shot No.Vfx Shot No-1"/>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+
+        let clip = try #require(
+            firstDescendantElement(in: fcpxml.root.element, named: "asset-clip")
+        )
+        #expect(!clip.fcpUsesGenericVideoInventoryLabel())
+    }
+
     @Test("fcpIsNestedConnectedInventoryHost false for audio-only clip with explicit child role")
     func fcpIsNestedConnectedInventoryHostFalseForAudioOnlyClipWithExplicitChildRole() throws {
         let fcpxml = try parseInlineFCPXML("""
