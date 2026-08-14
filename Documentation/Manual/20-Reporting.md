@@ -72,7 +72,7 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 | `includeChapterMarkersInMarkersReport` | `true` | Include `chapter-marker` rows on the Markers sheet (Type = Chapter). Set `false` to omit; Excel Type filter can also hide them. |
 | `includeMarkersOutsideClipBoundaries` | `false` | Include markers outside the host clip’s media range (hidden in FCP Tags/timeline) and show a **Hidden** column (✓/✗). Not part of `excludedColumns` / `--exclude-column`. |
 | `includeSpeedChangeSettingsInRoleInventory` | `false` | Add a **Speed Change Settings** column (retime percent, e.g. `50.0%`) after **Effects** on Role Inventory sheets. Not part of `excludedColumns` / `--exclude-column`. Independent of `includeSpeedChangeEffects`. |
-| `includeScreenshotsInRoleInventory` | `false` | Add a **Screenshot** column after **Row** on Role Inventory sheets (Selected Roles + every per-role tab) and embed a **Source In** frame grab in **Excel** only (XLKit aspect-preserving). PDF ignores this flag. Missing media → blank cell. Not part of `excludedColumns` / `--exclude-column`. |
+| `includeScreenshotsInRoleInventory` | `false` | Add a **Screenshot** column after **Row** on Role Inventory sheets (Selected Roles + every per-role tab) and embed a **Source In** frame grab in **Excel** only (XLKit aspect-preserving; **480px** max long edge). PDF ignores this flag. Missing media → blank cell. Not part of `excludedColumns` / `--exclude-column`. |
 
 ### Other configuration
 
@@ -239,7 +239,7 @@ Markers on title hosts attribute the title’s video **main** role (same casing 
 
 | Column | Field |
 |--------|-------|
-| Screenshot *(opt-in, Excel only)* | Source In frame embed when `includeScreenshotsInRoleInventory` / `--include-role-inventory-screenshots`; blank if media missing. PDF omits. |
+| Screenshot *(opt-in, Excel only)* | Source In frame embed when `includeScreenshotsInRoleInventory` / `--include-role-inventory-screenshots` (480px max long edge); blank if media missing. PDF omits. |
 | Role ▸ Subrole | `roleSubrole` |
 | Clip Name | `clipName` |
 | Category | `category` |

@@ -34,6 +34,7 @@ This codebase is developed using AI agents.
   - [Detached Authoring](#detached-authoring)
   - [Extraction & media](#extraction--media)
   - [Timeline Projection](#timeline-projection)
+  - [Shot Extraction](#shot-extraction)
   - [Excel & PDF reporting](#excel--pdf-reporting)
   - [CLI](#cli)
   - [Architecture](#architecture)
@@ -112,11 +113,13 @@ This codebase is developed using AI agents.
 - Build once with `buildReport(options:)`, then export `.xlsx` (XLKit) and/or `.pdf` (CoreGraphics)
 - Sheets: Role Inventory, Markers, Keywords, Titles, Transitions, Non-Std Effects & Templates, Effects, Speed Change, Summary, Media Summary
   - Role inventory: **26** fixed columns (Duplicate Frames, Codecs, Ingest Date, Frame Size / Audio Config, …) + per-role **Total:** footers
+  - Optional **Screenshot** column (Excel Source In embeds, 480px max long edge) and **Speed Change Settings** column
   - Empty enabled sheets keep headers + status rows (**No Markers Found**, **No Missing Media**, …) via `ReportEmptySectionStatus`
+- Cover branding: **Created by** → **Created on** → **Visit** (API `visitURL`) → optional copyright (`--label-copyright`)
 - Filters: roles, columns (incl. **Row**), disabled clips, project name, timecode format, copyright label
 - Markers: default omits out-of-bounds starts; `--include-markers-outside-clip-boundaries` adds them + **Hidden** column
 - Excel: `--protect-sheets` / `protectSheets` applies worksheet edit locks (not encryption; PDF unaffected)
-- CLI: `--report`, `--report-full`, `--report-non-standard-effects`, `--create-pdf`, `--media-resolution`, `--timecode-format`, `--protect-sheets`, …
+- CLI: `--report`, `--report-full`, `--report-non-standard-effects`, `--include-role-inventory-screenshots`, `--create-pdf`, `--media-resolution`, `--timecode-format`, `--protect-sheets`, …
 - See [Manual 20 — Reporting](Documentation/Manual/20-Reporting.md)
 
 ### CLI
@@ -160,7 +163,7 @@ let package = Package(
         .iOS(.v26)
     ],
     dependencies: [
-        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.3.4")
+        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.3.5")
     ],
     targets: [
         .target(
@@ -223,7 +226,7 @@ sudo rm /usr/local/bin/OpenFCPXMLKit-CLI
 ### Compiled From Source
 
 ```shell
-VERSION=3.3.4 # replace this with the git tag of the version you need
+VERSION=3.3.5 # replace this with the git tag of the version you need
 git clone https://github.com/TheAcharya/OpenFCPXMLKit.git
 cd OpenFCPXMLKit
 git checkout "tags/$VERSION"
@@ -314,9 +317,9 @@ REPORT:
                           when the document has more than one reportable timeline.
   --label-copyright <label-copyright>
                           Optional copyright / attribution line for Excel and PDF reports (with --report). Excel:
-                          cover sheet cell A2 below the Created-by brand row. PDF: same subtitle style below
-                          Created-by on the cover, and centred in the running footer (same footer font/size as the
-                          Created-by branding).
+                          cover sheet cell A4 (after Created-by, Created-on, and Visit). PDF: same subtitle style
+                          below those lines on the cover, and centred in the running footer (same footer font/size as
+                          the Created-by branding).
   --exclude-role <exclude-role>
                           Exclude a role or subrole from role inventory (repeatable). Excluding a main role also
                           excludes its subroles.

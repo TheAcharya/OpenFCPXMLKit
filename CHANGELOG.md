@@ -7,6 +7,28 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.3.5](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.5) - 2026-08-14
+
+### ✨ New Features
+
+- **Role Inventory screenshots (Excel):** Optional `ReportOptions.includeScreenshotsInRoleInventory` / CLI `--include-role-inventory-screenshots` inserts a **Screenshot** column after **Row** on Selected Roles Inventory and every per-role sheet, embedding a **Source In** frame grab via XLKit (aspect-preserving; **480px** max long edge). PDF omits the column. Missing media → blank cell. Not a `ReportColumn` / `--exclude-column` target.
+- **Four-row report cover branding:** Excel cover is **A1** Created-by, **A2** `Created on yyyy-MM-dd-HH-mm-ss`, **A3** `Visit <url>`, **A4** optional `copyrightLabel`. PDF cover matches that stack. Customize Visit via `ReportWorkbookCoverSheet.visitURL` (API / GUI only; default OpenFCPXMLKit GitHub).
+- **Role Inventory Speed Change Settings:** Optional `includeSpeedChangeSettingsInRoleInventory` / `--include-role-inventory-speed-change-settings` adds a retime-percent column after **Effects** (not a `ReportColumn`).
+
+### 🔧 Improvements
+
+- **Source File Name for nested shapes:** Media URL / Source File Name resolution walks multicam, sync-clip, compound, ref-clip, and audition leaves so inventory rows populate nested media paths when available.
+- **Unrole’d primary Video inventory:** Primary-spine video-only clips without `videoRole` invent as **Video** (no longer dropped from inventory).
+- **ExcelReportTest:** Writes `Output/OFK-Screenshots.xlsx` for screenshot-column review; suite **1193** listed (**1179** + **10** + **4**).
+- **Documentation sync:** Manual 19–20 / 00-Index, Coverage, Tests READMEs, README (TOC + SPM `3.3.5`), ARCHITECTURE (Mermaid ExcelReportTest **10** / OpenFCPXMLKitTests **1179**; cover + screenshot map), AGENT, `.cursorrules`, and GUARDRAILS (Signs `role-inventory-screenshots-excel-only`, `report-cover-four-row-branding`).
+
+### 🐛 Bug Fixes
+
+- **Host roles vs connected titles:** Spine / host Role Inventory no longer inherits connected `<title>` roles (e.g. Vfx), so video hosts stay on Video and titles keep Vfx (Sign `host-roles-exclude-connected-titles`).
+- **Speed Change Effects completeness:** When Projection emits some retimes, Extraction-only optical-flow / wrapper retimes are merged; nested `timeMap` leaves under a retimed ancestor are skipped (Sign `speed-change-merge-extraction-when-projection-incomplete`).
+
+---
+
 ## [3.3.4](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.4) - 2026-08-06
 
 ### ✨ New Features
