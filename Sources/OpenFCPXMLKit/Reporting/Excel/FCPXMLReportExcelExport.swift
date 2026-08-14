@@ -20,18 +20,33 @@ extension FinalCutPro.FCPXML {
         /// full-workbook exports: role inventory (when present), then Markers, Keywords,
         /// Titles & Generators, Transitions, Video & Audio Effects, Speed Change Effects,
         /// Summary, and Media Summary.
+        /// - Parameter createdOn: Timestamp written on the Excel cover **Created on** row (**A2**).
+        ///   Defaults to now; pass a fixed date in tests.
         @MainActor
-        public static func makeWorkbook(from report: Report) -> Workbook {
-            FCPXMLReportWorkbookExporter.makeWorkbook(from: report)
+        public static func makeWorkbook(
+            from report: Report,
+            createdOn: Date = Date()
+        ) -> Workbook {
+            FCPXMLReportWorkbookExporter.makeWorkbook(from: report, createdOn: createdOn)
         }
         
         /// Writes a report to an `.xlsx` file at the given URL.
         ///
         /// When ``Report/protectSheets`` is `true`, every worksheet is edit-locked
         /// (XLKit sheet protection without a password). This is not file encryption.
+        /// When ``RoleInventoryReportSection/showsScreenshotsColumn`` is `true`, Source In
+        /// frame grabs are embedded into Role Inventory Screenshot cells before save.
         @MainActor
         public static func export(_ report: Report, to url: URL) async throws {
             let workbook = makeWorkbook(from: report)
+            if let roleInventory = report.roleInventory,
+               roleInventory.showsScreenshotsColumn
+            {
+                await FCPXMLReportWorkbookScreenshotEmbedder.embedScreenshots(
+                    into: workbook,
+                    roleInventory: roleInventory
+                )
+            }
             try await workbook.save(to: url)
         }
         

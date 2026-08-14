@@ -95,8 +95,8 @@ struct ReportCLIOptions: ParsableArguments {
         name: .customLong("label-copyright"),
         help: """
         Optional copyright / attribution line for Excel and PDF reports (with --report). \
-        Excel: cover sheet cell A2 below the Created-by brand row. \
-        PDF: same subtitle style below Created-by on the cover, and centred in the running footer \
+        Excel: cover sheet cell A4 (after Created-by, Created-on, and Visit). \
+        PDF: same subtitle style below those lines on the cover, and centred in the running footer \
         (same footer font/size as the Created-by branding).
         """
     )
@@ -133,6 +133,17 @@ struct ReportCLIOptions: ParsableArguments {
         """
     )
     var includeRoleInventorySpeedChangeSettings: Bool = false
+    
+    @Flag(
+        name: .customLong("include-role-inventory-screenshots"),
+        help: """
+        Add a Screenshot column after Row on Role Inventory sheets (Selected Roles Inventory and \
+        every per-role tab) and embed a Source In frame grab in Excel (with --report). Uses \
+        aspect-preserving XLKit embeds. Default omits the column. PDF export ignores this flag. \
+        Missing media leaves a blank cell. Not available via --exclude-column.
+        """
+    )
+    var includeRoleInventoryScreenshots: Bool = false
     
     @Flag(
         name: .customLong("protect-sheets"),
@@ -245,6 +256,7 @@ struct ReportCLIOptions: ParsableArguments {
         options.excludeDisabledClips = excludeDisabledClips
         options.includeMarkersOutsideClipBoundaries = includeMarkersOutsideClipBoundaries
         options.includeSpeedChangeSettingsInRoleInventory = includeRoleInventorySpeedChangeSettings
+        options.includeScreenshotsInRoleInventory = includeRoleInventoryScreenshots
         options.protectSheets = protectSheets
         options.excludedColumns = excludeColumn
         options.timecodeFormat = try resolvedTimecodeFormat()

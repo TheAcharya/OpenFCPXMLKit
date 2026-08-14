@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1188** tests listed in `swift test list` — **1175** in `OpenFCPXMLKitTests` + **9** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1192** tests listed in `swift test list` — **1178** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -202,7 +202,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1188** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1192** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -264,6 +264,12 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Instruction:** Always write remaining cell values independently of colour. Colour from typed row models (`fontColorHex(roleSubrole:categoryLabel:context:)` / Non-Std Kind APIs / marker type) — never require those columns to be present in filtered headers. Accept shell-friendly Role aliases (`Role > Subrole`, `Roles > Subrole`). Do not make colour “optional” when columns are excluded.
 - **Reason:** Excluding Role ▸ Subrole emptied per-role Excel sheets because writes were gated on colour lookup of that header (3.3.3).
 - **Provenance:** 2026-07-28 — Sample.fcpxmld Role ▸ Subrole exclusion / colour independence (3.3.3).
+
+### Sign: role-inventory-screenshots-excel-only
+- **Trigger:** Role Inventory Screenshot column / `--include-role-inventory-screenshots` / `includeScreenshotsInRoleInventory`.
+- **Instruction:** Default **off**. When on, insert **Screenshot** after **Row** on Selected Roles Inventory and every per-role sheet; embed Source In frames via XLKit (aspect-preserving) at Excel export only. Scale thumbnails from source resolution with a **480px max long edge**. PDF must omit the column and never embed. Grab asset-relative Source In (clip `start` − asset `start`); blank cell when media is missing/unreadable. Not a `ReportColumn` / `--exclude-column` target. Do not use legacy marketing names in code.
+- **Reason:** Opt-in keeps default exports fast/small; Source In matches FCP source viewer; Excel-only matches XLKit image APIs.
+- **Provenance:** 2026-08-14 — Role Inventory screenshots feature.
 
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.

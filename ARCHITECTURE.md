@@ -46,7 +46,7 @@ OpenFCPXMLKit is a **Swift 6** framework for Final Cut Pro FCPXML: parsing, crea
 - **Repository:** https://github.com/TheAcharya/OpenFCPXMLKit
 - **Dependencies:** SwiftTimecode 3.1.2+, SwiftExtensions 3.0.0+, SwiftSemanticVersion 1.0.0+, swift-log 1.14.0+, AEXML 4.7.0+, XLKit 1.1.7+, TextFile ([swift-textfile](https://github.com/orchetect/swift-textfile) 0.5.2+, Shot Extraction CSV), swift-argument-parser 1.8.2+ (CLI only), Foundation, CoreMedia, ImageIO.
 - **FCPXML:** Versions 1.5–1.14 (DTDs included); Final Cut Pro frame rates (23.976, 24, 25, 29.97, 30, 50, 59.94, 60).
-- **Tests:** **1188** tests listed in `swift test list` — **1175** in `OpenFCPXMLKitTests` + **9** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** sample `.fcpxml` files under `Tests/FCPXML Samples/FCPXML/`; private local inbox under `Tests/Submitted FCPXML/` (gitignored — never commit private FCPXML).
+- **Tests:** **1192** tests listed in `swift test list` — **1178** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** sample `.fcpxml` files under `Tests/FCPXML Samples/FCPXML/`; private local inbox under `Tests/Submitted FCPXML/` (gitignored — never commit private FCPXML).
 
 ---
 
@@ -172,7 +172,8 @@ ShotExtraction/   Primary stills → PNG + CSV/Notion; planShots dry-run; reject
 | Title Role ▸ Subrole / under-spine leaf `<video>` inventory (honour `Title.role`; do not hard-code Titles; skip only negative-lane leaf `<audio>`) | Reporting (`ReportFormatting.titleRoleSubrole`, `RoleInventoryClipCollector.shouldSkipLeafMedia`); Parsing/Extraction/Projection already supply facts (Sign `title-roles-honor-attribute`) |
 | Column labels, timecode strings, enabled checkmarks | Reporting |
 | Timecode display mode (SMPTE / Frames / Feet+Frames / HH:MM:SS) and header suffixes | `ReportOptions.timecodeFormat` → `Report.timecodeFormat` → Formatting + Excel/PDF export |
-| Optional copyright / attribution line (Excel cover A2; PDF cover + footer centre) | `ReportOptions.copyrightLabel` → `Report.copyrightLabel` → Excel / PDF export (CLI `--label-copyright`) |
+| Optional copyright / attribution line (Excel cover A4; PDF cover + footer centre) | `ReportOptions.copyrightLabel` → `Report.copyrightLabel` → Excel / PDF export (CLI `--label-copyright`) |
+| Optional Visit URL (Excel cover A3; PDF cover) | `ReportWorkbookCoverSheet.visitURL` (default OpenFCPXMLKit GitHub; API / GUI only) |
 | Markers outside host clip media range + Markers **Hidden** column | `ReportOptions.includeMarkersOutsideClipBoundaries` → Markers builder / Projection annotations (CLI `--include-markers-outside-clip-boundaries`) |
 | Chapter markers on Markers sheet | `ReportOptions.includeChapterMarkersInMarkersReport` (default **`true`**; no CLI chapter flag) |
 | Excel worksheet edit lock on every sheet (not encryption) | `ReportOptions.protectSheets` → `Report.protectSheets` → `FCPXMLReportWorkbookExporter` (CLI `--protect-sheets`; PDF ignores) |
@@ -197,7 +198,7 @@ ShotExtraction/   Primary stills → PNG + CSV/Notion; planShots dry-run; reject
 
 #### Excel export
 
-Lives under **`Reporting/Excel/`** and serialises `Report` to XLKit workbooks via `ReportExcelExport` and `FCPXMLReportWorkbookExporter`; it applies column exclusion (including format-suffixed timecode headers and universal **Row** via `ensuringRowColumn`), **always writes remaining cell values** (colour is not a gate for writing), `Report.timecodeFormat` header suffixes, tabular header styling (black fill, white bold text), Summary project title in **B1** with **A1**/**C1–E1** banner fill and narrow Row column A, visual-section subtotal banner (bold white body text), `% of Total` as `0.0%` numeric cells, per-role **Total:** footers, cover-sheet branding (`workbookCoverSheet` / `exportBrandingText` in **A1**) plus optional `copyrightLabel` in **A2**, sheet-specific row text colours from typed models (including Non-Std Kind/UID; Sign `row-colour-survives-column-exclusion`), and optional **`Report.protectSheets`** (XLKit `SheetProtection` on every sheet — edit lock only) but should not introduce new FCPXML interpretation.
+Lives under **`Reporting/Excel/`** and serialises `Report` to XLKit workbooks via `ReportExcelExport` and `FCPXMLReportWorkbookExporter`; it applies column exclusion (including format-suffixed timecode headers and universal **Row** via `ensuringRowColumn`), **always writes remaining cell values** (colour is not a gate for writing), `Report.timecodeFormat` header suffixes, tabular header styling (black fill, white bold text), Summary project title in **B1** with **A1**/**C1–E1** banner fill and narrow Row column A, visual-section subtotal banner (bold white body text), `% of Total` as `0.0%` numeric cells, per-role **Total:** footers, cover-sheet branding (**A1** Created-by / **A2** Created-on / **A3** Visit / optional **A4** `copyrightLabel`), sheet-specific row text colours from typed models (including Non-Std Kind/UID; Sign `row-colour-survives-column-exclusion`), and optional **`Report.protectSheets`** (XLKit `SheetProtection` on every sheet — edit lock only) but should not introduce new FCPXML interpretation.
 
 #### PDF export
 
@@ -225,7 +226,7 @@ flowchart TB
     SRC --> CLI["OpenFCPXMLKitCLI → OpenFCPXMLKit-CLI"]
     SRC --> GEN["GenerateEmbeddedDTDs"]
 
-    TST --> OKT["OpenFCPXMLKitTests — 1175 Swift Testing"]
+    TST --> OKT["OpenFCPXMLKitTests — 1178 Swift Testing"]
     TST --> ERT["ExcelReportTest — 8 optional Swift Testing"]
     TST --> SET["ShotExtractionTest — 4 optional Swift Testing"]
     TST --> SMP["FCPXML Samples/ — 60 .fcpxml files"]
@@ -535,7 +536,7 @@ Binary name: **`OpenFCPXMLKit-CLI`**. Mutually exclusive modes: `--check-version
 
 ## 8. Tests
 
-- **Count:** **1188** listed in `swift test list` — **1175** in `OpenFCPXMLKitTests` + **9** in optional `ExcelReportTest` + **4** in optional `ShotExtractionTest` (all Swift Testing `@Test`; **no XCTest** in `Tests/`). Optional targets **cancel** via `Test.cancel` without a local `.fcpxml`/`.fcpxmld` fixture.
+- **Count:** **1192** listed in `swift test list` — **1178** in `OpenFCPXMLKitTests` + **10** in optional `ExcelReportTest` + **4** in optional `ShotExtractionTest` (all Swift Testing `@Test`; **no XCTest** in `Tests/`). Optional targets **cancel** via `Test.cancel` without a local `.fcpxml`/`.fcpxmld` fixture.
 - **Framework:** Swift Testing exclusively (`@Suite` / `@Test` / `#expect` / `#require`). See GUARDRAILS Sign: `swift-testing-only`.
 - **Location:** `Tests/OpenFCPXMLKitTests/`; public samples in `Tests/FCPXML Samples/FCPXML/` (60 files, including `HiddenMarkers.fcpxml`); optional integration under `Tests/ExcelReportTest/` and `Tests/ShotExtractionTest/`; private investigation inbox under `Tests/Submitted FCPXML/` (gitignored `Inbox/` / `Notes/` — never commit private FCPXML to GitHub; see `Tests/Submitted FCPXML/README.md`).
 - **Harness:** `FCPXMLTestResources.swift` (paths); `FCPXMLTestSampleLoading.swift` + `FCPXMLTestSampleError.swift` (`tryLoad*`); `FCPXMLTestingSampleSupport.swift` (`require*` — bundled samples **fail** if missing; optional fixtures use `Test.cancel`); `FCPXMLReportingReportFixture.swift` / `FCPXMLReportingReportTestSupport.swift` for optional reporting fixtures; `FCPXMLSubmittedFCPXMLSmokeTests` for optional Inbox parse smoke; `FCPXMLShotExtractionTests` (**10** `@Test`) for still-image Shot Extraction (reject video/titles/audio; dry-run); `ExcelReportFixture` for the ExcelReportTest target; `ShotExtractionFixture` for the ShotExtractionTest target.

@@ -184,7 +184,9 @@ extension FinalCutPro.FCPXML {
                     timecodeFormat: options.timecodeFormat,
                     projection: projection,
                     entries: inventoryEntries,
-                    includeSpeedChangeSettings: options.includeSpeedChangeSettingsInRoleInventory
+                    includeSpeedChangeSettings: options.includeSpeedChangeSettingsInRoleInventory,
+                    includeScreenshots: options.includeScreenshotsInRoleInventory,
+                    mediaBaseURL: options.mediaBaseURL
                 )
                 if !options.excludedRoles.isEmpty {
                     roleInventory = ReportRoleExclusion.applying(

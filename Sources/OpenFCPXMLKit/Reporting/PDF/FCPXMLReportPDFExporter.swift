@@ -83,6 +83,7 @@ enum FCPXMLReportPDFExporter {
             projectName: report.projectName,
             eventName: report.eventName,
             exportBrandingText: report.exportBrandingText,
+            exportVisitURL: report.exportVisitURL,
             copyrightLabel: report.copyrightLabel,
             sectionStartRecorder: recordsSectionStarts ? sectionStartSink : nil,
             layoutOnly: layoutOnly

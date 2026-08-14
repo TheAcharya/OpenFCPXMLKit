@@ -34,7 +34,8 @@ extension FinalCutPro.FCPXML {
                 selectedRoles: filteredSelectedRoles,
                 roleSheets: filteredRoleSheets,
                 metadataColumnKeys: section.metadataColumnKeys,
-                showsSpeedChangeSettingsColumn: section.showsSpeedChangeSettingsColumn
+                showsSpeedChangeSettingsColumn: section.showsSpeedChangeSettingsColumn,
+                showsScreenshotsColumn: section.showsScreenshotsColumn
             )
         }
         

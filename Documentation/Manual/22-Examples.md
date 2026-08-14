@@ -295,7 +295,7 @@ Library equivalent for the copyright line:
 var options = FinalCutPro.FCPXML.ReportOptions.full
 options.copyrightLabel = "© 2026 Example Studios"
 let report = try await fcpxml.buildReport(options: options)
-// Excel cover A2 + PDF cover/footer centre
+// Excel cover A4 + PDF cover/footer centre
 ```
 
 Markers outside clip boundaries + Excel sheet protection (chapter markers are already on by default):

@@ -386,6 +386,7 @@ struct FCPXMLReportExcelExportTests {
     @Test("Workbook cover sheet uses configured title header and style")
     @MainActor
     func workbookCoverSheetUsesConfiguredTitleHeaderAndStyle() {
+        let createdOn = Date(timeIntervalSince1970: 1_704_067_200) // 2023-12-31 16:00:00 UTC-ish; label uses local TZ
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test Project",
             markers: FinalCutPro.FCPXML.MarkersReportSection(rows: []),
@@ -395,7 +396,10 @@ struct FCPXMLReportExcelExportTests {
             )
         )
 
-        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
+        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(
+            from: report,
+            createdOn: createdOn
+        )
         let names = workbook.getSheets().map { $0.name }
         #expect(names.first == "Created by XYZ")
 
@@ -404,13 +408,29 @@ struct FCPXMLReportExcelExportTests {
         #expect(headerCell?.value.stringValue == "Created by XYZ")
         #expect(headerCell?.format?.backgroundColor == "#000000")
         #expect(headerCell?.format?.fontColor == "#FFFFFF")
-        #expect(coverSheet?.getCellWithFormat("A2")?.value.stringValue == nil)
+        
+        let createdOnCell = coverSheet?.getCellWithFormat("A2")
+        #expect(
+            createdOnCell?.value.stringValue
+                == FinalCutPro.FCPXML.ReportWorkbookCoverSheet.createdOnLabel(date: createdOn)
+        )
+        #expect(createdOnCell?.format?.backgroundColor == "#000000")
+        
+        let visitCell = coverSheet?.getCellWithFormat("A3")
+        #expect(
+            visitCell?.value.stringValue
+                == FinalCutPro.FCPXML.ReportWorkbookCoverSheet.visitLabel(
+                    url: FinalCutPro.FCPXML.ReportWorkbookCoverSheet.defaultVisitURL
+                )
+        )
+        #expect(coverSheet?.getCellWithFormat("A4")?.value.stringValue == nil)
     }
 
-    @Test("Workbook cover sheet includes copyright label on row two")
+    @Test("Workbook cover sheet includes copyright label on row four")
     @MainActor
-    func workbookCoverSheetIncludesCopyrightLabelOnRowTwo() {
+    func workbookCoverSheetIncludesCopyrightLabelOnRowFour() {
         let copyright = "© 2026 Example Studios"
+        let createdOn = Date(timeIntervalSince1970: 1_704_067_200)
         let report = FinalCutPro.FCPXML.Report(
             projectName: "Test Project",
             markers: FinalCutPro.FCPXML.MarkersReportSection(rows: []),
@@ -418,7 +438,10 @@ struct FCPXMLReportExcelExportTests {
             copyrightLabel: copyright
         )
 
-        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
+        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(
+            from: report,
+            createdOn: createdOn
+        )
         let coverSheet = workbook.getSheet(
             name: FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.title
         )
@@ -426,10 +449,41 @@ struct FCPXMLReportExcelExportTests {
             coverSheet?.getCellWithFormat("A1")?.value.stringValue
                 == FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.headerText
         )
-        let copyrightCell = coverSheet?.getCellWithFormat("A2")
+        #expect(
+            coverSheet?.getCellWithFormat("A2")?.value.stringValue
+                == FinalCutPro.FCPXML.ReportWorkbookCoverSheet.createdOnLabel(date: createdOn)
+        )
+        #expect(
+            coverSheet?.getCellWithFormat("A3")?.value.stringValue
+                == FinalCutPro.FCPXML.ReportWorkbookCoverSheet.openFCPXMLKitDefault.visitLabel
+        )
+        let copyrightCell = coverSheet?.getCellWithFormat("A4")
         #expect(copyrightCell?.value.stringValue == copyright)
         #expect(copyrightCell?.format?.backgroundColor == "#000000")
         #expect(copyrightCell?.format?.fontColor == "#FFFFFF")
+    }
+    
+    @Test("Workbook cover sheet uses custom visit URL")
+    @MainActor
+    func workbookCoverSheetUsesCustomVisitURL() {
+        let customURL = URL(string: "https://example.com/production-data")!
+        let report = FinalCutPro.FCPXML.Report(
+            projectName: "Test Project",
+            markers: FinalCutPro.FCPXML.MarkersReportSection(rows: []),
+            workbookCoverSheet: FinalCutPro.FCPXML.ReportWorkbookCoverSheet(
+                title: "Created by Production Data",
+                headerText: "Created by Production Data",
+                visitURL: customURL
+            )
+        )
+        
+        let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
+        let coverSheet = workbook.getSheet(name: "Created by Production Data")
+        #expect(
+            coverSheet?.getCellWithFormat("A3")?.value.stringValue
+                == "Visit https://example.com/production-data"
+        )
+        #expect(report.exportVisitURL == customURL)
     }
 
     @Test("Marker row uses configured marker type colors")
