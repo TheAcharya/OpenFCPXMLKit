@@ -115,11 +115,17 @@ extension FinalCutPro.FCPXML {
                 windowIndex: windowIndex
             )
             let screenshot = includeScreenshots
-                ? screenshotTarget(
+                ? RoleInventoryScreenshotMedia.target(
                     for: clipContext,
                     category: entry.category,
                     preferAudioAngle: entry.usesAudioAngleClipName,
-                    mediaBaseURL: mediaBaseURL
+                    mediaBaseURL: mediaBaseURL,
+                    projectionWindow: matchingScreenshotWindow(
+                        for: entry,
+                        clipContext: clipContext,
+                        spanStart: adjustedSpan.start,
+                        windowIndex: windowIndex
+                    )
                 )
                 : nil
             
@@ -139,7 +145,8 @@ extension FinalCutPro.FCPXML {
                 keywords: keywordsDisplay(for: clipContext),
                 effects: effectsDisplay(on: clipContext),
                 speedChangeSettings: speedChangeSettings,
-                screenshotMediaFileURL: screenshot?.url,
+                screenshotMediaFileURL: screenshot?.preferredURL,
+                screenshotFallbackMediaFileURL: screenshot?.fallbackURL,
                 screenshotFileTimeSeconds: screenshot?.fileTimeSeconds,
                 notes: ReportFormatting.clipNotesDisplay(for: clipContext.element),
                 reel: ReportFormatting.metadataString(from: metadata, key: .reel),
@@ -192,98 +199,27 @@ extension FinalCutPro.FCPXML {
             return extracted.ancestorClipContext() ?? extracted
         }
         
-        /// Resolves a media file URL and asset-relative Source In time for Excel screenshots.
-        /// Skips titles / captions / audio-only categories (no useful video frame).
-        private static func screenshotTarget(
-            for clipContext: ExtractedElement,
-            category: ReportClipCategory,
-            preferAudioAngle: Bool,
-            mediaBaseURL: URL?
-        ) -> (url: URL, fileTimeSeconds: Double)? {
-            guard category.isVideoCategory
-                || category == .primaryClip
-                || category == .connectedClip
-                || category == .connectedGenerator
-            else {
-                return nil
+        /// Projection window for the same clip usage, used to read original / proxy URLs.
+        private static func matchingScreenshotWindow(
+            for entry: RoleInventoryClipEntry,
+            clipContext: ExtractedElement,
+            spanStart: Double,
+            windowIndex: ProjectionWindowIndex?
+        ) -> MediaUsageWindow? {
+            guard let windowIndex else { return nil }
+            let clipName = displayClipName(for: entry)
+            if let match = windowIndex.match(
+                clipName: clipName,
+                expectedStart: spanStart,
+                preferAudio: entry.usesAudioAngleClipName
+            ) {
+                return match
             }
-            
-            guard let mediaURL = clipContext.element.fcpMediaURL(
-                in: clipContext.resources,
-                preferAudioAngle: preferAudioAngle
-            ) else {
-                return nil
-            }
-            
-            let resolved = resolveScreenshotFileURL(mediaURL, mediaBaseURL: mediaBaseURL)
-            let clipStart = clipContext.element.fcpStart?.doubleValue
-                ?? clipContext.element._fcpStartAsTimecode(
-                    frameRateSource: .localToElement,
-                    default: nil
-                )?.realTimeValue
-                ?? 0
-            let assetStart = screenshotAssetStartSeconds(
-                for: clipContext.element,
-                resources: clipContext.resources,
-                preferAudioAngle: preferAudioAngle
+            return windowIndex.match(
+                clipName: clipContext.displayClipName(),
+                expectedStart: spanStart,
+                preferAudio: entry.usesAudioAngleClipName
             )
-            let fileTime = max(0, clipStart - assetStart)
-            return (resolved, fileTime)
-        }
-        
-        private static func resolveScreenshotFileURL(
-            _ url: URL,
-            mediaBaseURL: URL?
-        ) -> URL {
-            if url.isFileURL {
-                if FileManager.default.fileExists(atPath: url.path) {
-                    return url
-                }
-                if let mediaBaseURL {
-                    let relative = url.path.hasPrefix("/")
-                        ? String(url.path.dropFirst())
-                        : url.path
-                    let joined = mediaBaseURL.appendingPathComponent(relative)
-                    if FileManager.default.fileExists(atPath: joined.path) {
-                        return joined
-                    }
-                    let byName = mediaBaseURL.appendingPathComponent(url.lastPathComponent)
-                    if FileManager.default.fileExists(atPath: byName.path) {
-                        return byName
-                    }
-                }
-                return url
-            }
-            if let mediaBaseURL {
-                return mediaBaseURL.appendingPathComponent(url.lastPathComponent)
-            }
-            return url
-        }
-        
-        private static func screenshotAssetStartSeconds(
-            for element: any OFKXMLElement,
-            resources: (any OFKXMLElement)?,
-            preferAudioAngle: Bool
-        ) -> Double {
-            if let ref = element.fcpRef,
-               let asset = element.fcpResource(forID: ref, in: resources)?.fcpAsAsset
-            {
-                return asset.start?.doubleValue ?? 0
-            }
-            
-            switch element.fcpElementType {
-            case .clip, .syncClip, .mcClip, .refClip, .audition:
-                if let leaf = element._fcpFirstChildTimelineElement(excluding: [.gap, .title]) {
-                    return screenshotAssetStartSeconds(
-                        for: leaf,
-                        resources: resources,
-                        preferAudioAngle: preferAudioAngle
-                    )
-                }
-            default:
-                break
-            }
-            return 0
         }
         
         private static func sourceTimecodes(

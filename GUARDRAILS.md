@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1193** tests listed in `swift test list` — **1179** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1203** tests listed in `swift test list` — **1189** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -202,7 +202,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1193** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1203** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -267,7 +267,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 
 ### Sign: role-inventory-screenshots-excel-only
 - **Trigger:** Role Inventory Screenshot column / `--include-role-inventory-screenshots` / `includeScreenshotsInRoleInventory`.
-- **Instruction:** Default **off**. When on, insert **Screenshot** after **Row** on Selected Roles Inventory and every per-role sheet; embed Source In frames via XLKit (aspect-preserving) at Excel export only. Scale thumbnails from source resolution with a **480px max long edge**. PDF must omit the column and never embed. Grab asset-relative Source In (clip `start` − asset `start`); blank cell when media is missing/unreadable. Not a `ReportColumn` / `--exclude-column` target. Do not use legacy marketing names in code.
+- **Instruction:** Default **off**. When on, insert **Screenshot** after **Row** on Selected Roles Inventory and every per-role sheet; embed Source In frames via XLKit (aspect-preserving) at Excel export only. Scale thumbnails from source resolution with a **480px max long edge**. PDF must omit the column and never embed. Grab asset-relative Source In (clip `start` − asset `start`); always prefer `original-media`; use `proxy-media` only when the original is missing or unreadable (MXF / camera RAW) (Sign `role-inventory-screenshots-prefer-original`). Blank cell when both are missing/unreadable. Source File Path stays original-first. Not a `ReportColumn` / `--exclude-column` target. Do not use legacy marketing names in code.
 - **Reason:** Opt-in keeps default exports fast/small; Source In matches FCP source viewer; Excel-only matches XLKit image APIs.
 - **Provenance:** 2026-08-14 — Role Inventory screenshots feature (3.3.5).
 
@@ -276,6 +276,12 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Instruction:** Excel cover order is **A1** Created-by (`headerText`), **A2** `Created on yyyy-MM-dd-HH-mm-ss`, **A3** `Visit <visitURL>`, **A4** optional `copyrightLabel`. PDF cover matches that branding stack (after project/event). Customize Visit via `ReportWorkbookCoverSheet.visitURL` (API / GUI only — no CLI flag). Default Visit URL is the OpenFCPXMLKit GitHub repository.
 - **Reason:** Stable four-row cover for product hosts; Visit URL is an integration concern, not a CLI switch.
 - **Provenance:** 2026-08-14 — Cover branding expansion (3.3.5).
+
+### Sign: role-inventory-screenshots-prefer-original
+- **Trigger:** Role Inventory Screenshot column / `--include-role-inventory-screenshots` / `includeScreenshotsInRoleInventory` / `RoleInventoryScreenshotMedia`.
+- **Instruction:** Always prefer `original-media` when that file exists. Use `proxy-media` only when the original is missing on disk or `RoleInventoryScreenshotGrabber` cannot decode it (MXF, camera RAW, and similar). Resolve both URLs from the same unfolded leaf (`fcpMediaRepresentationURLs` or Projection `MediaChannel`). Do not change Source File Path / Name to proxy. PDF still omits screenshots.
+- **Reason:** Screenshot quality should match the original when it is readable; proxy is a fallback, not a substitute when both files exist.
+- **Provenance:** 2026-08-15 — Role Inventory screenshot original-first + proxy fallback.
 
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.

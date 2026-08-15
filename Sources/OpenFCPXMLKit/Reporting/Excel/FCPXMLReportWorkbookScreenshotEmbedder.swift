@@ -59,15 +59,22 @@ enum FCPXMLReportWorkbookScreenshotEmbedder {
         guard let screenshotColumn = screenshotColumnIndex(in: sheet) else { return }
         
         for (index, row) in rows.enumerated() {
-            guard let fileURL = row.screenshotMediaFileURL else { continue }
+            let fileURLs = [
+                row.screenshotMediaFileURL,
+                row.screenshotFallbackMediaFileURL
+            ].compactMap { $0 }
+            guard !fileURLs.isEmpty else { continue }
             let fileTime = row.screenshotFileTimeSeconds ?? 0
-            let cacheKey = "\(fileURL.path)|\(String(format: "%.6f", fileTime))"
+            let cacheKey = fileURLs
+                .map(\.standardizedFileURL.path)
+                .joined(separator: ">")
+                + "|\(String(format: "%.6f", fileTime))"
             
             let jpeg: Data
             if let cached = cache[cacheKey] {
                 jpeg = cached
             } else if let grabbed = await FinalCutPro.FCPXML.RoleInventoryScreenshotGrabber.jpegData(
-                fileURL: fileURL,
+                fileURLs: fileURLs,
                 fileTimeSeconds: fileTime
             ) {
                 cache[cacheKey] = grabbed

@@ -31,9 +31,13 @@ extension FinalCutPro.FCPXML {
         /// Retime percent (`50.0%`) when the clip has a non-identity speed change; blank otherwise.
         /// Exported only when ``RoleInventoryReportSection/showsSpeedChangeSettingsColumn`` is `true`.
         public var speedChangeSettings: String
-        /// Resolved media file for Excel Screenshot embeds when
+        /// Preferred media file for Excel Screenshot embeds when
         /// ``RoleInventoryReportSection/showsScreenshotsColumn`` is `true`.
+        /// Always `original-media` when that file exists on disk.
         public var screenshotMediaFileURL: URL?
+        /// `proxy-media` file to try when the original is missing or unreadable
+        /// (for example MXF or camera RAW).
+        public var screenshotFallbackMediaFileURL: URL?
         /// Seconds into the media file for the Source In frame (asset-relative).
         public var screenshotFileTimeSeconds: Double?
         public var notes: String
@@ -78,6 +82,7 @@ extension FinalCutPro.FCPXML {
             effects: String = "",
             speedChangeSettings: String = "",
             screenshotMediaFileURL: URL? = nil,
+            screenshotFallbackMediaFileURL: URL? = nil,
             screenshotFileTimeSeconds: Double? = nil,
             notes: String = "",
             reel: String = "",
@@ -109,6 +114,7 @@ extension FinalCutPro.FCPXML {
             self.effects = effects
             self.speedChangeSettings = speedChangeSettings
             self.screenshotMediaFileURL = screenshotMediaFileURL
+            self.screenshotFallbackMediaFileURL = screenshotFallbackMediaFileURL
             self.screenshotFileTimeSeconds = screenshotFileTimeSeconds
             self.notes = notes
             self.reel = reel

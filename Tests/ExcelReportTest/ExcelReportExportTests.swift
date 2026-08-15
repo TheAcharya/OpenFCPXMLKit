@@ -9,8 +9,8 @@
 //
 
 import Foundation
-import OpenFCPXMLKit
 import Testing
+@testable import OpenFCPXMLKit
 #if canImport(PDFKit)
 import PDFKit
 #endif
@@ -374,9 +374,50 @@ struct ExcelReportExportTests {
         var options = FinalCutPro.FCPXML.ReportOptions.roleInventoryOnly
         options.includeScreenshotsInRoleInventory = true
         
-        let report = try await loadReport(options: options, fixtureURL: fixtureURL)
+        var report = try await loadReport(options: options, fixtureURL: fixtureURL)
         let inventory = try #require(report.roleInventory)
         #expect(inventory.showsScreenshotsColumn)
+        
+        let videoRows = inventory.selectedRoles.filter { $0.screenshotMediaFileURL != nil }
+        #expect(!videoRows.isEmpty, "Sample.fcpxmld should resolve at least one screenshot media URL")
+        
+        if let pair = videoRows.first(where: {
+            $0.screenshotMediaFileURL?.pathExtension.lowercased() == "mxf"
+                && $0.screenshotFallbackMediaFileURL?.pathExtension.lowercased() == "mov"
+        }) {
+            let original = try #require(pair.screenshotMediaFileURL)
+            let declaredProxy = try #require(pair.screenshotFallbackMediaFileURL)
+            #expect(original.lastPathComponent.contains("sample_1280x720_surfing_with_audio"))
+            #expect(declaredProxy.lastPathComponent.contains("sample_1280x720_surfing_with_audio"))
+            #expect(FileManager.default.fileExists(atPath: original.path))
+            #expect(FileManager.default.fileExists(atPath: declaredProxy.path))
+            
+            let readableProxy = readableProxyStandIn(named: declaredProxy.lastPathComponent)
+                ?? (canReadMediaFile(declaredProxy) ? declaredProxy : nil)
+            if let readableProxy {
+                substituteReadableScreenshotFallback(in: &report, localProxy: readableProxy)
+            }
+            
+            let fileTime = pair.screenshotFileTimeSeconds ?? 0
+            let originalJPEG = await FinalCutPro.FCPXML.RoleInventoryScreenshotGrabber.jpegData(
+                fileURL: original,
+                fileTimeSeconds: fileTime
+            )
+            #expect(originalJPEG == nil, "Original MXF should be unreadable; proxy is the fallback")
+            
+            if let readableProxy {
+                let proxyJPEG = await FinalCutPro.FCPXML.RoleInventoryScreenshotGrabber.jpegData(
+                    fileURL: readableProxy,
+                    fileTimeSeconds: fileTime
+                )
+                let orderedJPEG = await FinalCutPro.FCPXML.RoleInventoryScreenshotGrabber.jpegData(
+                    fileURLs: [original, readableProxy],
+                    fileTimeSeconds: fileTime
+                )
+                #expect(proxyJPEG != nil, "On-disk proxy MOV should decode when original MXF cannot")
+                #expect(orderedJPEG != nil, "Grabber should skip unreadable original and use proxy")
+            }
+        }
         
         let workbook = FinalCutPro.FCPXML.ReportExcelExport.makeWorkbook(from: report)
         let selected = try #require(
@@ -549,6 +590,47 @@ struct ExcelReportExportTests {
         }
         
         return try await fcpxml.buildReport(options: reportOptions)
+    }
+    
+    /// `FileManager.fileExists` can succeed on a volume this process cannot read (TCC).
+    private func canReadMediaFile(_ url: URL) -> Bool {
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return false }
+        defer { try? handle.close() }
+        return ((try? handle.read(upToCount: 1))?.isEmpty == false)
+    }
+    
+    /// Finder-copied proxy used when `/Volumes/…` exists but this process cannot read it.
+    private func readableProxyStandIn(named fileName: String) -> URL? {
+        let candidates = [
+            URL(fileURLWithPath: "/tmp/ofk-screenshot-sample-probe").appendingPathComponent(fileName),
+            ExcelReportFixture.outputDirectoryURL().appendingPathComponent(fileName),
+        ]
+        return candidates.first(where: canReadMediaFile)
+    }
+    
+    private func substituteReadableScreenshotFallback(
+        in report: inout FinalCutPro.FCPXML.Report,
+        localProxy: URL
+    ) {
+        guard var inventory = report.roleInventory else { return }
+        
+        func remap(_ row: inout FinalCutPro.FCPXML.RoleClipReportRow) {
+            guard let fallback = row.screenshotFallbackMediaFileURL,
+                  fallback.lastPathComponent == localProxy.lastPathComponent,
+                  !canReadMediaFile(fallback)
+            else { return }
+            row.screenshotFallbackMediaFileURL = localProxy
+        }
+        
+        for index in inventory.selectedRoles.indices {
+            remap(&inventory.selectedRoles[index])
+        }
+        for sheetIndex in inventory.roleSheets.indices {
+            for rowIndex in inventory.roleSheets[sheetIndex].rows.indices {
+                remap(&inventory.roleSheets[sheetIndex].rows[rowIndex])
+            }
+        }
+        report.roleInventory = inventory
     }
     
     private func assertWorkbookExists(at url: URL) throws {
