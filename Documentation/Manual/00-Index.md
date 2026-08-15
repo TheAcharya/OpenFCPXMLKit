@@ -18,7 +18,7 @@ Complete manual and usage guide for **OpenFCPXMLKit**, a Swift 6 framework for F
 | [08 — Detached Authoring](08-Detached-Authoring.md) | `FinalCutPro.FCPXML.Authoring` value graph, omit-on-write, spine compounds |
 | [09 — Timeline Manipulation](09-Timeline-Manipulation.md) | Ripple insert, auto lane assignment, clip queries, lane range |
 | [10 — Timeline Metadata](10-Timeline-Metadata.md) | Markers, chapter markers, keywords, ratings, timestamps |
-| [11 — Extraction & Media](11-Extraction-Media.md) | Extraction scope and presets, media extraction and copy |
+| [11 — Extraction & Media](11-Extraction-Media.md) | Extraction scope and presets, leaf media URL resolution (`fcpMediaURL` / `fcpMediaRepresentationURLs`), media extraction and copy |
 | [12 — Timeline Projection](12-Timeline-Projection.md) | `TimelineProjector`, `MediaUsageWindow`, options, occupancy, report project-once |
 | [13 — Media Processing](13-Media-Processing.md) | MIME type, asset validation, silence detection, duration, parallel I/O |
 | [14 — Typed Models](14-Typed-Models.md) | Adjustments (incl. Corners/Panner), filters, captions/titles, keyframes, collections |
@@ -27,7 +27,7 @@ Complete manual and usage guide for **OpenFCPXMLKit**, a Swift 6 framework for F
 | [17 — Cross-Platform & iOS](17-Cross-Platform-iOS.md) | XML abstraction layer, OFKXML protocols, Foundation vs AEXML backends, iOS support |
 | [18 — Errors & Utilities](18-Errors-Utilities.md) | Error types, ErrorHandling, ProgressBar, FCPXMLUID |
 | [19 — CLI](19-CLI.md) | Experimental command-line interface (OpenFCPXMLKit-CLI) |
-| [20 — Reporting, Excel & PDF Export](20-Reporting.md) | Report builder, ReportOptions, ReportTimecodeFormat, ReportBuildPhase, Non-Std Effects & Templates, Duplicate Frames / Total footers, empty-sheet status rows, optional Screenshot + Speed Change Settings columns, four-row cover branding (Created-by / Created-on / Visit / copyright), column exclusion with semantic row colours, nested connected inventory, under-spine titles/video roles, chapter markers default on, Projection-first sections, Excel + PDF |
+| [20 — Reporting, Excel & PDF Export](20-Reporting.md) | Report builder, ReportOptions, ReportTimecodeFormat, ReportBuildPhase, Non-Std Effects & Templates, Duplicate Frames / Total footers, empty-sheet status rows, optional Screenshot (original-first, proxy fallback) + Speed Change Settings columns, four-row cover branding (Created-by / Created-on / Visit / copyright), column exclusion with semantic row colours, nested connected inventory, under-spine titles/video roles, chapter markers default on, Projection-first sections, Excel + PDF |
 | [21 — Shot Extraction](21-Shot-Extraction.md) | Primary stills → PNG + CSV / Notion JSON (CSV column key order); `planShots` / `--dry-run`; reject video / titles / audio; optional `ShotExtractionTest` |
 | [22 — Examples](22-Examples.md) | End-to-end workflows and code examples |
 
@@ -41,6 +41,6 @@ Complete manual and usage guide for **OpenFCPXMLKit**, a Swift 6 framework for F
 - **Coverage:** [../Coverage.md](../Coverage.md) — FCPXML element / layer matrices (Model · Authoring · Extraction · Projection · Reporting)
 - **Guardrails:** [../../GUARDRAILS.md](../../GUARDRAILS.md) — must / must-not for contributors and agents
 - **CLI reference:** [../../Sources/OpenFCPXMLKitCLI/README.md](../../Sources/OpenFCPXMLKitCLI/README.md)
-- **Tests:** [../../Tests/README.md](../../Tests/README.md) — suite layout (**1193** listed tests, all Swift Testing); [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) for private local investigation (never commit private FCPXML); optional [ShotExtractionTest](../../Tests/ShotExtractionTest/README.md) / [ExcelReportTest](../../Tests/ExcelReportTest/README.md)
+- **Tests:** [../../Tests/README.md](../../Tests/README.md) — suite layout (**1203** listed tests, all Swift Testing); [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) for private local investigation (never commit private FCPXML); optional [ShotExtractionTest](../../Tests/ShotExtractionTest/README.md) / [ExcelReportTest](../../Tests/ExcelReportTest/README.md)
 - **FCPXML reference:** [fcp.cafe/developers/fcpxml](https://fcp.cafe/developers/fcpxml)
 

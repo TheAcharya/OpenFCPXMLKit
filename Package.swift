@@ -26,7 +26,7 @@ let package = Package(
         // CLI argument parsing
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.8.2"),
         // Timecode operations
-        .package(url: "https://github.com/orchetect/swift-timecode", from: "3.1.3"),
+        .package(url: "https://github.com/orchetect/swift-timecode", from: "3.1.4"),
         // Utility extensions (String, Collection, Optional helpers)
         .package(url: "https://github.com/orchetect/swift-extensions", from: "3.0.0"),
         // Semantic versioning (extracted from swift-extensions 3.0.0)

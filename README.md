@@ -9,7 +9,7 @@ A modern Swift 6 framework for working with Final Cut Pro's FCPXML with full con
 
 OpenFCPXMLKit provides a type-safe API for parsing, creating, and manipulating FCPXML with async/await, SwiftTimecode, and Excel/PDF reporting. Targets **macOS 26+** and **iOS 26+** (Foundation XML on macOS; AEXML on iOS).
 
-**Tests:** **1193** listed in `swift test list` — **1179** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
+**Tests:** **1203** listed in `swift test list` — **1189** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
 
 OpenFCPXMLKit is currently in an experimental stage. It covers most core FCPXML attributes and parameters and provides a solid foundation for parsing, creation, and manipulation, with room for future expansion and additional feature coverage.
 
@@ -336,8 +336,10 @@ REPORT:
   --include-role-inventory-screenshots
                           Add a Screenshot column after Row on Role Inventory sheets (Selected Roles Inventory and
                           every per-role tab) and embed a Source In frame grab in Excel (with --report). Uses
-                          aspect-preserving XLKit embeds. Default omits the column. PDF export ignores this flag.
-                          Missing media leaves a blank cell. Not available via --exclude-column.
+                          aspect-preserving XLKit embeds. Always prefers original-media; uses proxy-media only when
+                          the original is missing or cannot be decoded (for example MXF or camera RAW). Default omits
+                          the column. PDF export ignores this flag. Missing media leaves a blank cell. Not available
+                          via --exclude-column.
   --protect-sheets        Protect every sheet in the Excel workbook against casual edits (with --report). Applies to
                           the cover sheet and all content sheets. This is an edit lock, not file-open encryption —
                           Excel can still open the file, and anyone can turn protection off. PDF export is unaffected
@@ -381,7 +383,7 @@ Complete manual, usage guide, and examples are in the [Documentation](Documentat
 - **[CLI](Sources/OpenFCPXMLKitCLI/README.md)** — Flags, examples, building and extending
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — Layer stack, codebase map, Mermaid diagrams
 - **[GUARDRAILS.md](GUARDRAILS.md)** — Must / must-not constraints for contributors and agents
-- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1193** listed; all Swift Testing)
+- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1203** listed; all Swift Testing)
 - **[AGENT.md](AGENT.md)** — AI agent / contributor briefing
 
 ## FCPXML Version Support

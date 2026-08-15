@@ -76,6 +76,75 @@ struct FCPXMLMediaURLResolutionTests {
         #expect(titleCompound.fcpMediaURL(in: resources) == nil)
     }
     
+    @Test("fcpMediaRepresentationURLs splits original and proxy on the same leaf")
+    func mediaRepresentationURLsSplitOriginalAndProxy() throws {
+        let original = URL(fileURLWithPath: "/tmp/ofk-original.mov")
+        let proxy = URL(fileURLWithPath: "/tmp/ofk-proxy.mov")
+        let fcpxml = try parseInlineFCPXML("""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE fcpxml>
+            <fcpxml version="1.11">
+                <resources>
+                    <format id="r1" frameDuration="100/2400s" width="1920" height="1080"/>
+                    <asset id="r2" name="A" hasVideo="1" videoSources="1" duration="10s">
+                        <media-rep kind="original-media" src="\(original.absoluteString)"/>
+                        <media-rep kind="proxy-media" src="\(proxy.absoluteString)"/>
+                    </asset>
+                </resources>
+                <library><event name="E"><project name="P">
+                    <sequence format="r1" duration="5s" tcStart="0s">
+                        <spine>
+                            <asset-clip ref="r2" offset="0s" name="Clip" duration="5s"/>
+                        </spine>
+                    </sequence>
+                </project></event></library>
+            </fcpxml>
+            """)
+        let clip = try #require(
+            fcpxml.allProjects().first?
+                .sequence.spine.storyElements
+                .first(where: { $0.fcpElementType == .assetClip })
+        )
+        let resources = fcpxml.root.resources
+        let pair = clip.fcpMediaRepresentationURLs(in: resources)
+        #expect(pair.original?.lastPathComponent == "ofk-original.mov")
+        #expect(pair.proxy?.lastPathComponent == "ofk-proxy.mov")
+        #expect(clip.fcpMediaURL(in: resources, kind: .originalMedia)?.lastPathComponent == "ofk-original.mov")
+        #expect(clip.fcpMediaURL(in: resources, kind: .proxyMedia)?.lastPathComponent == "ofk-proxy.mov")
+        #expect(clip.fcpMediaURL(in: resources)?.lastPathComponent == "ofk-original.mov")
+    }
+    
+    @Test("fcpMediaURL kind proxy is nil when asset has only original-media")
+    func proxyKindNilWhenOnlyOriginalDeclared() throws {
+        let fcpxml = try parseInlineFCPXML("""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE fcpxml>
+            <fcpxml version="1.11">
+                <resources>
+                    <format id="r1" frameDuration="100/2400s" width="1920" height="1080"/>
+                    <asset id="r2" name="A" hasVideo="1" videoSources="1" duration="10s">
+                        <media-rep kind="original-media" src="file:///tmp/ofk-only-original.mov"/>
+                    </asset>
+                </resources>
+                <library><event name="E"><project name="P">
+                    <sequence format="r1" duration="5s" tcStart="0s">
+                        <spine>
+                            <asset-clip ref="r2" offset="0s" name="Clip" duration="5s"/>
+                        </spine>
+                    </sequence>
+                </project></event></library>
+            </fcpxml>
+            """)
+        let clip = try #require(
+            fcpxml.allProjects().first?
+                .sequence.spine.storyElements
+                .first(where: { $0.fcpElementType == .assetClip })
+        )
+        let resources = fcpxml.root.resources
+        #expect(clip.fcpMediaURL(in: resources, kind: .proxyMedia) == nil)
+        #expect(clip.fcpMediaURL(in: resources, kind: .originalMedia)?.lastPathComponent == "ofk-only-original.mov")
+    }
+    
     // MARK: - Role Inventory
     
     @Test("Role Inventory Source File Name populated for MulticamSample")

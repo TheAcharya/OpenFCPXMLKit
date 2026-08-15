@@ -2,7 +2,7 @@
 
 This directory contains the test suite for OpenFCPXMLKit, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration. The suite runs on **macOS** (Foundation XML backend). The library also supports **iOS 26+** (AEXML backend); CI builds for iOS Simulator; the same tests are not run on iOS because they rely on Foundation XML.
 
-- **Test count:** **1193** tests listed in `swift test list` — **1179** in `OpenFCPXMLKitTests` + **10** in `ExcelReportTest` + **4** in `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest remaining; optional targets cancel without a local fixture)
+- **Test count:** **1203** tests listed in `swift test list` — **1189** in `OpenFCPXMLKitTests` + **10** in `ExcelReportTest` + **4** in `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest remaining; optional targets cancel without a local fixture)
 - **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines, audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), Timeline Projection (`TimelineProjector` / `MediaUsageWindow` / `ReportProjectionContext`, project-once for report sections), Excel and PDF reporting (universal **Row** column on all tabular sheets via `ensuringRowColumn` / `allowsInjectedRowColumn`, role inventory columns, Summary sheet with project title in **B1**, Media Summary sheets, configurable `ReportTimecodeFormat` / DF·NDF notation, format-aware headers, Frames/Feet+Frames sort order, inventory-first `ReportBuildPhase` progress, global column exclusion, disabled-clip filtering, Markers out-of-bounds filter / optional **Hidden** column (`includeMarkersOutsideClipBoundaries`), Excel `protectSheets` worksheet protection, workbook export and cell formatting, PDF cover with black “About This PDF Export” header + `info.circle`, TOC with accent colour chips + content-tint washes keyed to sheet `colorIndex`, remaining columns expanded to fill A4 landscape width after exclusions, section pagination, shared `FCPXMLReportRowColorPolicy`, standalone compound-clip timelines via `allReportTimelineSources()` / `FCPXMLCompoundClipReportTests`), and all supported FCPXML versions and frame rates  
 - **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure; validation and cross-platform XML tests; optional Excel/PDF report integration tests under `ExcelReportTest/`; optional Shot Extraction integration under `ShotExtractionTest/`; private investigation inbox under `Submitted FCPXML/` (gitignored contents)
 
@@ -140,6 +140,7 @@ Tests/
     ├── FCPXMLMIMETypeDetectionTests.swift
     ├── FCPXMLMarkersReportTests.swift
     ├── FCPXMLMediaExtractionTests.swift
+    ├── FCPXMLMediaURLResolutionTests.swift
     ├── FCPXMLShotExtractionTests.swift
     ├── FCPXMLParallelFileIOTests.swift
     ├── FCPXMLPerformanceTests.swift
@@ -157,6 +158,8 @@ Tests/
     ├── FCPXMLRoleInventoryClipCollectorTests.swift
     ├── FCPXMLRoleInventoryColumnLayoutTests.swift
     ├── FCPXMLRoleInventoryDuplicateFramesTests.swift
+    ├── FCPXMLRoleInventoryScreenshotGrabberTests.swift
+    ├── FCPXMLRoleInventoryScreenshotMediaTests.swift
     ├── FCPXMLRoleInventorySheetTotalTests.swift
     ├── FCPXMLCompoundClipReportTests.swift
     ├── FCPXMLNonStandardEffectsTemplatesReportTests.swift
@@ -207,8 +210,8 @@ swift test --filter OpenFCPXMLKitTests             # By pattern
 To verify the documented test counts:
 
 ```bash
-swift test list 2>/dev/null | grep -E '^(OpenFCPXMLKitTests|ExcelReportTest|ShotExtractionTest)\.' | wc -l   # 1193
-swift test list 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 1179
+swift test list 2>/dev/null | grep -E '^(OpenFCPXMLKitTests|ExcelReportTest|ShotExtractionTest)\.' | wc -l   # 1203
+swift test list 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 1189
 swift test list 2>/dev/null | grep -c 'ExcelReportTest\.'       # 8
 swift test list 2>/dev/null | grep -c 'ShotExtractionTest\.'    # 4
 ```
@@ -267,6 +270,7 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 **Media & extraction**
 
 - **FCPXMLMediaExtractionTests** — extractMediaReferences, copyReferencedMedia (sync/async); extract-then-copy flow (CLI --media-copy). MediaExtractor, MediaExtractionResult, MediaCopyResult.
+- **FCPXMLMediaURLResolutionTests** — Leaf media URLs for non-flattened hosts (`fcpMediaURL`, `fcpMediaURL(kind:)`, `fcpMediaRepresentationURLs`): multicam video/audio angles, sync-clip, standalone ref-clip, title-only compound empty; original/proxy split on the same leaf; Role Inventory Source File Name for MulticamSample / SyncClip / CompoundClipSample.
 - **FCPXMLShotExtractionTests** — still-image Shot Extraction (**10** `@Test`; `extractShots` / `planShots`): reused stills → distinct Shot IDs / PNGs; CSV + Notion JSON (csv2notion-neo shape; **keys in CSV column order**; Shot ID array order); **Icon Image** / `icon`; folder formats; rejects primary-spine video, titles/generators, and audio; dry-run writes nothing. Optional end-to-end: **`ShotExtractionTest`**. See Manual [21 — Shot Extraction](../Documentation/Manual/21-Shot-Extraction.md).
 
 **Timeline & manipulation**
@@ -320,7 +324,8 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 - **FCPXMLEffectsReportTests** / **FCPXMLSpeedChangeEffectsReportTests** — Video & Audio Effects and Speed Change Effects rows (Projection-first with Extraction merge for optical-flow / wrapper `timeMap` names Projection omitted).
 - **FCPXMLSummaryReportTests** — Summary sheet: project metrics, per-role duration rows, percentage of total; Media Summary sheet: missing media paths; `.summaryOnly` and `.mediaSummaryOnly` presets.
 - **FCPXMLReportExcelExportTests** — XLKit workbook export: Title Case sheet names, sheet ordering, sheet-name sanitisation, **Row** on section sheets (Markers … Non-Std Effects & Templates … Media Summary) and Summary role table; Media Summary sheet (red missing-media paths; **No Missing Media** empty status); empty enabled section sheets keep headers + `ReportEmptySectionStatus` (**No Markers Found**, **No Roles Found**, …); Summary sheet (project title in **B1**, narrow Row column A, black role-duration data, numeric `% of Total` cells); inventory/marker/section-sheet colour rules (role category, marker type, sheet-specific inference for Keywords/Effects/Titles/Transitions); cover sheet styling (including **A1** Created-by / **A2** Created-on / **A3** Visit / optional `copyrightLabel` in **A4**; custom `visitURL`); black/white table headers; per-role inventory **Total:** footer (black/white cells under Timeline Out / Clip Duration); **`protectSheets`** applies XLKit `SheetProtection` to every sheet (default unprotected).
-- **FCPXMLRoleInventoryScreenshotGrabberTests** — Source In JPEG grabs for Role Inventory screenshots (still image yields thumbnail; missing file returns `nil`).
+- **FCPXMLRoleInventoryScreenshotGrabberTests** — Source In JPEG grabs for Role Inventory screenshots (still image yields thumbnail; missing file returns `nil`; multi-URL grab falls back to the second existing file; unreadable original then proxy).
+- **FCPXMLRoleInventoryScreenshotMediaTests** — Screenshot candidate order: on-disk `original-media` preferred over proxy; proxy when original is missing; declared original→proxy when neither exists; `mediaBaseURL` filename resolve; inventory row prefers original and keeps proxy as fallback. Sign `role-inventory-screenshots-prefer-original`.
 - **FCPXMLReportPDFTableLayoutTests** — PDF column sizing: remaining columns expand to fill A4 landscape content width after exclusions / short content; pinned `Row` stays packed-width; `allowInjectedRowColumn: false` suppresses multi-page Row injection; wide tables still chunk horizontally with each part filling the page.
 - **FCPXMLReportPDFSheetPlanTests** — ordered sheet titles share sequential `colorIndex` values used by TOC colour chips and content-page tints; TOC entries preserve those indices when page numbers are filled in; empty enabled sections remain in the plan.
 - **FCPXMLReportPDFExportTests** — CoreGraphics PDF export: `%PDF` header, cover page (black “About This PDF Export” band + white `info.circle`, cover notes mentioning default/excludable Row; Created-by → Created-on → Visit → optional `copyrightLabel`) and custom branding, optional `copyrightLabel` on cover and centred running footer, table of contents for multi-section reports (TOC rows use sheet colour chips + tint washes), synthetic section content, wide-table multi-page pagination, full-workbook section parity (inventory through Media Summary, including Non-Std Effects & Templates when present), markers/media-summary/summary-only exports, empty-sheet status rows (**No Markers Found**, **No Missing Media**).
@@ -483,7 +488,7 @@ The **`ExcelReportTest`** target (separate from `OpenFCPXMLKitTests`) builds rea
 | Item | Detail |
 |------|--------|
 | **Location** | `Tests/ExcelReportTest/` |
-| **Test suite** | `@Suite("Excel report export")` / `ExcelReportExportTests` (**9** `@Test`s) — writes `Output/OFK-Default.xlsx`, `Output/OFK-Full.xlsx`, `Output/OFK-Default.pdf`, `Output/OFK-Full.pdf`, `Output/OFK-ExcludedColumns.pdf`, `Output/OFK-Copyright.xlsx` / `.pdf`, `Output/OFK-OutsideClipBoundaries.xlsx` / `.pdf`, `Output/OFK-SpeedChangeSettings.xlsx` / `.pdf`, `Output/OFK-ProtectedSheets.xlsx`, `Output/OFK-ExcludeRoleSubrole.xlsx` / `.pdf` |
+| **Test suite** | `@Suite("Excel report export")` / `ExcelReportExportTests` (**10** `@Test`s) — writes `Output/OFK-Default.xlsx`, `Output/OFK-Full.xlsx`, `Output/OFK-Default.pdf`, `Output/OFK-Full.pdf`, `Output/OFK-ExcludedColumns.pdf`, `Output/OFK-Copyright.xlsx` / `.pdf`, `Output/OFK-OutsideClipBoundaries.xlsx` / `.pdf`, `Output/OFK-SpeedChangeSettings.xlsx` / `.pdf`, `Output/OFK-Screenshots.xlsx`, `Output/OFK-ProtectedSheets.xlsx`, `Output/OFK-ExcludeRoleSubrole.xlsx` / `.pdf` |
 | **Fixture** | Preferred `Sample.fcpxmld` / `Sample.fcpxml` under this folder or under `Output/`; else `OFK_REPORTING_FCPXML_BUNDLE`; else auto-discovery |
 | **Run** | `swift test --filter ExcelReportExportTests` |
 
@@ -589,7 +594,7 @@ Add tests for new behaviour or edge cases; place them in the right file and MARK
 - **Final Cut Pro XML (FCPXML)** — [fcp.cafe](https://fcp.cafe) for format reference
 - **SwiftTimecode** (GitHub) — timecode and frame rate types
 
-**Keep counts in sync:** `swift test list` → **1193** total (**1179** OpenFCPXMLKitTests + **10** ExcelReportTest + **4** ShotExtractionTest; all Swift Testing); **60** public samples.
+**Keep counts in sync:** `swift test list` → **1203** total (**1189** OpenFCPXMLKitTests + **10** ExcelReportTest + **4** ShotExtractionTest; all Swift Testing); **60** public samples.
 
 ---
 

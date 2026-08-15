@@ -22,6 +22,24 @@ extension FinalCutPro.FCPXML {
         static let maxLongEdgePixels: CGFloat = 480
         private static let jpegQuality: CGFloat = 0.72
         
+        /// Tries each URL in order and returns the first successful JPEG, or `nil`.
+        /// Callers pass original first, then proxy, so an unreadable original
+        /// (for example MXF or camera RAW) can fall back to proxy.
+        static func jpegData(
+            fileURLs: [URL],
+            fileTimeSeconds: Double
+        ) async -> Data? {
+            var seen: Set<String> = []
+            for url in fileURLs {
+                let key = url.standardizedFileURL.path
+                guard seen.insert(key).inserted else { continue }
+                if let data = await jpegData(fileURL: url, fileTimeSeconds: fileTimeSeconds) {
+                    return data
+                }
+            }
+            return nil
+        }
+        
         /// Returns JPEG bytes for the media file at ``fileTimeSeconds``, or `nil` when
         /// the file is missing / unreadable. Still images ignore the time and use the file
         /// itself. Failures are silent (blank Excel cell).
@@ -33,6 +51,12 @@ extension FinalCutPro.FCPXML {
             guard FileManager.default.fileExists(atPath: resolved.path) else {
                 return nil
             }
+            // `fileExists` can be true on a volume this process cannot read (TCC).
+            // Fail fast so the caller can try proxy-media.
+            guard let handle = try? FileHandle(forReadingFrom: resolved) else {
+                return nil
+            }
+            try? handle.close()
             
             if isStillImageFile(resolved) {
                 return stillImageJPEG(from: resolved)

@@ -4,7 +4,7 @@ Local-only drop zone for **private / user-supplied** FCPXML exports used when in
 
 **These files are never committed.** Contents are gitignored; only this README (and `.gitkeep`) is tracked. See [GUARDRAILS.md](../../GUARDRAILS.md) (Sign: never-commit-submitted-fcpxml) and [ARCHITECTURE.md](../../ARCHITECTURE.md) §8.
 
-**Public suite counts (keep in sync):** **1193** tests listed (1179 OpenFCPXMLKitTests + `10` ExcelReportTest + `4` ShotExtractionTest; **all Swift Testing**); **60** public samples under `Tests/FCPXML Samples/FCPXML/` (e.g. `HiddenMarkers.fcpxml` was promoted from this workflow).
+**Public suite counts (keep in sync):** **1203** tests listed (1189 OpenFCPXMLKitTests + `10` ExcelReportTest + `4` ShotExtractionTest; **all Swift Testing**); **60** public samples under `Tests/FCPXML Samples/FCPXML/` (e.g. `HiddenMarkers.fcpxml` was promoted from this workflow).
 
 ---
 
@@ -88,7 +88,7 @@ This does **not** replace promoting anonymised fixtures into `FCPXML Samples/`.
 | Folder | Committed? | Purpose |
 |--------|------------|---------|
 | `Tests/FCPXML Samples/FCPXML/` | Yes | Canonical public fixtures + CI (**60** `.fcpxml` files) |
-| `Tests/ExcelReportTest/` | Fixture no / README yes | Local full workbook/PDF visual check (**9** optional Swift Testing tests; cancel without fixture) |
+| `Tests/ExcelReportTest/` | Fixture no / README yes | Local full workbook/PDF visual check (**10** optional Swift Testing tests; cancel without fixture) |
 | `Tests/Submitted FCPXML/` | README only | Private investigation inbox |
 
 ---

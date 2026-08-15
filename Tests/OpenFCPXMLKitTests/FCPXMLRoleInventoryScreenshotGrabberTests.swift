@@ -45,6 +45,34 @@ struct FCPXMLRoleInventoryScreenshotGrabberTests {
         #expect(data == nil)
     }
     
+    @Test("Multi-URL grab falls back to second existing still")
+    func multiURLGrabFallsBackToSecondExistingStill() async throws {
+        let missing = URL(fileURLWithPath: "/tmp/ofk-does-not-exist-\(UUID().uuidString).mov")
+        let existing = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ofk-screenshot-fallback-\(UUID().uuidString).png")
+        defer { try? FileManager.default.removeItem(at: existing) }
+        try writeSolidPNG(to: existing, width: 48, height: 27)
+        
+        let data = try #require(
+            await FinalCutPro.FCPXML.RoleInventoryScreenshotGrabber.jpegData(
+                fileURLs: [missing, existing],
+                fileTimeSeconds: 0
+            )
+        )
+        #expect(data.starts(with: [0xFF, 0xD8]))
+    }
+    
+    @Test("Multi-URL grab returns nil when every candidate is missing")
+    func multiURLGrabReturnsNilWhenAllMissing() async {
+        let first = URL(fileURLWithPath: "/tmp/ofk-missing-a-\(UUID().uuidString).mov")
+        let second = URL(fileURLWithPath: "/tmp/ofk-missing-b-\(UUID().uuidString).mov")
+        let data = await FinalCutPro.FCPXML.RoleInventoryScreenshotGrabber.jpegData(
+            fileURLs: [first, second],
+            fileTimeSeconds: 0
+        )
+        #expect(data == nil)
+    }
+    
     private func writeSolidPNG(to url: URL, width: Int, height: Int) throws {
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         guard let context = CGContext(

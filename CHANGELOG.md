@@ -7,6 +7,25 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.3.6](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.6) - 2026-08-15
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Role Inventory screenshots use FCP proxy as fallback:** `--include-role-inventory-screenshots` / `includeScreenshotsInRoleInventory` always grabs Source In from `original-media` when that file exists and can be decoded. `proxy-media` is used only when the original is missing or unreadable (for example MXF or camera RAW). Source File Path stays original-first. PDF still omits the column. Sign `role-inventory-screenshots-prefer-original`.
+- **Kind-aware media URLs:** `fcpMediaURL(kind:)` and `fcpMediaRepresentationURLs` resolve original and proxy from the same unfolded leaf (mc-clip / sync / ref-clip / audition).
+- **Suite:** **1203** listed (`swift test list` — **1189** + **10** + **4**), including `FCPXMLRoleInventoryScreenshotMediaTests` and kind-aware `FCPXMLMediaURLResolutionTests`.
+- **Documentation sync:** Manual 11 / 15 / 19–20, Coverage, Tests READMEs (including ExcelReportTest Output), ARCHITECTURE (Mermaid Support/Excel screenshot types; Parsing `fcpMediaRepresentationURLs`), AGENT, `.cursorrules`, and GUARDRAILS Sign `role-inventory-screenshots-prefer-original`.
+
+### 🐛 Bug Fixes
+
+- **CLI:** `--include-role-inventory-screenshots` is now treated as a report modifier and requires `--report`.
+
+---
+
 ## [3.3.5](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.5) - 2026-08-14
 
 ### ✨ New Features

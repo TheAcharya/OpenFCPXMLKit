@@ -40,6 +40,18 @@ let markersResult = await element.extract(
 
 ---
 
+## Media URL resolution (Parsing)
+
+Timeline elements resolve a **leaf** media file through Parsing — not Extraction. Use these on any `OFKXMLElement` (asset-clip, mc-clip, sync-clip, ref-clip, audition, and so on):
+
+| API | Returns |
+|-----|---------|
+| `fcpMediaURL(in:preferAudioAngle:)` | `original-media` URL, or `proxy-media` when no original is declared |
+| `fcpMediaURL(in:kind:preferAudioAngle:)` | That `MediaRep.Kind` only (`nil` if undeclared) |
+| `fcpMediaRepresentationURLs(in:preferAudioAngle:)` | `(original: URL?, proxy: URL?)` from the **same** unfolded leaf |
+
+Unfold rules: `mc-clip` uses the active video angle (or the active audio angle when `preferAudioAngle` is `true`); `sync-clip` / `clip` use the first non-gap child leaf; `ref-clip` walks the compound `media` sequence. Source File Name / Path stay original-first. Role Inventory screenshots use the same pair and prefer original, falling back to proxy only when the original is missing or cannot be decoded — see [20 — Reporting](20-Reporting.md#role-inventory-screenshots).
+
 ## Media extraction and copy
 
 **Extract media references** (asset `<media-rep>` `src` and `<locator>` `url`) from a document. **copyReferencedMedia** copies referenced file URLs to a destination directory. Pass **baseURL** (e.g. document or bundle URL) to resolve relative paths. Sources are deduplicated; destination filenames are uniquified on conflict.
