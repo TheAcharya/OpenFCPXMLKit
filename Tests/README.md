@@ -140,6 +140,7 @@ Tests/
     ├── FCPXMLMIMETypeDetectionTests.swift
     ├── FCPXMLMarkersReportTests.swift
     ├── FCPXMLMediaExtractionTests.swift
+    ├── FCPXMLMediaURLResolutionTests.swift
     ├── FCPXMLShotExtractionTests.swift
     ├── FCPXMLParallelFileIOTests.swift
     ├── FCPXMLPerformanceTests.swift
@@ -157,6 +158,8 @@ Tests/
     ├── FCPXMLRoleInventoryClipCollectorTests.swift
     ├── FCPXMLRoleInventoryColumnLayoutTests.swift
     ├── FCPXMLRoleInventoryDuplicateFramesTests.swift
+    ├── FCPXMLRoleInventoryScreenshotGrabberTests.swift
+    ├── FCPXMLRoleInventoryScreenshotMediaTests.swift
     ├── FCPXMLRoleInventorySheetTotalTests.swift
     ├── FCPXMLCompoundClipReportTests.swift
     ├── FCPXMLNonStandardEffectsTemplatesReportTests.swift
@@ -267,6 +270,7 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 **Media & extraction**
 
 - **FCPXMLMediaExtractionTests** — extractMediaReferences, copyReferencedMedia (sync/async); extract-then-copy flow (CLI --media-copy). MediaExtractor, MediaExtractionResult, MediaCopyResult.
+- **FCPXMLMediaURLResolutionTests** — Leaf media URLs for non-flattened hosts (`fcpMediaURL`, `fcpMediaURL(kind:)`, `fcpMediaRepresentationURLs`): multicam video/audio angles, sync-clip, standalone ref-clip, title-only compound empty; original/proxy split on the same leaf; Role Inventory Source File Name for MulticamSample / SyncClip / CompoundClipSample.
 - **FCPXMLShotExtractionTests** — still-image Shot Extraction (**10** `@Test`; `extractShots` / `planShots`): reused stills → distinct Shot IDs / PNGs; CSV + Notion JSON (csv2notion-neo shape; **keys in CSV column order**; Shot ID array order); **Icon Image** / `icon`; folder formats; rejects primary-spine video, titles/generators, and audio; dry-run writes nothing. Optional end-to-end: **`ShotExtractionTest`**. See Manual [21 — Shot Extraction](../Documentation/Manual/21-Shot-Extraction.md).
 
 **Timeline & manipulation**
@@ -320,8 +324,8 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 - **FCPXMLEffectsReportTests** / **FCPXMLSpeedChangeEffectsReportTests** — Video & Audio Effects and Speed Change Effects rows (Projection-first with Extraction merge for optical-flow / wrapper `timeMap` names Projection omitted).
 - **FCPXMLSummaryReportTests** — Summary sheet: project metrics, per-role duration rows, percentage of total; Media Summary sheet: missing media paths; `.summaryOnly` and `.mediaSummaryOnly` presets.
 - **FCPXMLReportExcelExportTests** — XLKit workbook export: Title Case sheet names, sheet ordering, sheet-name sanitisation, **Row** on section sheets (Markers … Non-Std Effects & Templates … Media Summary) and Summary role table; Media Summary sheet (red missing-media paths; **No Missing Media** empty status); empty enabled section sheets keep headers + `ReportEmptySectionStatus` (**No Markers Found**, **No Roles Found**, …); Summary sheet (project title in **B1**, narrow Row column A, black role-duration data, numeric `% of Total` cells); inventory/marker/section-sheet colour rules (role category, marker type, sheet-specific inference for Keywords/Effects/Titles/Transitions); cover sheet styling (including **A1** Created-by / **A2** Created-on / **A3** Visit / optional `copyrightLabel` in **A4**; custom `visitURL`); black/white table headers; per-role inventory **Total:** footer (black/white cells under Timeline Out / Clip Duration); **`protectSheets`** applies XLKit `SheetProtection` to every sheet (default unprotected).
-- **FCPXMLRoleInventoryScreenshotGrabberTests** — Source In JPEG grabs for Role Inventory screenshots (still image yields thumbnail; missing file returns `nil`; multi-URL grab falls back to the second existing file).
-- **FCPXMLRoleInventoryScreenshotMediaTests** — Screenshot candidate order: on-disk `original-media` preferred over proxy; proxy when original is missing; declared original→proxy when neither exists; `mediaBaseURL` filename resolve; inventory row prefers original and keeps proxy as fallback.
+- **FCPXMLRoleInventoryScreenshotGrabberTests** — Source In JPEG grabs for Role Inventory screenshots (still image yields thumbnail; missing file returns `nil`; multi-URL grab falls back to the second existing file; unreadable original then proxy).
+- **FCPXMLRoleInventoryScreenshotMediaTests** — Screenshot candidate order: on-disk `original-media` preferred over proxy; proxy when original is missing; declared original→proxy when neither exists; `mediaBaseURL` filename resolve; inventory row prefers original and keeps proxy as fallback. Sign `role-inventory-screenshots-prefer-original`.
 - **FCPXMLReportPDFTableLayoutTests** — PDF column sizing: remaining columns expand to fill A4 landscape content width after exclusions / short content; pinned `Row` stays packed-width; `allowInjectedRowColumn: false` suppresses multi-page Row injection; wide tables still chunk horizontally with each part filling the page.
 - **FCPXMLReportPDFSheetPlanTests** — ordered sheet titles share sequential `colorIndex` values used by TOC colour chips and content-page tints; TOC entries preserve those indices when page numbers are filled in; empty enabled sections remain in the plan.
 - **FCPXMLReportPDFExportTests** — CoreGraphics PDF export: `%PDF` header, cover page (black “About This PDF Export” band + white `info.circle`, cover notes mentioning default/excludable Row; Created-by → Created-on → Visit → optional `copyrightLabel`) and custom branding, optional `copyrightLabel` on cover and centred running footer, table of contents for multi-section reports (TOC rows use sheet colour chips + tint washes), synthetic section content, wide-table multi-page pagination, full-workbook section parity (inventory through Media Summary, including Non-Std Effects & Templates when present), markers/media-summary/summary-only exports, empty-sheet status rows (**No Markers Found**, **No Missing Media**).
@@ -484,7 +488,7 @@ The **`ExcelReportTest`** target (separate from `OpenFCPXMLKitTests`) builds rea
 | Item | Detail |
 |------|--------|
 | **Location** | `Tests/ExcelReportTest/` |
-| **Test suite** | `@Suite("Excel report export")` / `ExcelReportExportTests` (**9** `@Test`s) — writes `Output/OFK-Default.xlsx`, `Output/OFK-Full.xlsx`, `Output/OFK-Default.pdf`, `Output/OFK-Full.pdf`, `Output/OFK-ExcludedColumns.pdf`, `Output/OFK-Copyright.xlsx` / `.pdf`, `Output/OFK-OutsideClipBoundaries.xlsx` / `.pdf`, `Output/OFK-SpeedChangeSettings.xlsx` / `.pdf`, `Output/OFK-ProtectedSheets.xlsx`, `Output/OFK-ExcludeRoleSubrole.xlsx` / `.pdf` |
+| **Test suite** | `@Suite("Excel report export")` / `ExcelReportExportTests` (**10** `@Test`s) — writes `Output/OFK-Default.xlsx`, `Output/OFK-Full.xlsx`, `Output/OFK-Default.pdf`, `Output/OFK-Full.pdf`, `Output/OFK-ExcludedColumns.pdf`, `Output/OFK-Copyright.xlsx` / `.pdf`, `Output/OFK-OutsideClipBoundaries.xlsx` / `.pdf`, `Output/OFK-SpeedChangeSettings.xlsx` / `.pdf`, `Output/OFK-Screenshots.xlsx`, `Output/OFK-ProtectedSheets.xlsx`, `Output/OFK-ExcludeRoleSubrole.xlsx` / `.pdf` |
 | **Fixture** | Preferred `Sample.fcpxmld` / `Sample.fcpxml` under this folder or under `Output/`; else `OFK_REPORTING_FCPXML_BUNDLE`; else auto-discovery |
 | **Run** | `swift test --filter ExcelReportExportTests` |
 

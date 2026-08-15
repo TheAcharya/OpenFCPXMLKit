@@ -65,6 +65,9 @@ try document.validateFCPXMLAgainst(version: .v1_14)
 | `eventClips`, `eventClips(forResourceID:)` | Clips in event |
 | `addToEvent(items:)`, `removeFromEvent(items:)` | Modify event |
 | `fcpxResource`, `fcpxParentEvent`, `fcpxSequenceClips` | Parent/children |
+| `fcpMediaURL(in:preferAudioAngle:)` | Leaf media file URL (`original-media`, else `proxy-media`) after unfolding mc-clip / sync / ref-clip / audition |
+| `fcpMediaURL(in:kind:preferAudioAngle:)` | Same unfold, one `MediaRep.Kind` only (`originalMedia` or `proxyMedia`) |
+| `fcpMediaRepresentationURLs(in:preferAudioAngle:)` | Original and proxy URLs from the **same** unfolded leaf (Role Inventory Source File Path + screenshot fallback) |
 | `fcpxAnnotations` | Annotation elements (markers, keywords, hidden-clip-marker, etc.) |
 | `createChild(name:attributes:using:)` | Create child (modular) |
 

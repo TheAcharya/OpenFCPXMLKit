@@ -1,6 +1,6 @@
 # Excel and PDF report test output
 
-This folder holds **generated** `.xlsx` workbooks and `.pdf` reports from the `ExcelReportTest` target (**9** optional Swift Testing integration tests; part of the **1186**-test public suite). It is gitignored; files here are produced on your machine when you run the export tests. Without a local fixture, those tests **cancel** via `Test.cancel` and nothing is written.
+This folder holds **generated** `.xlsx` workbooks and `.pdf` reports from the `ExcelReportTest` target (**10** optional Swift Testing integration tests; part of the **1203**-test public suite). It is gitignored; files here are produced on your machine when you run the export tests. Without a local fixture, those tests **cancel** via `Test.cancel` and nothing is written.
 
 ---
 
@@ -16,6 +16,7 @@ This folder holds **generated** `.xlsx` workbooks and `.pdf` reports from the `E
 | **`OFK-Copyright.xlsx`** / **`OFK-Copyright.pdf`** | role inventory + `copyrightLabel` | Same as default, with Excel cover **A4** and PDF cover/footer centre copyright line (`--label-copyright` parity); **A2** Created-on / **A3** Visit |
 | **`OFK-OutsideClipBoundaries.xlsx`** / **`OFK-OutsideClipBoundaries.pdf`** | markers + `includeMarkersOutsideClipBoundaries` | Markers sheet with **Hidden** column (✓ outside host media range / ✗ inside); CLI `--include-markers-outside-clip-boundaries` |
 | **`OFK-SpeedChangeSettings.xlsx`** / **`OFK-SpeedChangeSettings.pdf`** | role inventory + `includeSpeedChangeSettingsInRoleInventory` | Role Inventory with **Speed Change Settings** after **Effects**; CLI `--include-role-inventory-speed-change-settings` |
+| **`OFK-Screenshots.xlsx`** | role inventory + `includeScreenshotsInRoleInventory` | Role Inventory with **Screenshot** after **Row** (Excel Source In embeds, 480px max long edge; prefers `original-media`, proxy if original missing/unreadable; PDF ignores flag); CLI `--include-role-inventory-screenshots` |
 | **`OFK-ProtectedSheets.xlsx`** | role inventory + `protectSheets` | Every worksheet protected (edit lock, no password); CLI `--protect-sheets`; Excel only |
 | **`OFK-ExcludeRoleSubrole.xlsx`** / **`OFK-ExcludeRoleSubrole.pdf`** | full report + Role ▸ Subrole excluded | Per-role sheets keep clip data and row colours when Role ▸ Subrole is omitted; CLI `--exclude-column "Roles > Subrole"` |
 
@@ -46,7 +47,7 @@ From the repository root:
 swift test --filter ExcelReportExportTests
 ```
 
-Then open `OFK-Default.xlsx`, `OFK-Full.xlsx`, `OFK-Default.pdf`, `OFK-Full.pdf`, `OFK-ExcludedColumns.pdf`, `OFK-Copyright.xlsx` / `OFK-Copyright.pdf`, `OFK-OutsideClipBoundaries.xlsx` / `OFK-OutsideClipBoundaries.pdf`, or `OFK-ProtectedSheets.xlsx` in Excel, Preview, or your diff tool and compare against a reference export.
+Then open `OFK-Default.xlsx`, `OFK-Full.xlsx`, `OFK-Default.pdf`, `OFK-Full.pdf`, `OFK-ExcludedColumns.pdf`, `OFK-Copyright.xlsx` / `OFK-Copyright.pdf`, `OFK-OutsideClipBoundaries.xlsx` / `OFK-OutsideClipBoundaries.pdf`, `OFK-SpeedChangeSettings.xlsx` / `.pdf`, `OFK-Screenshots.xlsx`, `OFK-ProtectedSheets.xlsx`, or `OFK-ExcludeRoleSubrole.xlsx` / `.pdf` in Excel, Preview, or your diff tool and compare against a reference export.
 
 For a full PDF only:
 
@@ -66,7 +67,7 @@ OpenFCPXMLKit-CLI --report --report-full --create-pdf \
 
 ## Notes
 
-- Output file names are fixed (`OFK-Default.xlsx`, `OFK-Full.xlsx`, `OFK-Default.pdf`, `OFK-Full.pdf`, `OFK-ExcludedColumns.pdf`, `OFK-Copyright.xlsx`, `OFK-Copyright.pdf`, `OFK-OutsideClipBoundaries.xlsx`, `OFK-OutsideClipBoundaries.pdf`, `OFK-ProtectedSheets.xlsx`) so paths stay stable for scripts and future parity tests.  
+- Output file names are fixed (`OFK-Default.xlsx`, `OFK-Full.xlsx`, `OFK-Default.pdf`, `OFK-Full.pdf`, `OFK-ExcludedColumns.pdf`, `OFK-Copyright.xlsx`, `OFK-Copyright.pdf`, `OFK-OutsideClipBoundaries.xlsx`, `OFK-OutsideClipBoundaries.pdf`, `OFK-SpeedChangeSettings.xlsx`, `OFK-SpeedChangeSettings.pdf`, `OFK-Screenshots.xlsx`, `OFK-ProtectedSheets.xlsx`, `OFK-ExcludeRoleSubrole.xlsx`, `OFK-ExcludeRoleSubrole.pdf`) so paths stay stable for scripts and future parity tests.  
 - The CLI names files after the **project or compound-clip name** inside the FCPXML; test output uses these constant names instead.  
 - Fixture bundles used for local investigation (e.g. `Sample.fcpxmld`) may also live here; discovery prefers root `Sample.*`, then falls back to `Output/`.  
 - Do not commit large generated workbooks or PDFs unless you intentionally add golden files for regression testing.

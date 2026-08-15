@@ -272,6 +272,18 @@ Additional metadata appears in columns keyed by the raw FCPXML metadata key (for
 
 Use **RoleInventoryColumnLayout** (internal layout helper) or `RoleClipReportRow.fixedColumnHeaders` / `fixedColumnValues` when working with the fixed column block programmatically.
 
+#### Role Inventory screenshots
+
+When `includeScreenshotsInRoleInventory` is `true`, each video-capable `RoleClipReportRow` carries:
+
+| Field | Meaning |
+|-------|---------|
+| `screenshotMediaFileURL` | Preferred grab file — on-disk `original-media` when it exists |
+| `screenshotFallbackMediaFileURL` | `proxy-media` to try when the original is missing or `RoleInventoryScreenshotGrabber` cannot decode it (MXF, camera RAW, and similar) |
+| `screenshotFileTimeSeconds` | Asset-relative Source In (clip `start` − asset `start`) |
+
+`RoleInventoryScreenshotMedia` picks that pair from Projection `MediaChannel` or Parsing `fcpMediaRepresentationURLs` (same unfolded leaf as Source File Path). The grabber has **no codec allowlist**: stills use ImageIO (`png`, `jpg`/`jpeg`, `tif`/`tiff`, `gif`, `bmp`, `heic`/`heif`, `webp`, `psd`); video uses AVFoundation `AVAssetImageGenerator` (typically MOV/MP4 H.264, HEVC, ProRes, including FCP ProRes Proxy). Excel embedder (`FCPXMLReportWorkbookScreenshotEmbedder`) tries preferred then fallback. PDF omits the column. Signs `role-inventory-screenshots-excel-only`, `role-inventory-screenshots-prefer-original`.
+
 #### Markers
 
 **MarkersReportSection** of **MarkerReportRow**: **Row**, Marker Name, Type, Notes, Position, Clip Name, Role ▸ Subrole, Reel, Scene, Source Position — and, when `includeMarkersOutsideClipBoundaries` is `true`, a trailing **Hidden** column (✓/✗). (**Row** is added at export unless excluded.)

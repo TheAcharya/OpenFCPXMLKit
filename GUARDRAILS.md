@@ -279,7 +279,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 
 ### Sign: role-inventory-screenshots-prefer-original
 - **Trigger:** Role Inventory Screenshot column / `--include-role-inventory-screenshots` / `includeScreenshotsInRoleInventory` / `RoleInventoryScreenshotMedia`.
-- **Instruction:** Always prefer `original-media` when that file exists. Use `proxy-media` only when the original is missing on disk or `RoleInventoryScreenshotGrabber` cannot decode it (MXF, camera RAW, and similar). Resolve both URLs from the same unfolded leaf (`fcpMediaRepresentationURLs` or Projection `MediaChannel`). Do not change Source File Path / Name to proxy. PDF still omits screenshots.
+- **Instruction:** Always prefer `original-media` when that file exists. Use `proxy-media` only when the original is missing on disk or `RoleInventoryScreenshotGrabber` cannot decode it (MXF, camera RAW, and similar). Fail fast when the file exists but cannot be opened (TCC / permissions) so proxy can be tried. Resolve both URLs from the same unfolded leaf (`fcpMediaRepresentationURLs` or Projection `MediaChannel`). Do not change Source File Path / Name to proxy. PDF still omits screenshots. There is no codec allowlist — stills use ImageIO; video uses AVFoundation.
 - **Reason:** Screenshot quality should match the original when it is readable; proxy is a fallback, not a substitute when both files exist.
 - **Provenance:** 2026-08-15 — Role Inventory screenshot original-first + proxy fallback.
 

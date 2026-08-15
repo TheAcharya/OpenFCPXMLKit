@@ -88,7 +88,7 @@ This does **not** replace promoting anonymised fixtures into `FCPXML Samples/`.
 | Folder | Committed? | Purpose |
 |--------|------------|---------|
 | `Tests/FCPXML Samples/FCPXML/` | Yes | Canonical public fixtures + CI (**60** `.fcpxml` files) |
-| `Tests/ExcelReportTest/` | Fixture no / README yes | Local full workbook/PDF visual check (**9** optional Swift Testing tests; cancel without fixture) |
+| `Tests/ExcelReportTest/` | Fixture no / README yes | Local full workbook/PDF visual check (**10** optional Swift Testing tests; cancel without fixture) |
 | `Tests/Submitted FCPXML/` | README only | Private investigation inbox |
 
 ---

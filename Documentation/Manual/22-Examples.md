@@ -296,7 +296,8 @@ var options = FinalCutPro.FCPXML.ReportOptions.full
 options.copyrightLabel = "© 2026 Example Studios"
 options.includeScreenshotsInRoleInventory = true
 let report = try await fcpxml.buildReport(options: options)
-// Excel cover A4 + PDF cover/footer centre; optional Screenshot column (Excel only)
+// Excel cover A4 + PDF cover/footer centre; optional Screenshot column (Excel only;
+// prefers original-media, proxy if original missing/unreadable)
 ```
 
 Markers outside clip boundaries + Excel sheet protection (chapter markers are already on by default):
