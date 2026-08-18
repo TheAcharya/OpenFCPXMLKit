@@ -114,6 +114,8 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 | **Per-role Total footer** | Per-role inventory sheets may show an optimistic **Clip Duration** sum (`RoleInventorySheetTotal`). It is **not** overlap-aware; do not conflate with Summary’s `summaryOverlapAwareDurations`. Selected Roles Inventory has no Total footer. |
 | **CLI modifiers need `--report`** | Report-only flags (`--report-full`, section flags including `--report-non-standard-effects`, `--protect-sheets`, `--create-pdf`, exclusions, …) must require `--report`. |
 | **Excluded roles apply to all role-bearing sheets** | `excludedRoles` / `--exclude-role` omit matching Role ▸ Subrole rows from Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, and Summary durations. Do not filter inventory only. Empty Role ▸ Subrole fields stay. Transitions / Non-Std / Media Summary have no clip role column. |
+| **Effect settings match FCP** | Keep blend amount 0–1 in Extraction; format Opacity percent × 100. Transform uses `componentSamples` (identity omitted). Inventory **Effects** uses the same formatted values, not names-only. Sign `effect-settings-match-fcp-display`. |
+| **Title Text matches FCP on-screen** | Concatenate `text-style` runs inside one `<text>`; use ` | ` only between `<text>` children. Fix in Model (`Title+Typed`). Sign `title-text-same-line-runs-concatenate`. |
 | **No help-submenu refactor by default** | Keep flat ArgumentParser flags + `@OptionGroup` unless a maintainer explicitly requests a subcommand redesign. |
 
 ---

@@ -116,7 +116,8 @@ This codebase is developed using AI agents.
   - Optional **Screenshot** column (Excel Source In embeds, 480px max long edge) and **Speed Change Settings** column
   - Empty enabled sheets keep headers + status rows (**No Markers Found**, **No Missing Media**, …) via `ReportEmptySectionStatus`
 - Cover branding: **Created by** → **Created on** → **Visit** (API `visitURL`) → optional copyright (`--label-copyright`)
-- Filters: roles, columns (incl. **Row**), disabled clips, project name, timecode format, copyright label
+- Filters: roles (`--exclude-role` on every role-bearing sheet), columns (incl. **Row**), disabled clips, project name, timecode format, copyright label
+- Effects: FCP-matching Settings (Opacity percent, Transform Position/Scale); Speed Change **Optical Flow Retime**; Titles **Title Text** concatenates same-line style runs
 - Markers: default omits out-of-bounds starts; `--include-markers-outside-clip-boundaries` adds them + **Hidden** column
 - Excel: `--protect-sheets` / `protectSheets` applies worksheet edit locks (not encryption; PDF unaffected)
 - CLI: `--report`, `--report-full`, `--report-non-standard-effects`, `--include-role-inventory-screenshots`, `--create-pdf`, `--media-resolution`, `--timecode-format`, `--protect-sheets`, …
@@ -163,7 +164,7 @@ let package = Package(
         .iOS(.v26)
     ],
     dependencies: [
-        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.3.5")
+        .package(url: "https://github.com/TheAcharya/OpenFCPXMLKit", from: "3.3.7")
     ],
     targets: [
         .target(
@@ -226,7 +227,7 @@ sudo rm /usr/local/bin/OpenFCPXMLKit-CLI
 ### Compiled From Source
 
 ```shell
-VERSION=3.3.5 # replace this with the git tag of the version you need
+VERSION=3.3.7 # replace this with the git tag of the version you need
 git clone https://github.com/TheAcharya/OpenFCPXMLKit.git
 cd OpenFCPXMLKit
 git checkout "tags/$VERSION"

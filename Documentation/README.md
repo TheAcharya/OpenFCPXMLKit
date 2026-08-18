@@ -31,7 +31,7 @@ The manual is split into **chapters** for easier navigation and maintenance:
 | [17 — Cross-Platform & iOS](Manual/17-Cross-Platform-iOS.md) | XML abstraction layer, Foundation vs AEXML, iOS support |
 | [18 — Errors & Utilities](Manual/18-Errors-Utilities.md) | Error types, ErrorHandling, ProgressBar, FCPXMLUID |
 | [19 — CLI](Manual/19-CLI.md) | Experimental command-line interface (OpenFCPXMLKit-CLI) |
-| [20 — Reporting, Excel & PDF Export](Manual/20-Reporting.md) | Report builder, ReportOptions (`includeScreenshotsInRoleInventory` — original-first Source In embeds, `includeSpeedChangeSettingsInRoleInventory`, `copyrightLabel`, four-row cover / `visitURL`, `protectSheets`, …), inventory Total / Duplicate Frames / optional Screenshot, Projection-first sections, Excel/PDF export |
+| [20 — Reporting, Excel & PDF Export](Manual/20-Reporting.md) | Report builder, ReportOptions (`excludedRoles` on every role-bearing sheet, FCP-matching Effects settings, Title Text concat, `includeScreenshotsInRoleInventory` — original-first Source In embeds, `includeSpeedChangeSettingsInRoleInventory`, `copyrightLabel`, four-row cover / `visitURL`, `protectSheets`, …), inventory Total / Duplicate Frames / optional Screenshot, Projection-first sections, Excel/PDF export |
 | [21 — Shot Extraction](Manual/21-Shot-Extraction.md) | Primary stills → PNG + CSV / [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) Notion JSON (CSV column key order); `planShots` / `--dry-run`; reject video / titles / audio; optional `ShotExtractionTest` |
 | [22 — Examples](Manual/22-Examples.md) | End-to-end workflows and code examples |
 

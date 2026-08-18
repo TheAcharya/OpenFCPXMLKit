@@ -16,6 +16,7 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 ### 🔧 Improvements
 
 - **Suite:** **1222** listed (`swift test list` — **1208** + **10** + **4**), including expanded `FCPXMLReportRoleExclusionTests`, `FCPXMLEffectsCollectorTests`, `FCPXMLTransformAdjustmentParsingTests`, `FCPXMLReportFormattingTests`, `FCPXMLSpeedChangeFormattingTests`, and `FCPXMLTitleDisplayTests`.
+- **Documentation sync:** Manual 11 / 14 / 19–20 / 22, Coverage, Tests READMEs, README, ARCHITECTURE (Mermaid Support/`ReportRoleExclusion`; Model `componentSamples` / Title display), AGENT, `.cursorrules`, and GUARDRAILS (Signs `excluded-roles-apply-to-all-sheets`, `effect-settings-match-fcp-display`, `title-text-same-line-runs-concatenate`).
 
 ### 🐛 Bug Fixes
 
