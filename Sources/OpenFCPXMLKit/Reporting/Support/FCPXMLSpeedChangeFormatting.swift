@@ -17,25 +17,28 @@ extension FinalCutPro.FCPXML {
         /// Workbook effect/settings labels from a single ``RetimingSegment``.
         ///
         /// Signed percent is `±scale × 100` (negative when ``RetimingSegment/isReversed``).
+        /// Effect is `"Optical Flow Retime"` when `frameSampling` is optical-flow*.
         static func retimeDisplay(
-            from segment: RetimingSegment
+            from segment: RetimingSegment,
+            frameSampling: FrameSampling = .floor
         ) -> (effect: String, settings: String)? {
             guard segment.timelineEnd.doubleValue > segment.timelineStart.doubleValue
                 || abs(segment.scale) > .ulpOfOne
             else { return nil }
 
             let signed = segment.isReversed ? -segment.scale : segment.scale
-            return formattedRetime(percent: signed * 100)
+            return formattedRetime(percent: signed * 100, frameSampling: frameSampling)
         }
 
         /// Aggregates consecutive segments into one workbook row (first→last media over
         /// remapped time inferred from each segment’s `scale`).
         static func retimeDisplay(
-            aggregating segments: [RetimingSegment]
+            aggregating segments: [RetimingSegment],
+            frameSampling: FrameSampling = .floor
         ) -> (effect: String, settings: String)? {
             guard !segments.isEmpty else { return nil }
             if segments.count == 1 {
-                return retimeDisplay(from: segments[0])
+                return retimeDisplay(from: segments[0], frameSampling: frameSampling)
             }
 
             let first = segments[0]
@@ -49,7 +52,10 @@ extension FinalCutPro.FCPXML {
             guard remappedSpan > .ulpOfOne else { return nil }
 
             let mediaSpan = last.mediaEnd.doubleValue - first.mediaStart.doubleValue
-            return formattedRetime(percent: (mediaSpan / remappedSpan) * 100)
+            return formattedRetime(
+                percent: (mediaSpan / remappedSpan) * 100,
+                frameSampling: frameSampling
+            )
         }
 
         /// Workbook effect/settings labels derived from a clip ``TimeMap``.
@@ -69,7 +75,10 @@ extension FinalCutPro.FCPXML {
                 clipOffset: .zero,
                 clipDuration: mapSpan
             )
-            return retimeDisplay(aggregating: segments)
+            return retimeDisplay(
+                aggregating: segments,
+                frameSampling: timeMap.frameSampling
+            )
         }
 
         /// `true` when a segment represents a non-identity speed change for worksheets.
@@ -77,9 +86,26 @@ extension FinalCutPro.FCPXML {
             segment.isReversed || abs(segment.scale - 1) > 0.000_1
         }
 
-        private static func formattedRetime(percent: Double) -> (effect: String, settings: String) {
+        private static func formattedRetime(
+            percent: Double,
+            frameSampling: FrameSampling
+        ) -> (effect: String, settings: String) {
             let formatted = String(format: "%.1f%%", percent)
-            return (effect: "Retime \(formatted)", settings: formatted)
+            return (effect: retimeEffectName(for: frameSampling), settings: formatted)
+        }
+
+        /// FCP Video Quality on the Retime Editor: Normal / Frame Blending / Optical Flow.
+        static func retimeEffectName(for frameSampling: FrameSampling) -> String {
+            switch frameSampling {
+            case .opticalFlow, .opticalFlowClassic, .opticalFlowFRC:
+                return "Optical Flow Retime"
+            case .frameBlending:
+                return "Frame Blending Retime"
+            case .nearestNeighbor:
+                return "Nearest Neighbor Retime"
+            case .floor:
+                return "Retime"
+            }
         }
     }
 }

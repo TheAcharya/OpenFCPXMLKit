@@ -101,10 +101,12 @@ extension FinalCutPro.FCPXML {
         /// **A3** Visit URL (``ReportWorkbookCoverSheet/visitURL``), **A4** this label.
         public var copyrightLabel: String?
         
-        /// Role or subrole names to omit from role inventory sheets.
+        /// Role or subrole names to omit from every role-bearing report sheet.
         ///
         /// Matching is case-insensitive. Excluding a main role (for example `Dialogue`) also
-        /// excludes every `Dialogue ▸ …` subrole sheet.
+        /// excludes every `Dialogue ▸ …` subrole. Applied to Role Inventory, Markers, Keywords,
+        /// Titles & Generators, Video & Audio Effects, Speed Change Effects, and Summary role
+        /// durations. Transitions, Non-Std Effects & Templates, and Media Summary are unchanged.
         public var excludedRoles: [String]
         
         /// When `true`, clips with `enabled="0"` are omitted from every report section that

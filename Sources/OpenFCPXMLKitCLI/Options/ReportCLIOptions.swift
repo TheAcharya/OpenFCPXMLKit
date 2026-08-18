@@ -104,7 +104,11 @@ struct ReportCLIOptions: ParsableArguments {
     
     @Option(
         name: .customLong("exclude-role"),
-        help: "Exclude a role or subrole from role inventory (repeatable). Excluding a main role also excludes its subroles."
+        help: """
+        Exclude a role or subrole from every role-bearing report sheet (repeatable). \
+        Applied to Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, \
+        Speed Change Effects, and Summary. Excluding a main role also excludes its subroles.
+        """
     )
     var excludeRole: [String] = []
     

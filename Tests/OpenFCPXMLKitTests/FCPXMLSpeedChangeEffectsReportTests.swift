@@ -49,7 +49,7 @@ struct FCPXMLSpeedChangeEffectsReportTests {
 
         let rows = report.speedChangeEffects?.rows ?? []
         #expect(rows.count == 1)
-        #expect(rows[0].effect == "Retime -100.0%")
+        #expect(rows[0].effect == "Retime")
         #expect(rows[0].settings == "-100.0%")
         #expect(rows[0].clipName == "Clip A")
         #expect(rows[0].enabled == "")
@@ -121,6 +121,11 @@ struct FCPXMLSpeedChangeEffectsReportTests {
             speedRows.filter { $0.clipName == "Optical Host" }.count == 1,
             "Nested video timeMap must not duplicate the host clip row"
         )
+        let optical = try #require(speedRows.first { $0.clipName == "Optical Host" })
+        #expect(optical.effect == "Optical Flow Retime")
+        #expect(optical.settings == "50.0%")
+        let plain = try #require(speedRows.first { $0.clipName == "Plain Speed" })
+        #expect(plain.effect == "Retime")
 
         let inventory = try #require(report.roleInventory?.selectedRoles)
         #expect(inventory.contains { $0.clipName == "Optical Host" && $0.roleSubrole == "Video" })
@@ -145,7 +150,7 @@ struct FCPXMLSpeedChangeEffectsReportTests {
         #expect(!rowsEmpty)
 
         for row in rows {
-            #expect(row.effect.hasPrefix("Retime "))
+            #expect(row.effect.hasSuffix("Retime"))
             let settingsEmpty = row.settings.isEmpty
             let clipNameEmpty = row.clipName.isEmpty
             #expect(!settingsEmpty)

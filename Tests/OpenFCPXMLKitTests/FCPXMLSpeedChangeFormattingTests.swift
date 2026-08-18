@@ -27,7 +27,7 @@ struct FCPXMLSpeedChangeFormattingTests {
 
         let display = SpeedChangeFormatting.retimeDisplay(from: timeMap)
 
-        #expect(display?.effect == "Retime -100.0%")
+        #expect(display?.effect == "Retime")
         #expect(display?.settings == "-100.0%")
     }
 
@@ -53,7 +53,7 @@ struct FCPXMLSpeedChangeFormattingTests {
             isReversed: false
         )
         let display = SpeedChangeFormatting.retimeDisplay(from: segment)
-        #expect(display?.effect == "Retime 50.0%")
+        #expect(display?.effect == "Retime")
         #expect(display?.settings == "50.0%")
         #expect(SpeedChangeFormatting.isSpeedChange(segment))
     }
@@ -66,6 +66,30 @@ struct FCPXMLSpeedChangeFormattingTests {
             mediaStart: .zero
         )
         #expect(!SpeedChangeFormatting.isSpeedChange(identity))
+    }
+
+    @Test("Retime display uses Optical Flow effect name from timeMap frameSampling")
+    func retimeDisplayUsesOpticalFlowEffectNameFromTimeMapFrameSampling() throws {
+        let timeMap = try timeMap(from: """
+        <timeMap frameSampling="optical-flow">
+            <timept time="0s" value="0s" interp="smooth2"/>
+            <timept time="2s" value="1s" interp="smooth2"/>
+        </timeMap>
+        """)
+
+        let display = SpeedChangeFormatting.retimeDisplay(from: timeMap)
+
+        #expect(display?.effect == "Optical Flow Retime")
+        #expect(display?.settings == "50.0%")
+        #expect(
+            SpeedChangeFormatting.retimeEffectName(for: .frameBlending)
+                == "Frame Blending Retime"
+        )
+        #expect(SpeedChangeFormatting.retimeEffectName(for: .floor) == "Retime")
+        #expect(
+            SpeedChangeFormatting.retimeEffectName(for: .opticalFlowClassic)
+                == "Optical Flow Retime"
+        )
     }
 
     private func timeMap(from xml: String) throws -> FinalCutPro.FCPXML.TimeMap {

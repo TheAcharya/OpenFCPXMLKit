@@ -923,6 +923,40 @@ extension FinalCutPro.FCPXML {
         static func effectSettingsDisplay(for effect: ExtractedEffect) -> String {
             effectSettingsDisplay(for: effect.settings)
         }
+        
+        /// Role Inventory Effects column: `Spatial Conform (Fill), Transform (Scale 244.0%)`.
+        ///
+        /// Consecutive same-name rows collapse so Transform components share one label.
+        static func inventoryEffectsDisplay(for effects: [ExtractedEffect]) -> String {
+            guard !effects.isEmpty else { return "" }
+            
+            var groups: [(name: String, settings: [String])] = []
+            for effect in effects {
+                let formatted = effectSettingsDisplay(for: effect.settings)
+                let setting: String? = {
+                    if formatted.isEmpty || formatted == effect.name { return nil }
+                    return formatted
+                }()
+                
+                if let lastIndex = groups.indices.last,
+                   groups[lastIndex].name == effect.name
+                {
+                    if let setting {
+                        groups[lastIndex].settings.append(setting)
+                    }
+                } else {
+                    groups.append((effect.name, setting.map { [$0] } ?? []))
+                }
+            }
+            
+            return groups.map { group in
+                if group.settings.isEmpty {
+                    return group.name
+                }
+                return "\(group.name) (\(group.settings.joined(separator: "; ")))"
+            }
+            .joined(separator: ", ")
+        }
 
         static func effectSettingsDisplay(for settings: ExtractedEffect.Settings) -> String {
             switch settings {
@@ -930,23 +964,31 @@ extension FinalCutPro.FCPXML {
                 return ""
             case .text(let value):
                 return value
+            case .namedValues(let pairs):
+                return pairs
+                    .map { "\($0.name) \($0.value)" }
+                    .joined(separator: "; ")
             case .decibels(let amount):
                 return String(format: "%.1f dB", amount)
             case .opacityPercent(let amount):
-                return String(format: "Opacity %.1f%%", amount)
+                return String(format: "Opacity %.1f%%", amount * 100)
             case .conformType(let typeString):
                 return typeString.prefix(1).uppercased() + typeString.dropFirst()
             case .transformCenter(let position):
                 return String(
-                    format: "Center %.1f px, %.1f px",
+                    format: "Position %.1f px, %.1f px",
                     position.x,
                     position.y
                 )
             case .transformRotation(let rotation):
                 return String(format: "Rotation %.1f°", rotation)
             case .transformScale(let scale):
-                let averageScale = ((scale.x + scale.y) / 2) * 100
-                return String(format: "Scale %.1f%%", averageScale)
+                let xPercent = scale.x * 100
+                let yPercent = scale.y * 100
+                if abs(scale.x - scale.y) < 0.0001 {
+                    return String(format: "Scale %.1f%%", xPercent)
+                }
+                return String(format: "Scale X %.1f%%, Y %.1f%%", xPercent, yPercent)
             }
         }
     }

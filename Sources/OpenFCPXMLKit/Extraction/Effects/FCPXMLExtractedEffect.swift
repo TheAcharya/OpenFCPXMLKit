@@ -49,10 +49,23 @@ extension FinalCutPro.FCPXML {
             case spatialConform
         }
         
+        /// An inspector-visible name/value pair (filter parameters, blend mode, …).
+        public struct NamedValue: Sendable, Equatable, Hashable {
+            public var name: String
+            public var value: String
+            
+            public init(name: String, value: String) {
+                self.name = name
+                self.value = value
+            }
+        }
+        
         public enum Settings: Sendable, Equatable, Hashable {
             case empty
             case text(String)
+            case namedValues([NamedValue])
             case decibels(Double)
+            /// Opacity as an FCPXML `adjust-blend` amount (`0.0`–`1.0`). Format as percent × 100.
             case opacityPercent(Double)
             case conformType(String)
             case transformCenter(Point)

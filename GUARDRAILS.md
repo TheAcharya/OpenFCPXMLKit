@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1203** tests listed in `swift test list` — **1189** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1222** tests listed in `swift test list` — **1208** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -113,6 +113,9 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 | **Empty enabled section sheets** | When a section is enabled but has no data rows, Excel and PDF **keep** headers and show one status cell via `ReportEmptySectionStatus` (**No Markers Found**, **No Keywords Found**, **No Titles & Generators Found**, **No Transitions Found**, **No Effects Found**, **No Speed Change Effects Found**, **No Non-Std Effects Found**, **No Roles Found**; Media Summary **No Missing Media**). Do **not** omit empty Markers/Keywords/Titles/Transitions/Effects/Non-Std/Selected Roles Inventory/Media Summary when that section is enabled. Per-role inventory tabs may still omit when empty. Summary keeps its project-metrics layout. |
 | **Per-role Total footer** | Per-role inventory sheets may show an optimistic **Clip Duration** sum (`RoleInventorySheetTotal`). It is **not** overlap-aware; do not conflate with Summary’s `summaryOverlapAwareDurations`. Selected Roles Inventory has no Total footer. |
 | **CLI modifiers need `--report`** | Report-only flags (`--report-full`, section flags including `--report-non-standard-effects`, `--protect-sheets`, `--create-pdf`, exclusions, …) must require `--report`. |
+| **Excluded roles apply to all role-bearing sheets** | `excludedRoles` / `--exclude-role` omit matching Role ▸ Subrole rows from Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, and Summary durations. Do not filter inventory only. Empty Role ▸ Subrole fields stay. Transitions / Non-Std / Media Summary have no clip role column. |
+| **Effect settings match FCP** | Keep blend amount 0–1 in Extraction; format Opacity percent × 100. Transform uses `componentSamples` (identity omitted). Inventory **Effects** uses the same formatted values, not names-only. Sign `effect-settings-match-fcp-display`. |
+| **Title Text matches FCP on-screen** | Concatenate `text-style` runs inside one `<text>`; use ` | ` only between `<text>` children. Fix in Model (`Title+Typed`). Sign `title-text-same-line-runs-concatenate`. |
 | **No help-submenu refactor by default** | Keep flat ArgumentParser flags + `@OptionGroup` unless a maintainer explicitly requests a subcommand redesign. |
 
 ---
@@ -202,7 +205,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1203** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1222** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -229,6 +232,12 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Reason:** Audio Only_01 (2026-07-23) dropped Water Lake 3 Effects because only channel-source remaps escaped nesting; `audioRole`-only connected clips were wrongly excluded. Occlusion retention had the same gap.
 - **Provenance:** 2026-07-23 — Audio Only_01 Effects-under-Music regression.
 
+### Sign: title-text-same-line-runs-concatenate
+- **Trigger:** Titles & Generators **Title Text** / Font, or `Title.concatenatedDisplayText`.
+- **Instruction:** Join `text-style` runs **inside one `<text>`** with no separator (FCP on-screen: `1501` + `0` → `15010`). Use ` | ` only between separate `<text>` children (paragraphs / lines). Collapse duplicate identical Font specs. Fix in Model (`Title+Typed`); do not special-case in Reporting.
+- **Reason:** Basic Title often splits a shot number across two style runs; joining every run with ` | ` produced `1501  |  0` instead of `15010`.
+- **Provenance:** 2026-08-18 — Production Data Titles & Generators Title Text.
+
 ### Sign: title-roles-honor-attribute
 - **Trigger:** Titles & Generators Role ▸ Subrole, Role Inventory title rows, Markers/Effects on title hosts, or connected clips under the primary storyline (`lane < 0`).
 - **Instruction:** Never hard-code **Titles** when `Title.role` / Projection host video roles are present — use `ReportFormatting.titleRoleSubrole`. Default to **Titles** only when the attribute is omitted. Inventory negative-lane leaf `<video>` / generators; keep skipping negative-lane leaf `<audio>` (host channel/sync sources). Do not re-parse title roles only inside Excel/PDF exporters.
@@ -243,8 +252,8 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 
 ### Sign: speed-change-merge-extraction-when-projection-incomplete
 - **Trigger:** Speed Change Effects sheet missing optical-flow / wrapper `timeMap` rows that Extraction finds.
-- **Instruction:** When Projection yields any speed rows, still **merge** Extraction rows whose `clipName` is absent from Projection (do not treat non-empty Projection as exclusive). Skip nested leaf `timeMap` rows when an ancestor already has `timeMap` (`hasRetimedAncestorClipHost`) to avoid duplicates. Prefer Projection display when both agree.
-- **Reason:** Projection-first discarded Extraction entirely once any projected rows existed (Sample: ~37 projected vs ~59 extractable; optical-flow spine `<clip>` wrappers omitted).
+- **Instruction:** When Projection yields any speed rows, still **merge** Extraction rows whose `clipName` is absent from Projection (do not treat non-empty Projection as exclusive). Skip nested leaf `timeMap` rows when an ancestor already has `timeMap` (`hasRetimedAncestorClipHost`) to avoid duplicates. Prefer Projection display when both agree. Effect is **Optical Flow Retime** when `timeMap frameSampling` is optical-flow / classic / FRC; **Frame Blending Retime** for `frame-blending`; otherwise **Retime**. Settings is the speed percent only.
+- **Reason:** Projection-first discarded Extraction entirely once any projected rows existed (Sample: ~37 projected vs ~59 extractable; optical-flow spine `<clip>` wrappers omitted). Default Effect `Retime 50.0%` hid Optical Flow Video Quality that FCP shows in the Retime Editor.
 - **Provenance:** 2026-08-14 — Sample.fcpxmld Speed Change / optical-flow merge.
 
 ### Sign: empty-enabled-report-sheets-keep-status
@@ -282,6 +291,18 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Instruction:** Always prefer `original-media` when that file exists. Use `proxy-media` only when the original is missing on disk or `RoleInventoryScreenshotGrabber` cannot decode it (MXF, camera RAW, and similar). Fail fast when the file exists but cannot be opened (TCC / permissions) so proxy can be tried. Resolve both URLs from the same unfolded leaf (`fcpMediaRepresentationURLs` or Projection `MediaChannel`). Do not change Source File Path / Name to proxy. PDF still omits screenshots. There is no codec allowlist — stills use ImageIO; video uses AVFoundation.
 - **Reason:** Screenshot quality should match the original when it is readable; proxy is a fallback, not a substitute when both files exist.
 - **Provenance:** 2026-08-15 — Role Inventory screenshot original-first + proxy fallback.
+
+### Sign: excluded-roles-apply-to-all-sheets
+- **Trigger:** `excludedRoles` / CLI `--exclude-role` / Production Data role opt-out.
+- **Instruction:** Apply the same main-role-includes-subroles match to Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, and Summary components (so subtotals recompute). Never filter inventory only. Keep empty Role ▸ Subrole rows. Do not invent role meaning on Transitions, Non-Std Effects & Templates, or Media Summary.
+- **Reason:** Excluding `VFX Shot No` left title Transform rows on Video & Audio Effects (and VFX rows on Titles / Markers / Summary) while inventory was already empty.
+- **Provenance:** 2026-08-18 — Production Data Sample.fcpxmld / Video & Audio Effects role-exclusion gap.
+
+### Sign: effect-settings-match-fcp-display
+- **Trigger:** Video & Audio Effects Settings / Role Inventory **Effects** / `adjust-blend` / `adjust-transform` / `filter-video` params.
+- **Instruction:** Keep `adjust-blend amount` as a 0.0–1.0 fraction in Extraction; format as Opacity percent × 100 (`0.3987` → `Opacity 39.9%`). Parse `adjust-transform` attributes and nested `param` keyframes in Model (`TransformAdjustment.componentSamples`); omit identity Position / Rotation / Scale; non-uniform scale is `Scale X …%, Y …%`. Filter Settings are inspector `param` name/value pairs (skip ozxml / base64 / empty names / Motion `Value` vertices); do not invent blob meaning. Resolve Apple from the `effect` resource UID, not a hardcoded `true`. Inventory **Effects** uses the same formatted settings (grouped names), not names-only. Do not invent a second unit system in Reporting.
+- **Reason:** Transform on spine `<clip>` wrappers and keyframed scale never reached Effects; Opacity `0.3987` was printed as `0.4%`; inventory listed `Transform, Transform, Transform`; filter Settings duplicated the effect name and hid Color Adjustments inspector values.
+- **Provenance:** 2026-08-18 — Production Data Sample.fcpxmld Video & Audio Effects / Role Inventory Effects.
 
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.

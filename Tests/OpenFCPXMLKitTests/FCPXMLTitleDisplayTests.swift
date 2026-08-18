@@ -13,12 +13,35 @@ import Testing
 
 @Suite("Title display")
 struct FCPXMLTitleDisplayTests {
-    @Test("Concatenated display text uses pipe separator")
-    func concatenatedDisplayTextUsesPipeSeparator() throws {
+    @Test("Concatenated display text joins same-line style runs")
+    func concatenatedDisplayTextJoinsSameLineStyleRuns() throws {
+        let title = try makeTitle(from: """
+        <title ref="r1" name="15010 - Basic Title">
+            <text>
+                <text-style ref="ts1">1501</text-style>
+                <text-style ref="ts2">0</text-style>
+            </text>
+            <text-style-def id="ts1">
+                <text-style font="Basic Commercial" fontSize="50" fontFace="Regular"/>
+            </text-style-def>
+            <text-style-def id="ts2">
+                <text-style font="Basic Commercial" fontSize="50" fontFace="Regular"/>
+            </text-style-def>
+        </title>
+        """)
+
+        #expect(title.concatenatedDisplayText() == "15010")
+        #expect(title.displayFontSpecifications() == "Basic Commercial 50.0, Regular")
+    }
+
+    @Test("Concatenated display text uses pipe between text blocks")
+    func concatenatedDisplayTextUsesPipeBetweenTextBlocks() throws {
         let title = try makeTitle(from: """
         <title ref="r1" name="Title">
             <text>
                 <text-style ref="ts1">Hello</text-style>
+            </text>
+            <text>
                 <text-style ref="ts2">World</text-style>
             </text>
             <text-style-def id="ts1">

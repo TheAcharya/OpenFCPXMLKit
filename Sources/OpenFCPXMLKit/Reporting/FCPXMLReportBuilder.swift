@@ -197,7 +197,7 @@ extension FinalCutPro.FCPXML {
                 report.roleInventory = roleInventory
 
             case .markers:
-                report.markers = await MarkersReportBuilder.build(
+                var markers = await MarkersReportBuilder.build(
                     from: timelineElement,
                     scope: extractionScope,
                     includeChapterMarkers: options.includeChapterMarkersInMarkersReport,
@@ -207,9 +207,16 @@ extension FinalCutPro.FCPXML {
                     projection: projection,
                     resources: fcpxml.root.resources
                 )
+                if !options.excludedRoles.isEmpty {
+                    markers = ReportRoleExclusion.applying(
+                        excludedRoleNames: options.excludedRoles,
+                        to: markers
+                    )
+                }
+                report.markers = markers
 
             case .keywords:
-                report.keywords = await KeywordsReportBuilder.build(
+                var keywords = await KeywordsReportBuilder.build(
                     from: timelineElement,
                     scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference,
@@ -217,9 +224,16 @@ extension FinalCutPro.FCPXML {
                     projection: projection,
                     resources: fcpxml.root.resources
                 )
+                if !options.excludedRoles.isEmpty {
+                    keywords = ReportRoleExclusion.applying(
+                        excludedRoleNames: options.excludedRoles,
+                        to: keywords
+                    )
+                }
+                report.keywords = keywords
 
             case .titlesAndGenerators:
-                report.titlesAndGenerators = await TitlesReportBuilder.build(
+                var titlesAndGenerators = await TitlesReportBuilder.build(
                     from: timelineElement,
                     scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference,
@@ -227,6 +241,13 @@ extension FinalCutPro.FCPXML {
                     projection: projection,
                     resources: fcpxml.root.resources
                 )
+                if !options.excludedRoles.isEmpty {
+                    titlesAndGenerators = ReportRoleExclusion.applying(
+                        excludedRoleNames: options.excludedRoles,
+                        to: titlesAndGenerators
+                    )
+                }
+                report.titlesAndGenerators = titlesAndGenerators
 
             case .transitions:
                 report.transitions = await TransitionsReportBuilder.build(
@@ -244,7 +265,7 @@ extension FinalCutPro.FCPXML {
                 )
 
             case .effects:
-                report.effects = await EffectsReportBuilder.build(
+                var effects = await EffectsReportBuilder.build(
                     from: timelineElement,
                     scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference,
@@ -253,9 +274,16 @@ extension FinalCutPro.FCPXML {
                     sequence: source.sequence,
                     resources: fcpxml.root.resources
                 )
+                if !options.excludedRoles.isEmpty {
+                    effects = ReportRoleExclusion.applying(
+                        excludedRoleNames: options.excludedRoles,
+                        to: effects
+                    )
+                }
+                report.effects = effects
 
             case .speedChangeEffects:
-                report.speedChangeEffects = await SpeedChangeEffectsReportBuilder.build(
+                var speedChangeEffects = await SpeedChangeEffectsReportBuilder.build(
                     from: timelineElement,
                     scope: extractionScope,
                     roleDisplayPreference: options.roleDisplayPreference,
@@ -263,9 +291,16 @@ extension FinalCutPro.FCPXML {
                     projection: projection,
                     sequence: source.sequence
                 )
+                if !options.excludedRoles.isEmpty {
+                    speedChangeEffects = ReportRoleExclusion.applying(
+                        excludedRoleNames: options.excludedRoles,
+                        to: speedChangeEffects
+                    )
+                }
+                report.speedChangeEffects = speedChangeEffects
 
             case .summary:
-                let components: [RoleInventoryClipComponent]?
+                var components: [RoleInventoryClipComponent]?
                 if let inventoryEntries {
                     let windowIndex = projection.map {
                         ProjectionWindowIndex(windows: $0.windows)
@@ -275,6 +310,12 @@ extension FinalCutPro.FCPXML {
                             from: entry,
                             projectionWindows: projection?.windows,
                             windowIndex: windowIndex
+                        )
+                    }
+                    if !options.excludedRoles.isEmpty, let unfiltered = components {
+                        components = ReportRoleExclusion.filteringComponents(
+                            unfiltered,
+                            excludedRoleNames: options.excludedRoles
                         )
                     }
                 } else {

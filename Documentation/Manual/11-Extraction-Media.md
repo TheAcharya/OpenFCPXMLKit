@@ -15,7 +15,7 @@ Extract elements from an FCPXML tree by type or using **presets**. **FinalCutPro
 - **RolesExtractionPreset** — Role-based extraction
 - **FrameDataPreset** — Frame data (e.g. **ExtractedFrameData**)
 - **TitlesExtractionPreset** (`.titles`) — Titles visible on the main timeline (`[ExtractedElement]`)
-- **EffectsExtractionPreset** (`.effects`) — Semantic clip effects visible on the main timeline (`[ExtractedEffect]`, with `kind`, `name`, `settings`, `isAppleSupplied`)
+- **EffectsExtractionPreset** (`.effects`) — Semantic clip effects visible on the main timeline (`[ExtractedEffect]`, with `kind`, `name`, `settings`, `isAppleSupplied`). Transform settings come from `TransformAdjustment.componentSamples`; blend amount stays a 0.0–1.0 fraction (reports format Opacity percent). Filter `settings` are inspector `param` name/value pairs (Motion blobs omitted).
 
 Call **extract(types:scope:)** on an `FCPXMLElement` (or **fcpExtract(types:scope:)** on `OFKXMLElement`) for `[FinalCutPro.FCPXML.ExtractedElement]`. Call **extract(preset:scope:)** for a preset's result type. APIs are async.
 

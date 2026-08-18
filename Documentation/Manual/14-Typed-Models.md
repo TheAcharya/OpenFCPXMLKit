@@ -16,8 +16,8 @@ Typed models with **Clip** accessors (see **FCPXMLClip+Adjustments**):
 |-------|--------|
 | **CropAdjustment** | Crop, trim, pan modes |
 | **CornersAdjustment** | Four-corner pin (`adjust-corners`) |
-| **TransformAdjustment** | Position, scale, rotation, anchor |
-| **BlendAdjustment** | Blend amount and mode |
+| **TransformAdjustment** | Position, scale, rotation, anchor. `componentSamples` reads attributes and nested `param` keyframes (identity 0 / 0° / 100% omitted). Used by Effects extraction and Role Inventory **Effects**. |
+| **BlendAdjustment** | Blend amount (0.0–1.0) and mode. Reports format amount as Opacity percent × 100. |
 | **StabilizationAdjustment** | automatic, inertiaCam, smoothCam |
 | **VolumeAdjustment** | Volume level |
 | **PannerAdjustment** | Stereo/surround panner (`adjust-panner`) |
@@ -75,6 +75,7 @@ clip.videoFilters = [filter]
 - **Caption**, **Title** — With **TextStyle** and **TextStyleDefinition**
 - **TextStyle** — font, fontSize, fontColor, isBold, alignment, etc.
 - **TextStyleDefinition** — id, name, textStyles array
+- **Title display helpers** (`Title+Typed`): `typedTextSegments`, `concatenatedDisplayText()`, `displayFontSpecifications()`. Style runs inside one `<text>` concatenate with no separator (FCP on-screen: `1501` + `0` → `15010`). Separate `<text>` children (paragraphs) join with ` | `. Duplicate identical Font specs collapse. Sign `title-text-same-line-runs-concatenate`. Titles & Generators uses these helpers (see [20 — Reporting](20-Reporting.md)).
 
 ```swift
 var caption = FinalCutPro.FCPXML.Caption(duration: Fraction(5, 1))
