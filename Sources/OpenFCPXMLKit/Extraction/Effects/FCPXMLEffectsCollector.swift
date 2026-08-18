@@ -26,10 +26,17 @@ extension FinalCutPro.FCPXML {
         ]
         
         /// Clip types extracted as top-level effect hosts.
+        ///
+        /// Includes spine `<clip>` / `<video>` wrappers and compound hosts so
+        /// `adjust-transform` on those elements appears on Video & Audio Effects.
         static let extractedEffectHostTypes: Set<ElementType> = [
             .title,
             .assetClip,
-            .syncClip
+            .syncClip,
+            .refClip,
+            .mcClip,
+            .clip,
+            .video
         ]
         
         private static let nestedVolumeContainerNames: Set<String> = [
@@ -78,6 +85,18 @@ extension FinalCutPro.FCPXML {
                     kind: .filterVideo,
                     into: &effects
                 )
+            }
+            
+            for mask in element.childElements where mask.name == "filter-video-mask" {
+                for filter in mask.childElements where filter.name == "filter-video" {
+                    appendFilterEffect(
+                        filter,
+                        defaultName: filter.stringValue(forAttributeNamed: "name") ?? "Video Effect",
+                        host: host,
+                        kind: .filterVideo,
+                        into: &effects
+                    )
+                }
             }
             
             for filter in element.childElements where filter.name == "filter-audio" {
@@ -211,6 +230,10 @@ extension FinalCutPro.FCPXML {
             into effects: inout [ExtractedEffect]
         ) {
             let name = filter.stringValue(forAttributeNamed: "name") ?? defaultName
+            let parameters = inspectorParamValues(from: filter)
+            let settings: ExtractedEffect.Settings = parameters.isEmpty
+                ? .empty
+                : .namedValues(parameters)
             
             effects.append(
                 ExtractedEffect(
@@ -219,9 +242,9 @@ extension FinalCutPro.FCPXML {
                     effectElement: filter,
                     kind: kind,
                     name: name,
-                    settings: .text(name),
+                    settings: settings,
                     sortOrder: 0,
-                    isAppleSupplied: true
+                    isAppleSupplied: isAppleSuppliedFilter(filter, resources: host.resources)
                 )
             )
         }
@@ -281,9 +304,17 @@ extension FinalCutPro.FCPXML {
             host: ExtractedElement,
             into effects: inout [ExtractedEffect]
         ) {
+            var amounts: [Double] = []
             if let amountString = blend.stringValue(forAttributeNamed: "amount"),
                let amount = Double(amountString)
             {
+                amounts.append(amount)
+            }
+            amounts.append(contentsOf: blendAmountSamples(from: blend))
+            amounts = uniquedScalars(amounts)
+            
+            var sortOrder = 0
+            for amount in amounts where !isIdentityOpacity(amount) {
                 effects.append(
                     ExtractedEffect(
                         host: host,
@@ -292,14 +323,17 @@ extension FinalCutPro.FCPXML {
                         kind: .compositing,
                         name: "Compositing",
                         settings: .opacityPercent(amount),
-                        sortOrder: 0,
+                        sortOrder: sortOrder,
                         isAppleSupplied: true
                     )
                 )
-                return
+                sortOrder += 1
             }
             
-            if blend.firstChildElement(named: "param") != nil {
+            if let mode = blend.stringValue(forAttributeNamed: "mode")?
+                .trimmingCharacters(in: .whitespacesAndNewlines),
+               !mode.isEmpty
+            {
                 effects.append(
                     ExtractedEffect(
                         host: host,
@@ -307,8 +341,10 @@ extension FinalCutPro.FCPXML {
                         effectElement: blend,
                         kind: .compositing,
                         name: "Compositing",
-                        settings: .empty,
-                        sortOrder: 0,
+                        settings: .namedValues([
+                            ExtractedEffect.NamedValue(name: "Blend Mode", value: mode)
+                        ]),
+                        sortOrder: sortOrder,
                         isAppleSupplied: true
                     )
                 )
@@ -341,36 +377,20 @@ extension FinalCutPro.FCPXML {
             host: ExtractedElement,
             into effects: inout [ExtractedEffect]
         ) {
-            let adjustment = TransformAdjustment(from: transform)
+            let samples = TransformAdjustment.componentSamples(from: transform)
             
-            let centerDefault = adjustment.position.x == 0 && adjustment.position.y == 0
-            let rotationDefault = adjustment.rotation == 0
-            let scaleDefault = adjustment.scale.x == 1 && adjustment.scale.y == 1
-            
-            var components: [(settings: ExtractedEffect.Settings, isNonDefault: Bool, priority: Int)] = [
-                (.transformCenter(adjustment.position), !centerDefault, 2),
-                (.transformRotation(adjustment.rotation), !rotationDefault, 1),
-                (.transformScale(adjustment.scale), !scaleDefault, 0)
-            ]
-            
-            components.sort { lhs, rhs in
-                if lhs.isNonDefault != rhs.isNonDefault {
-                    return lhs.isNonDefault && !rhs.isNonDefault
-                }
-                if lhs.isNonDefault {
-                    return lhs.priority < rhs.priority
-                }
-                switch (isCenterSettings(lhs.settings), isCenterSettings(rhs.settings)) {
-                case (true, false): return true
-                case (false, true): return false
-                default:
-                    if isRotationSettings(lhs.settings) { return true }
-                    if isRotationSettings(rhs.settings) { return false }
-                    return lhs.priority < rhs.priority
-                }
+            var components: [ExtractedEffect.Settings] = []
+            for position in samples.positions where !isIdentityPosition(position) {
+                components.append(.transformCenter(position))
+            }
+            for rotation in samples.rotations where !isIdentityRotation(rotation) {
+                components.append(.transformRotation(rotation))
+            }
+            for scale in samples.scales where !isIdentityScale(scale) {
+                components.append(.transformScale(scale))
             }
             
-            for (index, component) in components.enumerated() {
+            for (index, settings) in components.enumerated() {
                 effects.append(
                     ExtractedEffect(
                         host: host,
@@ -378,7 +398,7 @@ extension FinalCutPro.FCPXML {
                         effectElement: transform,
                         kind: .transform,
                         name: "Transform",
-                        settings: component.settings,
+                        settings: settings,
                         sortOrder: index,
                         isAppleSupplied: true
                     )
@@ -386,14 +406,139 @@ extension FinalCutPro.FCPXML {
             }
         }
         
-        private static func isCenterSettings(_ settings: ExtractedEffect.Settings) -> Bool {
-            if case .transformCenter = settings { return true }
-            return false
+        private static func isIdentityPosition(_ position: Point) -> Bool {
+            abs(position.x) < 0.0001 && abs(position.y) < 0.0001
         }
         
-        private static func isRotationSettings(_ settings: ExtractedEffect.Settings) -> Bool {
-            if case .transformRotation = settings { return true }
-            return false
+        private static func isIdentityRotation(_ rotation: Double) -> Bool {
+            abs(rotation) < 0.0001
+        }
+        
+        private static func isIdentityScale(_ scale: Point) -> Bool {
+            abs(scale.x - 1) < 0.0001 && abs(scale.y - 1) < 0.0001
+        }
+        
+        private static func isIdentityOpacity(_ amount: Double) -> Bool {
+            abs(amount - 1) < 0.0001
+        }
+        
+        private static func isAppleSuppliedFilter(
+            _ filter: any OFKXMLElement,
+            resources: (any OFKXMLElement)?
+        ) -> Bool {
+            guard let ref = filter.stringValue(forAttributeNamed: "ref"),
+                  let resource = filter.fcpResource(forID: ref, in: resources),
+                  let effect = resource.fcpAsEffect
+            else {
+                return false
+            }
+            return effect.isAppleSupplied
+        }
+        
+        /// Motion graph internals that are not inspector labels.
+        private static let skippedInspectorParamNames: Set<String> = [
+            "value",
+            "vertex",
+            "vertex point"
+        ]
+        
+        private static func inspectorParamValues(
+            from element: any OFKXMLElement
+        ) -> [ExtractedEffect.NamedValue] {
+            var values: [ExtractedEffect.NamedValue] = []
+            collectInspectorParamValues(from: element, into: &values)
+            return uniquedNamedValues(values)
+        }
+        
+        private static func collectInspectorParamValues(
+            from element: any OFKXMLElement,
+            into values: inout [ExtractedEffect.NamedValue]
+        ) {
+            for param in element.childElements where param.name == "param" {
+                let name = param.stringValue(forAttributeNamed: "name")?
+                    .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if isInspectorParamName(name) {
+                    if let value = param.stringValue(forAttributeNamed: "value"),
+                       isInspectorParamValue(value)
+                    {
+                        values.append(ExtractedEffect.NamedValue(name: name, value: value))
+                    }
+                    if let animation = param.firstChildElement(named: "keyframeAnimation") {
+                        for keyframe in animation.childElements where keyframe.name == "keyframe" {
+                            if let value = keyframe.stringValue(forAttributeNamed: "value"),
+                               isInspectorParamValue(value)
+                            {
+                                values.append(ExtractedEffect.NamedValue(name: name, value: value))
+                            }
+                        }
+                    }
+                }
+                collectInspectorParamValues(from: param, into: &values)
+            }
+        }
+        
+        private static func isInspectorParamName(_ name: String) -> Bool {
+            !name.isEmpty && !skippedInspectorParamNames.contains(name.lowercased())
+        }
+        
+        /// Values FCP shows in the inspector — not Motion `data` blobs or empty names.
+        private static func isInspectorParamValue(_ value: String) -> Bool {
+            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty, trimmed.count <= 80 else { return false }
+            if trimmed.hasPrefix("PD94") { return false }
+            if trimmed.count > 40 {
+                let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "+/="))
+                if trimmed.unicodeScalars.allSatisfy({ allowed.contains($0) }) {
+                    return false
+                }
+            }
+            return true
+        }
+        
+        private static func uniquedNamedValues(
+            _ values: [ExtractedEffect.NamedValue]
+        ) -> [ExtractedEffect.NamedValue] {
+            var seen: Set<ExtractedEffect.NamedValue> = []
+            var result: [ExtractedEffect.NamedValue] = []
+            for value in values where seen.insert(value).inserted {
+                result.append(value)
+            }
+            return result
+        }
+        
+        private static func blendAmountSamples(from blend: any OFKXMLElement) -> [Double] {
+            var amounts: [Double] = []
+            for param in blend.childElements where param.name == "param" {
+                let name = param.stringValue(forAttributeNamed: "name")?.lowercased()
+                guard name == nil || name == "amount" else { continue }
+                if let value = param.stringValue(forAttributeNamed: "value"),
+                   let amount = Double(value)
+                {
+                    amounts.append(amount)
+                }
+                if let animation = param.firstChildElement(named: "keyframeAnimation") {
+                    for keyframe in animation.childElements where keyframe.name == "keyframe" {
+                        if let value = keyframe.stringValue(forAttributeNamed: "value"),
+                           let amount = Double(value)
+                        {
+                            amounts.append(amount)
+                        }
+                    }
+                }
+            }
+            return amounts
+        }
+        
+        private static func uniquedScalars(_ values: [Double]) -> [Double] {
+            var seen: Set<String> = []
+            var result: [Double] = []
+            for value in values {
+                let key = String(format: "%.4f", value)
+                if seen.insert(key).inserted {
+                    result.append(value)
+                }
+            }
+            return result
         }
         
         static func isEffectEnabled(

@@ -46,7 +46,7 @@ OpenFCPXMLKit is a **Swift 6** framework for Final Cut Pro FCPXML: parsing, crea
 - **Repository:** https://github.com/TheAcharya/OpenFCPXMLKit
 - **Dependencies:** SwiftTimecode 3.1.2+, SwiftExtensions 3.0.0+, SwiftSemanticVersion 1.0.0+, swift-log 1.14.0+, AEXML 4.7.0+, XLKit 1.1.7+, TextFile ([swift-textfile](https://github.com/orchetect/swift-textfile) 0.5.2+, Shot Extraction CSV), swift-argument-parser 1.8.2+ (CLI only), Foundation, CoreMedia, ImageIO.
 - **FCPXML:** Versions 1.5–1.14 (DTDs included); Final Cut Pro frame rates (23.976, 24, 25, 29.97, 30, 50, 59.94, 60).
-- **Tests:** **1203** tests listed in `swift test list` — **1189** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** sample `.fcpxml` files under `Tests/FCPXML Samples/FCPXML/`; private local inbox under `Tests/Submitted FCPXML/` (gitignored — never commit private FCPXML).
+- **Tests:** **1222** tests listed in `swift test list` — **1208** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** sample `.fcpxml` files under `Tests/FCPXML Samples/FCPXML/`; private local inbox under `Tests/Submitted FCPXML/` (gitignored — never commit private FCPXML).
 
 ---
 
@@ -189,6 +189,7 @@ ShotExtraction/   Primary stills → PNG + CSV/Notion; planShots dry-run; reject
 | Projection failure abort vs continue | `ReportOptions.mediaResolutionPolicy` (`.failSoft` / `.failLoud`; CLI `--media-resolution`) |
 | Media Summary Missing Original / Missing Proxy columns | `ReportOptions.mediaSummaryDistinguishProxyAndOriginal` (CLI `--media-summary-distinguish-proxy`) |
 | Omit named columns from every applicable sheet (incl. **Row** on all tabular sheets + PDF injection; Role ▸ Subrole aliases `Role > Subrole` / `Roles > Subrole`) | `ReportOptions.excludedColumns` → `Report.excludedColumns` → Excel and PDF export (`ensuringRowColumn` / `allowsInjectedRowColumn`) |
+| Omit named roles from every role-bearing sheet (inventory, markers, keywords, titles, effects, speed change, summary durations) | `ReportOptions.excludedRoles` → `ReportRoleExclusion` at build time (Sign `excluded-roles-apply-to-all-sheets`) |
 | Workbook/PDF row text colours (inventory role category; section-sheet inference; Non-Std Kind/UID; Summary B1 banner + subtotal banner + black data; Media Summary red paths; marker-type colours) — **from typed models, independent of excluded columns** | `FCPXMLReportRowColorPolicy` semantic APIs (+ `FCPXMLReportWorkbookExporter` on Excel; PDF renderer applies same policy; Sign `row-colour-survives-column-exclusion`) |
 | Missing media path list | Media Summary builder (`mediaBaseURL` for relative paths) |
 
@@ -229,7 +230,7 @@ flowchart TB
     SRC --> CLI["OpenFCPXMLKitCLI → OpenFCPXMLKit-CLI"]
     SRC --> GEN["GenerateEmbeddedDTDs"]
 
-    TST --> OKT["OpenFCPXMLKitTests — 1189 Swift Testing"]
+    TST --> OKT["OpenFCPXMLKitTests — 1208 Swift Testing"]
     TST --> ERT["ExcelReportTest — 10 optional Swift Testing"]
     TST --> SET["ShotExtractionTest — 4 optional Swift Testing"]
     TST --> SMP["FCPXML Samples/ — 60 .fcpxml files"]
@@ -539,7 +540,7 @@ Binary name: **`OpenFCPXMLKit-CLI`**. Mutually exclusive modes: `--check-version
 
 ## 8. Tests
 
-- **Count:** **1203** listed in `swift test list` — **1189** in `OpenFCPXMLKitTests` + **10** in optional `ExcelReportTest` + **4** in optional `ShotExtractionTest` (all Swift Testing `@Test`; **no XCTest** in `Tests/`). Optional targets **cancel** via `Test.cancel` without a local `.fcpxml`/`.fcpxmld` fixture.
+- **Count:** **1222** listed in `swift test list` — **1208** in `OpenFCPXMLKitTests` + **10** in optional `ExcelReportTest` + **4** in optional `ShotExtractionTest` (all Swift Testing `@Test`; **no XCTest** in `Tests/`). Optional targets **cancel** via `Test.cancel` without a local `.fcpxml`/`.fcpxmld` fixture.
 - **Framework:** Swift Testing exclusively (`@Suite` / `@Test` / `#expect` / `#require`). See GUARDRAILS Sign: `swift-testing-only`.
 - **Location:** `Tests/OpenFCPXMLKitTests/`; public samples in `Tests/FCPXML Samples/FCPXML/` (60 files, including `HiddenMarkers.fcpxml`); optional integration under `Tests/ExcelReportTest/` and `Tests/ShotExtractionTest/`; private investigation inbox under `Tests/Submitted FCPXML/` (gitignored `Inbox/` / `Notes/` — never commit private FCPXML to GitHub; see `Tests/Submitted FCPXML/README.md`).
 - **Harness:** `FCPXMLTestResources.swift` (paths); `FCPXMLTestSampleLoading.swift` + `FCPXMLTestSampleError.swift` (`tryLoad*`); `FCPXMLTestingSampleSupport.swift` (`require*` — bundled samples **fail** if missing; optional fixtures use `Test.cancel`); `FCPXMLReportingReportFixture.swift` / `FCPXMLReportingReportTestSupport.swift` for optional reporting fixtures; `FCPXMLSubmittedFCPXMLSmokeTests` for optional Inbox parse smoke; `FCPXMLShotExtractionTests` (**10** `@Test`) for still-image Shot Extraction (reject video/titles/audio; dry-run); `ExcelReportFixture` for the ExcelReportTest target; `ShotExtractionFixture` for the ShotExtractionTest target.

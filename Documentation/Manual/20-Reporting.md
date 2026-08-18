@@ -84,7 +84,7 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 | `workbookCoverSheet` | `.openFCPXMLKitDefault` | Optional cover sheet; set to `nil` to omit. |
 | `copyrightLabel` | `nil` | Optional copyright / attribution line: Excel cover **A4**, PDF cover below Created-by / Created-on / Visit, PDF footer centre. |
 | `workbookCoverSheet.visitURL` | OpenFCPXMLKit GitHub | Excel cover **A3** / PDF Visit line (`Visit <url>`). Override for a GUI host product URL. |
-| `excludedRoles` | `[]` | Role or subrole names to omit from the role inventory. Excluding a main role also excludes its subroles. |
+| `excludedRoles` | `[]` | Role or subrole names to omit from every role-bearing sheet (Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, Summary). Excluding a main role also excludes its subroles. |
 | `excludeDisabledClips` | `false` | Omit clips with `enabled="0"` from every timeline-based section. |
 | `excludedColumns` | `[]` | Header names / aliases removed at Excel and PDF export (see [Column exclusion](#column-exclusion)). |
 | `timecodeFormat` | `.smpteFrames` | Timeline cell display format (see [Timecode display format](#timecode-display-format)). |
@@ -253,7 +253,7 @@ Markers on title hosts attribute the title’s video **main** role (same casing 
 | Duplicate Frames | `duplicateFrames` |
 | Markers | `markers` |
 | Keywords | `keywords` |
-| Effects | `effects` |
+| Effects | `effects` — names plus formatted settings, e.g. `Spatial Conform (Fill), Transform (Scale 244.0%), Compositing (Opacity 39.9%)` |
 | Speed Change Settings *(opt-in)* | `speedChangeSettings` — shown only when `includeSpeedChangeSettingsInRoleInventory` is `true` (CLI `--include-role-inventory-speed-change-settings`); blank for identity clips |
 | Notes | `notes` |
 | Reel | `reel` |
@@ -306,6 +306,8 @@ Audio/video hosts may fan out one marker to multiple Role ▸ Subrole rows (e.g.
 
 **TitlesReportSection** of **TitleReportRow**: **Row**, Clip Name, Enabled, Apple, Role ▸ Subrole, Timeline In/Out, Duration, Font, Title Text.
 
+**Title Text** matches Final Cut Pro on-screen text: style runs inside one `<text>` concatenate with no separator (`1501` + `0` → `15010`). Separate `<text>` children (paragraphs) join with ` | `. **Font** lists unique style specs (duplicate identical runs collapse). Sign `title-text-same-line-runs-concatenate`.
+
 **Role ▸ Subrole:** Taken from the title’s video `role` attribute (`Title.role` / Projection host roles) through `ReportFormatting.titleRoleSubrole`. When `role` is omitted, the field is **Titles** (FCP default). Custom library roles appear as inventory-style `Main ▸ Subrole` strings and drive matching Role Inventory per-role sheets.
 
 #### Transitions
@@ -331,9 +333,13 @@ Lists **non-Apple** `<effect>` resources from the document (UID does not match A
 
 **EffectsReportSection** of **EffectReportRow**: **Row**, Effect, Settings, Enabled, Apple, Clip Name, Role ▸ Subrole, Timeline In/Out.
 
+Settings match Final Cut Pro inspector units. `adjust-blend amount` is a 0.0–1.0 fraction and is shown as **Opacity** percent (`0.3987` → `Opacity 39.9%`). Non-identity **Blend Mode** is listed when `adjust-blend mode` is set. **Transform** lists non-default **Position**, **Rotation**, and **Scale** from attributes and nested `param` keyframes (identity 0 / 0° / 100% is omitted). Uniform scale is `Scale 159.0%`; non-uniform is `Scale X …%, Y …%`. `filter-video` / `filter-audio` Settings are inspector `param` name/value pairs (for example Color Adjustments **Exposure 34**); Motion `data` / ozxml blobs and unnamed vertex internals are omitted rather than decoded. Spine `<clip>` / `<video>` wrappers are effect hosts so a resize on a clip wrapper appears here, not only on Role Inventory. The Role Inventory **Effects** column uses the same formatted values. Sign `effect-settings-match-fcp-display`.
+
 #### Speed Change Effects
 
 **SpeedChangeEffectsReportSection** (reuses **EffectReportRow**, including leading **Row** at export).
+
+Effect names follow Final Cut Pro’s Retime Editor **Video Quality**: `timeMap frameSampling="optical-flow"` (and classic / FRC) → **Optical Flow Retime**; `frame-blending` → **Frame Blending Retime**; omitted / `floor` → **Retime**. Settings is the speed percent (`50.0%`, `-100.0%`). Percent is not duplicated in the Effect name. Sign `speed-change-merge-extraction-when-projection-incomplete`.
 
 #### Summary
 
@@ -676,7 +682,7 @@ Per-section presentation:
 | Section include flags | Only non-`nil` sections on `Report` are rendered |
 | `excludedColumns` | Same `ReportColumnExclusion` filtering as Excel on every applicable section |
 | `timecodeFormat` | Same formatted cell values and suffixed headers as Excel |
-| `excludedRoles` | Applied at build time (fewer role-inventory rows/sheets) |
+| `excludedRoles` | Applied at build time to every role-bearing sheet (inventory, markers, keywords, titles, effects, speed change, summary durations) |
 | `excludeDisabledClips` | Applied at build time (fewer rows in all timeline sections) |
 | `projectName` | Applied at build time (timeline source and `report.projectName`) |
 | `workbookCoverSheet` | `exportBrandingText` on cover and footer; `visitURL` on cover Visit line (Excel cover tab is separate) |
@@ -706,7 +712,7 @@ The same reports are available through **OpenFCPXMLKit-CLI**:
 | `--create-pdf` | Also write `{project-or-clip-name}.pdf` alongside the `.xlsx` (same report configuration) |
 | `--label-copyright <text>` | Optional copyright / attribution line (Excel cover **A4**; PDF cover + footer centre) |
 | `--report-project <name>` | Timeline name filter (project or standalone compound-clip name) |
-| `--exclude-role <name>` | Omit roles from role inventory (repeatable) |
+| `--exclude-role <name>` | Omit roles from every role-bearing sheet (repeatable) |
 | `--exclude-disabled-clips` | Omit `enabled="0"` clips from all timeline sections |
 | `--include-markers-outside-clip-boundaries` | Include out-of-bounds markers + Markers **Hidden** column |
 | `--include-role-inventory-speed-change-settings` | Add Role Inventory **Speed Change Settings** column after Effects |

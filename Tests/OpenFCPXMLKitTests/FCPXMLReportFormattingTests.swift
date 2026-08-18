@@ -223,11 +223,20 @@ struct FCPXMLReportFormattingTests {
             (.empty, ""),
             (.text("Blur"), "Blur"),
             (.decibels(12), "12.0 dB"),
-            (.opacityPercent(0.3), "Opacity 0.3%"),
+            (.opacityPercent(0.3), "Opacity 30.0%"),
+            (.opacityPercent(0.3987), "Opacity 39.9%"),
             (.conformType("fit"), "Fit"),
-            (.transformCenter(.init(x: 10, y: 20)), "Center 10.0 px, 20.0 px"),
+            (.transformCenter(.init(x: 10, y: 20)), "Position 10.0 px, 20.0 px"),
             (.transformRotation(45), "Rotation 45.0°"),
-            (.transformScale(.init(x: 1.5, y: 1.5)), "Scale 150.0%")
+            (.transformScale(.init(x: 1.5, y: 1.5)), "Scale 150.0%"),
+            (.transformScale(.init(x: 1.5, y: 2.0)), "Scale X 150.0%, Y 200.0%"),
+            (
+                .namedValues([
+                    .init(name: "Exposure", value: "34"),
+                    .init(name: "Brightness", value: "29")
+                ]),
+                "Exposure 34; Brightness 29"
+            )
         ]
 
         for (settings, expected) in cases {
@@ -239,6 +248,52 @@ struct FCPXMLReportFormattingTests {
             )
             #expect(ReportFormatting.effectSettingsDisplay(for: effect) == expected)
         }
+    }
+    
+    @Test("Inventory effects display groups names with formatted settings")
+    func inventoryEffectsDisplayGroupsNamesWithFormattedSettings() throws {
+        let host = try requireExtractedHost(
+            from: parseInlineFCPXML(minimalTimeline()),
+            elementName: "asset-clip"
+        )
+        
+        let effects = [
+            makeExtractedEffect(
+                name: "Spatial Conform",
+                kind: .spatialConform,
+                host: host,
+                settings: .conformType("fill")
+            ),
+            makeExtractedEffect(
+                name: "Transform",
+                kind: .transform,
+                host: host,
+                settings: .transformCenter(.init(x: -15.6, y: -23.1))
+            ),
+            makeExtractedEffect(
+                name: "Transform",
+                kind: .transform,
+                host: host,
+                settings: .transformScale(.init(x: 1.59, y: 1.59))
+            ),
+            makeExtractedEffect(
+                name: "Compositing",
+                kind: .compositing,
+                host: host,
+                settings: .opacityPercent(0.4017)
+            ),
+            makeExtractedEffect(
+                name: "Blur",
+                kind: .filterVideo,
+                host: host,
+                settings: .text("Blur")
+            )
+        ]
+        
+        #expect(
+            ReportFormatting.inventoryEffectsDisplay(for: effects)
+                == "Spatial Conform (Fill), Transform (Position -15.6 px, -23.1 px; Scale 159.0%), Compositing (Opacity 40.2%), Blur"
+        )
     }
 
     @Test("Title role subrole uses title video role attribute")

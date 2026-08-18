@@ -7,6 +7,25 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.3.7](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.7) - 2026-08-18
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Suite:** **1222** listed (`swift test list` — **1208** + **10** + **4**), including expanded `FCPXMLReportRoleExclusionTests`, `FCPXMLEffectsCollectorTests`, `FCPXMLTransformAdjustmentParsingTests`, `FCPXMLReportFormattingTests`, `FCPXMLSpeedChangeFormattingTests`, and `FCPXMLTitleDisplayTests`.
+
+### 🐛 Bug Fixes
+
+- **`--exclude-role` applies to every role-bearing sheet:** Excluding a role (for example `VFX Shot No`) now omits matching rows from Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, and Summary role durations, not only Role Inventory. Empty Role ▸ Subrole fields stay. Transitions, Non-Std Effects & Templates, and Media Summary are unchanged. Sign `excluded-roles-apply-to-all-sheets`.
+- **Effect settings match Final Cut Pro display:** `adjust-blend` opacity is shown as percent (`0.3987` → `Opacity 39.9%`). Transform reports non-default Position / Rotation / Scale from attributes and nested `param` keyframes (identity rows omitted; non-uniform scale as X/Y), including spine `<clip>` / `<video>` wrappers. Video filters report inspector `param` values (Color Adjustments Exposure / Brightness, Draw Mask Position) and omit Motion blobs. Role Inventory **Effects** uses the same formatted values. Sign `effect-settings-match-fcp-display`.
+- **Speed Change Optical Flow name:** `timeMap frameSampling="optical-flow"` reports **Optical Flow Retime** (percent stays in Settings). Default sampling remains **Retime**. Sign `speed-change-merge-extraction-when-projection-incomplete`.
+- **Titles & Generators Title Text:** Adjacent `text-style` runs in one `<text>` concatenate as Final Cut Pro shows them (`1501` + `0` → `15010`). The ` | ` separator is only used between separate `<text>` children (paragraphs). Duplicate identical Font specs collapse. Sign `title-text-same-line-runs-concatenate`.
+
+---
+
 ## [3.3.6](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.6) - 2026-08-15
 
 ### ✨ New Features

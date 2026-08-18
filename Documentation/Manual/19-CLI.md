@@ -71,7 +71,7 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD, with optional PDF 
 | **--create-pdf** | Also write a PDF report alongside the Excel workbook (with `--report`). Uses the same built `Report` — sections, column exclusions, timecode format, role/disabled-clip filtering. PDF adds cover/TOC (sheet colour chips), per-sheet tints, and column-width expansion after exclusions. Writes `{project-or-clip-name}.pdf` to output-dir; prints the PDF path after the `.xlsx` path. |
 | **--report-project &lt;name&gt;** | Timeline name filter: matches a `<project>` name or a standalone compound-clip / `ref-clip` name when the document has more than one reportable timeline. |
 | **--label-copyright &lt;text&gt;** | Optional copyright / attribution line (with `--report`). Excel cover sheet **A4** (after Created-by, Created-on, Visit); PDF cover below those lines (same subtitle font/size); PDF running footer centre (same footer font/size). |
-| **--exclude-role &lt;role&gt;** | Exclude a role or subrole from the role inventory (repeatable). Excluding a main role also excludes its subroles. |
+| **--exclude-role &lt;role&gt;** | Exclude a role or subrole from every role-bearing report sheet (repeatable). Applied to Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, and Summary. Excluding a main role also excludes its subroles. |
 | **--exclude-disabled-clips** | Omit disabled clips (`enabled="0"`) from all timeline-based report sections (with `--report`). |
 | **--include-markers-outside-clip-boundaries** | Include markers outside the host clip’s media range (hidden in FCP Tags/timeline) and add a **Hidden** column (✓/✗) on the Markers sheet (with `--report`). Default omits those markers. Not available via `--exclude-column`. |
 | **--include-role-inventory-speed-change-settings** | Add a **Speed Change Settings** column (retime percent, e.g. `50.0%`) after **Effects** on Role Inventory sheets (with `--report`). Default omits the column. Independent of `--report-speed-change-effects`. Not available via `--exclude-column`. |
@@ -88,7 +88,7 @@ All REPORT flags except `--report` itself require `--report`.
 
 #### Role exclusion matching
 
-`--exclude-role` matches on the **whole role name**, and matching is **case- and diacritic-insensitive**:
+`--exclude-role` matches on the **whole role name**, and matching is **case- and diacritic-insensitive**. It applies to **every role-bearing sheet** (Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, and Summary durations), not inventory only. Transitions, Non-Std Effects & Templates, and Media Summary have no clip Role ▸ Subrole and are unchanged. Empty Role ▸ Subrole cells are kept.
 
 - **Single word, no quotes needed:** `--exclude-role Music` and `--exclude-role music` are equivalent.
 - **Whole-name match (not substring):** `--exclude-role Music` matches the role `Music`, but not `Background Music`.

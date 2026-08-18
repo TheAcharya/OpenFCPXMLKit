@@ -1063,7 +1063,7 @@ struct FCPXMLTimelineProjectionTests {
         #expect(hasRows)
         let smptePattern = #"^\d{2}:\d{2}:\d{2}[:;]\d{2}$"#
         for row in rows {
-            #expect(row.effect.hasPrefix("Retime "))
+            #expect(row.effect.hasSuffix("Retime"))
             let inNonEmpty = !row.timelineIn.isEmpty
             let outNonEmpty = !row.timelineOut.isEmpty
             #expect(inNonEmpty)

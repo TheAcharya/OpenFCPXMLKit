@@ -2,7 +2,7 @@
 
 Living inventory of how OpenFCPXMLKit covers Final Cut Pro FCPXML across layers. Prefer this file when asking “is element *X* typed / authored / projected / reported?” Prefer [GUARDRAILS.md](../GUARDRAILS.md) for must / must-not, and [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7 for where new work belongs.
 
-**Keep in sync** when adding Model types, Authoring encode/decode, Extraction presets, Projection walks, Reporting sheets, or Shot Extraction behaviour. Suite context: **1203** tests listed (`swift test list` — **1189** + **10** ExcelReportTest + **4** ShotExtractionTest); FCPXML **1.5–1.14**.
+**Keep in sync** when adding Model types, Authoring encode/decode, Extraction presets, Projection walks, Reporting sheets, or Shot Extraction behaviour. Suite context: **1222** tests listed (`swift test list` — **1208** + **10** ExcelReportTest + **4** ShotExtractionTest); FCPXML **1.5–1.14**.
 
 **Related Manual:** [08 — Detached Authoring](Manual/08-Detached-Authoring.md) · [11 — Extraction](Manual/11-Extraction-Media.md) · [12 — Projection](Manual/12-Timeline-Projection.md) · [14 — Typed Models](Manual/14-Typed-Models.md) · [20 — Reporting](Manual/20-Reporting.md) · [21 — Shot Extraction](Manual/21-Shot-Extraction.md)
 
@@ -173,7 +173,7 @@ All live models live under `Model/Adjustments/` and integrate via `Clip+Adjustme
 | `adjust-crop` | `CropAdjustment` (+ `crop-rect` / `trim-rect` / `pan-rect`) | — | **yes** | **yes** | — |
 | `adjust-corners` | `CornersAdjustment` | — | **yes** | **yes** | — |
 | `adjust-conform` | `ConformAdjustment` | — | **yes** | **yes** | — |
-| `adjust-transform` | `TransformAdjustment` | — | **yes** | **yes** | — |
+| `adjust-transform` | `TransformAdjustment` (+ `componentSamples` from attrs / param keyframes) | — | **yes** | **yes** | — |
 | `adjust-blend` | `BlendAdjustment` | — | **yes** | **yes** | — |
 | `adjust-stabilization` | `StabilizationAdjustment` | — | **yes** | **yes** | — |
 | `adjust-rollingShutter` | `RollingShutterAdjustment` | — | **yes** | **yes** | — |
@@ -203,15 +203,15 @@ All live models live under `Model/Adjustments/` and integrate via `Clip+Adjustme
 |---------|-------|------|-----|------|-----|
 | `filter-video` | `VideoFilter` | — | **yes** Effects | **yes** annot | Effects sheet |
 | `filter-audio` | `AudioFilter` | — | **yes** | **yes** | Effects sheet |
-| `filter-video-mask` | `VideoFilterMask` | — | partial | partial | via Effects |
+| `filter-video-mask` | `VideoFilterMask` | — | **yes** Effects | **yes** annot | Effects (inner `filter-video`) |
 | `mask-shape` | `MaskShape` | — | — | — | — |
 | `mask-isolation` | `MaskIsolation` | — | — | — | — |
-| `param` | `FilterParameter` | — | **yes** | **yes** | — |
+| `param` | `FilterParameter` | — | **yes** Effects | **yes** annot | Effects Settings |
 | `data` | keyed data on filters | — | — | — | — |
 | `mute` | `Mute` | — | — | — | — |
 
 **EffectsCollector hosts (collection):** `title`, `asset-clip`, `sync-clip`, `ref-clip`, `mc-clip`, `clip`, `audio`, `video`  
-**EffectsExtractionPreset top-level hosts:** `title`, `asset-clip`, `sync-clip` (narrower than collector)
+**EffectsExtractionPreset top-level hosts:** `title`, `asset-clip`, `sync-clip`, `ref-clip`, `mc-clip`, `clip`, `video`
 
 ---
 
@@ -358,10 +358,10 @@ Options presets: `.mainTimeline`, `.trackAnalysis`, `.forReport(...)`.
 | Selected Roles Inventory (+ per-role) | `includeRoleInventory` | **Projection** windows | Extraction clip walk |
 | Markers | `includeMarkers` | **Projection** annotations (incl. occluded hosts; `mc-clip`/`ref-clip` hosts; chapter markers default on) | MarkersExtractionPreset (also keeps occluded-host markers) |
 | Keywords | `includeKeywords` | **Projection** (same host/occlusion policy; range clamp) | Extraction keyword walk |
-| Titles & Generators | `includeTitlesAndGenerators` | **Projection** (Role ▸ Subrole from host roles / `Title.role`) | TitlesExtractionPreset |
+| Titles & Generators | `includeTitlesAndGenerators` | **Projection** (Role ▸ Subrole from host roles / `Title.role`; Title Text concatenates same-line style runs) | TitlesExtractionPreset |
 | Transitions | `includeTransitions` | **Projection** | Extraction |
 | Non-Std Effects & Templates | `includeNonStandardEffectsTemplates` | Document `<effect>` resources (non-Apple / missing `src`) | — |
-| Video & Audio Effects | `includeEffects` | **Projection** annot | EffectsExtractionPreset |
+| Video & Audio Effects | `includeEffects` | **Projection** annot (clip/video hosts; Transform keyframes; FCP opacity %) | EffectsExtractionPreset |
 | Speed Change Effects | `includeSpeedChangeEffects` | **Projection** retiming | Extraction `timeMap` (merge Extraction-only names; skip nested ancestor-retimed leaves) |
 | Summary | `includeSummary` | **Projection** + inventory agg | — |
 | Media Summary | `includeMediaSummary` | **Projection** / media-reps | Document fallback |

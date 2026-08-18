@@ -29,6 +29,8 @@ extension FinalCutPro.FCPXML {
                 scope: .reportMainTimelineVisible(modifying: scope)
             )
 
+            let samplingByClipName = frameSamplingByClipName(from: extracted)
+
             let extractionRows = extracted
                 .compactMap {
                     speedChangeRow(
@@ -43,6 +45,7 @@ extension FinalCutPro.FCPXML {
                 let projectedRows = rowsFromProjection(
                     windows: projection.windows,
                     extractionByName: Dictionary(grouping: extractionRows, by: \.clipName),
+                    samplingByClipName: samplingByClipName,
                     timecodeFormat: timecodeFormat,
                     sequence: sequence
                 )
@@ -74,6 +77,7 @@ extension FinalCutPro.FCPXML {
         private static func rowsFromProjection(
             windows: [MediaUsageWindow],
             extractionByName: [String: [EffectReportRow]],
+            samplingByClipName: [String: FrameSampling],
             timecodeFormat: ReportTimecodeFormat,
             sequence: Sequence?
         ) -> [EffectReportRow] {
@@ -93,12 +97,15 @@ extension FinalCutPro.FCPXML {
                     $0.timelineIn.doubleValue < $1.timelineIn.doubleValue
                 }
                 let segments = ordered.map(\.retiming)
-                guard let retime = SpeedChangeFormatting.retimeDisplay(aggregating: segments)
+                let clipName = ordered.first?.clipDisplayName ?? ""
+                guard let retime = SpeedChangeFormatting.retimeDisplay(
+                    aggregating: segments,
+                    frameSampling: samplingByClipName[clipName] ?? .floor
+                )
                 else { return nil }
 
                 let timelineIn = ordered.map(\.timelineIn.doubleValue).min() ?? 0
                 let timelineOut = ordered.map(\.timelineOut.doubleValue).max() ?? timelineIn
-                let clipName = ordered.first?.clipDisplayName ?? ""
                 let extractedMatch = extractionByName[clipName]?.first
 
                 return EffectReportRow(
@@ -181,6 +188,40 @@ extension FinalCutPro.FCPXML {
                 timelineIn: ReportFormatting.timecodeString(timelineIn, format: timecodeFormat),
                 timelineOut: ReportFormatting.timecodeString(timelineOut, format: timecodeFormat)
             )
+        }
+
+        private static func frameSamplingByClipName(
+            from extracted: [ExtractedElement]
+        ) -> [String: FrameSampling] {
+            var result: [String: FrameSampling] = [:]
+            for host in extracted {
+                guard let timeMap: TimeMap = host.element.firstChild(whereFCPElement: .timeMap)
+                else { continue }
+                let name = host.displayClipName()
+                let incoming = timeMap.frameSampling
+                if let existing = result[name] {
+                    result[name] = preferredFrameSampling(existing, incoming)
+                } else {
+                    result[name] = incoming
+                }
+            }
+            return result
+        }
+
+        private static func preferredFrameSampling(
+            _ existing: FrameSampling,
+            _ incoming: FrameSampling
+        ) -> FrameSampling {
+            func rank(_ sampling: FrameSampling) -> Int {
+                switch sampling {
+                case .floor: return 0
+                case .nearestNeighbor: return 1
+                case .frameBlending: return 2
+                case .opticalFlowClassic, .opticalFlowFRC: return 3
+                case .opticalFlow: return 4
+                }
+            }
+            return rank(incoming) >= rank(existing) ? incoming : existing
         }
 
         private static func hasRetimedAncestorClipHost(

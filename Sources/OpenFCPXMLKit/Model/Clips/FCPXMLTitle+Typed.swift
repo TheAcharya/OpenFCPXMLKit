@@ -37,18 +37,24 @@ extension FinalCutPro.FCPXML.Title {
         }
     }
     
-    /// Concatenated title text using the reference export segment separator.
+    /// Concatenated title text matching Final Cut Pro on-screen display.
+    ///
+    /// Style runs inside one `text` element join with no separator (a shot number
+    /// split as `1501` + `0` displays as `15010`). Separate `text` children
+    /// (paragraphs / lines) join with `separator`.
     public func concatenatedDisplayText(separator: String = "  |  ") -> String {
-        let segments = typedTextSegments
-        guard !segments.isEmpty else { return "" }
-        guard segments.count > 1 else { return segments[0].text }
+        let lines = element.fcpTexts.map { text in
+            text.textStyles
+                .compactMap(\.stringValue)
+                .filter { !$0.isEmpty }
+                .joined()
+        }
+        .filter { !$0.isEmpty }
         
-        return segments
-            .map(\.text)
-            .joined(separator: separator)
+        return lines.joined(separator: separator)
     }
     
-    /// Comma-separated font specifications for each styled text segment.
+    /// Comma-separated unique font specifications used by styled text segments.
     public func displayFontSpecifications(separator: String = ", ") -> String {
         let styleDefinitions = styleDefinitionElementsByID
         
@@ -60,7 +66,13 @@ extension FinalCutPro.FCPXML.Title {
             return FinalCutPro.FCPXML.TextStyle.displayFontSpecification(from: styleElement)
         }
         
-        return fontSpecs.joined(separator: separator)
+        var unique: [String] = []
+        var seen: Set<String> = []
+        for spec in fontSpecs where seen.insert(spec).inserted {
+            unique.append(spec)
+        }
+        
+        return unique.joined(separator: separator)
     }
     
     /// True when the title's referenced Motion template is Apple-supplied.

@@ -17,7 +17,7 @@ extension FinalCutPro.FCPXML {
     ///   https://developer.apple.com/documentation/professional_video_applications/fcpxml_reference/adjust-blend
     ///   )
     public struct BlendAdjustment: Sendable, Equatable, Hashable, Codable {
-        /// The amount of the blend adjustment, from 0.0 to 1.0.
+        /// The amount of the blend adjustment, from 0.0 to 1.0 (FCP Opacity 0%–100%).
         public var amount: Double
         
         /// The mode of the blend adjustment.

@@ -290,10 +290,9 @@ extension FinalCutPro.FCPXML {
         }
         
         private static func effectsDisplay(on clipContext: ExtractedElement) -> String {
-            EffectsCollector
-                .effects(on: clipContext)
-                .map(\.name)
-                .joined(separator: ", ")
+            ReportFormatting.inventoryEffectsDisplay(
+                for: EffectsCollector.effects(on: clipContext)
+            )
         }
         
         private static func descendantElements(

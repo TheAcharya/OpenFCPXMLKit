@@ -106,6 +106,94 @@ struct FCPXMLTransformAdjustmentParsingTests {
         #expect(xMatch)
         #expect(yMatch)
     }
+    
+    @Test("Component samples include explicit attributes only")
+    func componentSamplesIncludeExplicitAttributesOnly() {
+        let element = makeAdjustTransformElement(
+            position: "0 4.83871",
+            scale: "1.71 1.71"
+        )
+        
+        let samples = TransformAdjustment.componentSamples(from: element)
+        
+        #expect(samples.positions.count == 1)
+        #expect(abs(samples.positions[0].x) < 0.001)
+        #expect(abs(samples.positions[0].y - 4.83871) < 0.001)
+        #expect(samples.scales.count == 1)
+        #expect(abs(samples.scales[0].x - 1.71) < 0.001)
+        #expect(samples.rotations.isEmpty)
+    }
+    
+    @Test("Component samples omit synthesized identity when attributes are missing")
+    func componentSamplesOmitSynthesizedIdentityWhenAttributesAreMissing() {
+        let element = makeAdjustTransformElement()
+        let samples = TransformAdjustment.componentSamples(from: element)
+        
+        #expect(samples.positions.isEmpty)
+        #expect(samples.rotations.isEmpty)
+        #expect(samples.scales.isEmpty)
+    }
+    
+    @Test("Component samples read scale and split position keyframes")
+    func componentSamplesReadScaleAndSplitPositionKeyframes() throws {
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.11">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="5s" tcStart="0s" tcFormat="NDF">
+                            <spine>
+                                <asset-clip offset="0s" name="Clip" duration="5s" format="r1">
+                                    <adjust-transform>
+                                        <param name="position">
+                                            <param name="X" key="1">
+                                                <keyframeAnimation>
+                                                    <keyframe time="0s" value="34.6237"/>
+                                                    <keyframe time="5s" value="0"/>
+                                                </keyframeAnimation>
+                                            </param>
+                                            <param name="Y" key="2">
+                                                <keyframeAnimation>
+                                                    <keyframe time="0s" value="-16.6667"/>
+                                                    <keyframe time="5s" value="0"/>
+                                                </keyframeAnimation>
+                                            </param>
+                                        </param>
+                                        <param name="scale">
+                                            <keyframeAnimation>
+                                                <keyframe time="0s" value="2.44 2.44"/>
+                                                <keyframe time="5s" value="1 1"/>
+                                            </keyframeAnimation>
+                                        </param>
+                                    </adjust-transform>
+                                </asset-clip>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+        
+        let transformElement = try #require(
+            firstDescendantElement(in: fcpxml.root.element, named: "adjust-transform")
+        )
+        let samples = TransformAdjustment.componentSamples(from: transformElement)
+        
+        #expect(samples.scales.count == 2)
+        #expect(abs(samples.scales[0].x - 2.44) < 0.001)
+        #expect(abs(samples.scales[1].x - 1) < 0.001)
+        
+        let hasAnimatedPosition = samples.positions.contains {
+            abs($0.x - 34.6237) < 0.001 && abs($0.y - (-16.6667)) < 0.001
+        }
+        #expect(hasAnimatedPosition)
+    }
 
     private func makeAdjustTransformElement(
         position: String? = nil,

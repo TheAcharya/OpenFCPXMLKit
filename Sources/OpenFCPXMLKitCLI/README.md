@@ -60,8 +60,8 @@ OpenFCPXMLKit-CLI --report --report-markers --report-summary --report-media-summ
 # Excel workbook plus PDF (same workbook sections, column exclusions, and timecode formatting)
 OpenFCPXMLKit-CLI --report --create-pdf --report-markers --report-summary /path/to/project.fcpxmld /path/to/output-dir
 
-# Exclude roles from role inventory (repeatable; case-insensitive)
-OpenFCPXMLKit-CLI --report --exclude-role Dialogue --exclude-role "SRT ▸ de-DE" /path/to/project.fcpxmld /path/to/output-dir
+# Exclude roles from every role-bearing sheet (repeatable; case-insensitive)
+OpenFCPXMLKit-CLI --report --report-full --exclude-role Dialogue --exclude-role "SRT ▸ de-DE" /path/to/project.fcpxmld /path/to/output-dir
 
 # Omit disabled clips (enabled="0") from all timeline-based report sections
 OpenFCPXMLKit-CLI --report --report-full --exclude-disabled-clips /path/to/project.fcpxmld /path/to/output-dir
@@ -158,7 +158,7 @@ See [Manual 21 — Shot Extraction](../../Documentation/Manual/21-Shot-Extractio
 | `--create-pdf` | Also write a PDF report alongside the Excel workbook (requires `--report`). Includes the same workbook sections, column exclusions, and timecode formatting when present in the report. PDF presentation includes a cover page, TOC with accent colour chips keyed to each sheet’s colour index, per-sheet content tints, and remaining columns expanded to fill page width when many columns are excluded. Writes `{project-or-clip-name}.pdf` to output-dir; prints the PDF path to stdout after the `.xlsx` path. |
 | `--report-project <name>` | Timeline name filter: matches a `<project>` name or a standalone compound-clip / `ref-clip` name when the document has more than one reportable timeline. |
 | `--label-copyright <text>` | Optional copyright / attribution line (requires `--report`). Excel cover **A4** (after Created-by, Created-on, Visit; same banner style); PDF cover below those lines (same subtitle font/size); PDF running footer centre (same footer font/size). |
-| `--exclude-role <name>` | Exclude a role or subrole from role inventory (repeatable). Excluding a main role also excludes its subroles. Case-insensitive. |
+| `--exclude-role <name>` | Exclude a role or subrole from every role-bearing report sheet (repeatable). Applied to Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, and Summary. Excluding a main role also excludes its subroles. Case-insensitive. |
 | `--exclude-disabled-clips` | Omit disabled clips (`enabled="0"`) from all timeline-based report sections (requires `--report`). |
 | `--include-markers-outside-clip-boundaries` | Include markers whose start is outside the host clip’s media range (hidden in FCP timeline/Tags) and add a **Hidden** column (✓/✗) on the Markers sheet (requires `--report`). Default omits those markers and does not show Hidden. Not available via `--exclude-column`. |
 | `--include-role-inventory-speed-change-settings` | Add a **Speed Change Settings** column (retime percent, e.g. `50.0%`) after **Effects** on Role Inventory sheets (requires `--report`). Default omits the column. Independent of `--report-speed-change-effects`. Not available via `--exclude-column`. |
