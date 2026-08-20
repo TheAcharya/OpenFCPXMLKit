@@ -7,6 +7,23 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.3.9](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.9) - 2026-08-20
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Suite:** **1228** listed (`swift test list` — **1214** + **10** + **4**), including `FCPXMLReportRoleExclusionTests` coverage for Excel-truncated sheet-tab exclusion.
+- **Documentation sync:** Manual 19–20 / 00-Index / Coverage, Tests READMEs, README, ARCHITECTURE, AGENT, `.cursorrules`, GUARDRAILS (Sign `excluded-roles-apply-to-all-sheets` sheet-tab matching), and CLI README.
+
+### 🐛 Bug Fixes
+
+- **`--exclude-role` / Excel-truncated sheet tabs:** Excluding a per-role inventory sheet tab (Excel’s 31-character limit via `sheetTabName`) now also omits matching Role ▸ Subrole rows on Role Inventory, Titles & Generators, Video & Audio Effects, and other role-bearing sheets. Previously the truncated tab could remove the sheet while full-length Role ▸ Subrole cells remained. Sign `excluded-roles-apply-to-all-sheets`.
+
+---
+
 ## [3.3.8](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.8) - 2026-08-20
 
 ### ✨ New Features

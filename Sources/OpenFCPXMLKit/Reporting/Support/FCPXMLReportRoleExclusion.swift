@@ -14,7 +14,9 @@ extension FinalCutPro.FCPXML {
     /// Applies opt-out role filtering to role-bearing report sections.
     ///
     /// Matching is case- and diacritic-insensitive. Excluding a main role also excludes
-    /// every `Main ▸ Subrole` value. Empty Role ▸ Subrole fields are kept. Transitions,
+    /// every `Main ▸ Subrole` value. Excel-truncated inventory sheet tabs
+    /// (`RoleInventoryRoleSheetOrdering.sheetTabName`, 31 characters) match the full
+    /// Role ▸ Subrole. Empty Role ▸ Subrole fields are kept. Transitions,
     /// Non-Std Effects & Templates, and Media Summary have no clip Role ▸ Subrole and
     /// are not filtered here.
     enum ReportRoleExclusion {
@@ -138,6 +140,16 @@ extension FinalCutPro.FCPXML {
                 guard !normalizedPattern.isEmpty else { continue }
                 
                 if roleNamesMatch(normalizedRoleName, normalizedPattern) {
+                    return true
+                }
+                
+                // Excel / workbook tab names are truncated to 31 characters
+                // (`RoleInventoryRoleSheetOrdering.sheetTabName`). GUIs often pass that
+                // truncated sheet title while Role ▸ Subrole cells still hold the full
+                // `Main ▸ Subrole` string. Match on shared sheet-tab identity.
+                let roleTab = RoleInventoryRoleSheetOrdering.sheetTabName(for: normalizedRoleName)
+                let patternTab = RoleInventoryRoleSheetOrdering.sheetTabName(for: normalizedPattern)
+                if roleNamesMatch(roleTab, patternTab) {
                     return true
                 }
                 

@@ -93,8 +93,9 @@ All REPORT flags except `--report` itself require `--report`.
 - **Single word, no quotes needed:** `--exclude-role Music` and `--exclude-role music` are equivalent.
 - **Whole-name match (not substring):** `--exclude-role Music` matches the role `Music`, but not `Background Music`.
 - **Main role includes its subroles:** `--exclude-role Music` also removes `Music ▸ Score`, `Music ▸ Underscore`, etc.
-- **Subroles use the ` ▸ ` format:** to exclude a single subrole, pass the full path in quotes, e.g. `--exclude-role "Music ▸ Score"` (the separator is `▸`, U+25B8, with a space on each side). Inventory sheet names from GUIs (e.g. Production Data) are often already this full path.
+- **Subroles use the ` ▸ ` format:** to exclude a single subrole, pass the full path in quotes, e.g. `--exclude-role "Music ▸ Score"` (the separator is `▸`, U+25B8, with a space on each side). Inventory sheet tabs from GUIs are often already this path (or its Excel-truncated form — see below).
 - **Full `Main ▸ Sub` also matches bare main-role fields:** Effects rows may show only the main role; excluding `"Vfx Shot No ▸ Vfx Shot No-1"` still omits Effects whose Role ▸ Subrole is `Vfx Shot No`. Sibling subroles are kept.
+- **Excel-truncated sheet tabs (31 characters):** Per-role inventory tabs use `RoleInventoryRoleSheetOrdering.sheetTabName`. Excluding that truncated tab also matches the full Role ▸ Subrole on every role-bearing sheet (inventory cells, Titles & Generators, Video & Audio Effects, etc.).
 - **Raw FCP ids:** Patterns like `Vfx Shot No.Vfx Shot No-1` normalize to display form before matching.
 - **Quote names with spaces or `▸`:** e.g. `--exclude-role "Sound Effects"` or `--exclude-role "SRT ▸ de-DE"`.
 - **Repeatable:** pass the flag multiple times to exclude several roles.

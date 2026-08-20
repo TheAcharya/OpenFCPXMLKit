@@ -165,6 +165,57 @@ struct FCPXMLReportRoleExclusionTests {
         #expect(filtered.rows.map(\.clipName) == ["Mix FX"])
     }
     
+    @Test("Excluding an Excel-truncated sheet tab omits the full Role Subrole rows")
+    func excludingTruncatedSheetTabOmitsFullRoleSubroleRows() {
+        // Long enough that `sheetTabName` truncates to 31 characters (Excel tab limit).
+        let fullRole = "Custom Library Role Name Here ▸ Custom Library Role Name Here-1"
+        let truncatedTab = FinalCutPro.FCPXML.RoleInventoryRoleSheetOrdering.sheetTabName(for: fullRole)
+        #expect(truncatedTab.count == 31)
+        #expect(truncatedTab != fullRole)
+        #expect(fullRole.hasPrefix(truncatedTab))
+        
+        let inventory = RoleInventory(
+            selectedRoles: [
+                sampleRow(roleSubrole: fullRole),
+                sampleRow(roleSubrole: "Video", clipName: "Clip B"),
+            ],
+            roleSheets: [
+                RoleSheet(sheetName: truncatedTab, rows: []),
+                RoleSheet(sheetName: "Video", rows: []),
+            ]
+        )
+        let titles = FinalCutPro.FCPXML.TitlesReportSection(
+            rows: [
+                titleRow(clipName: "Title Card", roleSubrole: fullRole),
+                titleRow(clipName: "Lower Third", roleSubrole: "Titles"),
+            ]
+        )
+        let effects = FinalCutPro.FCPXML.EffectsReportSection(
+            rows: [
+                effectRow(clipName: "Title Card", roleSubrole: fullRole),
+                effectRow(clipName: "A Roll", roleSubrole: "Video"),
+            ]
+        )
+        
+        let filteredInventory = FinalCutPro.FCPXML.ReportRoleExclusion.applying(
+            excludedRoleNames: [truncatedTab],
+            to: inventory
+        )
+        let filteredTitles = FinalCutPro.FCPXML.ReportRoleExclusion.applying(
+            excludedRoleNames: [truncatedTab],
+            to: titles
+        )
+        let filteredEffects = FinalCutPro.FCPXML.ReportRoleExclusion.applying(
+            excludedRoleNames: [truncatedTab],
+            to: effects
+        )
+        
+        #expect(filteredInventory.selectedRoles.map(\.clipName) == ["Clip B"])
+        #expect(filteredInventory.roleSheets.map(\.sheetName) == ["Video"])
+        #expect(filteredTitles.rows.map(\.clipName) == ["Lower Third"])
+        #expect(filteredEffects.rows.map(\.clipName) == ["A Roll"])
+    }
+    
     @Test("Excluding a main role omits matching Titles & Generators rows")
     func excludingMainRoleOmitsTitleRows() {
         let section = FinalCutPro.FCPXML.TitlesReportSection(
@@ -196,8 +247,7 @@ struct FCPXMLReportRoleExclusionTests {
             excludedRoleNames: ["VFX Shot No"],
             to: section
         )
-        
-        #expect(filtered.rows.map(\.clipName) == ["Unrole'd", "A Roll"])
+                #expect(filtered.rows.map(\.clipName) == ["Unrole'd", "A Roll"])
     }
     
     @Test("Excluding a main role drops matching Summary inventory components")

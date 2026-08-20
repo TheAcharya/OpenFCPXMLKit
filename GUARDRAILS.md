@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1227** tests listed in `swift test list` — **1213** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1228** tests listed in `swift test list` — **1214** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -113,7 +113,7 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 | **Empty enabled section sheets** | When a section is enabled but has no data rows, Excel and PDF **keep** headers and show one status cell via `ReportEmptySectionStatus` (**No Markers Found**, **No Keywords Found**, **No Titles & Generators Found**, **No Transitions Found**, **No Effects Found**, **No Speed Change Effects Found**, **No Non-Std Effects Found**, **No Roles Found**; Media Summary **No Missing Media**). Do **not** omit empty Markers/Keywords/Titles/Transitions/Effects/Non-Std/Selected Roles Inventory/Media Summary when that section is enabled. Per-role inventory tabs may still omit when empty. Summary keeps its project-metrics layout. |
 | **Per-role Total footer** | Per-role inventory sheets may show an optimistic **Clip Duration** sum (`RoleInventorySheetTotal`). It is **not** overlap-aware; do not conflate with Summary’s `summaryOverlapAwareDurations`. Selected Roles Inventory has no Total footer. |
 | **CLI modifiers need `--report`** | Report-only flags (`--report-full`, section flags including `--report-non-standard-effects`, `--protect-sheets`, `--create-pdf`, exclusions, …) must require `--report`. |
-| **Excluded roles apply to all role-bearing sheets** | `excludedRoles` / `--exclude-role` omit matching Role ▸ Subrole rows from Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, and Summary durations. Do not filter inventory only. Empty Role ▸ Subrole fields stay. Transitions / Non-Std / Media Summary have no clip role column. |
+| **Excluded roles apply to all role-bearing sheets** | `excludedRoles` / `--exclude-role` omit matching Role ▸ Subrole rows from Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, and Summary durations. Match main role, full `Main ▸ Sub`, raw FCP ids, and Excel-truncated sheet tabs (`sheetTabName`, 31 chars). Do not filter inventory only. Empty Role ▸ Subrole fields stay. Transitions / Non-Std / Media Summary have no clip role column. |
 | **Effect settings match FCP** | Keep blend amount 0–1 in Extraction; format Opacity percent × 100. Transform uses `componentSamples` (identity omitted). Inventory **Effects** uses the same formatted values, not names-only. Sign `effect-settings-match-fcp-display`. |
 | **Title Text matches FCP on-screen** | Concatenate `text-style` runs inside one `<text>`; use ` | ` only between `<text>` children. Fix in Model (`Title+Typed`). Sign `title-text-same-line-runs-concatenate`. |
 | **No help-submenu refactor by default** | Keep flat ArgumentParser flags + `@OptionGroup` unless a maintainer explicitly requests a subcommand redesign. |
@@ -205,7 +205,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1227** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1228** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -293,10 +293,10 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Provenance:** 2026-08-15 — Role Inventory screenshot original-first + proxy fallback.
 
 ### Sign: excluded-roles-apply-to-all-sheets
-- **Trigger:** `excludedRoles` / CLI `--exclude-role` / Production Data role opt-out (inventory sheet names).
-- **Instruction:** Apply the same match to Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, and Summary components (so subtotals recompute). Never filter inventory only. Keep empty Role ▸ Subrole rows. Do not invent role meaning on Transitions, Non-Std Effects & Templates, or Media Summary. Matching rules: (1) excluding a main role excludes its subroles; (2) excluding a full `Main ▸ Sub` also matches a bare main-role field (Effects title hosts historically used main-only display); (3) raw FCP `Main.Sub` ids normalize to display form before compare; (4) sibling subroles stay when only one subrole is excluded. Title effect Role ▸ Subrole uses full `titleRoleSubrole` (inventory-style), not main-only truncation.
-- **Reason:** Excluding `VFX Shot No` left title Transform rows on Effects while inventory was empty; excluding inventory sheet name `Vfx Shot No ▸ Vfx Shot No-1` still left Effects rows when Effects stored bare `Vfx Shot No`.
-- **Provenance:** 2026-08-18 / 2026-08-20 — Production Data Sample.fcpxmld / Video & Audio Effects role-exclusion gap.
+- **Trigger:** `excludedRoles` / CLI `--exclude-role` / inventory sheet-tab opt-out from GUIs.
+- **Instruction:** Apply the same match to Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, and Summary components (so subtotals recompute). Never filter inventory only. Keep empty Role ▸ Subrole rows. Do not invent role meaning on Transitions, Non-Std Effects & Templates, or Media Summary. Matching rules: (1) excluding a main role excludes its subroles; (2) excluding a full `Main ▸ Sub` also matches a bare main-role field (Effects title hosts historically used main-only display); (3) raw FCP `Main.Sub` ids normalize to display form before compare; (4) sibling subroles stay when only one subrole is excluded; (5) Excel / workbook tab names are truncated to 31 characters via `RoleInventoryRoleSheetOrdering.sheetTabName` — excluding that truncated tab must also match the full Role ▸ Subrole (compare `sheetTabName` of pattern and field). Title effect Role ▸ Subrole uses full `titleRoleSubrole` (inventory-style), not main-only truncation.
+- **Reason:** Excluding a main role left Effects rows; excluding a full Role ▸ Subrole left bare-main Effects fields; excluding a truncated inventory sheet tab removed the sheet but left full-length Role ▸ Subrole rows on inventory, Titles, and Effects.
+- **Provenance:** 2026-08-18 / 2026-08-20 — role-exclusion gaps on Effects and Excel 31-character sheet tabs.
 
 ### Sign: effect-settings-match-fcp-display
 - **Trigger:** Video & Audio Effects Settings / Role Inventory **Effects** / `adjust-blend` / `adjust-transform` / `filter-video` params.

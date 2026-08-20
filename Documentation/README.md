@@ -31,7 +31,7 @@ The manual is split into **chapters** for easier navigation and maintenance:
 | [17 — Cross-Platform & iOS](Manual/17-Cross-Platform-iOS.md) | XML abstraction layer, Foundation vs AEXML, iOS support |
 | [18 — Errors & Utilities](Manual/18-Errors-Utilities.md) | Error types, ErrorHandling, ProgressBar, FCPXMLUID |
 | [19 — CLI](Manual/19-CLI.md) | Experimental command-line interface (OpenFCPXMLKit-CLI) |
-| [20 — Reporting, Excel & PDF Export](Manual/20-Reporting.md) | Report builder, ReportOptions (`excludedRoles` on every role-bearing sheet, Out = last visible frame, FCP-matching Effects settings, Title Text concat, `includeScreenshotsInRoleInventory` — original-first Source In embeds, `includeSpeedChangeSettingsInRoleInventory`, `copyrightLabel`, four-row cover / `visitURL`, `protectSheets`, …), inventory Total / Duplicate Frames / optional Screenshot, Projection-first sections, Excel/PDF export |
+| [20 — Reporting, Excel & PDF Export](Manual/20-Reporting.md) | Report builder, ReportOptions (`excludedRoles` on every role-bearing sheet (incl. Excel-truncated tabs), Out = last visible frame, FCP-matching Effects settings, Title Text concat, `includeScreenshotsInRoleInventory` — original-first Source In embeds, `includeSpeedChangeSettingsInRoleInventory`, `copyrightLabel`, four-row cover / `visitURL`, `protectSheets`, …), inventory Total / Duplicate Frames / optional Screenshot, Projection-first sections, Excel/PDF export |
 | [21 — Shot Extraction](Manual/21-Shot-Extraction.md) | Primary stills → PNG + CSV / [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) Notion JSON (CSV column key order); `planShots` / `--dry-run`; reject video / titles / audio; optional `ShotExtractionTest` |
 | [22 — Examples](Manual/22-Examples.md) | End-to-end workflows and code examples |
 
@@ -45,7 +45,7 @@ The manual covers the **entire public API** with examples: core operations, asyn
 
 Architecture philosophy: [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7. Hard constraints: [GUARDRAILS.md](../GUARDRAILS.md). **Element / layer inventory:** [Coverage.md](Coverage.md) (Model · Authoring · Extraction · Projection · Reporting matrices).
 
-**Test count (keep in sync):** **1227** listed in `swift test list` — **1213** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`); **60** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
+**Test count (keep in sync):** **1228** listed in `swift test list` — **1214** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`); **60** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
 
 ---
 
