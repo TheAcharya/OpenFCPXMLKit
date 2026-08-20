@@ -84,7 +84,7 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 | `workbookCoverSheet` | `.openFCPXMLKitDefault` | Optional cover sheet; set to `nil` to omit. |
 | `copyrightLabel` | `nil` | Optional copyright / attribution line: Excel cover **A4**, PDF cover below Created-by / Created-on / Visit, PDF footer centre. |
 | `workbookCoverSheet.visitURL` | OpenFCPXMLKit GitHub | Excel cover **A3** / PDF Visit line (`Visit <url>`). Override for a GUI host product URL. |
-| `excludedRoles` | `[]` | Role or subrole names to omit from every role-bearing sheet (Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, Summary). Excluding a main role also excludes its subroles. |
+| `excludedRoles` | `[]` | Role or subrole names to omit from every role-bearing sheet (Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, Summary). Excluding a main role also excludes its subroles. Full `Main ▸ Sub` also matches bare main-role fields (Effects); raw FCP `Main.Sub` ids normalize. See [19 — CLI](19-CLI.md#role-exclusion-matching). |
 | `excludeDisabledClips` | `false` | Omit clips with `enabled="0"` from every timeline-based section. |
 | `excludedColumns` | `[]` | Header names / aliases removed at Excel and PDF export (see [Column exclusion](#column-exclusion)). |
 | `timecodeFormat` | `.smpteFrames` | Timeline cell display format (see [Timecode display format](#timecode-display-format)). |
@@ -684,7 +684,7 @@ Per-section presentation:
 | Section include flags | Only non-`nil` sections on `Report` are rendered |
 | `excludedColumns` | Same `ReportColumnExclusion` filtering as Excel on every applicable section |
 | `timecodeFormat` | Same formatted cell values and suffixed headers as Excel |
-| `excludedRoles` | Applied at build time to every role-bearing sheet (inventory, markers, keywords, titles, effects, speed change, summary durations) |
+| `excludedRoles` | Applied at build time to every role-bearing sheet (inventory, markers, keywords, titles, effects, speed change, summary durations); full `Main ▸ Sub` matches bare main-role Effects fields |
 | `excludeDisabledClips` | Applied at build time (fewer rows in all timeline sections) |
 | `projectName` | Applied at build time (timeline source and `report.projectName`) |
 | `workbookCoverSheet` | `exportBrandingText` on cover and footer; `visitURL` on cover Visit line (Excel cover tab is separate) |

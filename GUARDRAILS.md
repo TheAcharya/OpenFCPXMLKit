@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1222** tests listed in `swift test list` — **1208** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1227** tests listed in `swift test list` — **1213** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -205,7 +205,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1222** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1227** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -293,10 +293,10 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Provenance:** 2026-08-15 — Role Inventory screenshot original-first + proxy fallback.
 
 ### Sign: excluded-roles-apply-to-all-sheets
-- **Trigger:** `excludedRoles` / CLI `--exclude-role` / Production Data role opt-out.
-- **Instruction:** Apply the same main-role-includes-subroles match to Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, and Summary components (so subtotals recompute). Never filter inventory only. Keep empty Role ▸ Subrole rows. Do not invent role meaning on Transitions, Non-Std Effects & Templates, or Media Summary.
-- **Reason:** Excluding `VFX Shot No` left title Transform rows on Video & Audio Effects (and VFX rows on Titles / Markers / Summary) while inventory was already empty.
-- **Provenance:** 2026-08-18 — Production Data Sample.fcpxmld / Video & Audio Effects role-exclusion gap.
+- **Trigger:** `excludedRoles` / CLI `--exclude-role` / Production Data role opt-out (inventory sheet names).
+- **Instruction:** Apply the same match to Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, and Summary components (so subtotals recompute). Never filter inventory only. Keep empty Role ▸ Subrole rows. Do not invent role meaning on Transitions, Non-Std Effects & Templates, or Media Summary. Matching rules: (1) excluding a main role excludes its subroles; (2) excluding a full `Main ▸ Sub` also matches a bare main-role field (Effects title hosts historically used main-only display); (3) raw FCP `Main.Sub` ids normalize to display form before compare; (4) sibling subroles stay when only one subrole is excluded. Title effect Role ▸ Subrole uses full `titleRoleSubrole` (inventory-style), not main-only truncation.
+- **Reason:** Excluding `VFX Shot No` left title Transform rows on Effects while inventory was empty; excluding inventory sheet name `Vfx Shot No ▸ Vfx Shot No-1` still left Effects rows when Effects stored bare `Vfx Shot No`.
+- **Provenance:** 2026-08-18 / 2026-08-20 — Production Data Sample.fcpxmld / Video & Audio Effects role-exclusion gap.
 
 ### Sign: effect-settings-match-fcp-display
 - **Trigger:** Video & Audio Effects Settings / Role Inventory **Effects** / `adjust-blend` / `adjust-transform` / `filter-video` params.

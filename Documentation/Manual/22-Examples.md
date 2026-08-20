@@ -250,6 +250,7 @@ let fcpxml = try FinalCutPro.FCPXML(fileContent: data)
 // with filtering and frame-count timecodes
 var options = FinalCutPro.FCPXML.ReportOptions.full
 // Applies to Role Inventory, Markers, Keywords, Titles, Effects, Speed Change, and Summary
+// (full Main ▸ Sub patterns also match bare main-role Effects fields)
 options.excludedRoles = ["Effects"]
 options.excludeDisabledClips = true
 options.excludedColumns = ["Reel", "Metadata", "Source File Path", "Duplicate Frames"]

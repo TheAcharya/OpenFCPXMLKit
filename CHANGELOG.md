@@ -7,7 +7,7 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
-## [Unreleased]
+## [3.3.8](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.8) - 2026-08-20
 
 ### ✨ New Features
 
@@ -15,7 +15,9 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ### 🔧 Improvements
 
-- **Report Out = last visible frame:** Timeline Out and Source Out on Excel/PDF reports now show the last included/visible frame (Final Cut Pro / Resolve Mark Out style). Duration columns are unchanged. Projection remains half-open internally. Manual 20.
+- **Report Out = last visible frame:** Timeline Out and Source Out on Excel/PDF reports now show the last included/visible frame (Final Cut Pro / Resolve Mark Out style) via `ReportFormatting.outTimecodeString(fromExclusiveEnd:)`. Duration columns are unchanged. Projection / FCPXML spans remain half-open internally. Sign `report-out-is-last-visible-frame`. Manual 12 / 20.
+- **Suite:** **1227** listed (`swift test list` — **1213** + **10** + **4**), including expanded `FCPXMLReportFormattingTests` (Out last-visible-frame) and `FCPXMLReportRoleExclusionTests` (full Role ▸ Subrole / raw FCP id / sibling Effects).
+- **Documentation sync:** Manual 12 / 19–20 / 00-Index / Coverage, Tests READMEs, README, SECURITY, ARCHITECTURE, AGENT, `.cursorrules`, and GUARDRAILS (Sign `report-out-is-last-visible-frame`; strengthened `excluded-roles-apply-to-all-sheets`).
 
 ### 🐛 Bug Fixes
 
