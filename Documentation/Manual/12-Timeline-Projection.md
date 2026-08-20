@@ -136,6 +136,9 @@ if let first = composed.first,
 ```
 
 Overlap-aware Summary uses this path when `ReportOptions.summaryOverlapAwareDurations == true` (API-only; default off).
+
+**Half-open spans:** `RetimingSegment` timeline / media bounds are half-open (`[start, end)` — exclusive end). Report Out columns convert exclusive ends to the **last visible frame** in Reporting only (`ReportFormatting.outTimecodeString`); Duration stays `end − start`. See [20 — Reporting](20-Reporting.md) and Sign `report-out-is-last-visible-frame`.
+
 ---
 
 ## Reporting integration

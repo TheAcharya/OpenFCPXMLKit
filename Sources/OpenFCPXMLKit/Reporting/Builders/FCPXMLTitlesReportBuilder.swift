@@ -94,7 +94,8 @@ extension FinalCutPro.FCPXML {
                             title.timelineOut,
                             on: timeline,
                             resources: resources,
-                            timecodeFormat: timecodeFormat
+                            timecodeFormat: timecodeFormat,
+                            asReportOut: true
                         ),
                         duration: formatFraction(
                             title.duration,
@@ -121,7 +122,8 @@ extension FinalCutPro.FCPXML {
             _ fraction: Fraction,
             on timeline: any OFKXMLElement,
             resources: (any OFKXMLElement)?,
-            timecodeFormat: ReportTimecodeFormat
+            timecodeFormat: ReportTimecodeFormat,
+            asReportOut: Bool = false
         ) -> String {
             guard let timecode = try? timeline._fcpTimecode(
                 fromRational: fraction,
@@ -130,6 +132,12 @@ extension FinalCutPro.FCPXML {
                 resources: resources
             ) else {
                 return ""
+            }
+            if asReportOut {
+                return ReportFormatting.outTimecodeString(
+                    fromExclusiveEnd: timecode,
+                    format: timecodeFormat
+                )
             }
             return ReportFormatting.timecodeString(timecode, format: timecodeFormat)
         }
@@ -160,7 +168,11 @@ extension FinalCutPro.FCPXML {
                     roleDisplayPreference: roleDisplayPreference
                 ),
                 timelineIn: ReportFormatting.timecodeString(timelineIn, format: timecodeFormat),
-                timelineOut: ReportFormatting.timecodeString(timelineOut, format: timecodeFormat),
+                timelineOut: ReportFormatting.outTimecodeString(
+                    fromExclusiveEnd: timelineOut,
+                    inclusiveStart: timelineIn,
+                    format: timecodeFormat
+                ),
                 duration: ReportFormatting.timecodeString(duration, format: timecodeFormat),
                 font: title.displayFontSpecifications(),
                 titleText: title.concatenatedDisplayText()

@@ -659,6 +659,5 @@ struct ExcelReportExportTests {
         }
         return letters
     }
+
 }
-
-

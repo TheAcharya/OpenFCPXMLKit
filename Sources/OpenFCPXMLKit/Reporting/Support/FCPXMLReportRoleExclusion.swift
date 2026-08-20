@@ -134,14 +134,69 @@ extension FinalCutPro.FCPXML {
             guard !normalizedRoleName.isEmpty else { return false }
             
             for pattern in patterns {
-                if roleNamesMatch(normalizedRoleName, pattern) {
+                let normalizedPattern = pattern.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !normalizedPattern.isEmpty else { continue }
+                
+                if roleNamesMatch(normalizedRoleName, normalizedPattern) {
                     return true
                 }
                 
+                // Field is `Main ▸ Sub`; pattern is `Main`.
                 if let separator = normalizedRoleName.range(of: " ▸ ") {
                     let mainRole = String(normalizedRoleName[..<separator.lowerBound])
-                    if roleNamesMatch(mainRole, pattern) {
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                    if roleNamesMatch(mainRole, normalizedPattern) {
                         return true
+                    }
+                }
+                
+                // Pattern is `Main ▸ Sub`; field is bare `Main` (legacy Effects main-only rows).
+                // Do not treat this as matching sibling `Main ▸ Other` inventory rows.
+                if let separator = normalizedPattern.range(of: " ▸ "),
+                   !normalizedRoleName.contains("▸")
+                {
+                    let patternMain = String(normalizedPattern[..<separator.lowerBound])
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                    if roleNamesMatch(normalizedRoleName, patternMain) {
+                        return true
+                    }
+                }
+                
+                // FCP raw `Main.Subrole` (GUI / library role ids) → same rules as display form.
+                if !normalizedPattern.contains("▸"),
+                   let dot = normalizedPattern.firstIndex(of: ".")
+                {
+                    let patternMain = String(normalizedPattern[..<dot])
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                    let patternSub = String(normalizedPattern[normalizedPattern.index(after: dot)...])
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !patternMain.isEmpty else { continue }
+                    
+                    if patternSub.isEmpty {
+                        if roleNamesMatch(normalizedRoleName, patternMain) {
+                            return true
+                        }
+                    } else {
+                        let asDisplay = "\(patternMain) ▸ \(patternSub)"
+                        if roleNamesMatch(normalizedRoleName, asDisplay) {
+                            return true
+                        }
+                        if !normalizedRoleName.contains("▸"),
+                           roleNamesMatch(normalizedRoleName, patternMain)
+                        {
+                            return true
+                        }
+                        if let separator = normalizedRoleName.range(of: " ▸ ") {
+                            let mainRole = String(normalizedRoleName[..<separator.lowerBound])
+                                .trimmingCharacters(in: .whitespacesAndNewlines)
+                            let subRole = String(normalizedRoleName[separator.upperBound...])
+                                .trimmingCharacters(in: .whitespacesAndNewlines)
+                            if roleNamesMatch(mainRole, patternMain),
+                               roleNamesMatch(subRole, patternSub)
+                            {
+                                return true
+                            }
+                        }
                     }
                 }
             }

@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1222** tests listed in `swift test list` — **1208** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1227** tests listed in `swift test list` — **1213** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -205,7 +205,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1222** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1227** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -293,16 +293,22 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Provenance:** 2026-08-15 — Role Inventory screenshot original-first + proxy fallback.
 
 ### Sign: excluded-roles-apply-to-all-sheets
-- **Trigger:** `excludedRoles` / CLI `--exclude-role` / Production Data role opt-out.
-- **Instruction:** Apply the same main-role-includes-subroles match to Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, and Summary components (so subtotals recompute). Never filter inventory only. Keep empty Role ▸ Subrole rows. Do not invent role meaning on Transitions, Non-Std Effects & Templates, or Media Summary.
-- **Reason:** Excluding `VFX Shot No` left title Transform rows on Video & Audio Effects (and VFX rows on Titles / Markers / Summary) while inventory was already empty.
-- **Provenance:** 2026-08-18 — Production Data Sample.fcpxmld / Video & Audio Effects role-exclusion gap.
+- **Trigger:** `excludedRoles` / CLI `--exclude-role` / Production Data role opt-out (inventory sheet names).
+- **Instruction:** Apply the same match to Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, and Summary components (so subtotals recompute). Never filter inventory only. Keep empty Role ▸ Subrole rows. Do not invent role meaning on Transitions, Non-Std Effects & Templates, or Media Summary. Matching rules: (1) excluding a main role excludes its subroles; (2) excluding a full `Main ▸ Sub` also matches a bare main-role field (Effects title hosts historically used main-only display); (3) raw FCP `Main.Sub` ids normalize to display form before compare; (4) sibling subroles stay when only one subrole is excluded. Title effect Role ▸ Subrole uses full `titleRoleSubrole` (inventory-style), not main-only truncation.
+- **Reason:** Excluding `VFX Shot No` left title Transform rows on Effects while inventory was empty; excluding inventory sheet name `Vfx Shot No ▸ Vfx Shot No-1` still left Effects rows when Effects stored bare `Vfx Shot No`.
+- **Provenance:** 2026-08-18 / 2026-08-20 — Production Data Sample.fcpxmld / Video & Audio Effects role-exclusion gap.
 
 ### Sign: effect-settings-match-fcp-display
 - **Trigger:** Video & Audio Effects Settings / Role Inventory **Effects** / `adjust-blend` / `adjust-transform` / `filter-video` params.
 - **Instruction:** Keep `adjust-blend amount` as a 0.0–1.0 fraction in Extraction; format as Opacity percent × 100 (`0.3987` → `Opacity 39.9%`). Parse `adjust-transform` attributes and nested `param` keyframes in Model (`TransformAdjustment.componentSamples`); omit identity Position / Rotation / Scale; non-uniform scale is `Scale X …%, Y …%`. Filter Settings are inspector `param` name/value pairs (skip ozxml / base64 / empty names / Motion `Value` vertices); do not invent blob meaning. Resolve Apple from the `effect` resource UID, not a hardcoded `true`. Inventory **Effects** uses the same formatted settings (grouped names), not names-only. Do not invent a second unit system in Reporting.
 - **Reason:** Transform on spine `<clip>` wrappers and keyframed scale never reached Effects; Opacity `0.3987` was printed as `0.4%`; inventory listed `Transform, Transform, Transform`; filter Settings duplicated the effect name and hid Color Adjustments inspector values.
 - **Provenance:** 2026-08-18 — Production Data Sample.fcpxmld Video & Audio Effects / Role Inventory Effects.
+
+### Sign: report-out-is-last-visible-frame
+- **Trigger:** Formatting Timeline Out / Source Out on any Excel/PDF report sheet, or comparing Out to Duration.
+- **Instruction:** Report Out columns via `ReportFormatting.outTimecodeString(fromExclusiveEnd:)` — last included/visible frame (FCP / Resolve Mark Out). Keep Projection / FCPXML spans half-open (`In + Duration` = exclusive end). Do not change Duration / Clip Duration / Source Duration. Zero-length spans keep Out = In. Do not assume `Out − In = Duration` in SMPTE arithmetic.
+- **Reason:** Exclusive-end Out matched FCPXML math but not editor Mark Out language; recipients of Production Data / OpenFCPXMLKit reports expect last visible frame.
+- **Provenance:** 2026-08-20 — product lock for report Out display.
 
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.

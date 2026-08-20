@@ -105,7 +105,8 @@ extension FinalCutPro.FCPXML {
                         keyword.timelineOut,
                         on: timeline,
                         resources: resources,
-                        timecodeFormat: timecodeFormat
+                        timecodeFormat: timecodeFormat,
+                        asReportOut: true
                     )
                     let duration = formatFraction(
                         keyword.duration,
@@ -168,7 +169,8 @@ extension FinalCutPro.FCPXML {
             _ fraction: Fraction,
             on timeline: any OFKXMLElement,
             resources: (any OFKXMLElement)?,
-            timecodeFormat: ReportTimecodeFormat
+            timecodeFormat: ReportTimecodeFormat,
+            asReportOut: Bool = false
         ) -> String {
             // Projection timeline math uses Double intermediates; format via real-time
             // seconds and sequence breadcrumbs (same pattern as Effects report timing).
@@ -179,6 +181,12 @@ extension FinalCutPro.FCPXML {
                 resources: resources
             ) else {
                 return ""
+            }
+            if asReportOut {
+                return ReportFormatting.outTimecodeString(
+                    fromExclusiveEnd: timecode,
+                    format: timecodeFormat
+                )
             }
             return ReportFormatting.timecodeString(timecode, format: timecodeFormat)
         }
@@ -204,8 +212,9 @@ extension FinalCutPro.FCPXML {
                 timelineRange.timelineIn,
                 format: timecodeFormat
             )
-            let timelineOutString = ReportFormatting.timecodeString(
-                timelineRange.timelineOut,
+            let timelineOutString = ReportFormatting.outTimecodeString(
+                fromExclusiveEnd: timelineRange.timelineOut,
+                inclusiveStart: timelineRange.timelineIn,
                 format: timecodeFormat
             )
             let durationString = ReportFormatting.timecodeString(

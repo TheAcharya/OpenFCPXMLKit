@@ -135,7 +135,11 @@ extension FinalCutPro.FCPXML {
                 category: entry.category.workbookExportLabel,
                 enabled: ReportFormatting.enabledCheckmark(for: extracted.element),
                 timelineIn: ReportFormatting.timecodeString(timelineIn, format: timecodeFormat),
-                timelineOut: ReportFormatting.timecodeString(timelineOut, format: timecodeFormat),
+                timelineOut: ReportFormatting.outTimecodeString(
+                    fromExclusiveEnd: timelineOut,
+                    inclusiveStart: timelineIn,
+                    format: timecodeFormat
+                ),
                 clipDuration: ReportFormatting.timecodeString(clipDuration, format: timecodeFormat),
                 sourceIn: sourceTimes.sourceIn,
                 sourceOut: sourceTimes.sourceOut,
@@ -261,7 +265,11 @@ extension FinalCutPro.FCPXML {
             
             return (
                 ReportFormatting.timecodeString(sourceInTimecode, format: timecodeFormat),
-                ReportFormatting.timecodeString(sourceOutTimecode, format: timecodeFormat),
+                ReportFormatting.outTimecodeString(
+                    fromExclusiveEnd: sourceOutTimecode,
+                    inclusiveStart: sourceInTimecode,
+                    format: timecodeFormat
+                ),
                 ReportFormatting.timecodeString(clipDuration, format: timecodeFormat)
             )
         }

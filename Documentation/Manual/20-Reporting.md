@@ -84,7 +84,7 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 | `workbookCoverSheet` | `.openFCPXMLKitDefault` | Optional cover sheet; set to `nil` to omit. |
 | `copyrightLabel` | `nil` | Optional copyright / attribution line: Excel cover **A4**, PDF cover below Created-by / Created-on / Visit, PDF footer centre. |
 | `workbookCoverSheet.visitURL` | OpenFCPXMLKit GitHub | Excel cover **A3** / PDF Visit line (`Visit <url>`). Override for a GUI host product URL. |
-| `excludedRoles` | `[]` | Role or subrole names to omit from every role-bearing sheet (Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, Summary). Excluding a main role also excludes its subroles. |
+| `excludedRoles` | `[]` | Role or subrole names to omit from every role-bearing sheet (Role Inventory, Markers, Keywords, Titles & Generators, Video & Audio Effects, Speed Change Effects, Summary). Excluding a main role also excludes its subroles. Full `Main ▸ Sub` also matches bare main-role fields (Effects); raw FCP `Main.Sub` ids normalize. See [19 — CLI](19-CLI.md#role-exclusion-matching). |
 | `excludeDisabledClips` | `false` | Omit clips with `enabled="0"` from every timeline-based section. |
 | `excludedColumns` | `[]` | Header names / aliases removed at Excel and PDF export (see [Column exclusion](#column-exclusion)). |
 | `timecodeFormat` | `.smpteFrames` | Timeline cell display format (see [Timecode display format](#timecode-display-format)). |
@@ -232,6 +232,8 @@ Each inventory sheet uses a **Row** index column, then fixed columns, then sorte
 - Connected leaf **`<video>` / generators** on negative lanes (Connected generator / Connected video). Negative-lane leaf **`<audio>`** remains folded into host channel/sync sources and is skipped as a separate leaf row.
 
 Markers on title hosts attribute the title’s video **main** role (same casing policy as Role Inventory main roles). Parsing, Extraction, and Projection already discover these elements; Reporting must not collapse or drop them. See GUARDRAILS Sign `title-roles-honor-attribute`.
+
+**Timeline Out / Source Out:** Report Out columns use the **last visible/included frame** (Final Cut Pro / Resolve Mark Out style). Internally Projection and FCPXML still use half-open spans (`In + Duration` = exclusive end); Reporting subtracts one frame for display. **Clip Duration** / **Source Duration** / **Duration** are unchanged. Do not expect `Out − In = Duration` in SMPTE arithmetic — use Duration as the length. Zero-length spans keep Out equal to In.
 
 **Per-role Total footer:** Each non-empty per-role sheet ends with a blank row, then a **Total:** label under **Timeline Out** and an optimistic sum of that sheet’s **Clip Duration** values under **Clip Duration**. Both cells use the same black-background / white-text style as column headers. **Selected Roles Inventory** has no Total footer. If Timeline Out or Clip Duration is excluded, the footer is omitted. The sum is presentation-thin (`RoleInventorySheetTotal` — parses already-formatted `clipDuration` strings); it is **not** overlap-aware (Summary’s `summaryOverlapAwareDurations` stays Summary-only). Excel and PDF draw the same footer in the table content area (not the PDF running page footer).
 
@@ -682,7 +684,7 @@ Per-section presentation:
 | Section include flags | Only non-`nil` sections on `Report` are rendered |
 | `excludedColumns` | Same `ReportColumnExclusion` filtering as Excel on every applicable section |
 | `timecodeFormat` | Same formatted cell values and suffixed headers as Excel |
-| `excludedRoles` | Applied at build time to every role-bearing sheet (inventory, markers, keywords, titles, effects, speed change, summary durations) |
+| `excludedRoles` | Applied at build time to every role-bearing sheet (inventory, markers, keywords, titles, effects, speed change, summary durations); full `Main ▸ Sub` matches bare main-role Effects fields |
 | `excludeDisabledClips` | Applied at build time (fewer rows in all timeline sections) |
 | `projectName` | Applied at build time (timeline source and `report.projectName`) |
 | `workbookCoverSheet` | `exportBrandingText` on cover and footer; `visitURL` on cover Visit line (Excel cover tab is separate) |

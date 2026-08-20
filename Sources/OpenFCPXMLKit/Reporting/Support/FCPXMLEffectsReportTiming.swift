@@ -47,7 +47,8 @@ extension FinalCutPro.FCPXML {
                 seconds: span.end,
                 fallback: row.timelineOut,
                 timecodeFormat: timecodeFormat,
-                sequence: sequence
+                sequence: sequence,
+                asReportOut: true
             )
             return enriched
         }
@@ -79,7 +80,8 @@ extension FinalCutPro.FCPXML {
             seconds: TimeInterval,
             fallback: String,
             timecodeFormat: ReportTimecodeFormat,
-            sequence: Sequence?
+            sequence: Sequence?,
+            asReportOut: Bool = false
         ) -> String {
             // Prefer keeping Extraction-formatted strings unless we can rebuild cleanly.
             // Window seconds are still useful when Extraction empty; otherwise leave as-is
@@ -92,6 +94,12 @@ extension FinalCutPro.FCPXML {
                 resources: nil
             ) else {
                 return fallback
+            }
+            if asReportOut {
+                return ReportFormatting.outTimecodeString(
+                    fromExclusiveEnd: timecode,
+                    format: timecodeFormat
+                )
             }
             return ReportFormatting.timecodeString(timecode, format: timecodeFormat)
         }

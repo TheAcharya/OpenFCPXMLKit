@@ -25,6 +25,32 @@ struct FCPXMLReportFormattingTests {
         #expect(ReportFormatting.timecodeString(timecode) == "01:02:03:04")
     }
 
+    @Test("Out timecode uses last visible frame from exclusive end")
+    func outTimecodeUsesLastVisibleFrameFromExclusiveEnd() throws {
+        let exclusiveEnd = try Timecode(.components(h: 0, m: 0, s: 11, f: 0), at: .fps24)
+        let inclusiveStart = try Timecode(.components(h: 0, m: 0, s: 10, f: 0), at: .fps24)
+        #expect(
+            ReportFormatting.outTimecodeString(
+                fromExclusiveEnd: exclusiveEnd,
+                inclusiveStart: inclusiveStart
+            ) == "00:00:10:23"
+        )
+        #expect(
+            ReportFormatting.timecodeString(exclusiveEnd) == "00:00:11:00"
+        )
+    }
+
+    @Test("Out timecode keeps exclusive end for zero-length spans")
+    func outTimecodeKeepsExclusiveEndForZeroLengthSpans() throws {
+        let point = try Timecode(.components(h: 0, m: 1, s: 0, f: 0), at: .fps24)
+        #expect(
+            ReportFormatting.outTimecodeString(
+                fromExclusiveEnd: point,
+                inclusiveStart: point
+            ) == "00:01:00:00"
+        )
+    }
+
     @Test("Timecode string uses semicolon for drop-frame rate")
     func timecodeStringUsesSemicolonForDropFrameRate() throws {
         let timecode = try Timecode(.realTime(seconds: 3600), at: .fps29_97d)

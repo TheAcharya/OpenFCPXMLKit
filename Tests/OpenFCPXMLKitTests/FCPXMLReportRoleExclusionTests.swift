@@ -96,7 +96,7 @@ struct FCPXMLReportRoleExclusionTests {
     func excludingMainRoleOmitsEffectsRows() {
         let section = FinalCutPro.FCPXML.EffectsReportSection(
             rows: [
-                effectRow(clipName: "Basic Title", roleSubrole: "Vfx Shot No"),
+                effectRow(clipName: "Basic Title", roleSubrole: "Vfx Shot No ▸ Vfx Shot No-1"),
                 effectRow(clipName: "A Roll", roleSubrole: "Video"),
                 effectRow(
                     clipName: "VFX Card",
@@ -112,6 +112,57 @@ struct FCPXMLReportRoleExclusionTests {
         
         #expect(filtered.rows.map(\.clipName) == ["A Roll"])
         #expect(filtered.rows.map(\.roleSubrole) == ["Video"])
+    }
+    
+    @Test("Excluding a full Role Subrole omits main-only Effects rows")
+    func excludingFullRoleSubroleOmitsMainOnlyEffectsRows() {
+        let section = FinalCutPro.FCPXML.EffectsReportSection(
+            rows: [
+                effectRow(clipName: "Basic Title", roleSubrole: "Vfx Shot No"),
+                effectRow(clipName: "A Roll", roleSubrole: "Video"),
+            ]
+        )
+        
+        let filtered = FinalCutPro.FCPXML.ReportRoleExclusion.applying(
+            excludedRoleNames: ["Vfx Shot No ▸ Vfx Shot No-1"],
+            to: section
+        )
+        
+        #expect(filtered.rows.map(\.clipName) == ["A Roll"])
+    }
+    
+    @Test("Excluding a raw FCP role id omits matching Effects rows")
+    func excludingRawFCPRoleIdOmitsEffectsRows() {
+        let section = FinalCutPro.FCPXML.EffectsReportSection(
+            rows: [
+                effectRow(clipName: "Basic Title", roleSubrole: "Vfx Shot No ▸ Vfx Shot No-1"),
+                effectRow(clipName: "A Roll", roleSubrole: "Video"),
+            ]
+        )
+        
+        let filtered = FinalCutPro.FCPXML.ReportRoleExclusion.applying(
+            excludedRoleNames: ["VFX Shot No.VFX Shot No-1"],
+            to: section
+        )
+        
+        #expect(filtered.rows.map(\.clipName) == ["A Roll"])
+    }
+    
+    @Test("Excluding a subrole keeps sibling subroles on Effects")
+    func excludingSubroleKeepsSiblingEffectsSubroles() {
+        let section = FinalCutPro.FCPXML.EffectsReportSection(
+            rows: [
+                effectRow(clipName: "Boom FX", roleSubrole: "Dialogue ▸ Boom 1"),
+                effectRow(clipName: "Mix FX", roleSubrole: "Dialogue ▸ Mix"),
+            ]
+        )
+        
+        let filtered = FinalCutPro.FCPXML.ReportRoleExclusion.applying(
+            excludedRoleNames: ["Dialogue ▸ Boom 1"],
+            to: section
+        )
+        
+        #expect(filtered.rows.map(\.clipName) == ["Mix FX"])
     }
     
     @Test("Excluding a main role omits matching Titles & Generators rows")
