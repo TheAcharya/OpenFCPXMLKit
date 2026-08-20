@@ -87,7 +87,11 @@ extension FinalCutPro.FCPXML {
                     roleDisplayPreference: roleDisplayPreference
                 ),
                 timelineIn: ReportFormatting.timecodeString(timelineIn, format: timecodeFormat),
-                timelineOut: ReportFormatting.timecodeString(timelineOut, format: timecodeFormat)
+                timelineOut: ReportFormatting.outTimecodeString(
+                    fromExclusiveEnd: timelineOut,
+                    inclusiveStart: timelineIn,
+                    format: timecodeFormat
+                )
             )
         }
         

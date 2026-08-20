@@ -130,7 +130,8 @@ extension FinalCutPro.FCPXML {
                                 effect.timelineOut,
                                 on: timeline,
                                 resources: resources,
-                                timecodeFormat: timecodeFormat
+                                timecodeFormat: timecodeFormat,
+                                asReportOut: true
                             )
                         )
                     )
@@ -146,7 +147,8 @@ extension FinalCutPro.FCPXML {
             _ fraction: Fraction,
             on timeline: any OFKXMLElement,
             resources: (any OFKXMLElement)?,
-            timecodeFormat: ReportTimecodeFormat
+            timecodeFormat: ReportTimecodeFormat,
+            asReportOut: Bool = false
         ) -> String {
             guard let timecode = try? timeline._fcpTimecode(
                 fromRational: fraction,
@@ -155,6 +157,12 @@ extension FinalCutPro.FCPXML {
                 resources: resources
             ) else {
                 return ""
+            }
+            if asReportOut {
+                return ReportFormatting.outTimecodeString(
+                    fromExclusiveEnd: timecode,
+                    format: timecodeFormat
+                )
             }
             return ReportFormatting.timecodeString(timecode, format: timecodeFormat)
         }

@@ -235,7 +235,7 @@ struct FCPXMLRoleInventoryClipCollectorTests {
         
         #expect(rows.count == 1)
         #expect(rows.first?.timelineIn == "00:04:53:01")
-        #expect(rows.first?.timelineOut == "00:04:54:08")
+        #expect(rows.first?.timelineOut == "00:04:54:07")
         #expect(rows.first?.roleSubrole == "Dialogue ▸ Mix L, Mix R, Boom 1, Boom 2, R_Slate, R_Fahd")
     }
     
@@ -259,7 +259,7 @@ struct FCPXMLRoleInventoryClipCollectorTests {
             FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: connectedClip[0])
         )
         #expect(row.timelineIn == "00:01:28:20")
-        #expect(row.timelineOut == "00:01:31:16")
+        #expect(row.timelineOut == "00:01:31:15")
         #expect(row.clipDuration == "00:00:02:21")
     }
     
@@ -282,7 +282,7 @@ struct FCPXMLRoleInventoryClipCollectorTests {
             FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: connectedAudio[0])
         )
         #expect(row.timelineIn == "00:00:00:00")
-        #expect(row.timelineOut == "00:00:02:00")
+        #expect(row.timelineOut == "00:00:01:23")
         #expect(row.clipDuration == "00:00:02:00")
         
         let connectedVideo = entries.filter { $0.category == .connectedVideo }
@@ -293,7 +293,7 @@ struct FCPXMLRoleInventoryClipCollectorTests {
         let videoRow = try #require(
             FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: connectedVideo[0])
         )
-        #expect(videoRow.timelineOut == "00:00:04:00")
+        #expect(videoRow.timelineOut == "00:00:03:23")
     }
     
 
@@ -1182,7 +1182,7 @@ struct FCPXMLRoleInventoryClipCollectorTests {
         }
         #expect(rows.count == 2)
         #expect(rows[0].timelineIn == "00:00:00:00")
-        #expect(rows[0].timelineOut == "00:00:05:00")
+        #expect(rows[0].timelineOut == "00:00:04:23")
         
         let roleSheets = FinalCutPro.FCPXML.RoleInventoryRoleSheetOrdering.roleSheets(from: rows)
         let sheetNames = Set(roleSheets.map(\.sheetName))
@@ -1365,7 +1365,7 @@ struct FCPXMLRoleInventoryClipCollectorTests {
                 guard entry.category == .caption,
                       let row = FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: entry)
                 else { return false }
-                return row.timelineIn == "00:01:13:22" && row.timelineOut == "00:01:18:10"
+                return row.timelineIn == "00:01:13:22" && row.timelineOut == "00:01:18:09"
             }
         )
         
@@ -1376,7 +1376,7 @@ struct FCPXMLRoleInventoryClipCollectorTests {
             FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: caption)
         )
         #expect(row.timelineIn == "00:01:13:22")
-        #expect(row.timelineOut == "00:01:18:10")
+        #expect(row.timelineOut == "00:01:18:09")
         #expect(row.roleSubrole.hasPrefix("SRT"))
     }
     
@@ -1388,9 +1388,8 @@ struct FCPXMLRoleInventoryClipCollectorTests {
         
         let entries = await Collector.collectEntries(from: timeline, scope: .init())
         
-        // Caption inventory rows use the caption's computed timeline position directly.
-        // These positions land on exact frame boundaries and are not shifted by an extra
-        // frame, matching Final Cut Pro's own timeline placement.
+        // Caption inventory rows use the caption's computed timeline position for In.
+        // Out is the last visible frame (exclusive end − 1 frame).
         func firstCaption(
             timelineIn: String,
             timelineOut: String
@@ -1404,7 +1403,7 @@ struct FCPXMLRoleInventoryClipCollectorTests {
         }
         
         let earlyCaption = try #require(
-            firstCaption(timelineIn: "00:03:10:03", timelineOut: "00:03:11:08")
+            firstCaption(timelineIn: "00:03:10:03", timelineOut: "00:03:11:07")
         )
         let row = try #require(
             FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: earlyCaption)
@@ -1414,16 +1413,16 @@ struct FCPXMLRoleInventoryClipCollectorTests {
             .contains { $0.fcpElementType == .mcClip }
         #expect(hasMcClipAncestor, "Expected caption inside mc-clip")
         #expect(row.timelineIn == "00:03:10:03")
-        #expect(row.timelineOut == "00:03:11:08")
+        #expect(row.timelineOut == "00:03:11:07")
         
         let laterCaption = try #require(
-            firstCaption(timelineIn: "00:03:27:09", timelineOut: "00:03:29:15")
+            firstCaption(timelineIn: "00:03:27:09", timelineOut: "00:03:29:14")
         )
         let laterRow = try #require(
             FinalCutPro.FCPXML.RoleInventoryRowBuilder.row(from: laterCaption)
         )
         #expect(laterRow.timelineIn == "00:03:27:09")
-        #expect(laterRow.timelineOut == "00:03:29:15")
+        #expect(laterRow.timelineOut == "00:03:29:14")
     }
 
     @Test("Under-spine connected titles keep custom video roles")

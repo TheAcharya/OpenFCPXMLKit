@@ -39,6 +39,38 @@ extension FinalCutPro.FCPXML {
             }
         }
         
+        /// Converts an exclusive-end timecode (`In + Duration`, Projection `timelineEnd`) to the
+        /// last included/visible frame for report **Out** columns (Final Cut Pro / Resolve Mark Out).
+        ///
+        /// When `inclusiveStart` is provided and the exclusive end is not after that start
+        /// (zero-length span), the exclusive end is returned unchanged.
+        static func lastVisibleFrame(
+            fromExclusiveEnd exclusiveEnd: Timecode,
+            inclusiveStart: Timecode? = nil
+        ) -> Timecode {
+            if let inclusiveStart,
+               exclusiveEnd.frameCount.wholeFrames <= inclusiveStart.frameCount.wholeFrames
+            {
+                return exclusiveEnd
+            }
+            return exclusiveEnd.subtracting(Timecode.Components(f: 1), by: .clamping)
+        }
+        
+        /// Formats Timeline Out / Source Out for workbook cells as the last visible frame.
+        static func outTimecodeString(
+            fromExclusiveEnd exclusiveEnd: Timecode,
+            inclusiveStart: Timecode? = nil,
+            format: ReportTimecodeFormat = .smpteFrames
+        ) -> String {
+            timecodeString(
+                lastVisibleFrame(
+                    fromExclusiveEnd: exclusiveEnd,
+                    inclusiveStart: inclusiveStart
+                ),
+                format: format
+            )
+        }
+        
         /// Compares formatted timeline position strings for row sorting.
         static func compareTimelinePositions(
             _ lhs: String,
@@ -782,6 +814,12 @@ extension FinalCutPro.FCPXML {
             return "Titles"
         }
         
+        /// Role ▸ Subrole for Video & Audio Effects rows.
+        ///
+        /// Title hosts use the full inventory-style Role ▸ Subrole (same as Titles & Generators)
+        /// so `--exclude-role` matches when the host GUI passes either a main role or a full
+        /// `Main ▸ Subrole` string (Sign `excluded-roles-apply-to-all-sheets`). Non-title hosts
+        /// keep the main-role display used historically on this sheet.
         static func effectRoleSubrole(
             for effect: ExtractedEffect,
             roleDisplayPreference: RoleDisplayPreference = .builtIn
@@ -798,17 +836,10 @@ extension FinalCutPro.FCPXML {
                 return "Dialogue"
             case .filterVideo, .transform, .compositing, .spatialConform:
                 if effect.host.element.fcpElementType == .title {
-                    // Effects sheet historically surfaces the main role only.
-                    let full = titleRoleSubrole(
+                    return titleRoleSubrole(
                         for: effect.host,
                         roleDisplayPreference: roleDisplayPreference
                     )
-                    return full
-                        .split(separator: "▸", maxSplits: 1)
-                        .first
-                        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                        .flatMap { $0.isEmpty ? nil : String($0) }
-                        ?? "Titles"
                 }
                 if let preferred = effect.host.preferredRole(
                     for: .videoEffects,
@@ -842,11 +873,6 @@ extension FinalCutPro.FCPXML {
                         from: roles,
                         roleDisplayPreference: roleDisplayPreference
                     )
-                        .split(separator: "▸", maxSplits: 1)
-                        .first
-                        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                        .flatMap { $0.isEmpty ? nil : $0 }
-                        ?? "Titles"
                 }
                 if let preferred = roleDisplayPreference.preferredRole(
                     from: roles,

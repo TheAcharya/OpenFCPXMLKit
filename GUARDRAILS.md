@@ -304,6 +304,12 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Reason:** Transform on spine `<clip>` wrappers and keyframed scale never reached Effects; Opacity `0.3987` was printed as `0.4%`; inventory listed `Transform, Transform, Transform`; filter Settings duplicated the effect name and hid Color Adjustments inspector values.
 - **Provenance:** 2026-08-18 — Production Data Sample.fcpxmld Video & Audio Effects / Role Inventory Effects.
 
+### Sign: report-out-is-last-visible-frame
+- **Trigger:** Formatting Timeline Out / Source Out on any Excel/PDF report sheet, or comparing Out to Duration.
+- **Instruction:** Report Out columns via `ReportFormatting.outTimecodeString(fromExclusiveEnd:)` — last included/visible frame (FCP / Resolve Mark Out). Keep Projection / FCPXML spans half-open (`In + Duration` = exclusive end). Do not change Duration / Clip Duration / Source Duration. Zero-length spans keep Out = In. Do not assume `Out − In = Duration` in SMPTE arithmetic.
+- **Reason:** Exclusive-end Out matched FCPXML math but not editor Mark Out language; recipients of Production Data / OpenFCPXMLKit reports expect last visible frame.
+- **Provenance:** 2026-08-20 — product lock for report Out display.
+
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.
 - **Instruction:** Keep it under `Tests/Submitted FCPXML/` (gitignored). Promote only anonymised minimal public fixtures.

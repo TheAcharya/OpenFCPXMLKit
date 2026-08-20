@@ -7,6 +7,22 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [Unreleased]
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Report Out = last visible frame:** Timeline Out and Source Out on Excel/PDF reports now show the last included/visible frame (Final Cut Pro / Resolve Mark Out style). Duration columns are unchanged. Projection remains half-open internally. Manual 20.
+
+### 🐛 Bug Fixes
+
+- **`--exclude-role` / full Role ▸ Subrole vs Effects:** Excluding an inventory sheet name such as `Vfx Shot No ▸ Vfx Shot No-1` now omits matching Video & Audio Effects rows. Title effect Role ▸ Subrole uses the full inventory-style display; exclusion also matches bare main-role Effects fields and raw FCP `Main.Sub` ids. Sign `excluded-roles-apply-to-all-sheets`.
+
+---
+
 ## [3.3.7](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.7) - 2026-08-18
 
 ### ✨ New Features

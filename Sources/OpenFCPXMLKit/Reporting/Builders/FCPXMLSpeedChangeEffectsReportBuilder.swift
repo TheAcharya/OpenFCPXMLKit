@@ -125,7 +125,8 @@ extension FinalCutPro.FCPXML {
                         seconds: timelineOut,
                         fallback: extractedMatch?.timelineOut,
                         timecodeFormat: timecodeFormat,
-                        sequence: sequence
+                        sequence: sequence,
+                        asReportOut: true
                     )
                 )
             }
@@ -135,7 +136,8 @@ extension FinalCutPro.FCPXML {
             seconds: TimeInterval,
             fallback: String?,
             timecodeFormat: ReportTimecodeFormat,
-            sequence: Sequence?
+            sequence: Sequence?,
+            asReportOut: Bool = false
         ) -> String {
             // Prefer Extraction-formatted strings; sequence timecode without breadcrumbs
             // can fail hard on some samples.
@@ -150,6 +152,12 @@ extension FinalCutPro.FCPXML {
                 resources: sequence.element.parentElement?.parentElement // may be nil
             ) else {
                 return ""
+            }
+            if asReportOut {
+                return ReportFormatting.outTimecodeString(
+                    fromExclusiveEnd: timecode,
+                    format: timecodeFormat
+                )
             }
             return ReportFormatting.timecodeString(timecode, format: timecodeFormat)
         }
@@ -186,7 +194,11 @@ extension FinalCutPro.FCPXML {
                     roleDisplayPreference: roleDisplayPreference
                 ),
                 timelineIn: ReportFormatting.timecodeString(timelineIn, format: timecodeFormat),
-                timelineOut: ReportFormatting.timecodeString(timelineOut, format: timecodeFormat)
+                timelineOut: ReportFormatting.outTimecodeString(
+                    fromExclusiveEnd: timelineOut,
+                    inclusiveStart: timelineIn,
+                    format: timecodeFormat
+                )
             )
         }
 

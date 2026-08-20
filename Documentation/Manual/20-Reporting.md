@@ -233,6 +233,8 @@ Each inventory sheet uses a **Row** index column, then fixed columns, then sorte
 
 Markers on title hosts attribute the title’s video **main** role (same casing policy as Role Inventory main roles). Parsing, Extraction, and Projection already discover these elements; Reporting must not collapse or drop them. See GUARDRAILS Sign `title-roles-honor-attribute`.
 
+**Timeline Out / Source Out:** Report Out columns use the **last visible/included frame** (Final Cut Pro / Resolve Mark Out style). Internally Projection and FCPXML still use half-open spans (`In + Duration` = exclusive end); Reporting subtracts one frame for display. **Clip Duration** / **Source Duration** / **Duration** are unchanged. Do not expect `Out − In = Duration` in SMPTE arithmetic — use Duration as the length. Zero-length spans keep Out equal to In.
+
 **Per-role Total footer:** Each non-empty per-role sheet ends with a blank row, then a **Total:** label under **Timeline Out** and an optimistic sum of that sheet’s **Clip Duration** values under **Clip Duration**. Both cells use the same black-background / white-text style as column headers. **Selected Roles Inventory** has no Total footer. If Timeline Out or Clip Duration is excluded, the footer is omitted. The sum is presentation-thin (`RoleInventorySheetTotal` — parses already-formatted `clipDuration` strings); it is **not** overlap-aware (Summary’s `summaryOverlapAwareDurations` stays Summary-only). Excel and PDF draw the same footer in the table content area (not the PDF running page footer).
 
 **RoleClipReportRow** fixed columns (in export order, after **Row**; optional **Screenshot** after **Row** when `includeScreenshotsInRoleInventory` is `true` — Excel embeds only):
