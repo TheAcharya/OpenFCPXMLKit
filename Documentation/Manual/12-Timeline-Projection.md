@@ -4,6 +4,19 @@
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Public API](#public-api)
+- [Options](#options)
+- [Project a timeline](#project-a-timeline)
+- [What Projection walks](#what-projection-walks)
+- [Occupancy index](#occupancy-index)
+- [Large timelines](#large-timelines)
+- [Reporting integration](#reporting-integration)
+
+---
+
 ## Overview
 
 **Timeline Projection** sits between **Extraction** and **Reporting**. It walks a report timeline (`ReportTimelineSource` — a `<project>` sequence or a standalone compound-clip sequence) and emits Sendable **`MediaUsageWindow`** values: one playable media channel occupancy with timeline/media bounds, lane path, and retiming.
@@ -49,6 +62,8 @@ options.auditions = .active              // or .all
 options.mcClipAngles = .active           // or .all
 options.excludeFullyOccluded = true      // match main-timeline report visibility
 options.includeAnnotations = true        // roles / effects / breadcrumbs / report annotations
+options.includeMarkerAnnotations = true  // collect host markers (only when includeAnnotations)
+options.includeKeywordAnnotations = true // collect host keywords (only when includeAnnotations)
 options.expandAllSourceChannels = true   // one window per video/audio src (default)
 
 // Preset aligned with main-timeline Extraction visibility
@@ -58,7 +73,20 @@ let main = FinalCutPro.FCPXML.TimelineProjectionOptions.mainTimeline
 let track = FinalCutPro.FCPXML.TimelineProjectionOptions.trackAnalysis
 ```
 
-Report builds use `TimelineProjectionOptions.forReport(...)` so `excludeDisabledClips` and annotation needs stay consistent across sections.
+`includeMarkerAnnotations` and `includeKeywordAnnotations` only apply when `includeAnnotations` is on, and both default to `true` on the initialiser. Turn one off when the consumer does not need it: a clip stamped with thousands of keywords otherwise costs O(keywords × clip-children) per host.
+
+Report builds use `TimelineProjectionOptions.forReport(...)` so `excludeDisabledClips` and annotation needs stay consistent across sections. That factory defaults both annotation kinds to `false` and `ReportBuilder` enables each from `ReportOptions.includeMarkers` / `includeKeywords`, so a Role-Inventory-only export never collects marker or keyword annotations:
+
+```swift
+let projectionOptions = FinalCutPro.FCPXML.TimelineProjectionOptions.forReport(
+    excludeDisabledClips: reportOptions.excludeDisabledClips,
+    auditions: .all,
+    mcClipAngles: .all,
+    includeAnnotations: true,
+    includeMarkerAnnotations: reportOptions.includeMarkers,
+    includeKeywordAnnotations: reportOptions.includeKeywords
+)
+```
 
 ---
 
@@ -106,6 +134,7 @@ try await projector.project(from: source, fcpxml: fcpxml, options: options) { wi
 - Spine `asset-clip` usages with identity or `timeMap` retiming (multi-segment, reverse)
 - `conform-rate` scale via shared `fcpConformRateScalingFactor`
 - Nested spines / anchored children and J/L cuts (`audioStart` / `audioDuration`)
+- Container spans: descending into a `clip` / `sync-clip` / `gap` composes an identity segment over the container's own span for children that carry **no** `lane`, so contained media is clipped to what the container shows. Children with a `lane` are connected clips and keep their own extent. Final Cut Pro routinely writes the full source length on the `<audio>` inside a trimmed `<clip>`, so a contained child's own `duration` is not trustworthy — see Sign `containers-bound-their-content-not-their-anchors`.
 - `mc-clip` angles (active or all; split video/audio), `ref-clip` media sequences, auditions
 - Host-level annotations on `mc-clip` / `ref-clip` (and other clip hosts) via `emitHostAnnotationsIfNeeded` — markers/keywords on the clip element itself are not skipped
 - `video` / `audio` leaves with `ChannelKindFilter` / `srcEnable`
@@ -138,6 +167,19 @@ if let first = composed.first,
 Overlap-aware Summary uses this path when `ReportOptions.summaryOverlapAwareDurations == true` (API-only; default off).
 
 **Half-open spans:** `RetimingSegment` timeline / media bounds are half-open (`[start, end)` — exclusive end). Report Out columns convert exclusive ends to the **last visible frame** in Reporting only (`ReportFormatting.outTimecodeString`); Duration stays `end − start`. See [20 — Reporting](20-Reporting.md) and Sign `report-out-is-last-visible-frame`.
+
+---
+
+## Large timelines
+
+Projection is the hot path on big exports, so it avoids re-deriving facts it already knows:
+
+- A projection installs a **scoped timing cache** for its walk, so each element resolves its `conform-rate` factor once instead of on every attribute read. See [02 — Loading & Parsing](02-Loading-Parsing.md#large-documents).
+- Story traversal uses `fcpProjectableStoryElements`, which skips annotation leaves (`keyword`, `marker`, …). Annotations are still collected — from the host, once — when `includeAnnotations` is on.
+- Turn off `includeMarkerAnnotations` / `includeKeywordAnnotations` when the consumer does not read them.
+- Use the streaming overload (`project(from:fcpxml:options:) { window in … }`) when you only need to fold windows into a result; it avoids holding the full array.
+
+A 28 MB FCPXML with a few thousand clips projects in seconds on an 8 GB machine; if a projection appears to hang, check for a mutation happening mid-walk before assuming a geometry problem.
 
 ---
 

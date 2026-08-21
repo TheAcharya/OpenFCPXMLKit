@@ -52,22 +52,26 @@ extension FinalCutPro.FCPXML.TimelineProjectionOptions {
     ///
     /// Role Inventory and Summary historically walk inactive audition / multicam
     /// alternatives (``.all``); other sections typically use `.active`.
-    public static func forReport(
-        excludeDisabledClips: Bool,
-        auditions: FinalCutPro.FCPXML.Audition.AuditionMask,
-        mcClipAngles: FinalCutPro.FCPXML.MCClip.AngleMask,
-        includeAnnotations: Bool = false,
-        expandAllSourceChannels: Bool = true
-    ) -> Self {
-        Self(
-            includeDisabled: !excludeDisabledClips,
-            auditions: auditions,
-            mcClipAngles: mcClipAngles,
-            excludeFullyOccluded: true,
-            includeAnnotations: includeAnnotations,
-            expandAllSourceChannels: expandAllSourceChannels
-        )
-    }
+        public static func forReport(
+            excludeDisabledClips: Bool,
+            auditions: FinalCutPro.FCPXML.Audition.AuditionMask,
+            mcClipAngles: FinalCutPro.FCPXML.MCClip.AngleMask,
+            includeAnnotations: Bool = false,
+            includeMarkerAnnotations: Bool = false,
+            includeKeywordAnnotations: Bool = false,
+            expandAllSourceChannels: Bool = true
+        ) -> Self {
+            Self(
+                includeDisabled: !excludeDisabledClips,
+                auditions: auditions,
+                mcClipAngles: mcClipAngles,
+                excludeFullyOccluded: true,
+                includeAnnotations: includeAnnotations,
+                includeMarkerAnnotations: includeMarkerAnnotations,
+                includeKeywordAnnotations: includeKeywordAnnotations,
+                expandAllSourceChannels: expandAllSourceChannels
+            )
+        }
 }
 
 extension FinalCutPro.FCPXML.ReportOptions {

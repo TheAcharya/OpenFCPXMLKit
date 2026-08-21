@@ -32,8 +32,13 @@ extension FinalCutPro.FCPXML.TimeMap {
 
         let first = points[0]
         let last = points[points.count - 1]
-        let mapSpan = last.time - first.time
-        let mapSpanSeconds = mapSpan.doubleValue
+
+        // Time differences are taken in seconds rather than as exact rationals. A conform-scaled
+        // `time` is produced by `Fraction(double:)`, so its denominator can approach 10^18, and
+        // subtracting two such values computes a least common multiple that overflows `Int`.
+        // Every difference here is consumed as a `Double` anyway.
+        let firstTimeSeconds = first.time.doubleValue
+        let mapSpanSeconds = last.time.doubleValue - firstTimeSeconds
         guard abs(mapSpanSeconds) > .ulpOfOne else { return [] }
 
         var segments: [FinalCutPro.FCPXML.RetimingSegment] = []
@@ -42,14 +47,15 @@ extension FinalCutPro.FCPXML.TimeMap {
         for index in 0 ..< (points.count - 1) {
             let a = points[index]
             let b = points[index + 1]
-            let remappedDelta = b.time - a.time
-            let remappedDeltaSeconds = remappedDelta.doubleValue
+            let aTimeSeconds = a.time.doubleValue
+            let bTimeSeconds = b.time.doubleValue
+            let remappedDeltaSeconds = bTimeSeconds - aTimeSeconds
             guard abs(remappedDeltaSeconds) > .ulpOfOne else { continue }
 
             // Double-backed placement avoids Int overflow when mixing conform-scaled
             // Fraction(double:) values with large literal FCPXML rationals.
-            let startFraction = (a.time - first.time).doubleValue / mapSpanSeconds
-            let endFraction = (b.time - first.time).doubleValue / mapSpanSeconds
+            let startFraction = (aTimeSeconds - firstTimeSeconds) / mapSpanSeconds
+            let endFraction = (bTimeSeconds - firstTimeSeconds) / mapSpanSeconds
             let base = clipOffset.doubleValue
             let span = clipDuration.doubleValue
             let timelineStart = Fraction(

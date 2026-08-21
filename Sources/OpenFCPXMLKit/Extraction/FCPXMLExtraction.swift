@@ -76,7 +76,7 @@ extension OFKXMLElement {
             types: elementTypes,
             scope: scope,
             ancestors: Array(ancestorElements(includingSelf: false)),
-            resources: nil
+            resources: fcpRootResources
         )
     }
     
@@ -111,7 +111,7 @@ extension OFKXMLElement {
             types: [],
             scope: scope,
             ancestors: Array(ancestorElements(includingSelf: false)),
-            resources: nil
+            resources: fcpRootResources
         )
         return extractedElements.map(transform)
     }
@@ -172,6 +172,17 @@ extension OFKXMLElement {
         resources: (any OFKXMLElement)?,
         overrideDirectChildren: FinalCutPro.FCPXML.ExtractableChildren? = nil
     ) async -> [FinalCutPro.FCPXML.ExtractedElement] {
+        let resources = resources ?? fcpRootResources
+
+        // Leaf annotations never contain a nested timeline. Skip them unless this
+        // extraction actually asked for those types (markers / keywords presets).
+        if let type = fcpElementType, type.isLeafAnnotation {
+            let extractingAll = scope.filteredExtractionTypes.isEmpty
+            if !extractingAll, !scope.filteredExtractionTypes.contains(type) {
+                return []
+            }
+        }
+
         // self
         
         let selfExtractedElement = FinalCutPro.FCPXML.ExtractedElement(
@@ -263,7 +274,10 @@ extension OFKXMLElement {
         // gather immediate children with `lane != 0` which should be considered peers
         // with the current element
         let elements = childElements
-            .filter { ($0.fcpLane ?? 0) != 0 }
+            .filter {
+                ($0.fcpLane ?? 0) != 0
+                    && !Self._fcpShouldSkipLeafAnnotationChild($0, scope: scope)
+            }
         var output: [FinalCutPro.FCPXML.ExtractedElement] = []
         for element in elements {
             let extracted = await element._fcpExtract(
@@ -292,7 +306,10 @@ extension OFKXMLElement {
         case let .specific(childrenSequence):
             childrenSource = childrenSequence
         }
-        let elements = Array(childrenSource.filter { ($0.fcpLane ?? 0) == 0 })
+        let elements = Array(childrenSource.filter {
+            ($0.fcpLane ?? 0) == 0
+                && !Self._fcpShouldSkipLeafAnnotationChild($0, scope: scope)
+        })
         var output: [FinalCutPro.FCPXML.ExtractedElement] = []
         for element in elements {
             let extracted = await element._fcpExtract(
@@ -472,5 +489,16 @@ extension OFKXMLElement {
         _fcpAncestorElementTypesAndLanes(ancestors: ancestors, includingSelf: true)
             .first(where: { $0.lane != nil })?
             .lane
+    }
+
+    /// Keywords / markers are DTD story elements but never contain nested timelines.
+    /// Skip walking them unless the caller asked to extract those types.
+    static func _fcpShouldSkipLeafAnnotationChild(
+        _ element: any OFKXMLElement,
+        scope: FinalCutPro.FCPXML.ExtractionScope
+    ) -> Bool {
+        guard let type = element.fcpElementType, type.isLeafAnnotation else { return false }
+        if scope.filteredExtractionTypes.isEmpty { return false }
+        return !scope.filteredExtractionTypes.contains(type)
     }
 }

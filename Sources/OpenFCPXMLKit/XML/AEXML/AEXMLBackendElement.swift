@@ -41,6 +41,9 @@ public final class AEXMLBackendElement: OFKXMLElement {
     /// Exposed for interop with code that needs direct AEXML access.
     public let underlyingElement: AEXMLElement
 
+    /// Index of immediate children by `id` attribute. Invalidated when children change.
+    private var childIDIndex: [String: AEXMLElement]?
+
     // MARK: - Initializers
 
     /// Wraps an existing `AEXMLElement`.
@@ -190,11 +193,33 @@ public final class AEXMLBackendElement: OFKXMLElement {
             .map { AEXMLBackendElement(wrapping: $0) }
     }
 
+    public func firstChildElement(named name: String) -> (any OFKXMLElement)? {
+        underlyingElement.children.first { $0.name == name && $0.error == nil }
+            .map { AEXMLBackendElement(wrapping: $0) }
+    }
+
+    /// O(1) after the first scan of this element's children. Used by resource `id` lookup.
+    public func firstChildElement(withID id: String) -> (any OFKXMLElement)? {
+        if childIDIndex == nil {
+            var index: [String: AEXMLElement] = [:]
+            let children = underlyingElement.children.filter { $0.error == nil }
+            index.reserveCapacity(children.count)
+            for child in children {
+                let resourceID = child.attributes["id"] ?? ""
+                guard !resourceID.isEmpty else { continue }
+                index[resourceID] = child
+            }
+            childIDIndex = index
+        }
+        return childIDIndex?[id].map { AEXMLBackendElement(wrapping: $0) }
+    }
+
     /// Appends a child node to this element.
     ///
     /// If the child is an `AEXMLBackendElement`, unwraps and delegates to AEXML.
     /// Otherwise, creates a new AEXML element from the child's properties.
     public func addChild(_ child: any OFKXMLNode) {
+        childIDIndex = nil
         if let aeChild = child as? AEXMLBackendElement {
             _ = underlyingElement.addChild(aeChild.underlyingElement)
         } else {
@@ -212,6 +237,7 @@ public final class AEXMLBackendElement: OFKXMLElement {
     /// AEXML does not have a `removeChild(at:)` method, so we use
     /// `removeFromParent()` on the child at the given index.
     public func removeChild(at index: Int) {
+        childIDIndex = nil
         let validChildren = underlyingElement.children.filter { $0.error == nil }
         guard index >= 0, index < validChildren.count else { return }
         validChildren[index].removeFromParent()
@@ -223,6 +249,7 @@ public final class AEXMLBackendElement: OFKXMLElement {
     /// by removing all children after the insertion point, adding the new child,
     /// then re-adding the removed children.
     public func insertChild(_ child: any OFKXMLNode, at index: Int) {
+        childIDIndex = nil
         let validChildren = underlyingElement.children.filter { $0.error == nil }
         let clampedIndex = max(0, min(index, validChildren.count))
 
@@ -251,4 +278,8 @@ public final class AEXMLBackendElement: OFKXMLElement {
     public var xmlCompactString: String {
         underlyingElement.xmlCompact
     }
+
+    // MARK: - OFKXMLElement: Identity
+
+    public var backingObject: AnyObject? { underlyingElement }
 }

@@ -271,23 +271,29 @@ enum FCPXMLReportPDFTableLayout {
     }
     
     static func naturalColumnWidths(headers: [String], rows: [[String]]) -> [CGFloat] {
-        headers.enumerated().map { index, header in
-            var maxWidth = measuredWidth(
-                header,
-                bold: true,
-                fontSize: FCPXMLReportPDFStyle.headerFontSize
-            )
+        // Both fonts are built once and reused for every measurement below. Creating them
+        // per cell dominated measurement cost on sheets with tens of thousands of rows.
+        let headerFont = CTFontCreateWithName(
+            FCPXMLReportPDFStyle.boldFontName as CFString,
+            FCPXMLReportPDFStyle.headerFontSize,
+            nil
+        )
+        let bodyFont = CTFontCreateWithName(
+            FCPXMLReportPDFStyle.regularFontName as CFString,
+            FCPXMLReportPDFStyle.bodyFontSize,
+            nil
+        )
+        
+        return headers.enumerated().map { index, header in
+            var maxWidth = measuredWidth(header, font: headerFont)
             
-            for row in rows {
-                guard row.indices.contains(index) else { continue }
-                maxWidth = max(
-                    maxWidth,
-                    measuredWidth(
-                        row[index],
-                        bold: false,
-                        fontSize: FCPXMLReportPDFStyle.bodyFontSize
-                    )
-                )
+            // Pool boundary per column: measuring one column allocates autoreleased
+            // CoreText objects for every row.
+            autoreleasepool {
+                for row in rows {
+                    guard row.indices.contains(index) else { continue }
+                    maxWidth = max(maxWidth, measuredWidth(row[index], font: bodyFont))
+                }
             }
             
             return maxWidth + (FCPXMLReportPDFStyle.cellPadding * 2)
@@ -305,6 +311,12 @@ enum FCPXMLReportPDFTableLayout {
             ? FCPXMLReportPDFStyle.boldFontName
             : FCPXMLReportPDFStyle.regularFontName
         let font = CTFontCreateWithName(fontName as CFString, fontSize, nil)
+        return measuredWidth(text, font: font)
+    }
+    
+    private static func measuredWidth(_ text: String, font: CTFont) -> CGFloat {
+        guard !text.isEmpty else { return 0 }
+        
         let attributes = [kCTFontAttributeName as NSAttributedString.Key: font]
         let attributed = NSAttributedString(string: text, attributes: attributes)
         let line = CTLineCreateWithAttributedString(attributed)
@@ -368,44 +380,50 @@ enum FCPXMLReportPDFTableRenderer {
         
         for (chunkIndex, chunk) in chunks.enumerated() {
             let chunkHeaders = chunk.headers(from: prepared.headers)
-            let chunkRows = prepared.rows.map { chunk.rowSlice(from: $0) }
             let columnPart = chunks.count > 1 ? chunkIndex + 1 : nil
             let columnPartCount = chunks.count > 1 ? chunks.count : nil
             
-            guard !chunkRows.isEmpty else { continue }
+            // Row slices are derived per page rather than materialised for the whole chunk:
+            // large sheets would otherwise hold one full copy of every row per column chunk.
+            let rowCount = prepared.rows.count
+            guard rowCount > 0 else { continue }
             
             var rowOffset = 0
-            while rowOffset < chunkRows.count {
-                let pageRows = Array(chunkRows.dropFirst(rowOffset).prefix(rowsPerPage))
+            while rowOffset < rowCount {
+                let pageEnd = min(rowOffset + rowsPerPage, rowCount)
+                let pageStart = rowOffset
                 
-                canvas.beginContentPage(
-                    pageTitle: context.pageTitle,
-                    sheetColorIndex: context.sheetColorIndex,
-                    contentHeading: rowOffset == 0 ? context.contentHeading : nil,
-                    columnPart: columnPart,
-                    columnPartCount: columnPartCount,
-                    repeatOnContinuation: rowOffset > 0,
-                    recordsSectionStart: rowOffset == 0 && chunkIndex == 0 && context.recordsSectionStart
-                )
-                
-                canvas.drawTableHeaderRow(headers: chunkHeaders, columnWidths: chunk.widths)
-                
-                for (index, row) in pageRows.enumerated() {
-                    let globalRowIndex = rowOffset + index
-                    let sourceRow = prepared.rows[globalRowIndex]
-                    let isBanner = rowIsSectionBanner?(globalRowIndex) ?? false
-                    let textColor = rowTextColorForRow?(globalRowIndex, sourceRow) ?? rowTextColor
-                    canvas.drawTableDataRow(
-                        values: row,
-                        columnWidths: chunk.widths,
-                        textColor: textColor,
-                        sectionBanner: isBanner
+                // Pool boundary per page: each drawn cell creates autoreleased CoreText
+                // objects, which would otherwise accumulate for the whole document.
+                autoreleasepool {
+                    canvas.beginContentPage(
+                        pageTitle: context.pageTitle,
+                        sheetColorIndex: context.sheetColorIndex,
+                        contentHeading: pageStart == 0 ? context.contentHeading : nil,
+                        columnPart: columnPart,
+                        columnPartCount: columnPartCount,
+                        repeatOnContinuation: pageStart > 0,
+                        recordsSectionStart: pageStart == 0 && chunkIndex == 0 && context.recordsSectionStart
                     )
+                    
+                    canvas.drawTableHeaderRow(headers: chunkHeaders, columnWidths: chunk.widths)
+                    
+                    for globalRowIndex in pageStart..<pageEnd {
+                        let sourceRow = prepared.rows[globalRowIndex]
+                        let isBanner = rowIsSectionBanner?(globalRowIndex) ?? false
+                        let textColor = rowTextColorForRow?(globalRowIndex, sourceRow) ?? rowTextColor
+                        canvas.drawTableDataRow(
+                            values: chunk.rowSlice(from: sourceRow),
+                            columnWidths: chunk.widths,
+                            textColor: textColor,
+                            sectionBanner: isBanner
+                        )
+                    }
                 }
                 
-                rowOffset += pageRows.count
+                rowOffset = pageEnd
                 
-                if rowOffset < chunkRows.count {
+                if rowOffset < rowCount {
                     canvas.endContentPage()
                 }
             }

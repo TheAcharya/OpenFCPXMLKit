@@ -36,7 +36,7 @@ extension FinalCutPro.FCPXML {
 
             // Local anchors on the ref-clip itself.
             try SpineProjection.projectStoryElements(
-                element.fcpStoryElements,
+                element.fcpProjectableStoryElements,
                 resources: resources,
                 ancestors: ancestors,
                 parentRetimings: parentRetimings,
@@ -73,7 +73,7 @@ extension FinalCutPro.FCPXML {
             }
 
             try SpineProjection.projectStoryElements(
-                sequence.spine.storyElements,
+                sequence.spine.element.fcpProjectableStoryElements,
                 resources: resources,
                 ancestors: ancestors,
                 parentRetimings: childParents,

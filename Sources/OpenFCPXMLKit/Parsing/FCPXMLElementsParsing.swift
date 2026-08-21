@@ -28,6 +28,18 @@ extension OFKXMLElement {
         childElements
             .filter { $0.fcpElementType?.isStoryElement == true }
     }
+
+    /// Story children that occupancy / projection walks should visit.
+    ///
+    /// ``fcpStoryElements`` includes leaf annotations (keywords, markers) because
+    /// they are DTD story elements. Treating them as timeline containers is
+    /// O(keywords × occlusion) on exports that stamp hundreds of keywords per clip.
+    public var fcpProjectableStoryElements: [any OFKXMLElement] {
+        childElements.filter { element in
+            guard let type = element.fcpElementType else { return false }
+            return type.isStoryElement && !type.isLeafAnnotation
+        }
+    }
 }
 
 extension OFKXMLElement {

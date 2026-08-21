@@ -70,14 +70,18 @@ extension FinalCutPro.FCPXML {
         ) -> ProjectedClipAnnotations? {
             guard options.includeAnnotations else { return nil }
 
-            let markers = markerAnnotations(
-                on: element,
-                absoluteStart: absoluteStart
-            )
-            let keywords = keywordAnnotations(
-                on: element,
-                absoluteStart: absoluteStart
-            )
+            let markers = options.includeMarkerAnnotations
+                ? markerAnnotations(
+                    on: element,
+                    absoluteStart: absoluteStart
+                )
+                : []
+            let keywords = options.includeKeywordAnnotations
+                ? keywordAnnotations(
+                    on: element,
+                    absoluteStart: absoluteStart
+                )
+                : []
             let title: WindowTitleAnnotation?
             let transition: WindowTransitionAnnotation?
             let effects: [WindowReportEffectAnnotation]
@@ -326,12 +330,16 @@ extension FinalCutPro.FCPXML {
             let scene = element._fcpMetadataChildStringValue(forKey: .scene) ?? ""
 
             var result: [WindowMarkerAnnotation] = []
-            for child in element.childElements {
+            for child in element.elements(forName: "marker")
+                + element.elements(forName: "chapter-marker")
+                + element.elements(forName: "analysis-marker")
+            {
                 guard let marker = FinalCutPro.FCPXML.Marker(element: child),
                       let configuration = child.fcpMarkerConfiguration
                 else { continue }
 
-                let sourcePosition = marker.start
+                let sourcePosition = child._fcpGetFraction(forAttribute: "start", scaled: false)
+                    ?? marker.start
                 let relative = ProjectionTiming.subtracting(sourcePosition, hostStart)
                 let timelinePosition = ProjectionTiming.adding(absoluteStart, relative)
                 let isOutside = MarkerClipBoundary.isOutsideHostMediaRange(
@@ -367,10 +375,12 @@ extension FinalCutPro.FCPXML {
             let scene = element._fcpMetadataChildStringValue(forKey: .scene) ?? ""
 
             var result: [WindowKeywordAnnotation] = []
-            for child in element.childElements {
-                guard let keyword = child.fcpAsKeyword else { continue }
-                let sourceStart = keyword.start
-                let duration = keyword.duration ?? .zero
+            for child in element.elements(forName: "keyword") {
+                // Unscaled times: `fcpStart`/`fcpDuration` search the host for `conform-rate`,
+                // which scans every sibling. Keywords never carry conform-rate.
+                guard let sourceStart = child._fcpGetFraction(forAttribute: "start", scaled: false)
+                else { continue }
+                let duration = child._fcpGetFraction(forAttribute: "duration", scaled: false) ?? .zero
                 let keywordEnd = ProjectionTiming.adding(sourceStart, duration)
 
                 // Clamp to the host's used media range (same visibility idea as Extraction's
@@ -395,8 +405,8 @@ extension FinalCutPro.FCPXML {
 
                 result.append(
                     WindowKeywordAnnotation(
-                        keyword: child.fcpValue ?? keyword.keywords.joined(separator: ", "),
-                        notes: keyword.note ?? "",
+                        keyword: child.fcpValue ?? "",
+                        notes: child.fcpNote ?? "",
                         timelineIn: timelineIn,
                         timelineOut: timelineOut,
                         duration: visibleDuration,

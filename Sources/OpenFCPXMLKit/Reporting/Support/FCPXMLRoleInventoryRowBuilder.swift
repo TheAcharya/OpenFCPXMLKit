@@ -91,6 +91,14 @@ extension FinalCutPro.FCPXML {
             let sourceTimes = sourceTimecodes(
                 for: clipContext,
                 clipDuration: clipDuration,
+                retimedSourceSeconds: RoleInventorySourceSpan.retimedMediaSeconds(
+                    for: extracted,
+                    clipContext: clipContext,
+                    timelineSeconds: clipDuration.realTimeValue,
+                    usesAudioTimelineBounds: entry.usesAudioTimelineBounds,
+                    projectionWindows: projectionWindows,
+                    windowIndex: windowIndex
+                ),
                 timecodeFormat: timecodeFormat
             )
             let metadataValues = ReportFormatting.inventoryMetadataValueMap(from: metadata)
@@ -229,6 +237,7 @@ extension FinalCutPro.FCPXML {
         private static func sourceTimecodes(
             for clipContext: ExtractedElement,
             clipDuration: Timecode,
+            retimedSourceSeconds: Double?,
             timecodeFormat: ReportTimecodeFormat
         ) -> (sourceIn: String, sourceOut: String, sourceDuration: String) {
             let element = clipContext.element
@@ -239,6 +248,28 @@ extension FinalCutPro.FCPXML {
                 ?? element._fcpStartAsTimecode(frameRateSource: .localToElement, default: nil)
             else {
                 return ("", "", ReportFormatting.timecodeString(clipDuration, format: timecodeFormat))
+            }
+            
+            // A retimed clip covers more or less source than it occupies on the timeline,
+            // so its own media span replaces the timeline duration here.
+            if let retimedSourceSeconds,
+               let sourceDurationTimecode = try? element._fcpTimecode(
+                   fromRealTime: retimedSourceSeconds,
+                   frameRateSource: .localToElement,
+                   breadcrumbs: breadcrumbs,
+                   resources: resources
+               ),
+               let retimedEnd = try? sourceInTimecode.adding(sourceDurationTimecode)
+            {
+                return (
+                    ReportFormatting.timecodeString(sourceInTimecode, format: timecodeFormat),
+                    ReportFormatting.outTimecodeString(
+                        fromExclusiveEnd: retimedEnd,
+                        inclusiveStart: sourceInTimecode,
+                        format: timecodeFormat
+                    ),
+                    ReportFormatting.timecodeString(sourceDurationTimecode, format: timecodeFormat)
+                )
             }
             
             let sourceOutTimecode: Timecode

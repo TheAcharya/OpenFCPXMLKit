@@ -4,6 +4,28 @@
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Quick start](#quick-start)
+- [ReportOptions](#reportoptions)
+- [Timecode display format](#timecode-display-format)
+- [Report structure](#report-structure)
+  - [Role inventory](#role-inventory)
+  - [Speed Change Effects](#speed-change-effects)
+  - [Summary](#summary)
+  - [Media Summary](#media-summary)
+- [Media resolution policy](#media-resolution-policy)
+- [Excluding disabled clips](#excluding-disabled-clips)
+- [Column exclusion](#column-exclusion)
+- [Role display preference](#role-display-preference)
+- [Progress callbacks](#progress-callbacks)
+- [Excel export](#excel-export)
+- [PDF export](#pdf-export)
+- [From the CLI](#from-the-cli)
+
+---
+
 ## Overview
 
 The reporting subsystem builds structured **reports** from a parsed FCPXML document and exports them to an **`.xlsx` workbook** (via XLKit) and/or a **`.pdf` document** (via CoreGraphics). A report is assembled from independent **sections** (role inventory, markers, keywords, titles & generators, transitions, Non-Std Effects & Templates, Video & Audio Effects, speed-change effects, summary, media summary). In Excel, each section becomes one or more worksheet tabs; in PDF, each section becomes one or more content pages with a cover page and dynamic table of contents.
@@ -209,6 +231,7 @@ These contracts define what a “near-zero miss” report must not omit when the
 | **Titles & Generators** | **Projection-first** via ``WindowTitleAnnotation`` on ``ProjectedClipAnnotations``; Role ▸ Subrole from host annotation roles via ``ReportFormatting/titleRoleSubrole(from:roleDisplayPreference:)`` (Extraction path uses ``titleRoleSubrole(for:roleDisplayPreference:)``). Extraction fallback when Projection has no title annotations. Occupancy-gated (visible hosts only). |
 | **Transitions** | **Projection-first** via ``WindowTransitionAnnotation`` on ``ProjectedClipAnnotations``. Extraction fallback when Projection has no transition annotations. Occupancy-gated. |
 | **Effects** | **Projection-first** via ``WindowReportEffectAnnotation`` (shared ``EffectsCollector`` semantics + occlusion filter for video filters). Extraction fallback when Projection has no effect annotations. Occupancy-gated. |
+| **Speed Change Effects** | **Projection-first** via retiming windows, **one row per timeline usage** (clip name + Timeline In). Extraction merge for optical-flow / wrapper `timeMap` names Projection omitted. Role ▸ Subrole defaults like Effects. Signs `speed-change-row-per-timeline-usage`, `speed-percent-is-media-over-timeline`, `retime-roles-default-like-effects`. |
 
 ### Sections and columns
 
@@ -234,6 +257,10 @@ Each inventory sheet uses a **Row** index column, then fixed columns, then sorte
 Markers on title hosts attribute the title’s video **main** role (same casing policy as Role Inventory main roles). Parsing, Extraction, and Projection already discover these elements; Reporting must not collapse or drop them. See GUARDRAILS Sign `title-roles-honor-attribute`.
 
 **Timeline Out / Source Out:** Report Out columns use the **last visible/included frame** (Final Cut Pro / Resolve Mark Out style). Internally Projection and FCPXML still use half-open spans (`In + Duration` = exclusive end); Reporting subtracts one frame for display. **Clip Duration** / **Source Duration** / **Duration** are unchanged. Do not expect `Out − In = Duration` in SMPTE arithmetic — use Duration as the length. Zero-length spans keep Out equal to In.
+
+**Retimed clips and source span:** A retimed clip consumes a different amount of source than it occupies on the timeline, so **Source Duration** and **Source Out** scale the clip’s own timeline duration by its speed (`RoleInventorySourceSpan.retimedMediaSeconds`, Projection-first with a `timeMap` ratio fallback). A 50 % retime occupying `00:00:08:20` reports `00:00:04:10` of source. Identity clips are untouched and keep the timeline duration. The window’s `mediaIn` / `mediaOut` are deliberately not used for this: a `timeMap` routinely covers the whole source while the clip uses one slice. **Clip Duration** and **Timeline Out** always describe the timeline. Sign `retimed-source-duration-follows-speed`.
+
+**Contained media:** For a `<clip>` / `<sync-clip>` shell, the durations reported come from the container’s visible span, not the child’s own `duration` — Final Cut Pro writes the full source length on the `<audio>` inside a trimmed clip. Projection enforces this (Sign `containers-bound-their-content-not-their-anchors`), so **Clip Duration**, **Timeline Out**, the per-role **Total**, and Summary percentages reflect timeline use.
 
 **Per-role Total footer:** Each non-empty per-role sheet ends with a blank row, then a **Total:** label under **Timeline Out** and an optimistic sum of that sheet’s **Clip Duration** values under **Clip Duration**. Both cells use the same black-background / white-text style as column headers. **Selected Roles Inventory** has no Total footer. If Timeline Out or Clip Duration is excluded, the footer is omitted. The sum is presentation-thin (`RoleInventorySheetTotal` — parses already-formatted `clipDuration` strings); it is **not** overlap-aware (Summary’s `summaryOverlapAwareDurations` stays Summary-only). Excel and PDF draw the same footer in the table content area (not the PDF running page footer).
 
@@ -342,6 +369,12 @@ Settings match Final Cut Pro inspector units. `adjust-blend amount` is a 0.0–1
 **SpeedChangeEffectsReportSection** (reuses **EffectReportRow**, including leading **Row** at export).
 
 Effect names follow Final Cut Pro’s Retime Editor **Video Quality**: `timeMap frameSampling="optical-flow"` (and classic / FRC) → **Optical Flow Retime**; `frame-blending` → **Frame Blending Retime**; omitted / `floor` → **Retime**. Settings is the speed percent (`50.0%`, `-100.0%`). Percent is not duplicated in the Effect name. Sign `speed-change-merge-extraction-when-projection-incomplete`.
+
+**One row per timeline usage.** A retimed source used several times on the timeline gets one row per use, not one row per clip name. Because a single usage can produce several projection windows (one per composed `RetimingSegment`, plus one per media channel), windows sharing clip name and resource are split into *usage runs* first: they join a run only when they overlap in timeline (parallel channels) or chain, where `mediaIn` continues the previous `mediaOut`. Timeline adjacency alone never merges, since consecutive clips are butt-cut. Row identity, the Extraction merge, and dedup are keyed on **clip name + Timeline In**. **Duplicate Frames** on Role Inventory is display-only and never filters these rows. Sign `speed-change-row-per-timeline-usage`.
+
+**Speed percent.** Percent is total media consumed ÷ total timeline occupied, summed per segment (`RetimingSegment.mediaDuration` / `timelineDuration`). Hold / freeze segments (`scale == 0`) count toward the timeline denominator and reverse segments contribute their absolute media span, so a forward-then-reverse clip does not net to zero. The result is signed negative only when every segment reverses; a single-segment usage keeps `±scale × 100`. Sign `speed-percent-is-media-over-timeline`.
+
+**Role ▸ Subrole.** This sheet is role-bearing. Roles resolve through `ReportFormatting.retimeRoleSubrole`: title hosts use `titleRoleSubrole`; otherwise the domain follows the media the host carries (`fcpCarriesVideo`) and falls back to Final Cut Pro’s implicit default — **Video** for video-bearing hosts, **Dialogue** for audio-only — exactly as Video & Audio Effects rows do. Exports routinely omit `videoRole`, so this keeps the sheet consistent with Role Inventory and keeps the rows reachable for `excludedRoles` / `--exclude-role`. Sign `retime-roles-default-like-effects`.
 
 #### Summary
 

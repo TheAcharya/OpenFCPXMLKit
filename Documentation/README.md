@@ -13,8 +13,8 @@ The manual is split into **chapters** for easier navigation and maintenance:
 | Chapter | Content |
 |--------|---------|
 | [01 — Overview](Manual/01-Overview.md) | Introduction, architecture, entry points, protocols and implementations |
-| [02 — Loading & Parsing](Manual/02-Loading-Parsing.md) | File loader, bundle support, parsing, FCPXML versions, element types |
-| [03 — Timecode & Timing](Manual/03-Timecode-Timing.md) | SwiftTimecode, FCPXMLTimecode, CMTime, conversions, frame alignment, Projection timing safety |
+| [02 — Loading & Parsing](Manual/02-Loading-Parsing.md) | File loader, bundle support, parsing, FCPXML versions, element types, large-document walks |
+| [03 — Timecode & Timing](Manual/03-Timecode-Timing.md) | SwiftTimecode, FCPXMLTimecode, CMTime, conversions, frame alignment, Projection timing safety, scoped timing cache |
 | [04 — Service & Logging](Manual/04-Service-Logging.md) | FCPXMLService, ModularUtilities, logging |
 | [05 — Validation & Cut Detection](Manual/05-Validation-CutDetection.md) | Semantic and DTD validation, cut detection API |
 | [06 — Version Conversion & Export](Manual/06-Version-Conversion-Export.md) | Version conversion, `VersionFeatureGate`, write honesty vs report reads, save as .fcpxml / .fcpxmld |
@@ -23,7 +23,7 @@ The manual is split into **chapters** for easier navigation and maintenance:
 | [09 — Timeline Manipulation](Manual/09-Timeline-Manipulation.md) | Ripple insert, auto lane, clip queries, lane range |
 | [10 — Timeline Metadata](Manual/10-Timeline-Metadata.md) | Markers, chapter markers, keywords, ratings, timestamps |
 | [11 — Extraction & Media](Manual/11-Extraction-Media.md) | Extraction scope and presets, leaf media URL resolution (`fcpMediaURL` / `fcpMediaRepresentationURLs`), media extraction and copy |
-| [12 — Timeline Projection](Manual/12-Timeline-Projection.md) | `TimelineProjector`, `MediaUsageWindow`, options, occupancy, report project-once |
+| [12 — Timeline Projection](Manual/12-Timeline-Projection.md) | `TimelineProjector`, `MediaUsageWindow`, options (incl. marker/keyword annotation knobs), occupancy, container-bounded contained media, report project-once |
 | [13 — Media Processing](Manual/13-Media-Processing.md) | MIME type, asset validation, silence detection, duration, parallel I/O |
 | [14 — Typed Models](Manual/14-Typed-Models.md) | Adjustments (incl. Corners/Panner), filters, captions/titles, keyframe animation, Live Drawing, collections |
 | [15 — XML Extensions](Manual/15-XML-Extensions.md) | OFKXMLDocument and OFKXMLElement FCPXML extensions (cross-platform) |
@@ -31,7 +31,7 @@ The manual is split into **chapters** for easier navigation and maintenance:
 | [17 — Cross-Platform & iOS](Manual/17-Cross-Platform-iOS.md) | XML abstraction layer, Foundation vs AEXML, iOS support |
 | [18 — Errors & Utilities](Manual/18-Errors-Utilities.md) | Error types, ErrorHandling, ProgressBar, FCPXMLUID |
 | [19 — CLI](Manual/19-CLI.md) | Experimental command-line interface (OpenFCPXMLKit-CLI) |
-| [20 — Reporting, Excel & PDF Export](Manual/20-Reporting.md) | Report builder, ReportOptions (`excludedRoles` on every role-bearing sheet (incl. Excel-truncated tabs), Out = last visible frame, FCP-matching Effects settings, Title Text concat, `includeScreenshotsInRoleInventory` — original-first Source In embeds, `includeSpeedChangeSettingsInRoleInventory`, `copyrightLabel`, four-row cover / `visitURL`, `protectSheets`, …), inventory Total / Duplicate Frames / optional Screenshot, Projection-first sections, Excel/PDF export |
+| [20 — Reporting, Excel & PDF Export](Manual/20-Reporting.md) | Report builder, ReportOptions (`excludedRoles` on every role-bearing sheet (incl. Excel-truncated tabs), Out = last visible frame, FCP-matching Effects settings, Title Text concat, `includeScreenshotsInRoleInventory` — original-first Source In embeds, `includeSpeedChangeSettingsInRoleInventory`, `copyrightLabel`, four-row cover / `visitURL`, `protectSheets`, Speed Change one row per usage / retimed Source Duration, …), inventory Total / Duplicate Frames / optional Screenshot, Projection-first sections, Excel/PDF export |
 | [21 — Shot Extraction](Manual/21-Shot-Extraction.md) | Primary stills → PNG + CSV / [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) Notion JSON (CSV column key order); `planShots` / `--dry-run`; reject video / titles / audio; optional `ShotExtractionTest` |
 | [22 — Examples](Manual/22-Examples.md) | End-to-end workflows and code examples |
 
@@ -45,7 +45,7 @@ The manual covers the **entire public API** with examples: core operations, asyn
 
 Architecture philosophy: [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7. Hard constraints: [GUARDRAILS.md](../GUARDRAILS.md). **Element / layer inventory:** [Coverage.md](Coverage.md) (Model · Authoring · Extraction · Projection · Reporting matrices).
 
-**Test count (keep in sync):** **1228** listed in `swift test list` — **1214** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`); **60** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
+**Test count (keep in sync):** **1241** listed in `swift test list` — **1227** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`); **60** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
 
 ---
 

@@ -4,6 +4,14 @@
 
 ---
 
+## Table of Contents
+
+- [Platform-agnostic XML layer](#platform-agnostic-xml-layer)
+- [OFKXMLDocument extension API](#ofkxmldocument-extension-api)
+- [OFKXMLElement extension API](#ofkxmlelement-extension-api)
+
+---
+
 ## Platform-agnostic XML layer
 
 FCPXML document and element APIs are defined on **protocol types** so the same code works on macOS and iOS:
@@ -69,6 +77,10 @@ try document.validateFCPXMLAgainst(version: .v1_14)
 | `fcpMediaURL(in:kind:preferAudioAngle:)` | Same unfold, one `MediaRep.Kind` only (`originalMedia` or `proxyMedia`) |
 | `fcpMediaRepresentationURLs(in:preferAudioAngle:)` | Original and proxy URLs from the **same** unfolded leaf (Role Inventory Source File Path + screenshot fallback) |
 | `fcpxAnnotations` | Annotation elements (markers, keywords, hidden-clip-marker, etc.) |
+| `fcpProjectableStoryElements` | Immediate story-element children with annotation leaves (`keyword`, `marker`, …) filtered out — use for timeline traversal |
+| `firstChildElement(named:)` | First child with that element name |
+| `firstChildElement(withID:)` | Child whose `id` attribute matches — constant-time resource lookup |
+| `backingObject` | Underlying backend object (`XMLElement` on macOS, `AEXMLElement` on iOS), or `nil` |
 | `createChild(name:attributes:using:)` | Create child (modular) |
 
 ```swift
@@ -80,7 +92,20 @@ let clips = event.eventClips
 let clipsForResource = event.eventClips(forResourceID: "r1")
 event.addToEvent(items: [clip])
 let annotations = element.fcpxAnnotations
+
+// Resolve a ref without scanning every resource
+if let ref = clip.fcpxRef,
+   let asset = fcpxml.root.resources.firstChildElement(withID: ref) {
+    _ = asset.fcpxName
+}
+
+// Walk story elements without descending into keyword / marker leaves
+for child in clip.fcpProjectableStoryElements {
+    _ = child.fcpElementType
+}
 ```
+
+`firstChildElement(withID:)` is backed by a per-element id index on both backends, so repeated `ref` resolution on a large `<resources>` list stays constant-time instead of filtering the child list each call. See [02 — Loading & Parsing](02-Loading-Parsing.md#large-documents).
 
 ---
 

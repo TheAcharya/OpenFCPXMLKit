@@ -4,6 +4,16 @@
 
 ---
 
+## Table of Contents
+
+- [File loader API](#file-loader-api)
+- [Parsing](#parsing)
+- [FCPXML version and element types](#fcpxml-version-and-element-types)
+- [Large documents](#large-documents)
+- [Basic modular operations](#basic-modular-operations)
+
+---
+
 ## File loader API
 
 **FCPXMLFileLoader** supports single `.fcpxml` files and `.fcpxmld` bundles. One code path for loading; prefer **async** for I/O.
@@ -75,6 +85,21 @@ let elementType = someElement.fcpxType  // OFKXMLElement extension
 ```
 
 Public test samples live under `Tests/FCPXML Samples/FCPXML/` (e.g. `GeneralDemo.fcpxml`). For private user exports used only locally while fixing parsing or reporting edge cases, see [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) — contents are gitignored and must never be committed to GitHub.
+
+---
+
+## Large documents
+
+Parsing and walking are tuned for real editorial exports (tens of MB, thousands of clips, keyword-dense clips). Nothing here needs to be enabled — it describes what the library already does, and the assumptions it relies on:
+
+| Behaviour | Detail |
+|-----------|--------|
+| **Time strings** | `start` / `offset` / `duration` / `tcStart` values (`N/Ds`, `Ns`) are scanned directly into a `Fraction`. No `NSRegularExpression` is used on this path — a walk reads these attributes millions of times. |
+| **Scoped timing cache** | Resolving a `conform-rate` scaling factor walks an element's ancestors and then that container's children. Read-only entry points (Extraction, Projection, report builds) install a per-walk cache so each element resolves once. The cache lives only for the duration of that walk and is never consulted by writes, so it cannot report stale geometry after a mutation. |
+| **Resource lookup** | `OFKXMLElement.firstChildElement(withID:)` / `firstChildElement(named:)` resolve a `ref` to its `<asset>` / `<format>` / `<media>` in constant time instead of filtering the whole `<resources>` list. See [15 — XML Extensions](15-XML-Extensions.md). |
+| **Annotation leaves** | `FCPXMLElementType.isLeafAnnotation` marks `keyword`, `marker`, `chapter-marker`, `analysis-marker`, and `hidden-clip-marker` as terminal, and `fcpProjectableStoryElements` filters them out of story traversal. A clip carrying thousands of keywords is no longer walked as thousands of nested containers; keyword and marker extraction still returns every child. |
+
+If you mutate a document, do so outside a read-only walk (parse → mutate → re-walk) rather than editing elements while an extraction or projection is in flight.
 
 ---
 

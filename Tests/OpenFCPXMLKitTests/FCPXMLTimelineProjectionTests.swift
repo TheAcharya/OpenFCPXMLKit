@@ -80,6 +80,117 @@ struct FCPXMLTimelineProjectionTests {
         #expect(audio.mediaOut == video.mediaOut)
     }
 
+    @Test("Container clips its contained media to its own span")
+    func project_ContainedMediaOverhangingItsClip_IsBoundToTheClipSpan() async throws {
+        // Final Cut Pro writes the whole source length on the <audio> inside a <clip>, so the
+        // child overhangs its container by minutes. Only the container's span is on the
+        // timeline, whether or not the container carries `start`.
+        let fcpxml = try parseInlineFCPXML("""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE fcpxml>
+            <fcpxml version="1.11">
+                <resources>
+                    <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080"/>
+                    <asset id="r2" name="MusicBed" start="0s" duration="258s" hasAudio="1" audioSources="1" audioChannels="4" audioRate="48000">
+                        <media-rep kind="original-media" src="file:///tmp/MusicBed.wav"/>
+                    </asset>
+                </resources>
+                <library>
+                    <event name="Event">
+                        <project name="Project">
+                            <sequence format="r1" duration="300s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
+                                <spine>
+                                    <clip lane="-1" offset="10s" name="NoStart" duration="60s" format="r1" tcFormat="NDF">
+                                        <audio ref="r2" offset="0s" duration="258s" role="music.music-1" srcCh="1"/>
+                                        <audio-channel-source srcCh="1, 2" role="music.Vocals"/>
+                                    </clip>
+                                    <clip lane="-2" offset="100s" name="WithStart" start="30s" duration="60s" format="r1" tcFormat="NDF">
+                                        <audio ref="r2" offset="0s" duration="258s" role="music.music-1" srcCh="1"/>
+                                        <audio-channel-source srcCh="1, 2" role="music.Vocals"/>
+                                    </clip>
+                                </spine>
+                            </sequence>
+                        </project>
+                    </event>
+                </library>
+            </fcpxml>
+            """)
+
+        let sources = fcpxml.allReportTimelineSources()
+        let windows = try await projector.project(
+            from: sources[0],
+            fcpxml: fcpxml,
+            options: .init()
+        )
+
+        let noStart = try #require(windows.first { $0.lanePath.components.first == -1 })
+        #expect(noStart.timelineIn.doubleValue == 10)
+        #expect(
+            noStart.timelineOut.doubleValue == 70,
+            "A container without `start` must still bound its contained audio"
+        )
+        #expect(noStart.mediaIn.doubleValue == 0)
+        #expect(noStart.mediaOut.doubleValue == 60)
+
+        // `start` shifts which source the container exposes without changing its span.
+        let withStart = try #require(windows.first { $0.lanePath.components.first == -2 })
+        #expect(withStart.timelineIn.doubleValue == 100)
+        #expect(withStart.timelineOut.doubleValue == 160)
+        #expect(withStart.mediaIn.doubleValue == 30)
+        #expect(withStart.mediaOut.doubleValue == 90)
+    }
+
+    @Test("Connected clips keep their own extent past their host")
+    func project_ConnectedClipOverhangingItsHost_KeepsItsOwnExtent() async throws {
+        // A lane-bearing child is a connected clip, not container content: attaching a long
+        // music bed to a short clip must not truncate the bed.
+        let fcpxml = try parseInlineFCPXML("""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE fcpxml>
+            <fcpxml version="1.11">
+                <resources>
+                    <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080"/>
+                    <asset id="r2" name="Shot" start="0s" duration="600s" hasVideo="1" videoSources="1">
+                        <media-rep kind="original-media" src="file:///tmp/Shot.mov"/>
+                    </asset>
+                    <asset id="r3" name="MusicBed" start="0s" duration="600s" hasAudio="1" audioSources="1" audioChannels="2" audioRate="48000">
+                        <media-rep kind="original-media" src="file:///tmp/MusicBed.wav"/>
+                    </asset>
+                </resources>
+                <library>
+                    <event name="Event">
+                        <project name="Project">
+                            <sequence format="r1" duration="300s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
+                                <spine>
+                                    <clip offset="0s" name="ShortHost" duration="20s" format="r1" tcFormat="NDF">
+                                        <video ref="r2" offset="0s" duration="20s"/>
+                                        <asset-clip ref="r3" lane="-1" offset="0s" name="LongBed" start="0s" duration="200s" audioRole="music.music-1"/>
+                                    </clip>
+                                </spine>
+                            </sequence>
+                        </project>
+                    </event>
+                </library>
+            </fcpxml>
+            """)
+
+        let sources = fcpxml.allReportTimelineSources()
+        let windows = try await projector.project(
+            from: sources[0],
+            fcpxml: fcpxml,
+            options: .init()
+        )
+
+        let bed = try #require(windows.first { $0.clipDisplayName == "LongBed" })
+        #expect(
+            bed.timelineOut.doubleValue == 200,
+            "Connected clips are anchored, not contained, so the host must not clip them"
+        )
+
+        let contained = try #require(windows.first { $0.channel.resourceID == "r2" })
+        #expect(contained.timelineOut.doubleValue == 20)
+    }
+
     @Test("Disabled asset-clip omitted when includeDisabled is false")
     func project_DisabledAssetClip_OmittedWhenIncludeDisabledFalse() async throws {
         let fcpxml = try parseInlineFCPXML("""
