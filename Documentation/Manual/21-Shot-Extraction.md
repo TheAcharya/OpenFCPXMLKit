@@ -11,6 +11,7 @@ Still-image **Shot Extraction** builds a shot dataset from the **primary timelin
 - [Requirements](#requirements)
 - [Library API](#library-api)
 - [Manifest formats](#manifest-formats)
+  - [Notion JSON (`--extract-format notion`)](#notion-json---extract-format-notion)
 - [CLI](#cli)
 - [Implementation notes](#implementation-notes)
 

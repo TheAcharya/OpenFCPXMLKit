@@ -8,6 +8,17 @@
 
 - [Overview](#overview)
 - [Commands and options](#commands-and-options)
+  - [GENERAL](#general)
+  - [SHOT EXTRACTION](#shot-extraction)
+  - [REPORT](#report)
+    - [Role exclusion matching](#role-exclusion-matching)
+    - [Markers outside clip boundaries](#markers-outside-clip-boundaries)
+    - [Excel sheet protection](#excel-sheet-protection)
+    - [Disabled clip exclusion](#disabled-clip-exclusion)
+    - [Column exclusion matching](#column-exclusion-matching)
+    - [Timecode display format](#timecode-display-format)
+  - [TIMELINE](#timeline)
+  - [LOG](#log)
 - [Examples](#examples)
 - [Full CLI reference](#full-cli-reference)
 

@@ -9,20 +9,42 @@
 - [Overview](#overview)
 - [Quick start](#quick-start)
 - [ReportOptions](#reportoptions)
+  - [Section include flags](#section-include-flags)
+  - [Other configuration](#other-configuration)
+  - [Presets](#presets)
 - [Timecode display format](#timecode-display-format)
 - [Report structure](#report-structure)
-  - [Role inventory](#role-inventory)
-  - [Speed Change Effects](#speed-change-effects)
-  - [Summary](#summary)
-  - [Media Summary](#media-summary)
+  - [Sheet obligation contracts](#sheet-obligation-contracts)
+  - [Projection migration checklist (Markers / Keywords / Titles / Transitions)](#projection-migration-checklist-markers--keywords--titles--transitions)
+  - [Sections and columns](#sections-and-columns)
+    - [Role inventory](#role-inventory)
+    - [Role Inventory screenshots](#role-inventory-screenshots)
+    - [Markers](#markers)
+    - [Keywords](#keywords)
+    - [Titles & Generators](#titles--generators)
+    - [Transitions](#transitions)
+    - [Non-Std Effects & Templates](#non-std-effects--templates)
+    - [Video & Audio Effects](#video--audio-effects)
+    - [Speed Change Effects](#speed-change-effects)
+    - [Summary](#summary)
+    - [Media Summary](#media-summary)
 - [Media resolution policy](#media-resolution-policy)
 - [Excluding disabled clips](#excluding-disabled-clips)
 - [Column exclusion](#column-exclusion)
+  - [ReportColumn cases](#reportcolumn-cases)
+  - [Accepted aliases](#accepted-aliases)
 - [Role display preference](#role-display-preference)
 - [Progress callbacks](#progress-callbacks)
+  - [Product / workbook order](#product--workbook-order)
 - [Excel export](#excel-export)
+  - [Sheet order and formatting](#sheet-order-and-formatting)
+  - [Cover sheet](#cover-sheet)
+  - [Sheet protection (Excel only)](#sheet-protection-excel-only)
 - [PDF export](#pdf-export)
+  - [Layout and presentation](#layout-and-presentation)
+  - [Configuration reflected in PDF](#configuration-reflected-in-pdf)
 - [From the CLI](#from-the-cli)
+- [Investigating private / complex FCPXML](#investigating-private--complex-fcpxml)
 
 ---
 
@@ -248,6 +270,10 @@ These contracts define what a “near-zero miss” report must not omit when the
 Each inventory sheet uses a **Row** index column, then fixed columns, then sorted dynamic metadata keys discovered across all inventory rows. Reel, Scene, Take, Camera Name, **Codecs**, and **Ingest Date** metadata keys that already have dedicated columns are not duplicated in the dynamic metadata block.
 
 **Nested / occluded connected hosts:** Role Inventory does not fold a negative-lane connected host into its parent when the host has an **own role assignment**. Own assignment = active `audio-channel-source` roles, `asset-clip` `audioRole` / `videoRole`, or first-generation `audio` / `video` children with an explicit `role` (`fcpHasStandaloneConnectedInventoryAssignment()`). The same helper gates both nested-host escape (`fcpIsNestedConnectedInventoryHost`) and fully-occluded retention (`retainsFullyOccludedHostForRoleInventory`). Hosts with **no** own assignment may still fold into the parent (for example Nested SFX under a sync-clip). Channel sources still override clip-level `audioRole` when present. Projection windows for these clips were already correct — this is inventory-selection policy in Parsing + `RoleInventoryClipCollector`, not a Projection change. See GUARDRAILS Sign `connected-role-inventory-survives-nesting`.
+
+**Secondary storyline / connected clips keep their own roles:** A clip on a nested `<spine>` (secondary storyline) or a connected (`lane != 0`) story clip does **not** inherit the parent storyline clip’s video or audio roles (`_fcpInheritedRoles` / `_fcpRoleInheritanceContributingElements`). Unassigned children use Final Cut Pro defaults (**Video**). Markers and keywords on a clip still inherit that clip’s roles. See [02 — Loading & Parsing](02-Loading-Parsing.md#inherited-roles) and GUARDRAILS Sign `secondary-storyline-clips-keep-own-roles`.
+
+**Unfolded multicam interiors:** Role Inventory lists the timeline `mc-clip` host once. Angle clips walked out of that host into its `multicam` / `mc-angle` resource are omitted (`ReportClipCategory.isUnfoldedMulticamInterior`); their local starts are multicam-timeline, not project timeline. Extraction may still use `mcClipAngles = .all` for discovery — this is a kept-row filter, not a shallower walk. Same sign.
 
 **Under-spine connected titles / video / generators:** Final Cut Pro commonly places audio under the primary storyline (`lane < 0`), but titles, generators, and other video may also connect there. Role Inventory includes:
 

@@ -12,6 +12,15 @@ We appreciate your input! If you'd like to contribute, whether by:
 
 pull requests are the best way to do so.
 
+## Table of Contents
+
+- [Using GitHub's Tools](#using-githubs-tools)
+- [GitHub Flow](#github-flow)
+- [Software Licence](#software-licence)
+- [Licence](#licence)
+
+---
+
 ## Using GitHub's Tools
 
 We use GitHub to host the code and accept pull requests.

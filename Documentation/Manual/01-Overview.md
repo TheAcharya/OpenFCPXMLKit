@@ -4,6 +4,17 @@
 
 ---
 
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Main entry points](#main-entry-points)
+- [Protocols and default implementations](#protocols-and-default-implementations)
+- [Logging](#logging)
+- [Extensions and high-level model](#extensions-and-high-level-model)
+- [Single injection point for extensions](#single-injection-point-for-extensions)
+
+---
+
 ## Introduction
 
 OpenFCPXMLKit provides a comprehensive API for parsing, creating, and manipulating FCPXML files with advanced timecode operations, async/await patterns, and robust error handling. The framework is **protocol-oriented**: you inject parsers, timecode converters, document managers, and error handlers to configure a service that fits your app. All major operations are available both **synchronously** and **asynchronously**.

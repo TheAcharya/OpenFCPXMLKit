@@ -4,6 +4,17 @@
 
 ---
 
+## Table of Contents
+
+- [Validation API](#validation-api)
+  - [Semantic validation (FCPXMLValidator)](#semantic-validation-fcpxmlvalidator)
+  - [DTD validation (FCPXMLDTDValidator)](#dtd-validation-fcpxmldtdvalidator)
+  - [Structural validation (FCPXMLStructuralValidator, cross-platform)](#structural-validation-fcpxmlstructuralvalidator-cross-platform)
+  - [Per-version validation via FCPXMLService](#per-version-validation-via-fcpxmlservice)
+- [Cut detection API](#cut-detection-api)
+
+---
+
 ## Validation API
 
 ### Semantic validation (FCPXMLValidator)

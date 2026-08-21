@@ -63,6 +63,44 @@ struct FCPXMLRoleInheritanceMatrixTests {
         #expect(hasDialogue)
     }
 
+    @Test("Nested secondary storyline clip inherited roles omit the host video role")
+    func nestedSecondaryStorylineClipInheritedRolesOmitHostVideoRole() async throws {
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.11">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080"/>
+                <asset id="r2" name="Host" uid="A1" start="0s" duration="10s" hasVideo="1" format="r1" videoSources="1"/>
+                <asset id="r3" name="Child" uid="A2" start="0s" duration="10s" hasVideo="1" format="r1" videoSources="1"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="5s" tcStart="0s" tcFormat="NDF">
+                            <spine>
+                                <clip offset="0s" name="Host" duration="5s" format="r1">
+                                    <video ref="r2" offset="0s" duration="5s" role="Archival.YT Ripped - Unlicensed"/>
+                                    <spine lane="1" offset="0s" format="r1">
+                                        <clip offset="0s" name="Child" duration="2s" format="r1">
+                                            <video ref="r3" offset="0s" duration="2s"/>
+                                        </clip>
+                                    </spine>
+                                </clip>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
+        let entries = await Collector.collectEntries(from: timeline, scope: .init())
+        let child = try #require(entries.first { $0.extracted.displayClipName() == "Child" })
+        #expect(!child.roleSubroleField.localizedCaseInsensitiveContains("YT Ripped"))
+        #expect(child.roleSubroleField == "Video")
+    }
+
     @Test("MC-clip inherited audio when sources lack role sources")
     func mcClipInheritedAudioWhenSourcesLackRoleSources() async throws {
         let fcpxml = try parseInlineFCPXML(mcClipInheritedAudio)

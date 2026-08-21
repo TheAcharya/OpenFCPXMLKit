@@ -745,6 +745,10 @@ extension FinalCutPro.FCPXML {
                 if ReportClipCategory.isInteriorLaneZeroConnectedMulticamDuplicate(extracted) {
                     return false
                 }
+
+                if ReportClipCategory.isUnfoldedMulticamInterior(extracted) {
+                    return false
+                }
                 
                 if extracted.value(forContext: .effectiveOcclusion) == .fullyOccluded {
                     return retainsFullyOccludedHostForRoleInventory(extracted)

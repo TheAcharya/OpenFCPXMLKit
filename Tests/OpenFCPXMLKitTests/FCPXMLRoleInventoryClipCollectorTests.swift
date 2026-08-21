@@ -1517,5 +1517,113 @@ struct FCPXMLRoleInventoryClipCollectorTests {
         )
         #expect(under.contains { $0.category == .connectedGenerator })
     }
+
+    @Test("Secondary storyline clips do not inherit the host clip video role")
+    func secondaryStorylineClipsDoNotInheritHostClipVideoRole() async throws {
+        let fcpxml = try parseInlineFCPXML(secondaryStorylineHostRoleFixture)
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
+
+        let entries = await Collector.collectEntries(from: timeline, scope: .init())
+        let summary = entries.map {
+            "\($0.extracted.displayClipName()) | \($0.category.workbookExportLabel) | \($0.roleSubroleField)"
+        }.joined(separator: "; ")
+
+        let archival = entries.filter {
+            $0.roleSubroleField.localizedCaseInsensitiveContains("YT Ripped")
+        }
+        #expect(
+            archival.count == 1,
+            "YT Ripped must stay on the host clip only. Rows: \(summary)"
+        )
+        #expect(archival.first?.extracted.displayClipName() == "KISS band honored")
+        #expect(archival.first?.category == .primaryVideo)
+
+        let stock = entries.filter {
+            $0.extracted.displayClipName() == "skyline" && $0.category.isVideoCategory
+        }
+        let stockRow = try #require(stock.first, "Missing skyline row. Rows: \(summary)")
+        #expect(stockRow.roleSubroleField.localizedCaseInsensitiveContains("Pond5"))
+        #expect(!stockRow.roleSubroleField.localizedCaseInsensitiveContains("YT Ripped"))
+
+        let production = entries.filter {
+            $0.extracted.displayClipName() == "B068_B022" && $0.category.isVideoCategory
+        }
+        let productionRow = try #require(production.first, "Missing B068_B022 row. Rows: \(summary)")
+        #expect(!productionRow.roleSubroleField.localizedCaseInsensitiveContains("YT Ripped"))
+        #expect(productionRow.roleSubroleField == "Video")
+    }
+
+    @Test("Role inventory does not list unfolded multicam angle interiors")
+    func roleInventoryDoesNotListUnfoldedMulticamAngleInteriors() async throws {
+        let fcpxml = try parseInlineFCPXML(secondaryStorylineHostRoleFixture)
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
+
+        let entries = await Collector.collectEntries(from: timeline, scope: .init())
+        let summary = entries.map { $0.extracted.displayClipName() }.joined(separator: ", ")
+        let interiorNames = Set(entries.map { $0.extracted.displayClipName() })
+
+        #expect(!interiorNames.contains("A166_A001"), "Unfolded interiors: \(summary)")
+        #expect(!interiorNames.contains("A166_A002"), "Unfolded interiors: \(summary)")
+
+        let multicamHosts = entries.filter {
+            $0.extracted.displayClipName().localizedCaseInsensitiveContains("multicam")
+                || $0.extracted.displayClipName().localizedCaseInsensitiveContains("CAM A")
+        }
+        #expect(
+            !multicamHosts.isEmpty,
+            "Expected the timeline mc-clip host. Rows: \(summary)"
+        )
+        #expect(
+            multicamHosts.allSatisfy { !$0.roleSubroleField.localizedCaseInsensitiveContains("YT Ripped") }
+        )
+    }
+
+    private var secondaryStorylineHostRoleFixture: String {
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.11">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080"/>
+                <asset id="r2" name="Archival" uid="A1" start="0s" duration="10s" hasVideo="1" hasAudio="1" format="r1" videoSources="1" audioSources="1"/>
+                <asset id="r3" name="Stock" uid="A2" start="0s" duration="10s" hasVideo="1" format="r1" videoSources="1"/>
+                <asset id="r4" name="Prod" uid="A3" start="0s" duration="10s" hasVideo="1" format="r1" videoSources="1"/>
+                <asset id="r5" name="AngleA" uid="A4" start="0s" duration="60s" hasVideo="1" hasAudio="1" format="r1" videoSources="1" audioSources="1"/>
+                <media id="r6" name="MC" uid="M1">
+                    <multicam format="r1" tcStart="0s" tcFormat="NDF">
+                        <mc-angle name="CAM A" angleID="a1">
+                            <asset-clip ref="r5" offset="0s" name="A166_A001" duration="10s"/>
+                            <asset-clip ref="r5" offset="10s" name="A166_A002" duration="10s"/>
+                        </mc-angle>
+                    </multicam>
+                </media>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="10s" tcStart="0s" tcFormat="NDF">
+                            <spine>
+                                <clip offset="0s" name="KISS band honored" duration="10s" format="r1">
+                                    <video ref="r2" offset="0s" duration="10s" role="Archival.YT Ripped - Unlicensed"/>
+                                    <spine lane="1" offset="0s" format="r1">
+                                        <clip offset="0s" name="skyline" duration="2s" format="r1">
+                                            <video ref="r3" offset="0s" duration="2s" role="Stock.Pond5 - WATERMARKED"/>
+                                        </clip>
+                                        <clip offset="2s" name="B068_B022" duration="2s" format="r1" tcFormat="NDF">
+                                            <video ref="r4" offset="0s" duration="2s"/>
+                                        </clip>
+                                        <mc-clip ref="r6" offset="4s" name="NYC Takeover multicam" start="0s" duration="3s">
+                                            <mc-source angleID="a1" srcEnable="video"/>
+                                        </mc-clip>
+                                    </spine>
+                                </clip>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """
+    }
 }
 

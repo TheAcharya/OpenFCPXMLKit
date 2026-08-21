@@ -2,6 +2,17 @@
 
 This directory contains FCPXML DTD (Document Type Definition) files for versions 1.5 through 1.14, providing comprehensive support for Final Cut Pro XML workflows.
 
+## Table of Contents
+
+- [Supported Versions](#supported-versions)
+- [Usage](#usage)
+- [Version History](#version-history)
+- [File Naming Convention](#file-naming-convention)
+- [Integration](#integration)
+- [Current Status](#current-status)
+
+---
+
 ## Supported Versions
 
 OpenFCPXMLKit supports the following FCPXML versions:

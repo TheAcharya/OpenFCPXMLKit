@@ -7,6 +7,7 @@
 ## Table of Contents
 
 - [Element extraction (presets and scope)](#element-extraction-presets-and-scope)
+- [Inherited roles](#inherited-roles)
 - [Media URL resolution (Parsing)](#media-url-resolution-parsing)
 - [Media extraction and copy](#media-extraction-and-copy)
 
@@ -47,6 +48,14 @@ let markersResult = await element.extract(
     scope: scope
 )
 ```
+
+---
+
+## Inherited roles
+
+**RolesExtractionPreset** and Extraction context resolve inherited roles through Parsing (`AncestorRoles` / `_fcpInheritedRoles`). Nested secondary-storyline `<spine>` children and connected (`lane != 0`) story clips keep their **own** roles; they do not inherit the parent clip host. Unassigned children default to **Video**. Markers and keywords still inherit from their clip.
+
+Role Inventory may still walk `mcClipAngles = .all` for discovery; unfolded `mc-angle` / `multicam` interiors are dropped later as inventory rows (`ReportClipCategory.isUnfoldedMulticamInterior`) because their local times are multicam-timeline, not project timeline. See [02 — Loading & Parsing](02-Loading-Parsing.md#inherited-roles), [20 — Reporting](20-Reporting.md#role-inventory), and Sign `secondary-storyline-clips-keep-own-roles`.
 
 ---
 

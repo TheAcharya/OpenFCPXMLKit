@@ -4,6 +4,16 @@
 
 ---
 
+## Table of Contents
+
+- [Creating a service](#creating-a-service)
+- [FCPXMLService](#fcpxmlservice)
+- [Logging](#logging)
+- [Error handling with modular components](#error-handling-with-modular-components)
+- [Async and concurrent operations](#async-and-concurrent-operations)
+
+---
+
 ## Creating a service
 
 **ModularUtilities** provides factory methods for default or custom OpenFCPXMLKit services:

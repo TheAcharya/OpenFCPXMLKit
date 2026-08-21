@@ -4,6 +4,17 @@
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [What you use in code](#what-you-use-in-code)
+- [DTD validation on iOS](#dtd-validation-on-ios)
+- [Package and dependencies](#package-and-dependencies)
+- [Testing](#testing)
+- [Backward compatibility](#backward-compatibility)
+
+---
+
 ## Overview
 
 OpenFCPXMLKit supports **macOS 26+** and **iOS 26+**. On macOS, the framework uses Foundation’s DOM XML API (`XMLDocument`, `XMLElement`). Those types are **not available on iOS** (Apple ships only the SAX-based `XMLParser` there). To support both platforms, OpenFCPXMLKit uses a **protocol-based XML abstraction layer**: all document and element access goes through protocol types, with platform-specific backends.
@@ -51,7 +62,7 @@ let version = root?.stringValue(forAttributeNamed: "version")
 
 ## Testing
 
-- The suite uses **Swift Testing** exclusively (`@Suite` / `@Test` / `#expect` / `#require`). **1241** tests are listed in `swift test list` (**1227** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest`). See [Tests/README.md](../../Tests/README.md).
+- The suite uses **Swift Testing** exclusively (`@Suite` / `@Test` / `#expect` / `#require`). **1244** tests are listed in `swift test list` (**1230** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest`). See [Tests/README.md](../../Tests/README.md).
 - Tests run on **macOS** and exercise the Foundation XML backend. Optional fixtures cancel via `Test.cancel` when unset (ExcelReportTest Sample, `OFK_REPORTING_FCPXML_BUNDLE`, ShotExtractionTest Sample, `OFK_SHOT_EXTRACTION_FCPXML`, Submitted inbox).
 - Public fixtures: `Tests/FCPXML Samples/FCPXML/` (committed). Private investigation: [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) (`Inbox/` gitignored — never commit private FCPXML to GitHub).
 - **iOS** is supported for building the library (e.g. iOS Simulator); running the same tests on iOS is not required for CI because they depend on Foundation XML. AEXML parity and structural validation are covered by tests that run on macOS.
