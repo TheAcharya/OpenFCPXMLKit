@@ -9,6 +9,7 @@
 - [File loader API](#file-loader-api)
 - [Parsing](#parsing)
 - [FCPXML version and element types](#fcpxml-version-and-element-types)
+- [Inherited roles](#inherited-roles)
 - [Large documents](#large-documents)
 - [Basic modular operations](#basic-modular-operations)
 
@@ -88,6 +89,19 @@ Public test samples live under `Tests/FCPXML Samples/FCPXML/` (e.g. `GeneralDemo
 
 ---
 
+## Inherited roles
+
+Role facts live in Parsing (`FinalCutPro.FCPXML.AncestorRoles`, `_fcpInheritedRoles`). Extraction and Role Inventory consume those facts; they must not re-walk ancestors in Reporting.
+
+- A nested secondary-storyline `<spine>` (`lane` and/or `offset`) stops the ancestor walk (`_fcpRoleInheritanceContributingElements`). Children inside that spine do **not** inherit the parent storyline clip’s video or audio roles.
+- Connected (`lane != 0`) story clips similarly isolate from their parent clip host.
+- Unassigned children use Final Cut Pro defaults (**Video**), not the host’s assigned role.
+- Markers and keywords still inherit from the clip they attach to.
+
+See GUARDRAILS Sign `secondary-storyline-clips-keep-own-roles`, [11 — Extraction & Media](11-Extraction-Media.md), and [20 — Reporting, Excel & PDF Export](20-Reporting.md#role-inventory).
+
+---
+
 ## Large documents
 
 Parsing and walking are tuned for real editorial exports (tens of MB, thousands of clips, keyword-dense clips). Nothing here needs to be enabled — it describes what the library already does, and the assumptions it relies on:
@@ -126,3 +140,5 @@ document.addSequence(sequence, using: documentManager)
 ## Next
 
 - [03 — Timecode & Timing](03-Timecode-Timing.md) — SwiftTimecode, FCPXMLTimecode, CMTime, conversions.
+- [11 — Extraction & Media](11-Extraction-Media.md) — inherited roles consumed by presets.
+- [20 — Reporting, Excel & PDF Export](20-Reporting.md) — Role Inventory uses Parsing role facts.

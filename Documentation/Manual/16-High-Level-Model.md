@@ -4,6 +4,12 @@
 
 ---
 
+## Table of Contents
+
+- [FinalCutPro.FCPXML](#finalcutprofcpxml)
+
+---
+
 ## FinalCutPro.FCPXML
 
 For quick inspection and high-level access without walking the XML tree, use **FinalCutPro.FCPXML**. It wraps the document and exposes a **Root** and version, plus convenience accessors.
@@ -36,6 +42,8 @@ let version = fcpxml.version
 Bridging with **FCPXMLVersion** (DTD/validation): use `.fcpxmlVersion` and `.dtdVersion` and `init(from:)` converters where provided.
 
 For building Excel or PDF reports from either a project or a standalone compound clip, see [20 — Reporting, Excel & PDF Export](20-Reporting.md).
+
+**Roles:** `FinalCutPro.FCPXML.AncestorRoles` describes interpolated inherited roles for an element. Nested secondary-storyline `<spine>` children and connected (`lane != 0`) clips isolate from the parent clip host — see [02 — Loading & Parsing](02-Loading-Parsing.md#inherited-roles).
 
 ---
 

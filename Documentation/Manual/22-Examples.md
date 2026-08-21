@@ -4,6 +4,25 @@
 
 ---
 
+## Table of Contents
+
+- [Open an FCPXML file](#open-an-fcpxml-file)
+- [List event names](#list-event-names)
+- [Create and add events](#create-and-add-events)
+- [Work with clips](#work-with-clips)
+- [Display clip duration](#display-clip-duration)
+- [Save FCPXML file](#save-fcpxml-file)
+- [Create an empty project from the CLI](#create-an-empty-project-from-the-cli)
+- [Create an empty project with custom format (dimensions and frame rate)](#create-an-empty-project-with-custom-format-dimensions-and-frame-rate)
+- [Complete timeline workflow](#complete-timeline-workflow)
+- [Validate assets before export](#validate-assets-before-export)
+- [Build a report (Excel and PDF)](#build-a-report-excel-and-pdf)
+- [Author a simple project (detached Authoring)](#author-a-simple-project-detached-authoring)
+- [Project a timeline (MediaUsageWindow)](#project-a-timeline-mediausagewindow)
+- [Extract still-image shots (Shot Extraction)](#extract-still-image-shots-shot-extraction)
+
+---
+
 ## Open an FCPXML file
 
 Prefer the cross-platform loader / OFKXML document APIs (see [15 — XML Extensions](15-XML-Extensions.md) and [17 — Cross-Platform & iOS](17-Cross-Platform-iOS.md)). On macOS, Foundation `XMLDocument(contentsOfFCPXML:)` remains available as a convenience.

@@ -163,8 +163,14 @@ struct FCPXMLMediaURLResolutionTests {
         
         let names = Set(withSource.map(\.sourceFileName))
         #expect(names.contains("Day2_InterviewOwners_02_A.mov"))
-        // Audio-component rows prefer the active audio angle leaf.
+        // Host audio-component rows prefer the active audio angle leaf. Unfolded
+        // `mc-angle` interiors must not appear as their own inventory rows.
         #expect(names.contains("4CH001I.wav"))
+        let clipNames = Set(rows.map(\.clipName))
+        #expect(!clipNames.contains("4CH001I"))
+        #expect(!clipNames.contains("Day2_InterviewOwners_02_A"))
+        let wavRows = rows.filter { $0.sourceFileName == "4CH001I.wav" }
+        #expect(wavRows.contains { $0.clipName.localizedCaseInsensitiveContains("Chocolate") })
     }
     
     @Test("Role Inventory Source File Name populated for SyncClip")

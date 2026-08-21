@@ -4,6 +4,17 @@
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Version availability & feature gate](#version-availability--feature-gate)
+- [Document entry points](#document-entry-points)
+- [Resources](#resources)
+- [Spine items](#spine-items)
+- [Related chapters](#related-chapters)
+
+---
+
 ## Overview
 
 **`FinalCutPro.FCPXML.Authoring`** is a **detached** (non-live) document value graph for building and round-tripping FCPXML without wrapping live XML nodes.

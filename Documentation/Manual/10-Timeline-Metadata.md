@@ -4,6 +4,16 @@
 
 ---
 
+## Table of Contents
+
+- [Timestamps](#timestamps)
+- [Markers and chapter markers](#markers-and-chapter-markers)
+- [Keywords and ratings](#keywords-and-ratings)
+- [Custom metadata](#custom-metadata)
+- [Clip metadata](#clip-metadata)
+
+---
+
 ## Timestamps
 
 Timeline and clips track **createdAt** and **modifiedAt**. Mutating operations update **modifiedAt**:

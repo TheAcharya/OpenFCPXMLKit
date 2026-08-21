@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1241** tests listed in `swift test list` — **1227** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1244** tests listed in `swift test list` — **1230** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -207,7 +207,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1241** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1244** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -233,6 +233,12 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Instruction:** Never fold a negative-lane connected host into its parent when it has an **own role assignment**. Own assignment = active `audio-channel-source` roles, `asset-clip` `audioRole` / `videoRole`, or first-generation `audio`/`video` children with an explicit `role`. Apply the same rule in **both** `fcpIsNestedConnectedInventoryHost` and `retainsFullyOccludedHostForRoleInventory` via `fcpHasStandaloneConnectedInventoryAssignment()`. Hosts with **no** own assignment may still fold into the parent (Nested SFX under sync-clip). Channel sources still override clip-level `audioRole` when present.
 - **Reason:** Audio Only_01 (2026-07-23) dropped Water Lake 3 Effects because only channel-source remaps escaped nesting; `audioRole`-only connected clips were wrongly excluded. Occlusion retention had the same gap.
 - **Provenance:** 2026-07-23 — Audio Only_01 Effects-under-Music regression.
+
+### Sign: secondary-storyline-clips-keep-own-roles
+- **Trigger:** Role Inventory lists connected / secondary-storyline clips (or unfolded multicam angle interiors) under a parent clip’s video role (for example Archival ▸ YT Ripped) even though those children have no such assignment.
+- **Instruction:** Do **not** inherit a host clip’s roles across a nested `<spine>` (secondary storyline, `lane` and/or `offset`) or onto connected (`lane != 0`) story clips. `_fcpInheritedRoles` must stop at that boundary (`_fcpRoleInheritanceContributingElements`). Unrole’d storyline children use FCP defaults (**Video**), not the parent’s assigned role. Role Inventory must not emit unfolded `multicam` / `mc-angle` interiors as their own rows (`ReportClipCategory.isUnfoldedMulticamInterior`); the timeline `mc-clip` is the host. Host audio-component rows still resolve Source File Name / clip name from the active audio angle (`usesAudioAngleClipName` / `preferAudioAngle`) — do not depend on unfolded interiors for that media. Markers/keywords on a clip still inherit that clip’s roles.
+- **Reason:** A primary-storyline clip with `role="Archival.YT Ripped - Unlicensed"` on its `<video>` was leaking that role onto every clip in a connected secondary storyline, and `mcClipAngles = .all` listed every angle interior with local multicam timecodes. Final Cut Pro treats those storyline clips as independent; a selected-roles workbook lists only clips that actually carry the selected role.
+- **Provenance:** 2026-08-21 — user Role Inventory vs selected-roles workbook (nested spine + multicam interiors).
 
 ### Sign: title-text-same-line-runs-concatenate
 - **Trigger:** Titles & Generators **Title Text** / Font, or `Title.concatenatedDisplayText`.
@@ -346,7 +352,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Trigger:** Caching anything derived from an element's attributes — especially `conform-rate` scaling, absolute start, or duration — to speed up a large-document walk.
 - **Instruction:** Install the cache for the duration of one read-only traversal with `FinalCutPro.FCPXML.withTimingCache(_:)` / `withTimingCacheSync(_:)` and let it fall out of scope. Never make it a global or a stored property on a long-lived service, and never consult it from a write path (`_fcpSet(fraction:forAttribute:scaled:)`). Key entries on `ObjectIdentifier` **and** retain the element, so an address freed mid-walk cannot be recycled into a false hit. A cached "no scaling applies" is a real answer — store the optional, do not treat `nil` as a miss.
 - **Reason:** Every read of `start` / `offset` / `duration` / `tcStart` resolves a conform-rate factor by walking ancestors and then that container's children, which a large timeline repeats millions of times; memoising it turned an apparent hang into a few seconds. The same cache surviving a mutation would silently report stale geometry, and an un-retained `ObjectIdentifier` key would alias a different element.
-- **Provenance:** 2026-08-21 — 28 MB FCPXML stalled at **Projecting Timeline** / **Loading Roles**.
+- **Provenance:** 2026-08-21 — FCPXML files larger than 25 MB stalled at **Projecting Timeline** / **Loading Roles**.
 
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.

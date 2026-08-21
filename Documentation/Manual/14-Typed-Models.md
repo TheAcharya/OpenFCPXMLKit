@@ -4,6 +4,20 @@
 
 ---
 
+## Table of Contents
+
+- [Adjustment models](#adjustment-models)
+- [Effect and filter models](#effect-and-filter-models)
+- [Caption and title models](#caption-and-title-models)
+- [Keyframe animation](#keyframe-animation)
+- [Live Drawing (FCPXML 1.11+)](#live-drawing-fcpxml-111)
+- [Hidden clip marker (FCPXML 1.13+)](#hidden-clip-marker-fcpxml-113)
+- [Format and Asset (1.13+)](#format-and-asset-113)
+- [Smart collection match rules](#smart-collection-match-rules)
+- [Collection folders and keyword collections](#collection-folders-and-keyword-collections)
+
+---
+
 The codebase provides **typed FCPXML element models** under **FinalCutPro.FCPXML** (e.g. Clip, Asset, Format, Caption, Title) and in **Model/** (Adjustments, Filters, Structure, etc.). They conform to **FCPXMLElement** and integrate with **FCPXMLAnyTimeline** and element-type filtering. This chapter summarizes the main groups and gives short examples.
 
 ---

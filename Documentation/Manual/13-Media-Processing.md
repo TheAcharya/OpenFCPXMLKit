@@ -4,6 +4,16 @@
 
 ---
 
+## Table of Contents
+
+- [MIME type detection](#mime-type-detection)
+- [Asset validation](#asset-validation)
+- [Silence detection](#silence-detection)
+- [Asset duration measurement](#asset-duration-measurement)
+- [Parallel file I/O](#parallel-file-io)
+
+---
+
 ## MIME type detection
 
 **MIMETypeDetection** / **MIMETypeDetector** use UTType and AVFoundation (with file-extension fallback). Sync and async:

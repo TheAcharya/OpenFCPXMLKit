@@ -7,6 +7,24 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.3.11](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.11) - 2026-08-22
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Suite:** **1244** listed (`swift test list` — **1230** + **10** + **4**), including expanded `FCPXMLRoleInventoryClipCollectorTests` and `FCPXMLRoleInheritanceMatrixTests` (secondary-storyline host-role isolation; unfolded multicam interiors omitted from Role Inventory).
+- **Documentation sync:** Manual 02 / 11 / 12 / 16 / 20 / 00-Index, Coverage, Tests READMEs, README, ARCHITECTURE (Parsing roles + mermaid), AGENT, `.cursorrules`, and GUARDRAILS (Sign `secondary-storyline-clips-keep-own-roles`).
+
+### 🐛 Bug Fixes
+
+- **Secondary storyline inherited parent roles:** Connected clips inside a nested `<spine>` no longer inherit the parent storyline clip’s video role. Only clips that actually carry that role (or FCP’s default **Video** when unassigned) appear on that role’s sheet. Sign `secondary-storyline-clips-keep-own-roles`.
+- **Unfolded multicam interiors on Role Inventory:** Angle clips inside a timeline `mc-clip` are no longer listed as their own inventory rows with intra-multicam timecodes; the `mc-clip` host remains the inventoried clip. Host audio-component rows still use the active audio angle for Source File Name (`preferAudioAngle`). Sign `secondary-storyline-clips-keep-own-roles`.
+
+---
+
 ## [3.3.10](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.10) - 2026-08-21
 
 ### ✨ New Features
@@ -17,7 +35,7 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 - **Large-project reporting performance:** Reports on very large FCPXML (tens of MB, thousands of clips) no longer stall during **Loading Roles** / **Projecting Timeline**. FCPXML time strings (`N/Ds`, `Ns`) parse without `NSRegularExpression`; `conform-rate` scaling resolution is memoised per element for the duration of a read-only walk (`FinalCutPro.FCPXML.withTimingCache(_:)`); resource lookups by `id` are O(1) via `OFKXMLElement.firstChildElement(withID:)` / `firstChildElement(named:)`; and Projection and Extraction skip dense annotation leaves through `FCPXMLElementType.isLeafAnnotation` and `fcpProjectableStoryElements`.
 - **Host annotations follow enabled sheets:** Projection already had `includeMarkerAnnotations` / `includeKeywordAnnotations`. Report builds now pass the existing `includeMarkers` / `includeKeywords` (CLI `--report-markers` / `--report-keywords`) into `TimelineProjectionOptions.forReport(...)`, so a Role-Inventory-only export does not collect thousands of host keywords. No new flag.
-- **Memory headroom on 8 GB machines:** Workbook writing moves to XLKit **1.1.8** (streaming worksheet XML, interned cell formats), PDF export streams pages instead of buffering the whole document, and Projection / PDF hot loops drain temporaries with `autoreleasepool`. Full Excel + PDF exports of a 28 MB FCPXML now complete without the process being killed.
+- **Memory headroom on 8 GB machines:** Workbook writing moves to XLKit **1.1.8** (streaming worksheet XML, interned cell formats), PDF export streams pages instead of buffering the whole document, and Projection / PDF hot loops drain temporaries with `autoreleasepool`. Full Excel + PDF exports of FCPXML files larger than 25 MB now complete without the process being killed.
 - **Suite:** **1241** listed (`swift test list` — **1227** + **10** + **4**), including the new `FCPXMLLeafAnnotationWalkTests` (annotation-leaf skipping, dense-keyword hang budget, id lookup) plus expanded `FCPXMLSpeedChangeEffectsReportTests` and `FCPXMLTimelineProjectionTests`.
 - **Documentation sync:** Manual 02 / 03 / 11–12 / 19–20 / 00-Index / Coverage, Tests READMEs, README, ARCHITECTURE (Parsing timing cache + TimeStringParsing, Projection annotation options + container `contentBound`, Reporting `RoleInventorySourceSpan`, Mermaid), AGENT, `.cursorrules`, and GUARDRAILS (Signs `speed-change-row-per-timeline-usage`, `speed-percent-is-media-over-timeline`, `retimed-source-duration-follows-speed`, `retime-roles-default-like-effects`, `containers-bound-their-content-not-their-anchors`, `timing-cache-is-read-only-scoped`).
 

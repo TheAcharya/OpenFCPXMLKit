@@ -179,7 +179,7 @@ Projection is the hot path on big exports, so it avoids re-deriving facts it alr
 - Turn off `includeMarkerAnnotations` / `includeKeywordAnnotations` when the consumer does not read them.
 - Use the streaming overload (`project(from:fcpxml:options:) { window in … }`) when you only need to fold windows into a result; it avoids holding the full array.
 
-A 28 MB FCPXML with a few thousand clips projects in seconds on an 8 GB machine; if a projection appears to hang, check for a mutation happening mid-walk before assuming a geometry problem.
+FCPXML files larger than 25 MB (thousands of clips) project in seconds on an 8 GB machine; full Excel + PDF exports of those files complete without the process being killed. If a projection appears to hang, check for a mutation happening mid-walk before assuming a geometry problem.
 
 ---
 
@@ -194,6 +194,8 @@ When Role Inventory, Markers, Keywords, Titles & Generators, Transitions, Effect
 Markers / Keywords / Titles / Transitions / Effects are **Projection-first**. Extraction fallback runs when annotations are absent **or** when Projection annotations filter to zero report rows (e.g. formatting failure). Inventory / Speed Change / Media Summary / Summary overlay or prefer window geometry.
 
 Role Inventory host inclusion for nested / fully occluded connected clips (own `audioRole` / `videoRole` / channel-source / first-gen child `role`) is Reporting + Parsing policy — see [20 — Reporting](20-Reporting.md#role-inventory). Projection occupancy for those clips was already correct.
+
+**Secondary storyline roles and unfolded multicam interiors** are also inventory / Parsing policy, not Projection geometry. Nested `<spine>` children and connected (`lane != 0`) clips do not inherit the parent clip’s roles. Report projection may still use `mcClipAngles = .all`; Role Inventory then omits unfolded `mc-angle` interiors and keeps the timeline `mc-clip` host (audio-component Source File Name still comes from the active audio angle). Sign `secondary-storyline-clips-keep-own-roles`.
 
 ```swift
 var options = FinalCutPro.FCPXML.ReportOptions.full

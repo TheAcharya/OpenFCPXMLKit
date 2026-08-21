@@ -4,6 +4,14 @@
 
 ---
 
+## Table of Contents
+
+- [Error types](#error-types)
+- [Progress bar (CLI / terminal)](#progress-bar-cli--terminal)
+- [FCPXML-style UIDs](#fcpxml-style-uids)
+
+---
+
 ## Error types
 
 OpenFCPXMLKit uses explicit, typed errors. All conform to **LocalizedError** where applicable.

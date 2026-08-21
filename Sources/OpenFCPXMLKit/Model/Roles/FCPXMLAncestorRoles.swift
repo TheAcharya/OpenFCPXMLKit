@@ -106,7 +106,65 @@ extension FinalCutPro.FCPXML.AncestorRoles {
 
 // MARK: - FCPXML Parsing
 
+extension FinalCutPro.FCPXML {
+    /// Story elements that keep their own roles instead of inheriting a parent clip's.
+    ///
+    /// Markers and keywords are omitted: they inherit from the clip they are attached to.
+    static let roleIsolatingStoryElementTypes: Set<ElementType> = [
+        .assetClip, .clip, .refClip, .syncClip, .mcClip, .liveDrawing,
+        .title, .video, .audio, .caption
+    ]
+
+    /// Clip hosts whose roles must not leak into connected / secondary-storyline children.
+    static let roleIsolatingClipHostTypes: Set<ElementType> = [
+        .assetClip, .clip, .refClip, .syncClip, .mcClip, .liveDrawing
+    ]
+}
+
 extension OFKXMLElement {
+    /// `true` when this element is a nested secondary-storyline `<spine>` (`lane` and/or `offset`).
+    ///
+    /// The primary sequence spine has neither attribute.
+    func fcpIsSecondaryStorylineSpine() -> Bool {
+        guard fcpElementType == .spine else { return false }
+        return fcpLane != nil || fcpOffset != nil
+    }
+
+    /// Ancestors that may donate roles to this element, nearest-first including `self`.
+    ///
+    /// Stops at a secondary-storyline `<spine>` so the host clip above that spine cannot leak
+    /// its video/audio roles into storyline children (Sign `secondary-storyline-clips-keep-own-roles`).
+    /// Connected (`lane != 0`) story clips similarly do not inherit from their parent clip host.
+    func _fcpRoleInheritanceContributingElements(
+        ancestors: [any OFKXMLElement]
+    ) -> [any OFKXMLElement] {
+        let chain = [self] + ancestors
+        let selfIsolatesFromParentClip: Bool = {
+            guard let type = fcpElementType,
+                  FinalCutPro.FCPXML.roleIsolatingStoryElementTypes.contains(type)
+            else { return false }
+            return (fcpLane ?? 0) != 0
+        }()
+
+        var contributing: [any OFKXMLElement] = []
+        for (index, element) in chain.enumerated() {
+            if index > 0 {
+                if element.fcpIsSecondaryStorylineSpine() {
+                    contributing.append(element)
+                    break
+                }
+                if selfIsolatesFromParentClip,
+                   let type = element.fcpElementType,
+                   FinalCutPro.FCPXML.roleIsolatingClipHostTypes.contains(type)
+                {
+                    break
+                }
+            }
+            contributing.append(element)
+        }
+        return contributing
+    }
+
     /// FCPXML: Analyzes an element and its ancestors and returns typed information about their roles.
     ///
     /// Ancestors are ordered nearest to furthest.
@@ -119,7 +177,8 @@ extension OFKXMLElement {
         var ancestorRoles = FinalCutPro.FCPXML.AncestorRoles()
         
         // reversed to get ordering of furthest ancestor to closest
-        let elements = ([self] + ancestors).reversed()
+        let elements = _fcpRoleInheritanceContributingElements(ancestors: ancestors)
+            .reversed()
         
         // print(elements.map(\.name!))
         

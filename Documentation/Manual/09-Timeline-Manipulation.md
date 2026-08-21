@@ -4,6 +4,14 @@
 
 ---
 
+## Table of Contents
+
+- [Ripple insert](#ripple-insert)
+- [Auto lane assignment](#auto-lane-assignment)
+- [Clip queries](#clip-queries)
+
+---
+
 ## Ripple insert
 
 Insert a clip and shift subsequent clips forward. Use **insertingClipWithRipple** (returns new timeline + result) or **insertClipWithRipple** (mutating).

@@ -4,6 +4,15 @@
 
 ---
 
+## Table of Contents
+
+- [Timeline and TimelineClip](#timeline-and-timelineclip)
+- [Export assets](#export-assets)
+- [Export to FCPXML string](#export-to-fcpxml-string)
+- [Export to .fcpxmld bundle](#export-to-fcpxmld-bundle)
+
+---
+
 ## Timeline and TimelineClip
 
 Build a **Timeline** with **TimelineClip** instances and an optional **TimelineFormat**:
