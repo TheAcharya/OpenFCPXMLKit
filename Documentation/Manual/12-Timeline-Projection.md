@@ -195,7 +195,7 @@ Markers / Keywords / Titles / Transitions / Effects are **Projection-first**. Ex
 
 Role Inventory host inclusion for nested / fully occluded connected clips (own `audioRole` / `videoRole` / channel-source / first-gen child `role`) is Reporting + Parsing policy — see [20 — Reporting](20-Reporting.md#role-inventory). Projection occupancy for those clips was already correct.
 
-**Secondary storyline roles and unfolded multicam interiors** are also inventory / Parsing policy, not Projection geometry. Nested `<spine>` children and connected (`lane != 0`) clips do not inherit the parent clip’s roles. Report projection may still use `mcClipAngles = .all`; Role Inventory then omits unfolded `mc-angle` interiors and keeps the timeline `mc-clip` host. Sign `secondary-storyline-clips-keep-own-roles`.
+**Secondary storyline roles and unfolded multicam interiors** are also inventory / Parsing policy, not Projection geometry. Nested `<spine>` children and connected (`lane != 0`) clips do not inherit the parent clip’s roles. Report projection may still use `mcClipAngles = .all`; Role Inventory then omits unfolded `mc-angle` interiors and keeps the timeline `mc-clip` host (audio-component Source File Name still comes from the active audio angle). Sign `secondary-storyline-clips-keep-own-roles`.
 
 ```swift
 var options = FinalCutPro.FCPXML.ReportOptions.full

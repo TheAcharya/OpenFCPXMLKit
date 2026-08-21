@@ -21,7 +21,7 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 ### 🐛 Bug Fixes
 
 - **Secondary storyline inherited parent roles:** Connected clips inside a nested `<spine>` no longer inherit the parent storyline clip’s video role. Only clips that actually carry that role (or FCP’s default **Video** when unassigned) appear on that role’s sheet. Sign `secondary-storyline-clips-keep-own-roles`.
-- **Unfolded multicam interiors on Role Inventory:** Angle clips inside a timeline `mc-clip` are no longer listed as their own inventory rows with intra-multicam timecodes; the `mc-clip` host remains one row. Sign `secondary-storyline-clips-keep-own-roles`.
+- **Unfolded multicam interiors on Role Inventory:** Angle clips inside a timeline `mc-clip` are no longer listed as their own inventory rows with intra-multicam timecodes; the `mc-clip` host remains the inventoried clip. Host audio-component rows still use the active audio angle for Source File Name (`preferAudioAngle`). Sign `secondary-storyline-clips-keep-own-roles`.
 
 ---
 

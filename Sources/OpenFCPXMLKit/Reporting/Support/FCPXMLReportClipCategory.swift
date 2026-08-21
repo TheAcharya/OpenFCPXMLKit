@@ -245,9 +245,9 @@ extension FinalCutPro.FCPXML {
 
         /// Story elements walked out of an `mc-clip` into its `multicam` / `mc-angle` resource.
         ///
-        /// Role Inventory lists the timeline ``MCClip`` host once. Unfolded angle clips must not
-        /// appear as their own rows (their local starts are multicam-timeline, not project
-        /// timeline). Sign `secondary-storyline-clips-keep-own-roles`.
+        /// Role Inventory lists the timeline ``MCClip`` host (video and audio components).
+        /// Unfolded angle clips must not appear as their own rows (their local starts are
+        /// multicam-timeline, not project timeline). Sign `secondary-storyline-clips-keep-own-roles`.
         static func isUnfoldedMulticamInterior(_ extracted: ExtractedElement) -> Bool {
             guard extracted.element.fcpElementType != .mcClip else { return false }
             return extracted.breadcrumbs.contains { ancestor in

@@ -342,17 +342,20 @@ extension FinalCutPro.FCPXML {
                         element: element,
                         roleDisplayPreference: roleDisplayPreference
                     )
-                    if !roleField.isEmpty {
-                        appendRow(
-                            to: &rows,
-                            from: extracted,
-                            category: category,
-                            durationSeconds: durationSeconds,
-                            roleDisplayPreference: roleDisplayPreference,
-                            explicitRoleSubroleField: roleField,
-                            usesAudioAngleClipName: true
-                        )
-                    }
+                    // Always emit the host audio-component row when the mc-clip carries
+                    // audio. Unfolded angle interiors are omitted from inventory; this
+                    // row is what resolves Source File Name via `preferAudioAngle`.
+                    // Channel groups / angle `audioRole` populate the field; otherwise
+                    // FCP's default audio role is Dialogue.
+                    appendRow(
+                        to: &rows,
+                        from: extracted,
+                        category: category,
+                        durationSeconds: durationSeconds,
+                        roleDisplayPreference: roleDisplayPreference,
+                        explicitRoleSubroleField: roleField.isEmpty ? "Dialogue" : roleField,
+                        usesAudioAngleClipName: true
+                    )
                 } else if usesSyncSourceRoles {
                     let placement = ReportClipCategory.placement(for: extracted)
                     let syncedRoleField = placement == .primary
@@ -956,6 +959,11 @@ extension FinalCutPro.FCPXML {
             includingDescendantsOf element: any OFKXMLElement
         ) -> [FinalCutPro.FCPXML.AudioRole] {
             var roles: [FinalCutPro.FCPXML.AudioRole] = []
+            
+            // Angle leaves are typically `<asset-clip audioRole="…">`, not nested `<audio>`.
+            if let clipAudioRole = element.fcpAudioRole {
+                roles.append(clipAudioRole)
+            }
             
             if let audio = element.fcpAsAudio,
                let role = audio.role

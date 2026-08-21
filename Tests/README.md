@@ -280,7 +280,7 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 **Media & extraction**
 
 - **FCPXMLMediaExtractionTests** — extractMediaReferences, copyReferencedMedia (sync/async); extract-then-copy flow (CLI --media-copy). MediaExtractor, MediaExtractionResult, MediaCopyResult.
-- **FCPXMLMediaURLResolutionTests** — Leaf media URLs for non-flattened hosts (`fcpMediaURL`, `fcpMediaURL(kind:)`, `fcpMediaRepresentationURLs`): multicam video/audio angles, sync-clip, standalone ref-clip, title-only compound empty; original/proxy split on the same leaf; Role Inventory Source File Name for MulticamSample / SyncClip / CompoundClipSample.
+- **FCPXMLMediaURLResolutionTests** — Leaf media URLs for non-flattened hosts (`fcpMediaURL`, `fcpMediaURL(kind:)`, `fcpMediaRepresentationURLs`): multicam video/audio angles, sync-clip, standalone ref-clip, title-only compound empty; original/proxy split on the same leaf; Role Inventory Source File Name for MulticamSample (host audio-component uses the active audio angle; interiors omitted) / SyncClip / CompoundClipSample.
 - **FCPXMLShotExtractionTests** — still-image Shot Extraction (**10** `@Test`; `extractShots` / `planShots`): reused stills → distinct Shot IDs / PNGs; CSV + Notion JSON (csv2notion-neo shape; **keys in CSV column order**; Shot ID array order); **Icon Image** / `icon`; folder formats; rejects primary-spine video, titles/generators, and audio; dry-run writes nothing. Optional end-to-end: **`ShotExtractionTest`**. See Manual [21 — Shot Extraction](../Documentation/Manual/21-Shot-Extraction.md).
 
 **Timeline & manipulation**
