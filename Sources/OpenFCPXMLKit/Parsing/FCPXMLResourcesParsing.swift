@@ -35,8 +35,7 @@ extension OFKXMLElement {
         in resources: (any OFKXMLElement)? = nil
     ) -> (any OFKXMLElement)? {
         (resources ?? fcpRootResources)?
-            .childElements
-            .first(whereAttribute: "id", hasValue: resourceID)
+            .firstChildElement(withID: resourceID)
     }
     
     /// FCPXML: Returns the resource element referenced by the current element.

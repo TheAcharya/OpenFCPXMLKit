@@ -4,6 +4,15 @@
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Commands and options](#commands-and-options)
+- [Examples](#examples)
+- [Full CLI reference](#full-cli-reference)
+
+---
+
 ## Overview
 
 The package includes an experimental command-line tool **OpenFCPXMLKit-CLI**. It is a **single binary**: FCPXML DTDs (1.5–1.14) are embedded, so you can copy the executable and run it without a resource bundle.
@@ -81,6 +90,8 @@ Build an Excel (`.xlsx`) report workbook from FCPXML/FCPXMLD, with optional PDF 
 | **--timecode-format &lt;format&gt;** | Timeline time display format for report cells in Excel and PDF (with `--report`). Values: `HH:MM:SS:FF` (default; SMPTE with frames, `;` before frames for drop-frame), `Frames`, `Feet+Frames`, `HH:MM:SS`. |
 
 When `--report` is used without `--report-full` or section flags, the CLI exports role inventory only. Use `--report-full` for every optional sheet, or set individual `--report-*` section flags for a partial export (role inventory is always included). `--report-full` takes precedence when combined with section flags.
+
+Large editorial exports (tens of MB, thousands of clips) complete `--report` / `--create-pdf` without stalling at **Loading Roles** or **Projecting Timeline**. Keyword-dense clips are not walked as nested containers; host marker/keyword annotations are collected only when those sheets are enabled. See [02 — Loading & Parsing](02-Loading-Parsing.md#large-documents) and [12 — Timeline Projection](12-Timeline-Projection.md#large-timelines).
 
 Build progress follows **product / workbook order** (Selected Roles Inventory first, then Markers … Non-Std Effects & Templates … Media Summary). See [20 — Reporting](20-Reporting.md#progress-callbacks).
 

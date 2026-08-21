@@ -113,7 +113,15 @@ extension OFKXMLElement {
     public func firstChild<Model>(
         whereFCPElement modelType: FinalCutPro.FCPXML.ElementModelType<Model>
     ) -> Model? {
-        childElements
+        if Model.supportedElementTypes.count == 1,
+           let name = Model.supportedElementTypes.first?.rawValue
+        {
+            // Named lookup avoids wrapping every sibling. Do not fall through to
+            // `childElements` when the tag is absent — clips can have thousands of
+            // keyword children, and a nil conform-rate must stay O(matching tags).
+            return firstChildElement(named: name).flatMap { Model(element: $0) }
+        }
+        return childElements
             .first(whereFCPElement: modelType)
     }
 
@@ -125,9 +133,7 @@ extension OFKXMLElement {
         whereFCPElement modelType: FinalCutPro.FCPXML.ElementModelType<Model>,
         defaultChild: @autoclosure () -> Model
     ) -> Model {
-        if let existingChild = childElements
-            .first(whereFCPElement: modelType)
-        {
+        if let existingChild = firstChild(whereFCPElement: modelType) {
             return existingChild
         } else {
             let dc = defaultChild()

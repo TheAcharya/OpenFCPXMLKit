@@ -814,6 +814,39 @@ extension FinalCutPro.FCPXML {
             return "Titles"
         }
         
+        /// Role ▸ Subrole for a retimed clip.
+        ///
+        /// Retiming belongs to the clip rather than to one filter, so the role follows whichever
+        /// media the clip carries: video clips report their video role, audio-only clips their
+        /// audio role. Hosts that omit the attribute fall back to Final Cut Pro's implicit
+        /// default the same way Video & Audio Effects rows do, because a clip with no
+        /// `videoRole` still sits on `Video` in the inventory
+        /// (Sign `retime-roles-default-like-effects`).
+        static func retimeRoleSubrole(
+            for extracted: some FCPXMLExtractedElement,
+            roleDisplayPreference: RoleDisplayPreference = .builtIn
+        ) -> String {
+            if extracted.element.fcpElementType == .title {
+                return titleRoleSubrole(
+                    for: extracted,
+                    roleDisplayPreference: roleDisplayPreference
+                )
+            }
+            
+            let carriesVideo = extracted.element.fcpCarriesVideo(
+                resources: extracted.resources
+            )
+            
+            if let preferred = extracted.preferredRole(
+                for: carriesVideo ? .videoEffects : .audioEffects,
+                using: roleDisplayPreference
+            ) {
+                return mainRoleDisplay(from: preferred.collapsingSubRole())
+            }
+            
+            return carriesVideo ? "Video" : "Dialogue"
+        }
+        
         /// Role ▸ Subrole for Video & Audio Effects rows.
         ///
         /// Title hosts use the full inventory-style Role ▸ Subrole (same as Titles & Generators)

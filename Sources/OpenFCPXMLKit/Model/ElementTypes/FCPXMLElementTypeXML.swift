@@ -109,7 +109,7 @@ extension OFKXMLElement {
     public func firstChildElement(
         whereFCPElementType elementType: FinalCutPro.FCPXML.ElementType
     ) -> (any OFKXMLElement)? {
-        childElements.first(whereFCPElementType: elementType)
+        firstChildElement(named: elementType.rawValue)
     }
 
     /// FCPXML: Returns the first child element of the given element type.
@@ -120,9 +120,7 @@ extension OFKXMLElement {
         whereFCPElementType elementType: FinalCutPro.FCPXML.ElementType,
         defaultChild: @autoclosure () -> any OFKXMLElement
     ) -> any OFKXMLElement {
-        if let existingChild = childElements
-            .first(whereFCPElementType: elementType)
-        {
+        if let existingChild = firstChildElement(named: elementType.rawValue) {
             return existingChild
         } else {
             let dc = defaultChild()
@@ -139,9 +137,7 @@ extension OFKXMLElement {
         whereFCPElementType elementType: FinalCutPro.FCPXML.ElementType,
         using factory: any OFKXMLFactory
     ) -> any OFKXMLElement {
-        if let existingChild = childElements
-            .first(whereFCPElementType: elementType)
-        {
+        if let existingChild = firstChildElement(named: elementType.rawValue) {
             return existingChild
         } else {
             let defaultChild = factory.makeElement(name: elementType.rawValue)

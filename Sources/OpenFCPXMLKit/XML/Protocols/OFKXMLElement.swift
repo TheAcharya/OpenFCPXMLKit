@@ -144,6 +144,11 @@ public protocol OFKXMLElement: OFKXMLNode {
     /// Equivalent to swift-extensions `XMLElement.firstChildElement(named:)`.
     func firstChildElement(named name: String) -> (any OFKXMLElement)?
 
+    /// Returns the first immediate child whose `id` attribute matches.
+    ///
+    /// Backends may index children by `id` (invalidated on mutation). Default is a linear scan.
+    func firstChildElement(withID id: String) -> (any OFKXMLElement)?
+
     /// Returns the first immediate child element containing an attribute with the given name.
     ///
     /// Equivalent to swift-extensions `XMLElement.firstChildElement(withAttribute:)`.
@@ -173,6 +178,18 @@ public protocol OFKXMLElement: OFKXMLNode {
     ///
     /// Equivalent to swift-extensions `XMLElement.ancestorElements(includingSelf:)`.
     func ancestorElements(includingSelf: Bool) -> [any OFKXMLElement]
+
+    // MARK: - Identity
+
+    /// The backing element object, for backends that wrap a reference type.
+    ///
+    /// Wrapper instances are created on demand (for example, every `parent` access returns a new
+    /// wrapper), so wrapper identity is not stable. This exposes the identity of the underlying
+    /// element instead, which lets read-only walks memoise derived values per element.
+    ///
+    /// Returns `nil` when a backend has no stable object identity, which simply disables such
+    /// caching for that backend.
+    var backingObject: AnyObject? { get }
 }
 
 // MARK: - Default Implementations
@@ -270,6 +287,11 @@ extension OFKXMLElement {
         childElements.first { $0.name == name }
     }
 
+    /// Default: linear scan of `childElements` for `id`.
+    public func firstChildElement(withID id: String) -> (any OFKXMLElement)? {
+        childElements.first(whereAttribute: "id", hasValue: id)
+    }
+
     /// Default: finds first child element with the given attribute.
     public func firstChildElement(
         withAttribute attributeName: String
@@ -316,6 +338,11 @@ extension OFKXMLElement {
             removeChild(at: index)
         }
     }
+
+    // MARK: Identity Default
+
+    /// Default: no stable backing identity, which disables per-element caching.
+    public var backingObject: AnyObject? { nil }
 
     // MARK: Ancestor Traversal Default
 

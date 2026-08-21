@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1228** tests listed in `swift test list` — **1214** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1241** tests listed in `swift test list` — **1227** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -97,6 +97,8 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 | **Sendable honesty** | Foundation XML, OFKXML wrappers, and SwiftTimecode types are **not** Sendable. Provide async/await, but **do not** introduce Task-based concurrency over those types. |
 | **Strict concurrency** | Code must build under Swift 6 `-strict-concurrency=complete` (CI enforces this). Prefer removing `@unchecked Sendable` over spreading it. |
 | **SwiftTimecode API** | Use `Timecode(.realTime(seconds:), at:)` and `.fps23_976`, `.fps24`, … — not legacy `._24` / `realTime: at:` initialisers. |
+| **No regex in walk hot paths** | Time strings (`N/Ds`, `Ns`), attribute reads, and story-element walks run millions of times on large documents. Parse them with direct scanning — never `NSRegularExpression` — and look resources up by `id` through `OFKXMLElement.firstChildElement(withID:)` rather than filtering children. |
+| **Scoped memoisation only** | Derived timing values (`conform-rate` scaling) may be cached **only** inside a read-only walk via `FinalCutPro.FCPXML.withTimingCache(_:)`. No global caches; writes never consult a cache (Sign `timing-cache-is-read-only-scoped`). |
 
 ---
 
@@ -205,7 +207,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1228** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1241** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -252,9 +254,39 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 
 ### Sign: speed-change-merge-extraction-when-projection-incomplete
 - **Trigger:** Speed Change Effects sheet missing optical-flow / wrapper `timeMap` rows that Extraction finds.
-- **Instruction:** When Projection yields any speed rows, still **merge** Extraction rows whose `clipName` is absent from Projection (do not treat non-empty Projection as exclusive). Skip nested leaf `timeMap` rows when an ancestor already has `timeMap` (`hasRetimedAncestorClipHost`) to avoid duplicates. Prefer Projection display when both agree. Effect is **Optical Flow Retime** when `timeMap frameSampling` is optical-flow / classic / FRC; **Frame Blending Retime** for `frame-blending`; otherwise **Retime**. Settings is the speed percent only.
+- **Instruction:** When Projection yields any speed rows, still **merge** Extraction rows whose **`clipName` + `timelineIn`** is absent from Projection (do not treat non-empty Projection as exclusive, and never key the merge on `clipName` alone — see `speed-change-row-per-timeline-usage`). Skip nested leaf `timeMap` rows when an ancestor already has `timeMap` (`hasRetimedAncestorClipHost`) to avoid duplicates. Prefer Projection display when both agree. Effect is **Optical Flow Retime** when `timeMap frameSampling` is optical-flow / classic / FRC; **Frame Blending Retime** for `frame-blending`; otherwise **Retime**. Settings is the speed percent only.
 - **Reason:** Projection-first discarded Extraction entirely once any projected rows existed (Sample: ~37 projected vs ~59 extractable; optical-flow spine `<clip>` wrappers omitted). Default Effect `Retime 50.0%` hid Optical Flow Video Quality that FCP shows in the Retime Editor.
 - **Provenance:** 2026-08-14 — Sample.fcpxmld Speed Change / optical-flow merge.
+
+### Sign: speed-change-row-per-timeline-usage
+- **Trigger:** Speed Change Effects row count lower than the retimed clip count in Final Cut Pro, especially when one source is used several times.
+- **Instruction:** Emit **one row per timeline usage**, not per clip name. A usage may span several projected windows (one per composed `RetimingSegment`, plus one per media channel), so windows sharing `clipName` + `resourceID` must be split into usage runs before a row is built: windows belong to the same run only when they **overlap in timeline** (parallel channels) or **chain**, where `mediaIn` continues the previous `mediaOut` within ~1 ms. Timeline adjacency alone must never merge, because consecutive clips are butt-cut. Never key row identity, merge dedup, or the Extraction lookup on `clipName` alone; match the Extraction row whose absolute start is nearest the run so per-usage speed, Role ▸ Subrole, and timecodes stay correct.
+- **Reason:** Grouping projected windows by `"clipName|resourceID"` collapsed every reuse of one source into a single row carrying one blended speed and the first usage's timecodes, and the `clipName`-only merge key then discarded the Extraction rows that would have restored them (24.fcpxml: 5 retimed clips → 2 rows; 29.97.fcpxml: 2 → 1; user report: 59 retimed clips → 48 rows). Duplicate Frames is display-only and never filters rows — do not look for the cause there.
+- **Provenance:** 2026-08-21 — Speed Change missing retimed clips for repeated sources.
+
+### Sign: speed-percent-is-media-over-timeline
+- **Trigger:** Speed Change **Settings** percent, and the Role Inventory **Speed Change Settings** column.
+- **Instruction:** Percent is **total media consumed ÷ total timeline occupied**, summed per segment via `RetimingSegment.mediaDuration` / `timelineDuration`. Never divide a media span by `scale` to infer timeline, and never guard segments on `scale > 0`: that drops reverse (negative `scale`) and hold / freeze (`scale == 0`) segments from the denominator and overstates the speed. Never mix a **net** media span (`last.mediaEnd − first.mediaStart`) with per-segment absolute spans — a forward-then-reverse clip nets to zero. Sign the result negative only when **every** segment reverses. A single-segment usage keeps `±scale × 100`.
+- **Reason:** Aggregating across merged usages reported one blended figure per clip name — `24.fcpxml` showed `70.4%` for retimes that are 227.4% / 180.7% / 233.5%, and `100.6%` for 206.7% / 195.8%, which reads as "no speed change". Verified against exact rational `Δvalue / Δtime` from the XML: `timept value` is source media time, `timept time` is the clip's retimed local timeline, and clip `start` / `duration` index the `time` axis.
+- **Provenance:** 2026-08-21 — Speed Change incorrect speed values on constant-speed clips.
+
+### Sign: retimed-source-duration-follows-speed
+- **Trigger:** Role Inventory **Source Duration** / **Source Out** on a retimed clip.
+- **Instruction:** A retimed clip consumes a different amount of source than it occupies on the timeline, so scale the clip's **own timeline duration** by its speed (`SpeedChangeFormatting.averageScale`, Projection-first with a `timeMap` ratio fallback) and derive Source Out from Source In plus that span. Return `nil` for identity clips so unretimed rows keep the timeline duration untouched. Never read the span from `MediaUsageWindow.mediaIn` / `mediaOut`: a `timeMap` routinely covers the whole source while the clip uses one slice, so those bounds describe the map, not the clip, and reporting them yields absurd values (`24.fcpxml`: `00:06:55:18` for a 28-second clip).
+- **Reason:** Source Duration was hardcoded to the timeline `clipDuration`, so a 50% clip of `00:00:08:20` reported `00:00:08:20` of source instead of `00:00:04:10`, and Source Out marked a range twice the media actually used. `RetimingSegment.scale` is authoritative for speed; a segment's `mediaDuration` can disagree with it because media bounds may span the whole map.
+- **Provenance:** 2026-08-21 — Role Inventory source duration ignored retiming.
+
+### Sign: containers-bound-their-content-not-their-anchors
+- **Trigger:** Projection windows for media nested inside a `<clip>` / `<sync-clip>` / `<gap>`, and every duration derived from them (Role Inventory **Clip Duration** / **Timeline Out** / **Source Duration**, per-role **Total**, Summary).
+- **Instruction:** When descending into a container, compose an identity `RetimingSegment` over the container's own span (`absoluteStart` + `fcpDuration`) into `parentRetimings` for children that carry **no** `lane`. Children with a `lane` are connected clips, not content, and keep their own extent. Never trust a contained child's `duration`: Final Cut Pro writes the full source length on the `<audio>` inside a trimmed `<clip>`, so the child routinely overhangs its container by minutes. This mirrors `_fcpEffectiveOcclusion`, where the immediate parent always clips the element — keep Projection and Extraction agreeing on the visible span.
+- **Reason:** Three `start`-less `<clip>` music beds reported their whole source instead of their timeline use (`00:04:18:17` for a `00:01:02:20` clip), which also inflated Timeline Out, the per-role Total, and every Summary percentage. Containers that *do* carry `start` were wrong too — the child window landed at `absoluteStart − start`, so it merely failed the inventory's window match and fell back to Extraction, hiding the defect.
+- **Provenance:** 2026-08-21 — audio clip duration read the entire source.
+
+### Sign: retime-roles-default-like-effects
+- **Trigger:** Speed Change Effects **Role ▸ Subrole**.
+- **Instruction:** Resolve a retime's role from the host clip with `ReportFormatting.retimeRoleSubrole`: title hosts use `titleRoleSubrole`; otherwise pick the domain from `fcpCarriesVideo` and fall back to Final Cut Pro's implicit default (`Video` for video-bearing hosts, `Dialogue` for audio-only), exactly as Video & Audio Effects rows do. Never resolve it with `markerRoleSubrole`: marker preference returns `nil` for hosts that omit `videoRole`, and the sheet **is** role-bearing, so a blank there also makes the row unreachable for `excludedRoles` / `--exclude-role` (Sign `excluded-roles-apply-to-all-sheets`). A retime belongs to the clip rather than to one filter, so the domain follows the media the clip carries, not the effect kind.
+- **Reason:** Exports routinely omit `videoRole`, and the inventory still files those clips under `Video`. 42 of 48 Speed Change rows shipped blank on a real VFX project whose Video sheet showed `Video` for every one of them.
+- **Provenance:** 2026-08-21 — Speed Change Effects missing roles.
 
 ### Sign: empty-enabled-report-sheets-keep-status
 - **Trigger:** Exporting Excel/PDF when an enabled section has zero data rows.
@@ -309,6 +341,12 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Instruction:** Report Out columns via `ReportFormatting.outTimecodeString(fromExclusiveEnd:)` — last included/visible frame (FCP / Resolve Mark Out). Keep Projection / FCPXML spans half-open (`In + Duration` = exclusive end). Do not change Duration / Clip Duration / Source Duration. Zero-length spans keep Out = In. Do not assume `Out − In = Duration` in SMPTE arithmetic.
 - **Reason:** Exclusive-end Out matched FCPXML math but not editor Mark Out language; recipients of Production Data / OpenFCPXMLKit reports expect last visible frame.
 - **Provenance:** 2026-08-20 — product lock for report Out display.
+
+### Sign: timing-cache-is-read-only-scoped
+- **Trigger:** Caching anything derived from an element's attributes — especially `conform-rate` scaling, absolute start, or duration — to speed up a large-document walk.
+- **Instruction:** Install the cache for the duration of one read-only traversal with `FinalCutPro.FCPXML.withTimingCache(_:)` / `withTimingCacheSync(_:)` and let it fall out of scope. Never make it a global or a stored property on a long-lived service, and never consult it from a write path (`_fcpSet(fraction:forAttribute:scaled:)`). Key entries on `ObjectIdentifier` **and** retain the element, so an address freed mid-walk cannot be recycled into a false hit. A cached "no scaling applies" is a real answer — store the optional, do not treat `nil` as a miss.
+- **Reason:** Every read of `start` / `offset` / `duration` / `tcStart` resolves a conform-rate factor by walking ancestors and then that container's children, which a large timeline repeats millions of times; memoising it turned an apparent hang into a few seconds. The same cache surviving a mutation would silently report stale geometry, and an un-retained `ObjectIdentifier` key would alias a different element.
+- **Provenance:** 2026-08-21 — 28 MB FCPXML stalled at **Projecting Timeline** / **Loading Roles**.
 
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.

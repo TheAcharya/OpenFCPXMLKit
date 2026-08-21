@@ -36,7 +36,7 @@ extension FinalCutPro.FCPXML {
 
             // Local anchors / nested story children on the mc-clip itself.
             try SpineProjection.projectStoryElements(
-                element.fcpStoryElements,
+                element.fcpProjectableStoryElements,
                 resources: resources,
                 ancestors: ancestors,
                 parentRetimings: parentRetimings,
@@ -138,7 +138,7 @@ extension FinalCutPro.FCPXML {
             depth: Int
         ) throws {
             try SpineProjection.projectStoryElements(
-                angle.element.fcpStoryElements,
+                angle.element.fcpProjectableStoryElements,
                 resources: resources,
                 ancestors: ancestors,
                 parentRetimings: parentRetimings,

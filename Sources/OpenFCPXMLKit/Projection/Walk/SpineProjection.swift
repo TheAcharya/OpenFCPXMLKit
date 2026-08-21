@@ -28,26 +28,68 @@ extension FinalCutPro.FCPXML {
             channelFilter: ChannelKindFilter = .all,
             options: TimelineProjectionOptions,
             onWindow: (MediaUsageWindow) throws -> Void,
-            depth: Int = 0
+            depth: Int = 0,
+            contentBound: RetimingSegment? = nil
         ) throws {
             // Guard against pathological nesting (cyclic media refs, etc.).
             guard depth < 64 else { return }
 
             for element in elements {
-                try projectStoryElement(
-                    element,
-                    resources: resources,
-                    ancestors: ancestors,
-                    parentRetimings: parentRetimings,
-                    lanePath: lanePath,
-                    parentAbsoluteStart: parentAbsoluteStart,
-                    parentLocalStart: parentLocalStart,
-                    channelFilter: channelFilter,
-                    options: options,
-                    onWindow: onWindow,
-                    depth: depth
-                )
+                if let type = element.fcpElementType, type.isLeafAnnotation {
+                    continue
+                }
+                // Pool boundary per element: walking a subtree reads the XML tree heavily, and
+                // the Foundation backend returns autoreleased objects that would otherwise
+                // accumulate for the entire projection.
+                try autoreleasepool {
+                    try projectStoryElement(
+                        element,
+                        resources: resources,
+                        ancestors: ancestors,
+                        parentRetimings: retimings(
+                            parentRetimings,
+                            boundingContent: element,
+                            with: contentBound
+                        ),
+                        lanePath: lanePath,
+                        parentAbsoluteStart: parentAbsoluteStart,
+                        parentLocalStart: parentLocalStart,
+                        channelFilter: channelFilter,
+                        options: options,
+                        onWindow: onWindow,
+                        depth: depth
+                    )
+                }
             }
+        }
+
+        /// Adds a container's span to the retiming chain for the content it encloses.
+        ///
+        /// A contained child may declare a longer span than the container that holds it —
+        /// Final Cut Pro writes the whole source length on the `<audio>` inside a trimmed
+        /// `<clip>` — and only the container's span is actually on the timeline. Anchored
+        /// children (those carrying a `lane`) are connected clips rather than content, so they
+        /// keep their own extent, which is how `_fcpEffectiveOcclusion` reads the same tree.
+        private static func retimings(
+            _ parentRetimings: [RetimingSegment],
+            boundingContent element: any OFKXMLElement,
+            with contentBound: RetimingSegment?
+        ) -> [RetimingSegment] {
+            guard let contentBound, element.fcpLane == nil else { return parentRetimings }
+            return parentRetimings + [contentBound]
+        }
+
+        /// Identity span a container imposes on the content nested inside it.
+        private static func contentBound(
+            for element: any OFKXMLElement,
+            absoluteStart: Fraction
+        ) -> RetimingSegment? {
+            guard let duration = element.fcpDuration else { return nil }
+            return RetimingSegment.identity(
+                timelineStart: absoluteStart,
+                duration: duration,
+                mediaStart: absoluteStart
+            )
         }
 
         private static func shouldEmitWindows(
@@ -112,7 +154,7 @@ extension FinalCutPro.FCPXML {
                         emitWindows: emitWindows
                     )
                     try projectStoryElements(
-                        element.fcpStoryElements,
+                        element.fcpProjectableStoryElements,
                         resources: resources,
                         ancestors: childAncestors,
                         parentRetimings: parentRetimings,
@@ -157,7 +199,7 @@ extension FinalCutPro.FCPXML {
                         emitWindows: emitWindows
                     )
                     try projectStoryElements(
-                        element.fcpStoryElements,
+                        element.fcpProjectableStoryElements,
                         resources: resources,
                         ancestors: childAncestors,
                         parentRetimings: parentRetimings,
@@ -199,7 +241,7 @@ extension FinalCutPro.FCPXML {
                         emitWindows: emitWindows
                     )
                     try projectStoryElements(
-                        element.fcpStoryElements,
+                        element.fcpProjectableStoryElements,
                         resources: resources,
                         ancestors: childAncestors,
                         parentRetimings: parentRetimings,
@@ -217,7 +259,7 @@ extension FinalCutPro.FCPXML {
 
             if let spine = element.fcpAsSpine {
                 try projectStoryElements(
-                    spine.storyElements,
+                    spine.element.fcpProjectableStoryElements,
                     resources: resources,
                     ancestors: childAncestors,
                     parentRetimings: parentRetimings,
@@ -326,7 +368,7 @@ extension FinalCutPro.FCPXML {
                     emitWindows: emitWindows
                 )
                 try projectStoryElements(
-                    title.storyElements,
+                    title.element.fcpProjectableStoryElements,
                     resources: resources,
                     ancestors: childAncestors,
                     parentRetimings: parentRetimings,
@@ -353,7 +395,7 @@ extension FinalCutPro.FCPXML {
                     emitWindows: emitWindows
                 )
                 try projectStoryElements(
-                    transition.storyElements,
+                    transition.element.fcpProjectableStoryElements,
                     resources: resources,
                     ancestors: childAncestors,
                     parentRetimings: parentRetimings,
@@ -375,7 +417,7 @@ extension FinalCutPro.FCPXML {
                 return
             }
 
-            let childElements = element.fcpStoryElements
+            let childElements = element.fcpProjectableStoryElements
             guard !childElements.isEmpty else { return }
 
             let includeSubtree: Bool = {
@@ -407,7 +449,8 @@ extension FinalCutPro.FCPXML {
                 channelFilter: channelFilter,
                 options: options,
                 onWindow: onWindow,
-                depth: nextDepth
+                depth: nextDepth,
+                contentBound: contentBound(for: element, absoluteStart: absoluteStart)
             )
         }
 

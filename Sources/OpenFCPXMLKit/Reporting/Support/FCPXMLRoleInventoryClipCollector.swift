@@ -55,13 +55,23 @@ extension FinalCutPro.FCPXML {
             roleDisplayPreference: RoleDisplayPreference = .builtIn,
             projectionWindows: [MediaUsageWindow]? = nil
         ) async -> [RoleInventoryClipComponent] {
-            await collectEntries(
+            // Built once here because `component(from:)` would otherwise rebuild the whole
+            // matcher for every row.
+            let windowIndex = projectionWindows.flatMap { windows in
+                windows.isEmpty ? nil : ProjectionWindowIndex(windows: windows)
+            }
+
+            return await collectEntries(
                 from: timeline,
                 scope: scope,
                 roleDisplayPreference: roleDisplayPreference
             )
             .compactMap { entry in
-                component(from: entry, projectionWindows: projectionWindows)
+                component(
+                    from: entry,
+                    projectionWindows: projectionWindows,
+                    windowIndex: windowIndex
+                )
             }
         }
 
@@ -113,67 +123,83 @@ extension FinalCutPro.FCPXML {
             var rows: [RoleInventoryClipEntry] = []
             
             for element in extracted {
-                guard let durationSeconds = clipDurationSeconds(
-                    from: element,
-                    usesAudioTimelineBounds: false
-                ) else { continue }
-                
-                switch element.element.fcpElementType {
-                case .title:
-                    appendRow(
-                        to: &rows,
-                        from: element,
-                        category: .titleCategory(for: element),
-                        durationSeconds: durationSeconds,
-                        roleDisplayPreference: roleDisplayPreference
-                    )
-                case .gap:
-                    appendRow(
-                        to: &rows,
-                        from: element,
-                        category: .primaryGap,
-                        durationSeconds: durationSeconds,
-                        roleDisplayPreference: roleDisplayPreference
-                    )
-                case .caption:
-                    appendRow(
-                        to: &rows,
-                        from: element,
-                        category: .caption,
-                        durationSeconds: durationSeconds,
-                        roleDisplayPreference: roleDisplayPreference
-                    )
-                case .video:
-                    guard !shouldSkipLeafMedia(element) else { continue }
-                    appendRow(
-                        to: &rows,
-                        from: element,
-                        category: .leafVideoCategory(for: element),
-                        durationSeconds: durationSeconds,
-                        roleDisplayPreference: roleDisplayPreference
-                    )
-                case .audio:
-                    guard !shouldSkipLeafMedia(element) else { continue }
-                    appendRow(
-                        to: &rows,
-                        from: element,
-                        category: .embeddedAudioCategory(for: element),
-                        durationSeconds: durationSeconds,
-                        roleDisplayPreference: roleDisplayPreference
-                    )
-                case .assetClip, .clip, .refClip, .syncClip, .mcClip, .liveDrawing:
-                    collectHostComponents(
-                        from: element,
-                        durationSeconds: durationSeconds,
+                // Pool boundary per element: the Foundation XML backend returns autoreleased
+                // objects, which would otherwise accumulate across the whole extraction.
+                autoreleasepool {
+                    appendComponents(
+                        for: element,
                         into: &rows,
                         roleDisplayPreference: roleDisplayPreference
                     )
-                default:
-                    continue
                 }
             }
             
             return rows
+        }
+        
+        private static func appendComponents(
+            for element: ExtractedElement,
+            into rows: inout [RoleInventoryClipEntry],
+            roleDisplayPreference: RoleDisplayPreference
+        ) {
+            guard let durationSeconds = clipDurationSeconds(
+                from: element,
+                usesAudioTimelineBounds: false
+            ) else { return }
+            
+            switch element.element.fcpElementType {
+            case .title:
+                appendRow(
+                    to: &rows,
+                    from: element,
+                    category: .titleCategory(for: element),
+                    durationSeconds: durationSeconds,
+                    roleDisplayPreference: roleDisplayPreference
+                )
+            case .gap:
+                appendRow(
+                    to: &rows,
+                    from: element,
+                    category: .primaryGap,
+                    durationSeconds: durationSeconds,
+                    roleDisplayPreference: roleDisplayPreference
+                )
+            case .caption:
+                appendRow(
+                    to: &rows,
+                    from: element,
+                    category: .caption,
+                    durationSeconds: durationSeconds,
+                    roleDisplayPreference: roleDisplayPreference
+                )
+            case .video:
+                guard !shouldSkipLeafMedia(element) else { return }
+                appendRow(
+                    to: &rows,
+                    from: element,
+                    category: .leafVideoCategory(for: element),
+                    durationSeconds: durationSeconds,
+                    roleDisplayPreference: roleDisplayPreference
+                )
+            case .audio:
+                guard !shouldSkipLeafMedia(element) else { return }
+                appendRow(
+                    to: &rows,
+                    from: element,
+                    category: .embeddedAudioCategory(for: element),
+                    durationSeconds: durationSeconds,
+                    roleDisplayPreference: roleDisplayPreference
+                )
+            case .assetClip, .clip, .refClip, .syncClip, .mcClip, .liveDrawing:
+                collectHostComponents(
+                    from: element,
+                    durationSeconds: durationSeconds,
+                    into: &rows,
+                    roleDisplayPreference: roleDisplayPreference
+                )
+            default:
+                return
+            }
         }
         
         private static func collectHostComponents(

@@ -13,8 +13,8 @@ The manual is organized into **chapters** for easier navigation and full API cov
 From the index you can reach all chapters:
 
 - **01** — Overview (architecture, entry points, protocols)
-- **02** — Loading & Parsing (file loader, versions, element types)
-- **03** — Timecode & Timing (SwiftTimecode, FCPXMLTimecode, CMTime)
+- **02** — Loading & Parsing (file loader, versions, element types, large-document walks)
+- **03** — Timecode & Timing (SwiftTimecode, FCPXMLTimecode, CMTime, scoped timing cache)
 - **04** — Service & Logging (FCPXMLService, ModularUtilities)
 - **05** — Validation & Cut Detection
 - **06** — Version Conversion & Export (`VersionFeatureGate`)
@@ -23,7 +23,7 @@ From the index you can reach all chapters:
 - **09** — Timeline Manipulation (ripple insert, auto lane, clip queries)
 - **10** — Timeline Metadata (markers, keywords, ratings, timestamps)
 - **11** — Extraction & Media (scope, presets, media copy)
-- **12** — Timeline Projection (`TimelineProjector`, `MediaUsageWindow`, report project-once)
+- **12** — Timeline Projection (`TimelineProjector`, `MediaUsageWindow`, annotation knobs, container-bounded contained media, report project-once)
 - **13** — Media Processing (MIME, asset validation, silence, duration, parallel I/O)
 - **14** — Typed Models (adjustments incl. Corners/Panner, filters, captions, keyframes, collections)
 - **15** — XML Extensions (OFKXMLDocument, OFKXMLElement)
@@ -31,7 +31,7 @@ From the index you can reach all chapters:
 - **17** — Cross-Platform & iOS (OFKXML abstraction, Foundation vs AEXML)
 - **18** — Errors & Utilities
 - **19** — CLI (OpenFCPXMLKit-CLI)
-- **20** — Reporting, Excel & PDF Export (`--exclude-role` on every role-bearing sheet, FCP-matching Effects / inventory settings, Title Text same-line concat, Non-Std Effects & Templates, Duplicate Frames / Total footers, empty-sheet status rows, optional Screenshot — original-first / proxy fallback — + Speed Change Settings, four-row cover branding, column exclusion with semantic row colours, Projection-first sections, ReportTimecodeFormat, ReportBuildPhase, XLKit workbook, CoreGraphics PDF)
+- **20** — Reporting, Excel & PDF Export (`--exclude-role` on every role-bearing sheet, FCP-matching Effects / inventory settings, Title Text same-line concat, Non-Std Effects & Templates, Duplicate Frames / Total footers, empty-sheet status rows, optional Screenshot — original-first / proxy fallback — + Speed Change Settings, four-row cover branding, column exclusion with semantic row colours, Projection-first sections, Speed Change one row per usage / retimed Source Duration, ReportTimecodeFormat, ReportBuildPhase, XLKit workbook, CoreGraphics PDF)
 - **21** — Shot Extraction (primary stills → PNG + CSV / [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) Notion JSON with CSV column key order; `planShots` / `--dry-run`; reject video / titles / audio)
 - **22** — Examples (workflows and code)
 
@@ -42,5 +42,5 @@ From the index you can reach all chapters:
 - **Documentation index:** [README.md](README.md)
 - **CLI reference:** [../Sources/OpenFCPXMLKitCLI/README.md](../Sources/OpenFCPXMLKitCLI/README.md)
 - **Project README:** [../README.md](../README.md)
-- **Tests:** [../Tests/README.md](../Tests/README.md) — **1228** listed tests (all Swift Testing)
+- **Tests:** [../Tests/README.md](../Tests/README.md) — **1241** listed tests (all Swift Testing)
 
