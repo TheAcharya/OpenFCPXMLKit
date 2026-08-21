@@ -183,6 +183,19 @@ extension FinalCutPro.FCPXML.ElementType {
     public var isAnnotation: Bool {
         Self.allAnnotationCases.contains(self)
     }
+
+    /// Keywords, markers, and related tags that are DTD story elements but never
+    /// contain a nested timeline. Projection and Extraction must not walk these as
+    /// containers — real-world clips can carry thousands of keyword children, and
+    /// each visit was running occlusion math as if they were clips.
+    public var isLeafAnnotation: Bool {
+        switch self {
+        case .keyword, .marker, .chapterMarker, .analysisMarker, .hiddenClipMarker:
+            return true
+        default:
+            return false
+        }
+    }
     
     // story elements
     public static let allStoryElementCases: Set<Self> = .allStoryElementCases

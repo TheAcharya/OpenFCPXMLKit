@@ -204,7 +204,7 @@ extension FCPXMLTimecode {
     /// - Parameter fcpxmlString: A string like "1001/30000s" or "5s".
     /// - Returns: The parsed timecode, or nil if parsing fails.
     public init?(fcpxmlString: String) {
-        guard let frac = Fraction(fcpxmlString: fcpxmlString) else {
+        guard let frac = Fraction(fcpxmlTimeString: fcpxmlString) else {
             return nil
         }
         self.fraction = frac

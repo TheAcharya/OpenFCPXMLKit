@@ -7,6 +7,30 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.3.10](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.10) - 2026-08-21
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Large-project reporting performance:** Reports on very large FCPXML (tens of MB, thousands of clips) no longer stall during **Loading Roles** / **Projecting Timeline**. FCPXML time strings (`N/Ds`, `Ns`) parse without `NSRegularExpression`; `conform-rate` scaling resolution is memoised per element for the duration of a read-only walk (`FinalCutPro.FCPXML.withTimingCache(_:)`); resource lookups by `id` are O(1) via `OFKXMLElement.firstChildElement(withID:)` / `firstChildElement(named:)`; and Projection and Extraction skip dense annotation leaves through `FCPXMLElementType.isLeafAnnotation` and `fcpProjectableStoryElements`.
+- **Host annotations follow enabled sheets:** Projection already had `includeMarkerAnnotations` / `includeKeywordAnnotations`. Report builds now pass the existing `includeMarkers` / `includeKeywords` (CLI `--report-markers` / `--report-keywords`) into `TimelineProjectionOptions.forReport(...)`, so a Role-Inventory-only export does not collect thousands of host keywords. No new flag.
+- **Memory headroom on 8 GB machines:** Workbook writing moves to XLKit **1.1.8** (streaming worksheet XML, interned cell formats), PDF export streams pages instead of buffering the whole document, and Projection / PDF hot loops drain temporaries with `autoreleasepool`. Full Excel + PDF exports of a 28 MB FCPXML now complete without the process being killed.
+- **Suite:** **1241** listed (`swift test list` — **1227** + **10** + **4**), including the new `FCPXMLLeafAnnotationWalkTests` (annotation-leaf skipping, dense-keyword hang budget, id lookup) plus expanded `FCPXMLSpeedChangeEffectsReportTests` and `FCPXMLTimelineProjectionTests`.
+- **Documentation sync:** Manual 02 / 03 / 11–12 / 19–20 / 00-Index / Coverage, Tests READMEs, README, ARCHITECTURE (Parsing timing cache + TimeStringParsing, Projection annotation options + container `contentBound`, Reporting `RoleInventorySourceSpan`, Mermaid), AGENT, `.cursorrules`, and GUARDRAILS (Signs `speed-change-row-per-timeline-usage`, `speed-percent-is-media-over-timeline`, `retimed-source-duration-follows-speed`, `retime-roles-default-like-effects`, `containers-bound-their-content-not-their-anchors`, `timing-cache-is-read-only-scoped`).
+
+### 🐛 Bug Fixes
+
+- **Speed Change Effects missing clips:** Every retimed timeline usage now gets its own row. Repeated uses of one source clip were previously collapsed into a single row (59 retimed clips in Final Cut Pro reported as 48), because projection windows were grouped by source rather than by contiguous timeline usage. Rows are keyed by clip name + Timeline In. Sign `speed-change-row-per-timeline-usage`.
+- **Speed Change Effects speed values:** Speed percent is a timeline-weighted average of the segment scales within a single usage (media span ÷ timeline span), so freeze/hold segments count as occupied timeline and direction changes use absolute media spans. Values no longer blend unrelated usages of the same source. Sign `speed-percent-is-media-over-timeline`.
+- **Retimed Source Out / Clip Duration:** Role Inventory Source columns for a retimed clip report the source span the clip actually consumes (a 50 % retime of an 8 s 20 f timeline clip reads 4 s 10 f) instead of repeating the timeline duration. No new columns. Sign `retimed-source-duration-follows-speed`.
+- **Speed Change Effects roles:** Retimed rows resolve Role ▸ Subrole the same way the Video & Audio Effects sheet does, so a host without an explicit `videoRole` / `audioRole` shows the same default the Role Inventory shows (**Video**, or **Dialogue** for audio-only hosts) instead of a blank cell. `--exclude-role` / `excludedRoles` now filters those rows too. Sign `retime-roles-default-like-effects`.
+- **Audio Clip Duration read whole source:** A `<clip>` / `<sync-clip>` shell that omits `start` now bounds its contained (lane-less) children to its own visible span during projection, so Clip Duration and the Source/Timeline columns report the portion used on the timeline rather than the full source length. Connected clips (with a `lane`) keep their own extent. Sign `containers-bound-their-content-not-their-anchors`.
+
+---
+
 ## [3.3.9](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.9) - 2026-08-20
 
 ### ✨ New Features

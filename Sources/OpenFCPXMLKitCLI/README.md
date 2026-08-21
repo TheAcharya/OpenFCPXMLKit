@@ -4,6 +4,20 @@ Command-line interface for the OpenFCPXMLKit library. Use it to inspect and proc
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Usage](#usage)
+- [GENERAL options (convert-version)](#general-options-convert-version)
+- [SHOT EXTRACTION options](#shot-extraction-options)
+- [REPORT options](#report-options)
+- [LOG options](#log-options)
+- [Source layout](#source-layout)
+- [Extending the CLI](#extending-the-cli)
+- [Building and running](#building-and-running)
+
+---
+
 ## Overview
 
 - **Executable name:** `OpenFCPXMLKit-CLI`
@@ -169,7 +183,9 @@ See [Manual 21 — Shot Extraction](../../Documentation/Manual/21-Shot-Extractio
 
 When `--report` is used without `--report-full` or section flags, the CLI exports role inventory only. Use `--report-full` for every optional sheet, or set individual `--report-*` section flags for a partial export (role inventory is always included). `--report-full` takes precedence when combined with section flags.
 
-Report building uses **Timeline Projection** once per timeline when inventory, markers, keywords, titles, transitions, effects, speed-change, media summary, or summary sections are enabled (Markers / Keywords / Titles / Transitions / Effects are Projection-first with Extraction fallback). See [11 — Timeline Projection](../../Documentation/Manual/12-Timeline-Projection.md).
+Large editorial exports (tens of MB, thousands of clips) complete `--report` / `--create-pdf` without stalling at **Loading Roles** or **Projecting Timeline**. Keyword-dense clips are not walked as nested containers; host marker/keyword annotations are collected only when those sheets are enabled.
+
+Report building uses **Timeline Projection** once per timeline when inventory, markers, keywords, titles, transitions, effects, speed-change, media summary, or summary sections are enabled (Markers / Keywords / Titles / Transitions / Effects are Projection-first with Extraction fallback). See [12 — Timeline Projection](../../Documentation/Manual/12-Timeline-Projection.md).
 
 Build progress follows **Projecting Timeline** (when Projection is needed), then **product / workbook order** (Selected Roles Inventory → Markers → Keywords → Titles & Generators → Transitions → Non-Std Effects & Templates → Video & Audio Effects → Speed Change Effects → Summary → Media Summary), then **Saving Workbook**, and **Saving PDF** when `--create-pdf` is set. See [19 — Progress callbacks](../../Documentation/Manual/20-Reporting.md#progress-callbacks).
 

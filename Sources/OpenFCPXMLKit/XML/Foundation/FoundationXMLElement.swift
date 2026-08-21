@@ -29,6 +29,9 @@ public final class FoundationXMLElement: OFKXMLElement {
     /// The underlying Foundation `XMLElement` for direct access during incremental migration.
     public let underlyingElement: XMLElement
 
+    /// Index of immediate children by `id` attribute. Invalidated when children change.
+    private var childIDIndex: [String: XMLElement]?
+
     // MARK: - Initialization
 
     /// Wraps an existing Foundation `XMLElement`.
@@ -131,10 +134,34 @@ public final class FoundationXMLElement: OFKXMLElement {
     // MARK: - OFKXMLElement: Child Access
 
     public func elements(forName name: String) -> [any OFKXMLElement] {
-        underlyingElement.elements(forName: name).map { FoundationXMLElement($0) }
+        return underlyingElement.elements(forName: name).map { FoundationXMLElement($0) }
+    }
+
+    public func firstChildElement(named name: String) -> (any OFKXMLElement)? {
+        underlyingElement.elements(forName: name).first.map { FoundationXMLElement($0) }
+    }
+
+    /// O(1) after the first scan of this element's children. Used by resource `id` lookup.
+    public func firstChildElement(withID id: String) -> (any OFKXMLElement)? {
+        if childIDIndex == nil {
+            var index: [String: XMLElement] = [:]
+            if let children = underlyingElement.children {
+                index.reserveCapacity(children.count)
+                for child in children {
+                    guard let element = child as? XMLElement,
+                          let resourceID = element.attribute(forName: "id")?.stringValue,
+                          !resourceID.isEmpty
+                    else { continue }
+                    index[resourceID] = element
+                }
+            }
+            childIDIndex = index
+        }
+        return childIDIndex?[id].map { FoundationXMLElement($0) }
     }
 
     public func addChild(_ child: any OFKXMLNode) {
+        childIDIndex = nil
         if let foundationElement = child as? FoundationXMLElement {
             underlyingElement.addChild(foundationElement.underlyingElement)
         } else if let foundationNode = child as? FoundationXMLNode {
@@ -148,10 +175,12 @@ public final class FoundationXMLElement: OFKXMLElement {
     }
 
     public func removeChild(at index: Int) {
+        childIDIndex = nil
         underlyingElement.removeChild(at: index)
     }
 
     public func insertChild(_ child: any OFKXMLNode, at index: Int) {
+        childIDIndex = nil
         if let foundationElement = child as? FoundationXMLElement {
             underlyingElement.insertChild(foundationElement.underlyingElement, at: index)
         } else if let foundationNode = child as? FoundationXMLNode {
@@ -169,6 +198,10 @@ public final class FoundationXMLElement: OFKXMLElement {
     public var xmlCompactString: String {
         underlyingElement.xmlString(options: [.nodeCompactEmptyElement])
     }
+
+    // MARK: - OFKXMLElement: Identity
+
+    public var backingObject: AnyObject? { underlyingElement }
 }
 
 // MARK: - FoundationXMLNode

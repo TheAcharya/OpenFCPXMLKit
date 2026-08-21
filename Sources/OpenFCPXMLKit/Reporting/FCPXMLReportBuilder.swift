@@ -74,6 +74,17 @@ extension FinalCutPro.FCPXML {
             from source: ReportTimelineSource,
             fcpxml: FinalCutPro.FCPXML
         ) async throws -> Report {
+            // Report building only reads the document, so derived per-element timing values can be
+            // memoised across projection and every section for the duration of the build.
+            try await FinalCutPro.FCPXML.withTimingCache {
+                try await buildUncached(from: source, fcpxml: fcpxml)
+            }
+        }
+
+        private func buildUncached(
+            from source: ReportTimelineSource,
+            fcpxml: FinalCutPro.FCPXML
+        ) async throws -> Report {
             let extractionScope = reportExtractionScope()
             let timelineElement = source.sequence.element
 
@@ -140,7 +151,9 @@ extension FinalCutPro.FCPXML {
                     || options.includeKeywords
                     || options.includeTitlesAndGenerators
                     || options.includeTransitions
-                    || options.includeEffects
+                    || options.includeEffects,
+                includeMarkerAnnotations: options.includeMarkers,
+                includeKeywordAnnotations: options.includeKeywords
             )
 
             do {

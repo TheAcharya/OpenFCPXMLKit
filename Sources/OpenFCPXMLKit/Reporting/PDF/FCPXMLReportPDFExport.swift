@@ -39,11 +39,14 @@ extension FinalCutPro.FCPXML {
         }
         
         /// Writes a report to a `.pdf` file at the given URL.
+        ///
+        /// The document is streamed to disk as it is drawn, so peak memory does not scale with
+        /// the size of the finished PDF.
         public static func export(_ report: Report, to url: URL) throws {
-            let data = try makePDFData(from: report)
-            
             do {
-                try data.write(to: url, options: .atomic)
+                try FCPXMLReportPDFExporter.writePDF(from: report, to: url)
+            } catch let error as ReportPDFExportError {
+                throw error
             } catch {
                 throw ReportPDFExportError.couldNotWriteFile
             }

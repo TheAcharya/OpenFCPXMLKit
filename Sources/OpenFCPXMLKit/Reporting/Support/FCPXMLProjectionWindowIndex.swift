@@ -16,26 +16,28 @@ extension FinalCutPro.FCPXML {
     ///
     /// Replaces per-row full scans (and nested `contains` scans) used when overlaying
     /// projection timing onto Role Inventory / Effects rows.
+    ///
+    /// Buckets store positions into ``all`` rather than copies of the windows themselves.
+    /// ``MediaUsageWindow`` is a large value type, so copying candidates out of the buckets on
+    /// every lookup dominated report build time on timelines with many windows.
     struct ProjectionWindowIndex: Sendable {
         /// Start-time bucket size in seconds (matches ±0.05s matcher tolerance).
         private static let bucketSeconds: Double = 0.05
 
-        private let byNameAndBucket: [String: [Int: [MediaUsageWindow]]]
-        private let byBucket: [Int: [MediaUsageWindow]]
+        private let byNameAndBucket: [String: [Int: [Int]]]
+        private let byBucket: [Int: [Int]]
         private let all: [MediaUsageWindow]
 
         init(windows: [MediaUsageWindow]) {
             self.all = windows
-            var named: [String: [Int: [MediaUsageWindow]]] = [:]
-            var buckets: [Int: [MediaUsageWindow]] = [:]
+            var named: [String: [Int: [Int]]] = [:]
+            var buckets: [Int: [Int]] = [:]
 
-            for window in windows {
+            for (position, window) in windows.enumerated() {
                 let bucket = Self.bucket(for: window.timelineIn.doubleValue)
-                buckets[bucket, default: []].append(window)
+                buckets[bucket, default: []].append(position)
                 let name = window.clipDisplayName ?? ""
-                var nameBuckets = named[name] ?? [:]
-                nameBuckets[bucket, default: []].append(window)
-                named[name] = nameBuckets
+                named[name, default: [:]][bucket, default: []].append(position)
             }
 
             self.byNameAndBucket = named
@@ -48,36 +50,52 @@ extension FinalCutPro.FCPXML {
             expectedStart: Double,
             preferAudio: Bool
         ) -> MediaUsageWindow? {
-            let candidates = candidateWindows(clipName: clipName, expectedStart: expectedStart)
+            let candidates = candidatePositions(clipName: clipName, expectedStart: expectedStart)
             guard !candidates.isEmpty else { return nil }
 
-            let filtered = candidates.filter { window in
-                if preferAudio {
-                    return window.channel.kind == .audio
-                }
-                if window.channel.kind == .video {
-                    return true
-                }
-                // Keep audio-only usages when no video channel exists for this name/start.
-                let tolerance = Self.bucketSeconds
-                let hasVideoSibling = candidates.contains { sibling in
-                    sibling.channel.kind == .video
-                        && abs(sibling.timelineIn.doubleValue - expectedStart) < tolerance
-                }
-                return !hasVideoSibling
+            // Depends only on the candidate set, so it is resolved once rather than per candidate.
+            let hasVideoSibling = !preferAudio && candidates.contains { position in
+                let sibling = all[position]
+                return sibling.channel.kind == .video
+                    && abs(sibling.timelineIn.doubleValue - expectedStart) < Self.bucketSeconds
             }
 
-            let pool = filtered.isEmpty ? candidates : filtered
-            guard let best = pool.min(by: { lhs, rhs in
-                abs(lhs.timelineIn.doubleValue - expectedStart)
-                    < abs(rhs.timelineIn.doubleValue - expectedStart)
-            }) else {
+            // Closest preferred-channel window, and closest of any channel as the fallback pool.
+            var bestPreferred: Int?
+            var bestAny: Int?
+
+            for position in candidates {
+                let window = all[position]
+
+                if isCloser(position, than: bestAny, to: expectedStart) {
+                    bestAny = position
+                }
+
+                let isPreferred: Bool
+                if preferAudio {
+                    isPreferred = window.channel.kind == .audio
+                } else if window.channel.kind == .video {
+                    isPreferred = true
+                } else {
+                    // Keep audio-only usages when no video channel exists for this name/start.
+                    isPreferred = !hasVideoSibling
+                }
+
+                guard isPreferred else { continue }
+
+                if isCloser(position, than: bestPreferred, to: expectedStart) {
+                    bestPreferred = position
+                }
+            }
+
+            guard let best = bestPreferred ?? bestAny else { return nil }
+
+            let window = all[best]
+            guard abs(window.timelineIn.doubleValue - expectedStart) < Self.bucketSeconds else {
                 return nil
             }
-            guard abs(best.timelineIn.doubleValue - expectedStart) < Self.bucketSeconds else {
-                return nil
-            }
-            return best
+
+            return window
         }
         
         /// All windows near ``expectedStart`` for ``clipName`` (video and audio channels).
@@ -85,20 +103,39 @@ extension FinalCutPro.FCPXML {
             clipName: String,
             expectedStart: Double
         ) -> [MediaUsageWindow] {
-            let tolerance = Self.bucketSeconds
-            return candidateWindows(clipName: clipName, expectedStart: expectedStart)
-                .filter { abs($0.timelineIn.doubleValue - expectedStart) < tolerance }
+            candidatePositions(clipName: clipName, expectedStart: expectedStart)
+                .filter { abs(all[$0].timelineIn.doubleValue - expectedStart) < Self.bucketSeconds }
+                .map { all[$0] }
         }
 
-        private func candidateWindows(
+        /// Whether the window at `position` is strictly closer to `expectedStart` than `current`.
+        ///
+        /// Strict comparison keeps the earliest candidate on ties, matching `min(by:)`.
+        private func isCloser(
+            _ position: Int,
+            than current: Int?,
+            to expectedStart: Double
+        ) -> Bool {
+            guard let current else { return true }
+            let candidate = abs(all[position].timelineIn.doubleValue - expectedStart)
+            let incumbent = abs(all[current].timelineIn.doubleValue - expectedStart)
+            return candidate < incumbent
+        }
+
+        /// Positions of windows in the start buckets adjacent to ``expectedStart``.
+        ///
+        /// A window within ``bucketSeconds`` of `expectedStart` always falls in one of the three
+        /// buckets scanned here, and both callers discard anything outside that tolerance, so
+        /// there is nothing to gain from falling back to every window.
+        private func candidatePositions(
             clipName: String,
             expectedStart: Double
-        ) -> [MediaUsageWindow] {
+        ) -> [Int] {
             let center = Self.bucket(for: expectedStart)
             let buckets = [center - 1, center, center + 1]
 
             if !clipName.isEmpty, let nameMap = byNameAndBucket[clipName] {
-                var hits: [MediaUsageWindow] = []
+                var hits: [Int] = []
                 for bucket in buckets {
                     if let group = nameMap[bucket] {
                         hits.append(contentsOf: group)
@@ -107,15 +144,14 @@ extension FinalCutPro.FCPXML {
                 if !hits.isEmpty { return hits }
             }
 
-            // Empty names / unmatched names: search nearby start buckets, then fall back.
-            var hits: [MediaUsageWindow] = []
+            // Empty names / unmatched names: search nearby start buckets across all names.
+            var hits: [Int] = []
             for bucket in buckets {
                 if let group = byBucket[bucket] {
                     hits.append(contentsOf: group)
                 }
             }
-            if !hits.isEmpty { return hits }
-            return all
+            return hits
         }
 
         private static func bucket(for start: Double) -> Int {
@@ -123,4 +159,3 @@ extension FinalCutPro.FCPXML {
         }
     }
 }
-

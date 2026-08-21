@@ -30,8 +30,10 @@ extension FinalCutPro.FCPXML {
             return formattedRetime(percent: signed * 100, frameSampling: frameSampling)
         }
 
-        /// Aggregates consecutive segments into one workbook row (first→last media over
-        /// remapped time inferred from each segment’s `scale`).
+        /// Aggregates the segments of one clip usage into a single workbook row.
+        ///
+        /// The result is signed only when every segment reverses; a clip that mixes
+        /// directions has no single signed speed.
         static func retimeDisplay(
             aggregating segments: [RetimingSegment],
             frameSampling: FrameSampling = .floor
@@ -40,22 +42,36 @@ extension FinalCutPro.FCPXML {
             if segments.count == 1 {
                 return retimeDisplay(from: segments[0], frameSampling: frameSampling)
             }
+            guard let magnitude = averageScale(of: segments) else { return nil }
 
-            let first = segments[0]
-            let last = segments[segments.count - 1]
-            var remappedSpan = 0.0
-            for segment in segments {
-                let mediaDelta = abs(segment.mediaEnd.doubleValue - segment.mediaStart.doubleValue)
-                guard segment.scale > .ulpOfOne else { continue }
-                remappedSpan += mediaDelta / segment.scale
-            }
-            guard remappedSpan > .ulpOfOne else { return nil }
-
-            let mediaSpan = last.mediaEnd.doubleValue - first.mediaStart.doubleValue
+            let reversed = segments.allSatisfy(\.isReversed)
             return formattedRetime(
-                percent: (mediaSpan / remappedSpan) * 100,
+                percent: reversed ? -magnitude * 100 : magnitude * 100,
                 frameSampling: frameSampling
             )
+        }
+
+        /// Media consumed per second of timeline across a clip usage's segments.
+        ///
+        /// Weights each segment's ``RetimingSegment/scale`` by the timeline it occupies.
+        /// `scale` is authoritative: a segment's media bounds can describe the whole
+        /// `timeMap` while its timeline bounds describe only the slice the clip uses, so
+        /// dividing media by timeline directly would overstate the speed. Hold / freeze
+        /// segments contribute timeline at `scale` 0 and so pull the average down, matching
+        /// what FCP reports for the clip overall.
+        static func averageScale(of segments: [RetimingSegment]) -> Double? {
+            var weightedMedia = 0.0
+            var timelineSpan = 0.0
+
+            for segment in segments {
+                let timeline = segment.timelineDuration
+                guard timeline > .ulpOfOne else { continue }
+                weightedMedia += abs(segment.scale) * timeline
+                timelineSpan += timeline
+            }
+
+            guard timelineSpan > .ulpOfOne else { return nil }
+            return weightedMedia / timelineSpan
         }
 
         /// Workbook effect/settings labels derived from a clip ``TimeMap``.
@@ -68,7 +84,9 @@ extension FinalCutPro.FCPXML {
 
             let first = points[0]
             let last = points[points.count - 1]
-            let mapSpan = last.time - first.time
+            // Conform-scaled `time` values carry very large denominators, so an exact rational
+            // subtraction here can overflow `Int` while computing a least common multiple.
+            let mapSpan = ProjectionTiming.subtracting(last.time, first.time)
             guard abs(mapSpan.doubleValue) > .ulpOfOne else { return nil }
 
             let segments = timeMap.retimingSegments(

@@ -4,6 +4,17 @@
 
 ---
 
+## Table of Contents
+
+- [Time conversions with SwiftTimecode](#time-conversions-with-swifttimecode)
+- [FCPXMLTimecode: custom timecode type](#fcpxmltimecode-custom-timecode-type)
+- [CMTime Codable extension](#cmtime-codable-extension)
+- [Async time operations](#async-time-operations)
+- [Projection and Double-safe composition](#projection-and-double-safe-composition)
+- [FCPXML time strings and large-document walks](#fcpxml-time-strings-and-large-document-walks)
+
+---
+
 ## Time conversions with SwiftTimecode
 
 Use **TimecodeConverter** (or **FCPXMLUtility** with injected converter) to convert between `CMTime`, SwiftTimecode **Timecode**, and FCPXML time strings:
@@ -109,6 +120,14 @@ let conformed = await service.conform(time: time, toFrameDuration: frameDuration
 ## Projection and Double-safe composition
 
 Timeline **Projection** (and any code that adds conform-scaled attribute fractions to literal FCPXML rationals) must compose via `ProjectionTiming.adding` / `subtracting` (Double intermediates → `Fraction` at 12 decimal places). Do not use SwiftTimecode `Fraction` operators for absolute timeline placement — they can trap on Int overflow when mixing conform-scaled values with literal rationals.
+
+---
+
+## FCPXML time strings and large-document walks
+
+Every `start` / `offset` / `duration` / `tcStart` attribute is an FCPXML time string (`N/Ds` or `Ns`). Parsing scans those characters directly into a `Fraction` — no `NSRegularExpression` — because a timeline walk reads them millions of times.
+
+Resolving a `conform-rate` scale walks ancestors and then that container’s children. Read-only entry points (Extraction, Projection, report builds) wrap the walk in `FinalCutPro.FCPXML.withTimingCache { … }` / `withTimingCacheSync { … }` so each element resolves once. The cache is scoped to that walk, is never consulted by writes, and is keyed on both `ObjectIdentifier` and a retained element (Sign `timing-cache-is-read-only-scoped`). See [02 — Loading & Parsing](02-Loading-Parsing.md#large-documents).
 
 ---
 

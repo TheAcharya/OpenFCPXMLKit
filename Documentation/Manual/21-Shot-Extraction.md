@@ -6,6 +6,16 @@
 
 Still-image **Shot Extraction** builds a shot dataset from the **primary timeline** only: one PNG per still-image clip (in timeline order), plus a CSV or Notion-compatible JSON manifest. Notion JSON object keys follow the **same column order as the CSV**. Excel/PDF reporting is unrelated and unchanged.
 
+## Table of Contents
+
+- [Requirements](#requirements)
+- [Library API](#library-api)
+- [Manifest formats](#manifest-formats)
+- [CLI](#cli)
+- [Implementation notes](#implementation-notes)
+
+---
+
 ## Requirements
 
 - Primary spine video windows must reference **still-image** assets (`duration="0s"` / image files).

@@ -12,7 +12,35 @@ import CoreGraphics
 import Foundation
 
 enum FCPXMLReportPDFExporter {
+    /// Where a render pass sends its PDF bytes.
+    ///
+    /// Writing straight to a file keeps large documents out of memory: buffering produced the
+    /// whole PDF in RAM and then copied it again on write.
+    enum Destination {
+        /// Accumulate the document in memory and return it.
+        case data
+        /// Stream the document to a file as it is drawn.
+        case url(URL)
+        /// Discard the document; used by the layout-measuring pass.
+        case discarded
+    }
+    
+    /// Renders `report` and writes it directly to `url`.
+    static func writePDF(from report: FinalCutPro.FCPXML.Report, to url: URL) throws {
+        _ = try makePDF(from: report, destination: .url(url))
+    }
+    
     static func makePDFData(from report: FinalCutPro.FCPXML.Report) throws -> Data {
+        guard let data = try makePDF(from: report, destination: .data) else {
+            throw FinalCutPro.FCPXML.ReportPDFExportError.couldNotCreateDocument
+        }
+        return data
+    }
+    
+    private static func makePDF(
+        from report: FinalCutPro.FCPXML.Report,
+        destination: Destination
+    ) throws -> Data? {
         let plannedSheets = FCPXMLReportPDFSheetPlan.plannedSheets(from: report)
         let colorIndexByTitle = FCPXMLReportPDFSheetPlan.colorIndexLookup(for: plannedSheets)
         
@@ -22,7 +50,8 @@ enum FCPXMLReportPDFExporter {
                 colorIndexByTitle: colorIndexByTitle,
                 tableOfContents: nil,
                 reservedTOCPages: 0,
-                recordsSectionStarts: false
+                recordsSectionStarts: false,
+                destination: destination
             )
         }
         
@@ -31,6 +60,8 @@ enum FCPXMLReportPDFExporter {
         )
         var recordedStarts: [(title: String, startPage: Int)] = []
         
+        // The measuring pass exists only to record section start pages, so its bytes are
+        // discarded rather than buffered.
         _ = try renderPDF(
             from: report,
             colorIndexByTitle: colorIndexByTitle,
@@ -38,6 +69,7 @@ enum FCPXMLReportPDFExporter {
             reservedTOCPages: reservedTOCPages,
             recordsSectionStarts: true,
             layoutOnly: true,
+            destination: .discarded,
             sectionStartSink: { title, startPage in
                 recordedStarts.append((title, startPage))
             }
@@ -54,7 +86,8 @@ enum FCPXMLReportPDFExporter {
             tableOfContents: tableOfContents,
             reservedTOCPages: 0,
             recordsSectionStarts: false,
-            layoutOnly: false
+            layoutOnly: false,
+            destination: destination
         )
     }
     
@@ -65,11 +98,34 @@ enum FCPXMLReportPDFExporter {
         reservedTOCPages: Int,
         recordsSectionStarts: Bool,
         layoutOnly: Bool = false,
+        destination: Destination,
         sectionStartSink: ((String, Int) -> Void)? = nil
-    ) throws -> Data {
-        let data = NSMutableData()
+    ) throws -> Data? {
+        var buffer: NSMutableData?
+        var scratchURL: URL?
+        let consumer: CGDataConsumer?
         
-        guard let consumer = CGDataConsumer(data: data as CFMutableData) else {
+        switch destination {
+        case .data:
+            let data = NSMutableData()
+            buffer = data
+            consumer = CGDataConsumer(data: data as CFMutableData)
+        case let .url(url):
+            consumer = CGDataConsumer(url: url as CFURL)
+        case .discarded:
+            let url = FileManager.default.temporaryDirectory
+                .appendingPathComponent("ofk-pdf-layout-\(UUID().uuidString).pdf")
+            scratchURL = url
+            consumer = CGDataConsumer(url: url as CFURL)
+        }
+        
+        defer {
+            if let scratchURL {
+                try? FileManager.default.removeItem(at: scratchURL)
+            }
+        }
+        
+        guard let consumer else {
             throw FinalCutPro.FCPXML.ReportPDFExportError.couldNotCreateDocument
         }
         
@@ -209,7 +265,7 @@ enum FCPXMLReportPDFExporter {
         }
         
         canvas.finishDocument()
-        return data as Data
+        return buffer as Data?
     }
     
     private static func sheetColorIndex(

@@ -31,20 +31,21 @@ extension FinalCutPro.FCPXML {
 
             let samplingByClipName = frameSamplingByClipName(from: extracted)
 
-            let extractionRows = extracted
+            let candidates = extracted
                 .compactMap {
-                    speedChangeRow(
+                    speedChangeCandidate(
                         from: $0,
                         roleDisplayPreference: roleDisplayPreference,
                         timecodeFormat: timecodeFormat
                     )
                 }
+            let extractionRows = candidates.map(\.row)
 
             let rows: [EffectReportRow]
             if let projection, !projection.windows.isEmpty {
                 let projectedRows = rowsFromProjection(
                     windows: projection.windows,
-                    extractionByName: Dictionary(grouping: extractionRows, by: \.clipName),
+                    extractionByName: Dictionary(grouping: candidates, by: \.row.clipName),
                     samplingByClipName: samplingByClipName,
                     timecodeFormat: timecodeFormat,
                     sequence: sequence
@@ -67,16 +68,22 @@ extension FinalCutPro.FCPXML {
             _ extractionRows: [EffectReportRow],
             into projectedRows: [EffectReportRow]
         ) -> [EffectReportRow] {
-            let projectedNames = Set(projectedRows.map(\.clipName))
-            let extras = extractionRows.filter { !projectedNames.contains($0.clipName) }
+            // Keyed by clip name *and* timeline position: one source reused several times
+            // shares a clip name, so a name-only key discards every usage after the first.
+            let projectedKeys = Set(projectedRows.map(usageKey))
+            let extras = extractionRows.filter { !projectedKeys.contains(usageKey($0)) }
             guard !extras.isEmpty else { return projectedRows }
             return projectedRows + extras
+        }
+
+        private static func usageKey(_ row: EffectReportRow) -> String {
+            "\(row.clipName)|\(row.timelineIn)"
         }
 
         /// Groups non-identity projected windows into one workbook row per clip usage.
         private static func rowsFromProjection(
             windows: [MediaUsageWindow],
-            extractionByName: [String: [EffectReportRow]],
+            extractionByName: [String: [ExtractionCandidate]],
             samplingByClipName: [String: FrameSampling],
             timecodeFormat: ReportTimecodeFormat,
             sequence: Sequence?
@@ -92,44 +99,148 @@ extension FinalCutPro.FCPXML {
                 return "\(name)|\(window.channel.resourceID)"
             }
 
-            return keyed.values.compactMap { group -> EffectReportRow? in
-                let ordered = group.sorted {
-                    $0.timelineIn.doubleValue < $1.timelineIn.doubleValue
-                }
-                let segments = ordered.map(\.retiming)
-                let clipName = ordered.first?.clipDisplayName ?? ""
-                guard let retime = SpeedChangeFormatting.retimeDisplay(
-                    aggregating: segments,
-                    frameSampling: samplingByClipName[clipName] ?? .floor
-                )
-                else { return nil }
-
-                let timelineIn = ordered.map(\.timelineIn.doubleValue).min() ?? 0
-                let timelineOut = ordered.map(\.timelineOut.doubleValue).max() ?? timelineIn
-                let extractedMatch = extractionByName[clipName]?.first
-
-                return EffectReportRow(
-                    effect: retime.effect,
-                    settings: retime.settings,
-                    enabled: extractedMatch?.enabled ?? "",
-                    isApple: extractedMatch?.isApple ?? "",
-                    clipName: clipName,
-                    roleSubrole: extractedMatch?.roleSubrole ?? "",
-                    timelineIn: timelineString(
-                        seconds: timelineIn,
-                        fallback: extractedMatch?.timelineIn,
+            return keyed.values.flatMap { bucket in
+                usageRuns(in: bucket).compactMap { usage in
+                    row(
+                        forUsage: usage,
+                        extractionByName: extractionByName,
+                        samplingByClipName: samplingByClipName,
                         timecodeFormat: timecodeFormat,
                         sequence: sequence
-                    ),
-                    timelineOut: timelineString(
-                        seconds: timelineOut,
-                        fallback: extractedMatch?.timelineOut,
-                        timecodeFormat: timecodeFormat,
-                        sequence: sequence,
-                        asReportOut: true
                     )
-                )
+                }
             }
+        }
+
+        /// Splits windows sharing a clip name and resource into separate timeline usages.
+        ///
+        /// A single retimed clip emits one window per composed retiming segment and per media
+        /// channel, so those must collapse into one row. Windows of the same usage either
+        /// overlap in timeline (parallel channels) or chain, where `mediaIn` continues the
+        /// previous `mediaOut`. A further usage of the same source restarts at an unrelated
+        /// media position, and that discontinuity is what separates the runs — timeline
+        /// adjacency alone cannot, because consecutive clips are butt-cut.
+        private static func usageRuns(in windows: [MediaUsageWindow]) -> [[MediaUsageWindow]] {
+            let ordered = windows.sorted {
+                let lhs = $0.timelineIn.doubleValue
+                let rhs = $1.timelineIn.doubleValue
+                if lhs != rhs { return lhs < rhs }
+                return $0.mediaIn.doubleValue < $1.mediaIn.doubleValue
+            }
+
+            var runs: [[MediaUsageWindow]] = []
+            var current: [MediaUsageWindow] = []
+            var timelineEnd = 0.0
+            var mediaEnd = 0.0
+
+            for window in ordered {
+                let start = window.timelineIn.doubleValue
+                let overlapsTimeline = !current.isEmpty
+                    && start < timelineEnd - usageContinuityTolerance
+                let continuesMedia = !current.isEmpty
+                    && abs(start - timelineEnd) <= usageContinuityTolerance
+                    && abs(window.mediaIn.doubleValue - mediaEnd) <= usageContinuityTolerance
+
+                if current.isEmpty || overlapsTimeline || continuesMedia {
+                    current.append(window)
+                    timelineEnd = max(timelineEnd, window.timelineOut.doubleValue)
+                    mediaEnd = window.mediaOut.doubleValue
+                    continue
+                }
+
+                runs.append(current)
+                current = [window]
+                timelineEnd = window.timelineOut.doubleValue
+                mediaEnd = window.mediaOut.doubleValue
+            }
+
+            if !current.isEmpty { runs.append(current) }
+            return runs
+        }
+
+        /// Well below one frame at every supported rate, yet above `Fraction` rounding noise.
+        private static let usageContinuityTolerance: TimeInterval = 0.001
+
+        private static func row(
+            forUsage ordered: [MediaUsageWindow],
+            extractionByName: [String: [ExtractionCandidate]],
+            samplingByClipName: [String: FrameSampling],
+            timecodeFormat: ReportTimecodeFormat,
+            sequence: Sequence?
+        ) -> EffectReportRow? {
+            let segments = ordered.map(\.retiming)
+            let clipName = ordered.first?.clipDisplayName ?? ""
+            guard let retime = SpeedChangeFormatting.retimeDisplay(
+                aggregating: segments,
+                frameSampling: samplingByClipName[clipName] ?? .floor
+            )
+            else { return nil }
+
+            let timelineIn = ordered.map(\.timelineIn.doubleValue).min() ?? 0
+            let timelineOut = ordered.map(\.timelineOut.doubleValue).max() ?? timelineIn
+            let extractedMatch = extractionMatch(
+                in: extractionByName[clipName] ?? [],
+                nearestTimelineStart: timelineIn
+            )
+
+            return EffectReportRow(
+                effect: retime.effect,
+                settings: retime.settings,
+                enabled: extractedMatch?.enabled ?? "",
+                isApple: extractedMatch?.isApple ?? "",
+                clipName: clipName,
+                roleSubrole: roleSubrole(for: ordered, extractedMatch: extractedMatch),
+                timelineIn: timelineString(
+                    seconds: timelineIn,
+                    fallback: extractedMatch?.timelineIn,
+                    timecodeFormat: timecodeFormat,
+                    sequence: sequence
+                ),
+                timelineOut: timelineString(
+                    seconds: timelineOut,
+                    fallback: extractedMatch?.timelineOut,
+                    timecodeFormat: timecodeFormat,
+                    sequence: sequence,
+                    asReportOut: true
+                )
+            )
+        }
+
+        /// Role ▸ Subrole for a projected run.
+        ///
+        /// Extraction resolves roles from the host element, which knows what media the clip
+        /// carries, so it wins. Window roles only cover runs Extraction never matched — retimed
+        /// hosts reached solely through Projection, such as inside an `mc-clip`.
+        private static func roleSubrole(
+            for ordered: [MediaUsageWindow],
+            extractedMatch: EffectReportRow?
+        ) -> String {
+            if let extracted = extractedMatch?.roleSubrole, !extracted.isEmpty {
+                return extracted
+            }
+            
+            let isAudioOnly = ordered.allSatisfy { $0.channel.kind == .audio }
+            return ReportFormatting.effectRoleSubrole(
+                kind: isAudioOnly ? .filterAudio : .filterVideo,
+                hostElementType: "",
+                roles: ordered.flatMap(\.roles)
+            )
+        }
+
+        /// Picks the Extraction row describing the same usage as a projected run.
+        ///
+        /// Clip names repeat whenever one source is used several times, so the candidate
+        /// nearest the run's timeline start wins rather than whichever was extracted first.
+        private static func extractionMatch(
+            in candidates: [ExtractionCandidate],
+            nearestTimelineStart start: TimeInterval
+        ) -> EffectReportRow? {
+            let positioned = candidates.compactMap { candidate -> (EffectReportRow, Double)? in
+                guard let absoluteStart = candidate.absoluteStart else { return nil }
+                return (candidate.row, abs(absoluteStart - start))
+            }
+            guard !positioned.isEmpty else { return candidates.first?.row }
+            return positioned.min { $0.1 < $1.1 }?.0
         }
 
         private static func timelineString(
@@ -162,11 +273,18 @@ extension FinalCutPro.FCPXML {
             return ReportFormatting.timecodeString(timecode, format: timecodeFormat)
         }
 
-        private static func speedChangeRow(
+        /// An Extraction-derived retime row plus the timeline position that produced it,
+        /// so repeated uses of one clip name can be told apart.
+        private struct ExtractionCandidate {
+            let row: EffectReportRow
+            let absoluteStart: TimeInterval?
+        }
+
+        private static func speedChangeCandidate(
             from extracted: ExtractedElement,
             roleDisplayPreference: RoleDisplayPreference,
             timecodeFormat: ReportTimecodeFormat
-        ) -> EffectReportRow? {
+        ) -> ExtractionCandidate? {
             guard let timeMap = extracted.element.fcpTimeMap,
                   let retime = SpeedChangeFormatting.retimeDisplay(from: timeMap),
                   let timelineIn = extracted.value(
@@ -183,13 +301,13 @@ extension FinalCutPro.FCPXML {
                 return nil
             }
 
-            return EffectReportRow(
+            let row = EffectReportRow(
                 effect: retime.effect,
                 settings: retime.settings,
                 enabled: "",
                 isApple: "",
                 clipName: extracted.displayClipName(),
-                roleSubrole: ReportFormatting.markerRoleSubrole(
+                roleSubrole: ReportFormatting.retimeRoleSubrole(
                     for: extracted,
                     roleDisplayPreference: roleDisplayPreference
                 ),
@@ -199,6 +317,11 @@ extension FinalCutPro.FCPXML {
                     inclusiveStart: timelineIn,
                     format: timecodeFormat
                 )
+            )
+
+            return ExtractionCandidate(
+                row: row,
+                absoluteStart: extracted.value(forContext: .absoluteStart)
             )
         }
 

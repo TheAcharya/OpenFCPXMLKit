@@ -38,17 +38,22 @@ extension FinalCutPro.FCPXML {
             let windows = projection?.windows
             let windowIndex = windows.map { ProjectionWindowIndex(windows: $0) }
 
+            // Building a row reads the XML tree, and the Foundation backend hands back
+            // autoreleased objects. Without a pool boundary per row they accumulate for the
+            // whole section.
             let selectedRoles = resolvedEntries
                 .sortedByTimelinePosition()
-                .compactMap {
-                    RoleInventoryRowBuilder.row(
-                        from: $0,
-                        timecodeFormat: timecodeFormat,
-                        projectionWindows: windows,
-                        windowIndex: windowIndex,
-                        includeScreenshots: includeScreenshots,
-                        mediaBaseURL: mediaBaseURL
-                    )
+                .compactMap { entry in
+                    autoreleasepool {
+                        RoleInventoryRowBuilder.row(
+                            from: entry,
+                            timecodeFormat: timecodeFormat,
+                            projectionWindows: windows,
+                            windowIndex: windowIndex,
+                            includeScreenshots: includeScreenshots,
+                            mediaBaseURL: mediaBaseURL
+                        )
+                    }
                 }
 
             let roleSheets = RoleInventoryRoleSheetOrdering.roleSheets(from: selectedRoles)

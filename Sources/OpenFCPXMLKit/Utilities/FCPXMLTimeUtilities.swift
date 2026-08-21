@@ -21,7 +21,7 @@ extension OFKXMLElement {
         resourceID: String,
         resources: (any OFKXMLElement)? = nil
     ) throws -> Timecode? {
-        guard let fraction = Fraction(fcpxmlString: rawString)
+        guard let fraction = Fraction(fcpxmlTimeString: rawString)
         else { return nil }
 
         return try _fcpTimecode(
@@ -64,7 +64,7 @@ extension OFKXMLElement {
         breadcrumbs: [any OFKXMLElement]? = nil,
         resources: (any OFKXMLElement)? = nil
     ) throws -> Timecode? {
-        guard let fraction = Fraction(fcpxmlString: rawString)
+        guard let fraction = Fraction(fcpxmlTimeString: rawString)
         else { return nil }
 
         return try _fcpTimecode(
@@ -115,7 +115,7 @@ extension FinalCutPro.FCPXML {
         fromRational rawString: String,
         frameRate: TimecodeFrameRate
     ) throws -> Timecode? {
-        guard let fraction = Fraction(fcpxmlString: rawString)
+        guard let fraction = Fraction(fcpxmlTimeString: rawString)
         else { return nil }
 
         return try _timecode(
@@ -154,7 +154,7 @@ extension OFKXMLElement {
         breadcrumbs: [any OFKXMLElement]? = nil,
         resources: (any OFKXMLElement)? = nil
     ) throws -> TimecodeInterval? {
-        guard let fraction = Fraction(fcpxmlString: rawString)
+        guard let fraction = Fraction(fcpxmlTimeString: rawString)
         else { return nil }
 
         return try _fcpTimecodeInterval(
@@ -209,7 +209,7 @@ extension FinalCutPro.FCPXML {
         fromRational rawString: String,
         frameRate: TimecodeFrameRate
     ) throws -> TimecodeInterval? {
-        guard let fraction = Fraction(fcpxmlString: rawString)
+        guard let fraction = Fraction(fcpxmlTimeString: rawString)
         else { return nil }
 
         return try _timecodeInterval(

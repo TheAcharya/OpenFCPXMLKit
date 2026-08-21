@@ -229,14 +229,14 @@ extension OFKXMLElement {
         scaled: Bool
     ) -> Fraction? {
         guard let value = stringValue(forAttributeNamed: attributeName),
-              let base = Fraction(fcpxmlString: value)
+              let base = Fraction(fcpxmlTimeString: value)
         else { return nil }
         
         // scale if necessary
         // a clip's local start will be scaled if the clip contains `conform-rate`
         let isStartAttribute = ["start" /*, "tcStart" */].contains(attributeName)
         if scaled,
-           let scalingFactor = _fcpConformRateScalingFactor(includingSelf: isStartAttribute)
+           let scalingFactor = _fcpCachedConformRateScalingFactor(includingSelf: isStartAttribute)
         {
             return Fraction(double: base.doubleValue * scalingFactor)
         } else {

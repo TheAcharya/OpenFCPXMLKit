@@ -4,6 +4,14 @@
 
 ---
 
+## Table of Contents
+
+- [Element extraction (presets and scope)](#element-extraction-presets-and-scope)
+- [Media URL resolution (Parsing)](#media-url-resolution-parsing)
+- [Media extraction and copy](#media-extraction-and-copy)
+
+---
+
 ## Element extraction (presets and scope)
 
 Extract elements from an FCPXML tree by type or using **presets**. **FinalCutPro.FCPXML.ExtractionScope** controls scope (e.g. `.mainTimeline`): constrain to a local timeline, set max container depth, filter auditions/multicam angles, include/exclude element types.
@@ -18,6 +26,8 @@ Extract elements from an FCPXML tree by type or using **presets**. **FinalCutPro
 - **EffectsExtractionPreset** (`.effects`) — Semantic clip effects visible on the main timeline (`[ExtractedEffect]`, with `kind`, `name`, `settings`, `isAppleSupplied`). Transform settings come from `TransformAdjustment.componentSamples`; blend amount stays a 0.0–1.0 fraction (reports format Opacity percent). Filter `settings` are inspector `param` name/value pairs (Motion blobs omitted).
 
 Call **extract(types:scope:)** on an `FCPXMLElement` (or **fcpExtract(types:scope:)** on `OFKXMLElement`) for `[FinalCutPro.FCPXML.ExtractedElement]`. Call **extract(preset:scope:)** for a preset's result type. APIs are async.
+
+Story traversal uses `fcpProjectableStoryElements`, which skips annotation leaves (`keyword`, `marker`, `chapter-marker`, `analysis-marker`, `hidden-clip-marker` — `FCPXMLElementType.isLeafAnnotation`). Keyword and marker presets still return every child; they are collected from the host, not by treating each annotation as a nested container. Extraction walks also install the scoped timing cache described in [02 — Loading & Parsing](02-Loading-Parsing.md#large-documents).
 
 Titles and Effects **extraction presets** remain useful for discovery and tests. Report sections for Titles, Effects, Markers, Keywords, and Transitions prefer **Timeline Projection** annotations when available (Extraction fallback) — see [12 — Timeline Projection](12-Timeline-Projection.md) and [20 — Reporting, Excel & PDF Export](20-Reporting.md).
 
