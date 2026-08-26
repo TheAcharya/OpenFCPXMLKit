@@ -365,9 +365,13 @@ extension OFKXMLElement {
     /// - `ref-clip`: first spine story element inside the compound `media` sequence that
     ///   resolves to a file URL (skips titles/generators without media)
     ///
+    /// This resolves one primary media leaf; it does not enumerate every file in a compound.
+    /// A returned URL does not prove Project usage, filesystem existence, or path authority.
+    /// Title- or generator-only content may return `nil`.
+    ///
     /// - Parameter preferAudioAngle: When `true` on an `mc-clip`, prefer the active audio
     ///   angle’s leaf file (Role Inventory audio-component rows). Default is the video angle.
-    func fcpMediaURL(
+    public func fcpMediaURL(
         in resources: (any OFKXMLElement)? = nil,
         preferAudioAngle: Bool = false
     ) -> URL? {
@@ -382,7 +386,10 @@ extension OFKXMLElement {
     ///
     /// Same host unfold as ``fcpMediaURL(in:preferAudioAngle:)``. Returns `nil` when that
     /// representation is not declared on the resolved leaf asset.
-    func fcpMediaURL(
+    /// This resolves one primary leaf rather than enumerating every media leaf, and does not
+    /// prove Project usage, filesystem existence, or path authority. Title- or generator-only
+    /// content may return `nil`.
+    public func fcpMediaURL(
         in resources: (any OFKXMLElement)? = nil,
         kind: FinalCutPro.FCPXML.MediaRep.Kind,
         preferAudioAngle: Bool = false
@@ -402,7 +409,10 @@ extension OFKXMLElement {
     /// Both values come from one unfold so Role Inventory screenshots can prefer
     /// original and fall back to proxy without resolving a different leaf than
     /// Source File Path.
-    func fcpMediaRepresentationURLs(
+    /// The pair belongs to one primary resolved leaf; it is not an enumeration of all files
+    /// in a compound. The result does not prove Project usage, filesystem existence, or path
+    /// authority. Title- or generator-only content may return `(nil, nil)`.
+    public func fcpMediaRepresentationURLs(
         in resources: (any OFKXMLElement)? = nil,
         preferAudioAngle: Bool = false
     ) -> (original: URL?, proxy: URL?) {
