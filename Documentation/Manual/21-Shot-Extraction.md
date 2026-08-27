@@ -118,7 +118,7 @@ See also [19 — CLI](19-CLI.md) and [OpenFCPXMLKitCLI/README.md](../../Sources/
 
 - Shots come from ``TimelineProjector`` primary-spine video windows (clips between cuts).
 - Titles / generators are detected via a primary-spine story walk; audio via that walk plus primary-lane Projection audio windows.
-- Independent of `Reporting/` (Excel/PDF); consumes Projection only.
+- Independent of `Reporting/` (Excel/PDF); consumes Projection only. Does **not** call public `fcpMediaURL` / `fcpMediaRepresentationURLs` — still paths come from Projection `MediaChannel`.
 - Dependency: [swift-textfile](https://github.com/orchetect/swift-textfile) (`TextFile`) for CSV encoding.
 - Optional local integration: `Tests/ShotExtractionTest/` (`swift test --filter ShotExtractionExportTests`) — mirrors `ExcelReportTest`; cancels without a stills fixture.
 

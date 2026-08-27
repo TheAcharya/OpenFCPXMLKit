@@ -20,7 +20,7 @@ The manual is split into **chapters** for easier navigation and maintenance:
 | Chapter | Content |
 |--------|---------|
 | [01 — Overview](Manual/01-Overview.md) | Introduction, architecture, entry points, protocols and implementations |
-| [02 — Loading & Parsing](Manual/02-Loading-Parsing.md) | File loader, bundle support, parsing, FCPXML versions, element types, inherited roles, large-document walks |
+| [02 — Loading & Parsing](Manual/02-Loading-Parsing.md) | File loader, bundle support, parsing, FCPXML versions, element types, public leaf media URLs (`fcpMediaURL` / `fcpMediaRepresentationURLs`), inherited roles, large-document walks |
 | [03 — Timecode & Timing](Manual/03-Timecode-Timing.md) | SwiftTimecode, FCPXMLTimecode, CMTime, conversions, frame alignment, Projection timing safety, scoped timing cache |
 | [04 — Service & Logging](Manual/04-Service-Logging.md) | FCPXMLService, ModularUtilities, logging |
 | [05 — Validation & Cut Detection](Manual/05-Validation-CutDetection.md) | Semantic and DTD validation, cut detection API |
@@ -29,11 +29,11 @@ The manual is split into **chapters** for easier navigation and maintenance:
 | [08 — Detached Authoring](Manual/08-Detached-Authoring.md) | `FinalCutPro.FCPXML.Authoring` value graph, omit-on-write, spine compounds / media resources |
 | [09 — Timeline Manipulation](Manual/09-Timeline-Manipulation.md) | Ripple insert, auto lane, clip queries, lane range |
 | [10 — Timeline Metadata](Manual/10-Timeline-Metadata.md) | Markers, chapter markers, keywords, ratings, timestamps |
-| [11 — Extraction & Media](Manual/11-Extraction-Media.md) | Extraction scope and presets, inherited roles, leaf media URL resolution (`fcpMediaURL` / `fcpMediaRepresentationURLs`), media extraction and copy |
+| [11 — Extraction & Media](Manual/11-Extraction-Media.md) | Extraction scope and presets, inherited roles, leaf media URL resolution (public Parsing APIs — see 02), media extraction and copy |
 | [12 — Timeline Projection](Manual/12-Timeline-Projection.md) | `TimelineProjector`, `MediaUsageWindow`, options (incl. marker/keyword annotation knobs), occupancy, container-bounded contained media, report project-once; inventory vs unfolded `mc-angle` |
 | [13 — Media Processing](Manual/13-Media-Processing.md) | MIME type, asset validation, silence detection, duration, parallel I/O |
 | [14 — Typed Models](Manual/14-Typed-Models.md) | Adjustments (incl. Corners/Panner; Transform `inspectorPixels` via sequence height), filters, captions/titles, keyframe animation, Live Drawing, collections |
-| [15 — XML Extensions](Manual/15-XML-Extensions.md) | OFKXMLDocument and OFKXMLElement FCPXML extensions (cross-platform) |
+| [15 — XML Extensions](Manual/15-XML-Extensions.md) | OFKXMLDocument and OFKXMLElement FCPXML extensions (cross-platform), including public `fcpMediaURL` / `fcpMediaRepresentationURLs` |
 | [16 — High-Level Model](Manual/16-High-Level-Model.md) | FinalCutPro.FCPXML, Root, events, projects |
 | [17 — Cross-Platform & iOS](Manual/17-Cross-Platform-iOS.md) | XML abstraction layer, Foundation vs AEXML, iOS support |
 | [18 — Errors & Utilities](Manual/18-Errors-Utilities.md) | Error types, ErrorHandling, ProgressBar, FCPXMLUID |
@@ -52,7 +52,7 @@ The manual covers the **entire public API** with examples: core operations, asyn
 
 Architecture philosophy: [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7. Hard constraints: [GUARDRAILS.md](../GUARDRAILS.md). **Element / layer inventory:** [Coverage.md](Coverage.md) (Model · Authoring · Extraction · Projection · Reporting matrices).
 
-**Test count (keep in sync):** **1254** listed in `swift test list` — **1240** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`); **60** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
+**Test count (keep in sync):** **1261** listed in `swift test list` — **1247** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`); **60** sample `.fcpxml` files. Private user exports for local investigation: [Tests/Submitted FCPXML](../Tests/Submitted%20FCPXML/README.md) (gitignored; never commit to GitHub).
 
 ---
 

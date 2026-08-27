@@ -343,7 +343,7 @@ When `includeScreenshotsInRoleInventory` is `true`, each video-capable `RoleClip
 | `screenshotFallbackMediaFileURL` | `proxy-media` to try when the original is missing or `RoleInventoryScreenshotGrabber` cannot decode it (MXF, camera RAW, and similar) |
 | `screenshotFileTimeSeconds` | Asset-relative Source In (clip `start` − asset `start`) |
 
-`RoleInventoryScreenshotMedia` picks that pair from Projection `MediaChannel` or Parsing `fcpMediaRepresentationURLs` (same unfolded leaf as Source File Path). The grabber has **no codec allowlist**: stills use ImageIO (`png`, `jpg`/`jpeg`, `tif`/`tiff`, `gif`, `bmp`, `heic`/`heif`, `webp`, `psd`); video uses AVFoundation `AVAssetImageGenerator` (typically MOV/MP4 H.264, HEVC, ProRes, including FCP ProRes Proxy). Excel embedder (`FCPXMLReportWorkbookScreenshotEmbedder`) tries preferred then fallback. PDF omits the column. Signs `role-inventory-screenshots-excel-only`, `role-inventory-screenshots-prefer-original`.
+`RoleInventoryScreenshotMedia` picks that pair from Projection `MediaChannel` or public Parsing `fcpMediaRepresentationURLs` (same unfolded leaf as Source File Path; Sign `public-media-leaf-is-one-primary`). The grabber has **no codec allowlist**: stills use ImageIO (`png`, `jpg`/`jpeg`, `tif`/`tiff`, `gif`, `bmp`, `heic`/`heif`, `webp`, `psd`); video uses AVFoundation `AVAssetImageGenerator` (typically MOV/MP4 H.264, HEVC, ProRes, including FCP ProRes Proxy). Excel embedder (`FCPXMLReportWorkbookScreenshotEmbedder`) tries preferred then fallback. PDF omits the column. Signs `role-inventory-screenshots-excel-only`, `role-inventory-screenshots-prefer-original`.
 
 #### Markers
 

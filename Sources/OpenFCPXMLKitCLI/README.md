@@ -213,7 +213,7 @@ Log messages include parsing, version conversion, validation, save, and media ex
 | `Commands/CheckVersion/` | Implements `--check-version`: loads FCPXML and prints the document version. |
 | `Commands/ConvertVersion/` | Implements `--convert-version`: loads FCPXML, converts to target version (1.5–1.14), saves to output-dir as .fcpxmld (default) or .fcpxml per `--extension-type`; 1.5–1.9 always .fcpxml. |
 | `Commands/Validate/` | Implements `--validate`: loads FCPXML/FCPXMLD and runs robust validation (semantic + DTD). |
-| `Commands/ExtractMedia/` | Implements `--media-copy`: loads FCPXML/FCPXMLD and copies all referenced media files to output-dir. |
+| `Commands/ExtractMedia/` | Implements `--media-copy`: loads FCPXML/FCPXMLD and copies **every** referenced `media-rep` / locator file to output-dir (distinct from public `fcpMediaURL` one-leaf APIs). |
 | `Commands/ExtractShots/` | Implements `--extract-shots` / `--dry-run`: primary stills → PNG + CSV/Notion JSON; rejects primary video, titles/generators, and audio. |
 | `Commands/ExportReport/` | Implements `--report`: loads FCPXML/FCPXMLD, builds report sections (project-once Timeline Projection when needed), writes an `.xlsx` workbook to output-dir, and optionally a `.pdf` when `--create-pdf` is set (same built `Report`; section/column/timecode/media-resolution options apply to both). |
 | `Commands/CreateProject/` | Implements `--create-project`: creates an empty FCPXML project with given width, height, frame rate, and version; runs DTD validation before writing; outputs FCP-style document (DOCTYPE, colorSpace, default smart collections). |

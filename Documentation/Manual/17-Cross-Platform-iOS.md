@@ -32,7 +32,7 @@ OpenFCPXMLKit supports **macOS 26+** and **iOS 26+**. On macOS, the framework us
 
 - **Parsing and documents:** You work with `any OFKXMLDocument` and `any OFKXMLElement`. The concrete type (Foundation vs AEXML) is chosen at runtime based on the platform.
 - **Creating elements/documents:** Use `OFKXMLDefaultFactory()` (or an injected `OFKXMLFactory`) so that on iOS the AEXML backend is used automatically.
-- **Extensions:** All FCPXML extensions (e.g. `fcpxType`, `fcpxDuration`, `fcpxResources`) are defined on `OFKXMLElement` / `OFKXMLDocument`, so the same API works on both platforms.
+- **Extensions:** All FCPXML extensions (e.g. `fcpxType`, `fcpxDuration`, `fcpxResources`, public `fcpMediaURL` / `fcpMediaRepresentationURLs`) are defined on `OFKXMLElement` / `OFKXMLDocument`, so the same API works on both platforms.
 
 ```swift
 // Works on both macOS and iOS
@@ -62,7 +62,7 @@ let version = root?.stringValue(forAttributeNamed: "version")
 
 ## Testing
 
-- The suite uses **Swift Testing** exclusively (`@Suite` / `@Test` / `#expect` / `#require`). **1254** tests are listed in `swift test list` (**1240** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest`). See [Tests/README.md](../../Tests/README.md).
+- The suite uses **Swift Testing** exclusively (`@Suite` / `@Test` / `#expect` / `#require`). **1261** tests are listed in `swift test list` (**1247** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest`). See [Tests/README.md](../../Tests/README.md).
 - Tests run on **macOS** and exercise the Foundation XML backend. Optional fixtures cancel via `Test.cancel` when unset (ExcelReportTest Sample, `OFK_REPORTING_FCPXML_BUNDLE`, ShotExtractionTest Sample, `OFK_SHOT_EXTRACTION_FCPXML`, Submitted inbox).
 - Public fixtures: `Tests/FCPXML Samples/FCPXML/` (committed). Private investigation: [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) (`Inbox/` gitignored — never commit private FCPXML to GitHub).
 - **iOS** is supported for building the library (e.g. iOS Simulator); running the same tests on iOS is not required for CI because they depend on Foundation XML. AEXML parity and structural validation are covered by tests that run on macOS.

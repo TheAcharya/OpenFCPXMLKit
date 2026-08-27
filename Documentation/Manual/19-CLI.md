@@ -45,7 +45,7 @@ Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-c
 | **--convert-version &lt;VERSION&gt;** | Load, convert to target version (1.5–1.14) with element stripping and DTD validation, save to output-dir. Output format: **--extension-type** (default .fcpxmld for 1.10+; 1.5–1.9 always .fcpxml). |
 | **--extension-type &lt;fcpxml\|fcpxmld&gt;** | Output format for convert only (requires `--convert-version`): `fcpxmld` (bundle, default when omitted) or `fcpxml` (single file). |
 | **--validate** | Robust validation: semantic + DTD against declared version. Progress indicator unless `--quiet`. No output-dir required. |
-| **--media-copy** | Extract media refs and copy files to output-dir. Progress bar unless `--quiet`. Paths to stdout; summary to stderr. |
+| **--media-copy** | Extract **every** asset `media-rep` / locator reference and copy files to output-dir (distinct from public `fcpMediaURL` one-leaf APIs). Progress bar unless `--quiet`. Paths to stdout; summary to stderr. |
 
 ### SHOT EXTRACTION
 

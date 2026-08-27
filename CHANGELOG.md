@@ -7,6 +7,23 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.3.13](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.13) - 2026-08-27
+
+### ✨ New Features
+
+- **Public primary media leaf URLs (PR [#46](https://github.com/TheAcharya/OpenFCPXMLKit/pull/46)):** `OFKXMLElement.fcpMediaURL(in:preferAudioAngle:)`, `fcpMediaURL(in:kind:preferAudioAngle:)`, and `fcpMediaRepresentationURLs(in:preferAudioAngle:)` are public. They resolve one primary leaf original/proxy pair; they do not enumerate every compound file, prove filesystem existence, or Project usage. Thanks @oofyuan!
+
+### 🔧 Improvements
+
+- **Suite:** **1261** listed (`swift test list` — **1247** + **10** + **4**), including expanded `FCPXMLPublicMediaLeafAPITests` (public-import only: empty clip, multicam/sync/ref-clip unfold, title-only nil, original/proxy overload consistency).
+- **Documentation sync:** Manual 00–02 / 11 / 13 / 15 / 17 / 19–22 (canonical public leaf-URL contract in 02; 11/15/22 pointers and example; `--media-copy` vs one-leaf), Coverage, Tests READMEs, README, CONTRIBUTING (PRs reviewed case-by-case), CLI README, ARCHITECTURE (Parsing mermaid + public `fcpMediaURL` map), AGENT, `.cursorrules`, and GUARDRAILS Sign `public-media-leaf-is-one-primary`.
+
+### 🐛 Bug Fixes
+
+- None in this release.
+
+---
+
 ## [3.3.12](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.12) - 2026-08-24
 
 ### ✨ New Features
