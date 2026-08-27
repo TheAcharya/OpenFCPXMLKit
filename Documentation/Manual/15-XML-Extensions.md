@@ -73,9 +73,9 @@ try document.validateFCPXMLAgainst(version: .v1_14)
 | `eventClips`, `eventClips(forResourceID:)` | Clips in event |
 | `addToEvent(items:)`, `removeFromEvent(items:)` | Modify event |
 | `fcpxResource`, `fcpxParentEvent`, `fcpxSequenceClips` | Parent/children |
-| `fcpMediaURL(in:preferAudioAngle:)` | Leaf media file URL (`original-media`, else `proxy-media`) after unfolding mc-clip / sync / ref-clip / audition |
-| `fcpMediaURL(in:kind:preferAudioAngle:)` | Same unfold, one `MediaRep.Kind` only (`originalMedia` or `proxyMedia`) |
-| `fcpMediaRepresentationURLs(in:preferAudioAngle:)` | Original and proxy URLs from the **same** unfolded leaf (Role Inventory Source File Path + screenshot fallback) |
+| `fcpMediaURL(in:preferAudioAngle:)` | **Public.** Primary leaf media URL (`original-media`, else `proxy-media`) after unfolding mc-clip / sync / ref-clip / audition. One leaf — not an inventory; does not prove disk existence or Project usage |
+| `fcpMediaURL(in:kind:preferAudioAngle:)` | **Public.** Same unfold, one `MediaRep.Kind` only (`originalMedia` or `proxyMedia`); `nil` if undeclared |
+| `fcpMediaRepresentationURLs(in:preferAudioAngle:)` | **Public.** Original and proxy URLs from the **same** unfolded leaf (Role Inventory Source File Path + screenshot fallback) |
 | `fcpxAnnotations` | Annotation elements (markers, keywords, hidden-clip-marker, etc.) |
 | `fcpProjectableStoryElements` | Immediate story-element children with annotation leaves (`keyword`, `marker`, …) filtered out — use for timeline traversal |
 | `firstChildElement(named:)` | First child with that element name |
@@ -103,9 +103,13 @@ if let ref = clip.fcpxRef,
 for child in clip.fcpProjectableStoryElements {
     _ = child.fcpElementType
 }
+
+// Primary leaf original / proxy (public Parsing APIs — see 02)
+let pair = clip.fcpMediaRepresentationURLs(in: fcpxml.root.resources)
+let preferred = clip.fcpMediaURL(in: fcpxml.root.resources) // original ?? proxy
 ```
 
-`firstChildElement(withID:)` is backed by a per-element id index on both backends, so repeated `ref` resolution on a large `<resources>` list stays constant-time instead of filtering the child list each call. See [02 — Loading & Parsing](02-Loading-Parsing.md#large-documents).
+`firstChildElement(withID:)` is backed by a per-element id index on both backends, so repeated `ref` resolution on a large `<resources>` list stays constant-time instead of filtering the child list each call. See [02 — Loading & Parsing](02-Loading-Parsing.md#large-documents). Leaf media URL contract and unfold rules: [02 — Leaf media URLs](02-Loading-Parsing.md#leaf-media-urls-public-parsing-apis) (Sign `public-media-leaf-is-one-primary`).
 
 ---
 

@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1254** tests listed in `swift test list` — **1240** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1261** tests listed in `swift test list` — **1247** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -99,6 +99,7 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 | **SwiftTimecode API** | Use `Timecode(.realTime(seconds:), at:)` and `.fps23_976`, `.fps24`, … — not legacy `._24` / `realTime: at:` initialisers. |
 | **No regex in walk hot paths** | Time strings (`N/Ds`, `Ns`), attribute reads, and story-element walks run millions of times on large documents. Parse them with direct scanning — never `NSRegularExpression` — and look resources up by `id` through `OFKXMLElement.firstChildElement(withID:)` rather than filtering children. |
 | **Scoped memoisation only** | Derived timing values (`conform-rate` scaling) may be cached **only** inside a read-only walk via `FinalCutPro.FCPXML.withTimingCache(_:)`. No global caches; writes never consult a cache (Sign `timing-cache-is-read-only-scoped`). |
+| **Primary leaf URLs are one leaf** | Public `fcpMediaURL` / `fcpMediaRepresentationURLs` unfold to **one** primary original/proxy pair. Do not document them as enumerating every compound file, proving filesystem existence, or Project usage. Title/generator-only content may be `nil`. Lock with `FCPXMLPublicMediaLeafAPITests` (`import OpenFCPXMLKit` without `@testable`). Sign `public-media-leaf-is-one-primary`. |
 
 ---
 
@@ -127,7 +128,7 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 
 | Rule | Detail |
 |------|--------|
-| **Tests with behaviour** | Public API and report behaviour changes need tests. Prefer core (parse / extract / project) tests **plus** report shape tests when fixing a report gap. |
+| **Tests with behaviour** | Public API and report behaviour changes need tests. Prefer core (parse / extract / project) tests **plus** report shape tests when fixing a report gap. Promoting helpers to `public` needs a public-import lock (`import OpenFCPXMLKit` without `@testable` — `FCPXMLPublicMediaLeafAPITests`). |
 | **Swift Testing only** | The suite is **100% Swift Testing** (`import Testing`, `@Suite` / `@Test` / `#expect` / `#require`). There is **no** `import XCTest` in `Tests/`. Do not reintroduce XCTest or mix frameworks in one file. Performance smoke uses `ContinuousClock` budgets, not XCTest `measure {}`. |
 | **Bundled samples fail; optional fixtures cancel** | Bundled public samples **fail** if missing (`requireFCPXMLSample`). Optional fixtures (Submitted inbox, `OFK_REPORTING_FCPXML_BUNDLE`, ExcelReportTest Sample, `OFK_SHOT_EXTRACTION_FCPXML` / ShotExtractionTest Sample) **cancel** via `Test.cancel` (`requireSubmittedInboxItems` / `requireReportingFixtureFCPXML` / `ExcelReportFixture.requireFixtureURL` / `ShotExtractionFixture.requireFixtureURL`). Never throw `XCTSkip`. Harness: `FCPXMLTestSampleLoading` (`tryLoad*`) + `FCPXMLTestingSampleSupport` (`require*`). |
 | **Never commit private FCPXML** | `Tests/Submitted FCPXML/` inbox contents and private ExcelReportTest / ShotExtractionTest fixtures (`.fcpxml` / `.fcpxmld` under those trees) are **gitignored**. Never commit or push private project XML to GitHub. Anonymise → reproduce → fix → promote a **minimal public** sample when appropriate. |
@@ -208,7 +209,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1254** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1261** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -374,6 +375,12 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Reason:** Every read of `start` / `offset` / `duration` / `tcStart` resolves a conform-rate factor by walking ancestors and then that container's children, which a large timeline repeats millions of times; memoising it turned an apparent hang into a few seconds. The same cache surviving a mutation would silently report stale geometry, and an un-retained `ObjectIdentifier` key would alias a different element.
 - **Provenance:** 2026-08-21 — FCPXML files larger than 25 MB stalled at **Projecting Timeline** / **Loading Roles**.
 
+### Sign: public-media-leaf-is-one-primary
+- **Trigger:** Documenting, calling, or changing `fcpMediaURL` / `fcpMediaRepresentationURLs`, or promoting Parsing helpers to `public`.
+- **Instruction:** These three APIs are **public** on `OFKXMLElement`. They resolve **one** primary leaf original/proxy pair after unfolding `mc-clip` / `sync-clip` / `ref-clip` / `audition`. Never claim they enumerate every media file, prove the path exists on disk, or that the clip is used in the Project. Title- or generator-only content may return `nil` / `(nil, nil)`. Keep a public-import test (`import OpenFCPXMLKit` without `@testable`). Distinct from `MediaExtractor` (every `media-rep` / locator) and from Shot Extraction (Projection `MediaChannel` only).
+- **Reason:** PR [#46](https://github.com/TheAcharya/OpenFCPXMLKit/pull/46) promoted existing internal helpers; clients can misread “primary leaf” as a full media inventory or a filesystem check.
+- **Provenance:** 2026-08-26 — PR #46 public leaf URL APIs.
+
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.
 - **Instruction:** Keep it under `Tests/Submitted FCPXML/` (gitignored). Promote only anonymised minimal public fixtures.
@@ -385,7 +392,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ## 10. Quick checklist before merge
 
 - [ ] Change sits in the correct layer (ARCHITECTURE §2.7 / Guardrails §2).
-- [ ] Public behaviour has tests (Swift Testing); optional fixtures use `Test.cancel`.
+- [ ] Public behaviour has tests (Swift Testing); optional fixtures use `Test.cancel`. Public Parsing APIs keep a public-import lock.
 - [ ] No PBF / legacy naming in code or CLI output.
 - [ ] FCPXML 1.5 compatibility preserved; newer features version-marked.
 - [ ] Concurrency: no Task over non-Sendable XML/timecode types.

@@ -2,8 +2,8 @@
 
 This directory contains the test suite for OpenFCPXMLKit, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration. The suite runs on **macOS** (Foundation XML backend). The library also supports **iOS 26+** (AEXML backend); CI builds for iOS Simulator; the same tests are not run on iOS because they rely on Foundation XML.
 
-- **Test count:** **1254** tests listed in `swift test list` — **1240** in `OpenFCPXMLKitTests` + **10** in `ExcelReportTest` + **4** in `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest remaining; optional targets cancel without a local fixture)
-- **Scope:** Parsing, timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines (host-role isolation; unfolded `mc-angle` interiors omitted from Role Inventory), audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), Timeline Projection (`TimelineProjector` / `MediaUsageWindow` / `ReportProjectionContext`, project-once for report sections, containers bounding contained media, walk hygiene and hang budgets on annotation-dense clips), Excel and PDF reporting (universal **Row** column on all tabular sheets via `ensuringRowColumn` / `allowsInjectedRowColumn`, role inventory columns, Duplicate Frames = Source In/Out overlap, Inspector-unit Effects / inventory settings, Summary sheet with project title in **B1**, Media Summary sheets, configurable `ReportTimecodeFormat` / DF·NDF notation, format-aware headers, Frames/Feet+Frames sort order, inventory-first `ReportBuildPhase` progress, global column exclusion, disabled-clip filtering, Markers out-of-bounds filter / optional **Hidden** column (`includeMarkersOutsideClipBoundaries`), Excel `protectSheets` worksheet protection, workbook export and cell formatting, PDF cover with black “About This PDF Export” header + `info.circle`, TOC with accent colour chips + content-tint washes keyed to sheet `colorIndex`, remaining columns expanded to fill A4 landscape width after exclusions, section pagination, shared `FCPXMLReportRowColorPolicy`, standalone compound-clip timelines via `allReportTimelineSources()` / `FCPXMLCompoundClipReportTests`), and all supported FCPXML versions and frame rates  
+- **Test count:** **1261** tests listed in `swift test list` — **1247** in `OpenFCPXMLKitTests` + **10** in `ExcelReportTest` + **4** in `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest remaining; optional targets cancel without a local fixture)
+- **Scope:** Parsing (including **public** `fcpMediaURL` / `fcpMediaRepresentationURLs` leaf URLs), timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines (host-role isolation; unfolded `mc-angle` interiors omitted from Role Inventory), audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), Timeline Projection (`TimelineProjector` / `MediaUsageWindow` / `ReportProjectionContext`, project-once for report sections, containers bounding contained media, walk hygiene and hang budgets on annotation-dense clips), Excel and PDF reporting (universal **Row** column on all tabular sheets via `ensuringRowColumn` / `allowsInjectedRowColumn`, role inventory columns, Duplicate Frames = Source In/Out overlap, Inspector-unit Effects / inventory settings, Summary sheet with project title in **B1**, Media Summary sheets, configurable `ReportTimecodeFormat` / DF·NDF notation, format-aware headers, Frames/Feet+Frames sort order, inventory-first `ReportBuildPhase` progress, global column exclusion, disabled-clip filtering, Markers out-of-bounds filter / optional **Hidden** column (`includeMarkersOutsideClipBoundaries`), Excel `protectSheets` worksheet protection, workbook export and cell formatting, PDF cover with black “About This PDF Export” header + `info.circle`, TOC with accent colour chips + content-tint washes keyed to sheet `colorIndex`, remaining columns expanded to fill A4 landscape width after exclusions, section pagination, shared `FCPXMLReportRowColorPolicy`, standalone compound-clip timelines via `allReportTimelineSources()` / `FCPXMLCompoundClipReportTests`), and all supported FCPXML versions and frame rates  
 - **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure; validation and cross-platform XML tests; optional Excel/PDF report integration tests under `ExcelReportTest/`; optional Shot Extraction integration under `ShotExtractionTest/`; private investigation inbox under `Submitted FCPXML/` (gitignored contents)
 
 ---
@@ -23,6 +23,13 @@ This directory contains the test suite for OpenFCPXMLKit, a Swift 6 framework fo
 3. [Test categories and coverage](#3-test-categories-and-coverage)
    - [3.1 OpenFCPXMLKitTests.swift (MARK sections)](#31-openfcpxmlkittestsswift-mark-sections)
    - [3.2 Dedicated test files (by theme)](#32-dedicated-test-files-by-theme)
+     - [Cross-platform XML](#cross-platform-xml)
+     - [Media & extraction](#media--extraction)
+     - [Timeline & manipulation](#timeline--manipulation)
+     - [Timecode & timing](#timecode--timing)
+     - [Media processing](#media-processing)
+     - [Analysis & detection](#analysis--detection)
+     - [Typed models](#typed-models)
      - [Reporting and Excel/PDF export](#reporting-and-excelpdf-export)
 4. [File tests (per-sample)](#4-file-tests-per-sample-coverage)
 5. [Logic and parsing tests](#5-logic-and-parsing-tests)
@@ -152,6 +159,7 @@ Tests/
     ├── FCPXMLMarkersReportTests.swift
     ├── FCPXMLMediaExtractionTests.swift
     ├── FCPXMLMediaURLResolutionTests.swift
+    ├── FCPXMLPublicMediaLeafAPITests.swift
     ├── FCPXMLShotExtractionTests.swift
     ├── FCPXMLParallelFileIOTests.swift
     ├── FCPXMLPerformanceTests.swift
@@ -222,8 +230,8 @@ swift test --filter OpenFCPXMLKitTests             # By pattern
 To verify the documented test counts:
 
 ```bash
-swift test list 2>/dev/null | grep -E '^(OpenFCPXMLKitTests|ExcelReportTest|ShotExtractionTest)\.' | wc -l   # 1254
-swift test list 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 1240
+swift test list 2>/dev/null | grep -E '^(OpenFCPXMLKitTests|ExcelReportTest|ShotExtractionTest)\.' | wc -l   # 1261
+swift test list 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 1247
 swift test list 2>/dev/null | grep -c 'ExcelReportTest\.'       # 10
 swift test list 2>/dev/null | grep -c 'ShotExtractionTest\.'    # 4
 ```
@@ -268,32 +276,33 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 | **FCPXMLError** | Every case has non-empty errorDescription |
 | **ModularUtilities API** | createCustomService, validateDocument (invalid doc), processFCPXML, processMultipleFCPXML, convertTimecodes |
 | **OFKXMLDocument extension** | fcpxEventNames, add(events:); resource(matchingID:), remove(resourceAtIndex:); fcpxmlString, fcpxmlVersion; load via FCPXMLFileLoader or parser |
-| **OFKXMLElement extension** | fcpxType, isFCPXResource, isFCPXStoryElement; fcpxEvent, eventClips, addToEvent, removeFromEvent; fcpxDuration; eventClips throws when not event |
+| **OFKXMLElement extension** | fcpxType, isFCPXResource, isFCPXStoryElement; fcpxEvent, eventClips, addToEvent, removeFromEvent; fcpxDuration; eventClips throws when not event; public `fcpMediaURL` / `fcpMediaRepresentationURLs` (see `FCPXMLPublicMediaLeafAPITests`) |
 | **Parser filter** | Filter media by first child (multicam/compound); FCPXMLUtility.defaultForExtensions |
 
 ### 3.2 Dedicated test files (by theme)
 
-**Cross-platform XML**
+### Cross-platform XML
 
 - **FCPXMLAEXMLSerializationParityTests** — AEXML round-trip (parse → serialize → re-parse, structure comparison); backend parity (Foundation vs AEXML on same FCPXML); all-samples smoke (AEXML parses every sample); root/version parity; DTD validation (AEXML throws dtdValidationUnavailable). Documents known serialization differences (attribute order, whitespace, empty elements, DOCTYPE stripping, comments).
 - **FCPXMLDTDValidatorTests** — Validates document against a given FCPXML version's DTD; on macOS full DTD validation; on iOS (or when DTD unavailable) uses FCPXMLStructuralValidator and may return structuralValidationOnly warning.
 - **FCPXMLStructuralValidatorTests** — Cross-platform structural validation: root name `fcpxml`, required `version`, required `resources`, at least one content element (library/event/project), element-name allowlist (1.5–1.14); unknownElementName error; structuralValidationOnly warning.
 
-**Media & extraction**
+### Media & extraction
 
 - **FCPXMLMediaExtractionTests** — extractMediaReferences, copyReferencedMedia (sync/async); extract-then-copy flow (CLI --media-copy). MediaExtractor, MediaExtractionResult, MediaCopyResult.
-- **FCPXMLMediaURLResolutionTests** — Leaf media URLs for non-flattened hosts (`fcpMediaURL`, `fcpMediaURL(kind:)`, `fcpMediaRepresentationURLs`): multicam video/audio angles, sync-clip, standalone ref-clip, title-only compound empty; original/proxy split on the same leaf; Role Inventory Source File Name for MulticamSample (host audio-component uses the active audio angle; interiors omitted) / SyncClip / CompoundClipSample.
+- **FCPXMLMediaURLResolutionTests** — Leaf media URLs for non-flattened hosts (`fcpMediaURL`, `fcpMediaURL(kind:)`, `fcpMediaRepresentationURLs`) with `@testable`: multicam video/audio angles, sync-clip, standalone ref-clip, title-only compound empty; original/proxy split on the same leaf; Role Inventory Source File Name for MulticamSample (host audio-component uses the active audio angle; interiors omitted) / SyncClip / CompoundClipSample.
+- **FCPXMLPublicMediaLeafAPITests** — Same leaf-URL APIs with `import OpenFCPXMLKit` only (no `@testable`): empty clip access-level lock; MulticamSample / SyncClip / StandaloneRefClip / title-only compound; original/proxy pair consistency across the three public overloads. Sign `public-media-leaf-is-one-primary`.
 - **FCPXMLShotExtractionTests** — still-image Shot Extraction (**10** `@Test`; `extractShots` / `planShots`): reused stills → distinct Shot IDs / PNGs; CSV + Notion JSON (csv2notion-neo shape; **keys in CSV column order**; Shot ID array order); **Icon Image** / `icon`; folder formats; rejects primary-spine video, titles/generators, and audio; dry-run writes nothing. Optional end-to-end: **`ShotExtractionTest`**. See Manual [21 — Shot Extraction](../Documentation/Manual/21-Shot-Extraction.md).
 
-**Timeline & manipulation**
+### Timeline & manipulation
 
 - **FCPXMLTimelineManipulationTests** — Ripple insert (immutable/mutating, lane options); auto lane (findAvailableLane, insertingClipAutoLane, insertClipAutoLane); clip queries (onLane, inRange, withAssetRef, laneRange); metadata (markers, chapters, keywords, ratings); timestamps (createdAt, modifiedAt); file tests for TimelineSample, TimelineWithSecondaryStoryline, TimelineWithSecondaryStorylineWithAudioKeyframes. Timeline, TimelineClip, RippleInsertResult, ClipPlacement, TimelineError.
 
-**Timecode & timing**
+### Timecode & timing
 
 - **FCPXMLTimecodeTests** — FCPXMLTimecode: init (seconds, value/timescale, CMTime, frames, FCPXML string); value, timescale, seconds, fcpxmlString; arithmetic (+, -, *); comparison; toCMTime; frame alignment; Hashable, Codable.
 
-**Media processing**
+### Media processing
 
 - **FCPXMLMIMETypeDetectionTests** — Sync/async detection (UTType, AVFoundation, extension fallback); video/audio/image formats. MIMETypeDetector.
 - **FCPXMLAssetValidationTests** — Existence; lane compatibility (negative = audio only); sync/async; TimelineClip (validateAsset, isAudioAsset, isVideoAsset, isImageAsset). AssetValidator, AssetValidationResult.
@@ -301,7 +310,7 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 - **FCPXMLAssetDurationMeasurementTests** — Duration for audio/video/images; media type; sync/async; image (no duration). AssetDurationMeasurer, DurationMeasurementResult, MediaType.
 - **FCPXMLParallelFileIOTests** — Parallel read/write; success/failure counts; maxConcurrentOperations, useFileHandleOptimization. ParallelFileIOExecutor, ParallelFileIOResult.
 
-**Analysis & detection**
+### Analysis & detection
 
 - **FCPXMLCutDetectionTests** — Edit points (hardCut, transition, gapCut); source relationship (sameClip, differentClips); empty spine; single clip; same ref transitions; different refs; CutSample.fcpxml file test. EditPoint, CutDetectionResult.
 - **FCPXMLTimelineProjectionTests** — Timeline Projection: identity/`timeMap`; nested lanes; J/L cuts; multicam active/all + split angles; ref-clip unfold; audition mask; video/audio leaves; **container clips its contained media to its own span while connected (`lane`) clips keep their own extent** (Sign `containers-bound-their-content-not-their-anchors`); SyncClip/24 sample regression; Role Inventory / Markers / Keywords / Titles / Transitions / Effects / Speed Change / Media Summary / Summary project-once; occupancy index; disabled filtering; streaming parity.
@@ -310,7 +319,7 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 - **FCPXMLAuthoringTests** — Detached Authoring round-trip, cinematic omit-on-write, mixed spine + compound clips (sync/ref/mc/audition/caption).
 - **FCPXMLVersionFeatureGateTests** — Shared version feature registry availability / omit sets.
 
-**Typed models**
+### Typed models
 
 - **FCPXMLAdjustmentTests** — Crop, Transform, Blend, Stabilization, Volume, Loudness; init, properties, Codable, Clip integration; XML round-trip.
 - **FCPXMLAudioEnhancementTests** — NoiseReduction, HumReduction, Equalization, MatchEqualization; init, Codable, Clip integration.
@@ -551,6 +560,8 @@ Full workflow (anonymise → reproduce → fix → promote): **[Submitted FCPXML
 
 **Framework** — The suite uses **Swift Testing** exclusively (`import Testing`, `@Suite` / `@Test` / `#expect` / `#require`). There is **no** `import XCTest` in `Tests/`. See GUARDRAILS `Sign: swift-testing-only`. Template: `FCPXMLReportRoleExclusionTests`.
 
+**Public APIs** — Promoting helpers to `public` needs a lock that compiles with `import OpenFCPXMLKit` only (no `@testable`). See `FCPXMLPublicMediaLeafAPITests` and Sign `public-media-leaf-is-one-primary`.
+
 **Sample harness** — Prefer framework-agnostic loaders, then Swift Testing wrappers:
 
 | Layer | API | Behaviour |
@@ -611,7 +622,7 @@ Add tests for new behaviour or edge cases; place them in the right file and MARK
 - **Final Cut Pro XML (FCPXML)** — [fcp.cafe](https://fcp.cafe) for format reference
 - **SwiftTimecode** (GitHub) — timecode and frame rate types
 
-**Keep counts in sync:** `swift test list` → **1254** total (**1240** OpenFCPXMLKitTests + **10** ExcelReportTest + **4** ShotExtractionTest; all Swift Testing); **60** public samples.
+**Keep counts in sync:** `swift test list` → **1261** total (**1247** OpenFCPXMLKitTests + **10** ExcelReportTest + **4** ShotExtractionTest; all Swift Testing); **60** public samples.
 
 ---
 

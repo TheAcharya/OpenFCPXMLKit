@@ -12,6 +12,8 @@
 - [Asset duration measurement](#asset-duration-measurement)
 - [Parallel file I/O](#parallel-file-io)
 
+File existence, MIME type, silence, duration, and parallel I/O operate on **paths you already have**. To resolve a clip’s declared original/proxy URL from FCPXML, use the public Parsing APIs in [02 — Loading & Parsing](02-Loading-Parsing.md#leaf-media-urls-public-parsing-apis) (`fcpMediaURL` / `fcpMediaRepresentationURLs`). Those helpers do not check that the file exists on disk.
+
 ---
 
 ## MIME type detection
@@ -118,4 +120,5 @@ let readResult = await executor.readFiles(urlsToRead)
 ## Next
 
 - [14 — Typed Models](14-Typed-Models.md) — Adjustments, filters, captions, keyframes, Live Drawing, collections.
+- [02 — Loading & Parsing](02-Loading-Parsing.md#leaf-media-urls-public-parsing-apis) — public primary leaf URLs (declared paths, not existence checks).
 

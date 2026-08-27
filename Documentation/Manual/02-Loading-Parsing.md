@@ -8,6 +8,7 @@
 
 - [File loader API](#file-loader-api)
 - [Parsing](#parsing)
+- [Leaf media URLs (public Parsing APIs)](#leaf-media-urls-public-parsing-apis)
 - [FCPXML version and element types](#fcpxml-version-and-element-types)
 - [Inherited roles](#inherited-roles)
 - [Large documents](#large-documents)
@@ -65,6 +66,47 @@ let parser = FCPXMLParser()
 let document = try parser.parse(data)
 let documentAsync = try await parser.parse(data)
 ```
+
+---
+
+## Leaf media URLs (public Parsing APIs)
+
+Timeline elements resolve a **primary leaf** media file through **public** `OFKXMLElement` methods. Call them on `asset-clip`, `mc-clip`, `sync-clip`, `ref-clip`, `audition`, and similar hosts.
+
+| API | Returns |
+|-----|---------|
+| `fcpMediaURL(in:preferAudioAngle:)` | `original-media` URL, or `proxy-media` when no original is declared |
+| `fcpMediaURL(in:kind:preferAudioAngle:)` | That `MediaRep.Kind` only (`nil` if undeclared) |
+| `fcpMediaRepresentationURLs(in:preferAudioAngle:)` | `(original: URL?, proxy: URL?)` from the **same** unfolded leaf |
+
+Unfold rules:
+
+- **`mc-clip`:** active video angle (or the active audio angle when `preferAudioAngle` is `true`)
+- **`sync-clip` / generic `clip`:** first non-gap child leaf
+- **`ref-clip`:** first spine story element inside the compound `media` sequence that resolves to a file URL (skips titles/generators without media)
+- Direct `asset` / `locator` refs resolve immediately
+
+These APIs resolve **one** primary leaf. They do not enumerate every file in a compound, prove the path exists on disk, or prove the clip is used in the Project. Title- or generator-only content may return `nil` / `(nil, nil)`. Sign `public-media-leaf-is-one-primary`.
+
+```swift
+import OpenFCPXMLKit
+
+let clip: any OFKXMLElement = // asset-clip, mc-clip, sync-clip, ref-clip, …
+let resources = document.fcpxResources
+
+if let url = clip.fcpMediaURL(in: resources) {
+    print(url.lastPathComponent) // original, else proxy
+}
+
+let pair = clip.fcpMediaRepresentationURLs(in: resources)
+_ = pair.original
+_ = pair.proxy
+
+let proxyOnly = clip.fcpMediaURL(in: resources, kind: .proxyMedia)
+let audioLeaf = clip.fcpMediaURL(in: resources, preferAudioAngle: true)
+```
+
+`in:` may be omitted; the document’s root `<resources>` is located from the element. Role Inventory Source File Path and screenshots use the same pair (original-first, proxy fallback). Shot Extraction does **not** call these APIs — it uses Projection `MediaChannel`. See [15 — XML Extensions](15-XML-Extensions.md), [11 — Extraction & Media](11-Extraction-Media.md#media-url-resolution-parsing), [22 — Examples](22-Examples.md#resolve-a-clips-primary-media-url), `FCPXMLPublicMediaLeafAPITests` (`import OpenFCPXMLKit` only), and `FCPXMLMediaURLResolutionTests` (`@testable`).
 
 ---
 
@@ -140,5 +182,6 @@ document.addSequence(sequence, using: documentManager)
 ## Next
 
 - [03 — Timecode & Timing](03-Timecode-Timing.md) — SwiftTimecode, FCPXMLTimecode, CMTime, conversions.
-- [11 — Extraction & Media](11-Extraction-Media.md) — inherited roles consumed by presets.
-- [20 — Reporting, Excel & PDF Export](20-Reporting.md) — Role Inventory uses Parsing role facts.
+- [11 — Extraction & Media](11-Extraction-Media.md) — inherited roles consumed by presets; media copy vs primary leaf URLs.
+- [15 — XML Extensions](15-XML-Extensions.md) — `OFKXMLElement` table including public `fcpMediaURL` / `fcpMediaRepresentationURLs`.
+- [20 — Reporting, Excel & PDF Export](20-Reporting.md) — Role Inventory uses Parsing role facts and the same leaf URL pair.

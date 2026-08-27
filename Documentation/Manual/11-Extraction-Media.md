@@ -61,15 +61,9 @@ Role Inventory may still walk `mcClipAngles = .all` for discovery; unfolded `mc-
 
 ## Media URL resolution (Parsing)
 
-Timeline elements resolve a **leaf** media file through Parsing — not Extraction. Use these on any `OFKXMLElement` (asset-clip, mc-clip, sync-clip, ref-clip, audition, and so on):
+Leaf file URLs are **public Parsing APIs** on `OFKXMLElement` (`fcpMediaURL`, `fcpMediaURL(kind:)`, `fcpMediaRepresentationURLs`). Full contract, unfold rules, and examples live in [02 — Loading & Parsing](02-Loading-Parsing.md#leaf-media-urls-public-parsing-apis) and [15 — XML Extensions](15-XML-Extensions.md).
 
-| API | Returns |
-|-----|---------|
-| `fcpMediaURL(in:preferAudioAngle:)` | `original-media` URL, or `proxy-media` when no original is declared |
-| `fcpMediaURL(in:kind:preferAudioAngle:)` | That `MediaRep.Kind` only (`nil` if undeclared) |
-| `fcpMediaRepresentationURLs(in:preferAudioAngle:)` | `(original: URL?, proxy: URL?)` from the **same** unfolded leaf |
-
-Unfold rules: `mc-clip` uses the active video angle (or the active audio angle when `preferAudioAngle` is `true`); `sync-clip` / `clip` use the first non-gap child leaf; `ref-clip` walks the compound `media` sequence. Source File Name / Path stay original-first. Role Inventory screenshots use the same pair and prefer original, falling back to proxy only when the original is missing or cannot be decoded — see [20 — Reporting](20-Reporting.md#role-inventory-screenshots).
+Extraction `ElementContext.mediaURL` wraps the default overload (original, else proxy). Role Inventory Source File Path / screenshots use the same pair (original-first, proxy fallback) — see [20 — Reporting](20-Reporting.md#role-inventory-screenshots). `--media-copy` / `MediaExtractor` enumerates **every** `media-rep` / locator reference in the document; that is a different job from resolving one primary leaf. Shot Extraction does not call these APIs (Projection `MediaChannel` only). Sign `public-media-leaf-is-one-primary`.
 
 ## Media extraction and copy
 
@@ -109,6 +103,7 @@ for entry in copyResult.failed { /* error */ }
 ## Next
 
 - [12 — Timeline Projection](12-Timeline-Projection.md) — playable media windows between Extraction and Reporting.
+- [02 — Loading & Parsing](02-Loading-Parsing.md#leaf-media-urls-public-parsing-apis) — public primary leaf URLs (`fcpMediaURL` / `fcpMediaRepresentationURLs`).
 - [13 — Media Processing](13-Media-Processing.md) — MIME type, asset validation, silence, duration, parallel I/O.
 - [20 — Reporting, Excel & PDF Export](20-Reporting.md) — build reports from Projection + Extraction and export to `.xlsx` or `.pdf`.
 - [21 — Shot Extraction](21-Shot-Extraction.md) — primary-timeline stills → PNG + CSV / Notion JSON.

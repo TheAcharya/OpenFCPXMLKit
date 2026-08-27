@@ -2,9 +2,9 @@
 
 Living inventory of how OpenFCPXMLKit covers Final Cut Pro FCPXML across layers. Prefer this file when asking “is element *X* typed / authored / projected / reported?” Prefer [GUARDRAILS.md](../GUARDRAILS.md) for must / must-not, and [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7 for where new work belongs.
 
-**Keep in sync** when adding Model types, Authoring encode/decode, Extraction presets, Projection walks, Reporting sheets, or Shot Extraction behaviour. Suite context: **1254** tests listed (`swift test list` — **1240** + **10** ExcelReportTest + **4** ShotExtractionTest); FCPXML **1.5–1.14**.
+**Keep in sync** when adding Model types, Authoring encode/decode, Extraction presets, Projection walks, Reporting sheets, or Shot Extraction behaviour. Suite context: **1261** tests listed (`swift test list` — **1247** + **10** ExcelReportTest + **4** ShotExtractionTest); FCPXML **1.5–1.14**.
 
-**Related Manual:** [08 — Detached Authoring](Manual/08-Detached-Authoring.md) · [11 — Extraction](Manual/11-Extraction-Media.md) · [12 — Projection](Manual/12-Timeline-Projection.md) · [14 — Typed Models](Manual/14-Typed-Models.md) · [20 — Reporting](Manual/20-Reporting.md) · [21 — Shot Extraction](Manual/21-Shot-Extraction.md)
+**Related Manual:** [02 — Loading & Parsing](Manual/02-Loading-Parsing.md) · [08 — Detached Authoring](Manual/08-Detached-Authoring.md) · [11 — Extraction](Manual/11-Extraction-Media.md) · [12 — Projection](Manual/12-Timeline-Projection.md) · [14 — Typed Models](Manual/14-Typed-Models.md) · [15 — XML Extensions](Manual/15-XML-Extensions.md) · [20 — Reporting](Manual/20-Reporting.md) · [21 — Shot Extraction](Manual/21-Shot-Extraction.md)
 
 ---
 
@@ -77,7 +77,7 @@ XML / DTD  →  Parsing  →  Model  →  Extraction  →  Projection  →  Repo
 
 | Layer | Owns | Must not |
 |-------|------|----------|
-| **Model / Parsing** | Typed facts, attributes, children | Report presentation |
+| **Model / Parsing** | Typed facts, attributes, children; **public** `fcpMediaURL` / `fcpMediaRepresentationURLs` (one primary leaf) | Report presentation |
 | **Authoring** | Detached value graph → XML | Live wrappers; Reporting imports |
 | **Extraction** | Discovery + context (roles, occlusion, presets) | Sheet layout |
 | **Projection** | Playable occupancy, retiming, unfold | Excel/PDF styling |
@@ -100,7 +100,7 @@ XML / DTD  →  Parsing  →  Model  →  Extraction  →  Projection  →  Repo
 | `media`+`<sequence>` | `compoundResource` (`media@sequence`) | `Media` + sequence | **yes** `MediaSequence` | — | **yes** | — | Inferred kind |
 | `effect` | `effectResource` | `Effect` | **yes** `Effect` | partial | partial | Effects names | Titles / transitions / filters `ref` |
 | `locator` | `locator` | `Locator` | — | — | — | — | FCPXML 1.14+ |
-| `media-rep` | `mediaRep` | `MediaRep` | **yes** `MediaRep` | — | URLs | Media Summary | |
+| `media-rep` | `mediaRep` | `MediaRep` | **yes** `MediaRep` | — | URLs | Media Summary | Public `fcpMediaURL` / `fcpMediaRepresentationURLs` unfold to **one** primary original/proxy pair (Sign `public-media-leaf-is-one-primary`) |
 | `metadata` / `md` | `metadata` / `md` | `Metadata` / `Metadatum` | — | — | — | Inventory dynamic keys | |
 | `bookmark` | `bookmark` | protocol child | — | — | — | — | |
 | `object-tracker` | `objectTracker` | `ObjectTracker` | — | — | — | — | Gate **1.10+** |
@@ -130,12 +130,12 @@ XML / DTD  →  Parsing  →  Model  →  Extraction  →  Projection  →  Repo
 
 | Element | Type case | Model | Auth | Ext | Proj | Rep | Notes |
 |---------|-----------|-------|------|-----|------|-----|-------|
-| `asset-clip` | `assetClip` | `AssetClip` | **yes** (+ volume / cinematic) | **yes** | **yes** leaf | Inventory / sections | |
-| `clip` | `clip` | `Clip` (+ adj/filters) | — | **yes** | **yes** shell | via windows | Auth intentional gap |
-| `ref-clip` | `compoundClip` | `RefClip` | **yes** | **yes** | **yes** unfold | Inventory | |
-| `sync-clip` | `synchronizedClip` | `SyncClip` | **yes** | **yes** | **yes** shell | Inventory | |
+| `asset-clip` | `assetClip` | `AssetClip` | **yes** (+ volume / cinematic) | **yes** | **yes** leaf | Inventory / sections | Public `fcpMediaURL` resolves the asset `media-rep` pair |
+| `clip` | `clip` | `Clip` (+ adj/filters) | — | **yes** | **yes** shell | via windows | Auth intentional gap; leaf URL = first non-gap child |
+| `ref-clip` | `compoundClip` | `RefClip` | **yes** | **yes** | **yes** unfold | Inventory | Leaf URL walks the compound `media` sequence (title-only → `nil`) |
+| `sync-clip` | `synchronizedClip` | `SyncClip` | **yes** | **yes** | **yes** shell | Inventory | Leaf URL = first non-gap child (`preferAudioAngle` is a no-op) |
 | `sync-source` | `syncSource` | `SyncClip.SyncSource` | **yes** | — | — | — | |
-| `mc-clip` | `multicamClip` | `MCClip` | **yes** | **yes** | **yes** unfold | Inventory (timeline host; skip unfolded `mc-angle`) |
+| `mc-clip` | `multicamClip` | `MCClip` | **yes** | **yes** | **yes** unfold | Inventory (timeline host; skip unfolded `mc-angle`) | Leaf URL = active video angle (audio angle when `preferAudioAngle`) |
 | `mc-source` | `mcSource` | `MulticamSource` | **yes** | — | **yes** | — | |
 | `video` | `video` | `Video` | **yes** | **yes** | **yes** leaf | Inventory | |
 | `audio` | `audio` | `Audio` | **yes** | **yes** | **yes** leaf | Inventory | |
@@ -396,6 +396,7 @@ Detached Authoring is **incremental**. Documented non-goals / not-yet:
 | Capability | Auth | Model | Ext | Proj | Rep | Timeline Export |
 |------------|------|-------|-----|------|-----|-----------------|
 | Resources (format/asset/effect/media) | **yes** (no locator) | **yes** | — | resolve | Media Summary | **yes** |
+| Primary leaf original/proxy URLs | — | **public** `fcpMediaURL` | wrap | Projection `MediaChannel` | Inventory Source File / screenshots | — |
 | Library → spine | **yes** | **yes** | walk | walk | timeline sources | **yes** |
 | Generic `<clip>` | — | **yes** | **yes** | **yes** shell | via windows | **yes** |
 | Compounds / multicam / audition | **yes** | **yes** | **yes** | **yes** unfold | Inventory | partial |
@@ -557,5 +558,6 @@ When coverage changes:
 1. Update the relevant section table(s) in this file.
 2. If Authoring gains types, update §5 / §16 and Manual 08.
 3. If Reporting gains sheets, update §15 and Manual 20.
-4. Mention material coverage shifts in `CHANGELOG.md` under Improvements.
+4. If public Parsing APIs change (`fcpMediaURL` / `fcpMediaRepresentationURLs`), update Manual 02 / 15 and keep `FCPXMLPublicMediaLeafAPITests` as a public-import lock.
+5. Mention material coverage shifts in `CHANGELOG.md` under Improvements.
 

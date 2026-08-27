@@ -10,6 +10,7 @@
 - [List event names](#list-event-names)
 - [Create and add events](#create-and-add-events)
 - [Work with clips](#work-with-clips)
+- [Resolve a clip's primary media URL](#resolve-a-clips-primary-media-url)
 - [Display clip duration](#display-clip-duration)
 - [Save FCPXML file](#save-fcpxml-file)
 - [Create an empty project from the CLI](#create-an-empty-project-from-the-cli)
@@ -84,6 +85,26 @@ try firstEvent.removeFromEvent(items: matchingClips)
 if let resource = fcpxmlDoc.resource(matchingID: "r1") {
     fcpxmlDoc.remove(resourceAtIndex: resource.index)
 }
+```
+
+---
+
+## Resolve a clip's primary media URL
+
+Public Parsing APIs on `OFKXMLElement` unfold `mc-clip` / `sync-clip` / `ref-clip` / `audition` to **one** original/proxy pair. They do not enumerate every compound file or prove the path exists. See [02 — Loading & Parsing](02-Loading-Parsing.md#leaf-media-urls-public-parsing-apis).
+
+```swift
+let firstEvent = fcpxmlDoc.fcpxEvents[0]
+guard let clip = firstEvent.eventClips?.first else { return }
+let resources = fcpxmlDoc.fcpxResources
+
+if let url = clip.fcpMediaURL(in: resources) {
+    print("Primary leaf:", url.path)
+}
+
+let pair = clip.fcpMediaRepresentationURLs(in: resources)
+print("Original:", pair.original?.lastPathComponent ?? "none")
+print("Proxy:", pair.proxy?.lastPathComponent ?? "none")
 ```
 
 ---
