@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-26 # required for Xcode 26.x
+    runs-on: macos-latest # required for Xcode 26.x
     timeout-minutes: 30
     defaults:
       run:

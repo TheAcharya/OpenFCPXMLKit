@@ -319,7 +319,7 @@ public final class FCPXMLService: Sendable {
     ///   - baseURL: Optional base URL to resolve relative src.
     ///   - progress: Optional progress reporter (e.g. CLI progress bar).
     /// - Returns: Result with copied, skipped, and failed entries.
-    public func copyReferencedMedia(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL? = nil, progress: (any ProgressReporter)? = nil) -> MediaCopyResult {
+    public func copyReferencedMedia(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL? = nil, progress: (any FCPXMLProgressReporter)? = nil) -> MediaCopyResult {
         logger.log(level: .info, message: "Copying referenced media to destination", metadata: ["destination": destinationURL.path])
         let result = mediaExtractor.copyReferencedMedia(from: document, to: destinationURL, baseURL: baseURL, progress: progress)
         logger.log(level: .info, message: "Media copy completed", metadata: [
@@ -498,7 +498,7 @@ public final class FCPXMLService: Sendable {
     }
 
     /// Asynchronously copies referenced media files to the destination directory.
-    public func copyReferencedMedia(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL? = nil, progress: (any ProgressReporter)? = nil) async -> MediaCopyResult {
+    public func copyReferencedMedia(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL? = nil, progress: (any FCPXMLProgressReporter)? = nil) async -> MediaCopyResult {
         await mediaExtractor.copyReferencedMedia(from: document, to: destinationURL, baseURL: baseURL, progress: progress)
     }
 }

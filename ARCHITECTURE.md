@@ -26,7 +26,7 @@ A guide for contributors: project structure, architecture, naming, styling, and 
     - [Library layer stack (bottom → top)](#library-layer-stack-bottom--top)
     - [Authoring (parallel create path — not in Reporting stack)](#authoring-parallel-create-path--not-in-reporting-stack)
     - [Reporting, Projection consume, and CLI](#reporting-projection-consume-and-cli)
-    - [Model, Extraction, XML, and Parsing subfolders](#model-extraction-xml-and-parsing-subfolders)
+    - [Model, Extraction, XML, Parsing, and progress utilities](#model-extraction-xml-parsing-and-progress-utilities)
   - [3.2 Library folders](#32-library-folders)
 - [4. Naming conventions](#4-naming-conventions)
   - [4.1 Swift identifiers](#41-swift-identifiers)
@@ -78,7 +78,10 @@ All major operations are defined as **protocols** with both **sync** and **async
 | SilenceDetection | SilenceDetector |
 | AssetDurationMeasurement | AssetDurationMeasurer |
 | ParallelFileIO | ParallelFileIOExecutor |
+| FCPXMLProgressReporter | ProgressBar |
 | ServiceLogger | NoOpServiceLogger, PrintServiceLogger, FileServiceLogger |
+
+**`FCPXMLProgressReporter`** is named so it does not collide with Foundation’s `ProgressReporter` (macOS 27 / iOS 27). Never reintroduce a public type or typealias named `ProgressReporter`. Sign `fcpxml-progress-reporter-not-foundation`.
 
 Semantic and DTD validation use **concrete structs** (`FCPXMLValidator`, `FCPXMLDTDValidator`, `FCPXMLStructuralValidator`) that are injected; they are not behind protocols.
 
@@ -392,14 +395,14 @@ flowchart TB
         direction TB
         C_ROOT["OpenFCPXMLKitCLI.swift"]
         C_OPT["Options/ — General · Timeline · Extraction · ShotExtraction (--extract-shots · --dry-run · --scene-number · --extract-format · --folder-format · --icon · …) · Report · Log"]
-        C_CMD["Commands/ — CheckVersion · ConvertVersion · Validate · ExtractMedia · ExtractShots · CreateProject · ExportReport"]
+        C_CMD["Commands/ — CheckVersion · ConvertVersion · Validate · ExtractMedia (ProgressBar as FCPXMLProgressReporter) · ExtractShots · CreateProject · ExportReport"]
         C_GEN["Generated/EmbeddedDTDs.swift"]
         C_ROOT --> C_OPT --> C_CMD
         C_ROOT --> C_GEN
     end
 ```
 
-#### Model, Extraction, XML, and Parsing subfolders
+#### Model, Extraction, XML, Parsing, and progress utilities
 
 ```mermaid
 flowchart TB
@@ -438,9 +441,16 @@ flowchart TB
         PS1 --> PS2 --> PS3
         PS1 --> PS4
     end
+
+    subgraph PRG_SUB["Protocols / Utilities"]
+        direction TB
+        PRG1["FCPXMLProgressReporter — not Foundation ProgressReporter"]
+        PRG2["ProgressBar · ProgressBarStyle"]
+        PRG1 --> PRG2
+    end
 ```
 
-**Cross-cutting library folders** (alongside the layer stack): Analysis, Annotations, Authoring, Classes (incl. `VersionFeatureGate`), Delegates, Errors, Extensions (+Modular, +Codable), Implementations, Protocols, Services, Utilities, Export, Timeline, Timing, Validation, FileIO, Media, Logging, Format. Root: `Version.swift`.
+**Cross-cutting library folders** (alongside the layer stack): Analysis, Annotations, Authoring, Classes (incl. `VersionFeatureGate`), Delegates, Errors, Extensions (+Modular, +Codable), Implementations, Protocols (`FCPXMLProgressReporter`), Services, Utilities (`ProgressBar`, `ProgressBarStyle`, `FCPXMLUID`), Export, Timeline, Timing, Validation, FileIO, Media, Logging, Format. Root: `Version.swift`.
 
 **Tests** (see §8 and the Tests layout mermaid above): Swift Testing only; harness under `OpenFCPXMLKitTests/`; optional `ExcelReportTest/` and `ShotExtractionTest/`; public `FCPXML Samples/`; private `Submitted FCPXML/`.
 
@@ -457,7 +467,7 @@ Source layout under **`Sources/OpenFCPXMLKit/`**:
 | **Errors** | FCPXMLError, FCPXMLParseError, TimelineError. |
 | **Extensions** | CMTime, XMLElement, XMLDocument (+Modular, +Codable, and non-modular). FCPXML extensions operate on OFKXMLElement/OFKXMLDocument protocol types. |
 | **Implementations** | Default implementations of all protocols above. |
-| **Protocols** | All operation protocols. |
+| **Protocols** | All operation protocols, including `FCPXMLProgressReporter` (named to avoid Foundation’s macOS 27 `ProgressReporter`). |
 | **Services** | FCPXMLService. |
 | **Utilities** | ModularUtilities, FCPXMLTimeUtilities, FCPXMLUID, FCPXMLCodableConverter, EmbeddedDTDProvider, FCPXMLDTDAllowlistGenerator, ProgressBar, ProgressBarStyle, SequencePlusAnySequence, XMLElementAncestorWalking, XMLElementSequenceAttributes. |
 | **Annotations** | Marker, ChapterMarker, Keyword, Rating, Metadata (creation-oriented). |
@@ -506,6 +516,7 @@ Source layout under **`Sources/OpenFCPXMLKit/`**:
 - `FCPXMLElementOcclusionCalculation.swift` — occlusion calculation utility (distinct from `FCPXMLElementOcclusion.swift`).
 - `FCPXMLExtractedElementStruct.swift` — struct `ExtractedElement` (protocol in `FCPXMLExtractedElement.swift`).
 - `FCPXMLElementTypeModel.swift` — parsing-layer `FinalCutPro.FCPXML.ElementType` (Classes/`FCPXMLElementType.swift` is the DTD enum).
+- `FCPXMLProgressReporter.swift` — public progress protocol. Distinct from Foundation’s `ProgressReporter` (macOS 27 / iOS 27). Do not name a public type, file, or typealias `ProgressReporter`.
 
 ---
 

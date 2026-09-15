@@ -37,7 +37,7 @@ public struct SilenceDetector: SilenceDetection, SilenceDetectionSync, Sendable 
     public func detectSilence(
         at url: URL,
         threshold: Float = -90.0,
-        progress: ProgressReporter? = nil
+        progress: FCPXMLProgressReporter? = nil
     ) async throws -> SilenceDetectionResult {
         let asset = AVURLAsset(url: url)
         
@@ -86,7 +86,7 @@ public struct SilenceDetector: SilenceDetection, SilenceDetectionSync, Sendable 
         
         // Read audio samples and detect silence
         while let sampleBuffer = readerOutput.copyNextSampleBuffer() {
-            // Note: ProgressReporter doesn't have cancellation, but we can check if needed
+            // Note: FCPXMLProgressReporter doesn't have cancellation, but we can check if needed
             
             guard let blockBuffer = CMSampleBufferGetDataBuffer(sampleBuffer) else { continue }
             

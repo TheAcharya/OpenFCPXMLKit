@@ -49,6 +49,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 | **OpenFCPXMLKit only** | Use OpenFCPXMLKit naming in code, comments, symbols, CLI, and logs (`ServiceLogger`, `OFKXML*`, `createService()`, …). No legacy fork identifiers. |
 | **No marketing names in code** | Never use “PBF” or “Production’s Best Friend” in source, comments, symbol names, or CLI/log output. Describe reporting neutrally (“Excel report”, “PDF report”, “role inventory”, “workbook export”). Those marketing terms may appear **only** in prose docs (README, CHANGELOG, Manual, agent guides). |
 | **Tests are FCPXML-prefixed** | Every test suite type is `FCPXML…` except the module umbrella `OpenFCPXMLKitTests`. |
+| **No public `ProgressReporter`** | The progress protocol is **`FCPXMLProgressReporter`**. Never name a public type or typealias `ProgressReporter` — Foundation owns that name on macOS 27 / iOS 27. Sign `fcpxml-progress-reporter-not-foundation`. |
 
 ---
 
@@ -100,6 +101,7 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 | **No regex in walk hot paths** | Time strings (`N/Ds`, `Ns`), attribute reads, and story-element walks run millions of times on large documents. Parse them with direct scanning — never `NSRegularExpression` — and look resources up by `id` through `OFKXMLElement.firstChildElement(withID:)` rather than filtering children. |
 | **Scoped memoisation only** | Derived timing values (`conform-rate` scaling) may be cached **only** inside a read-only walk via `FinalCutPro.FCPXML.withTimingCache(_:)`. No global caches; writes never consult a cache (Sign `timing-cache-is-read-only-scoped`). |
 | **Primary leaf URLs are one leaf** | Public `fcpMediaURL` / `fcpMediaRepresentationURLs` unfold to **one** primary original/proxy pair. Do not document them as enumerating every compound file, proving filesystem existence, or Project usage. Title/generator-only content may be `nil`. Lock with `FCPXMLPublicMediaLeafAPITests` (`import OpenFCPXMLKit` without `@testable`). Sign `public-media-leaf-is-one-primary`. |
+| **Progress protocol name** | Use **`FCPXMLProgressReporter`** (`advance(by:)`, `finish()`). Never a public `ProgressReporter` type or typealias. `ProgressBar` conforms. Optional `progress:` on media copy, silence, duration, and parallel I/O. Sign `fcpxml-progress-reporter-not-foundation`. |
 
 ---
 
@@ -380,6 +382,12 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Instruction:** These three APIs are **public** on `OFKXMLElement`. They resolve **one** primary leaf original/proxy pair after unfolding `mc-clip` / `sync-clip` / `ref-clip` / `audition`. Never claim they enumerate every media file, prove the path exists on disk, or that the clip is used in the Project. Title- or generator-only content may return `nil` / `(nil, nil)`. Keep a public-import test (`import OpenFCPXMLKit` without `@testable`). Distinct from `MediaExtractor` (every `media-rep` / locator) and from Shot Extraction (Projection `MediaChannel` only).
 - **Reason:** PR [#46](https://github.com/TheAcharya/OpenFCPXMLKit/pull/46) promoted existing internal helpers; clients can misread “primary leaf” as a full media inventory or a filesystem check.
 - **Provenance:** 2026-08-26 — PR #46 public leaf URL APIs.
+
+### Sign: fcpxml-progress-reporter-not-foundation
+- **Trigger:** Adding or renaming a progress-reporting protocol, or compiling with Xcode 27 / the macOS 27 SDK.
+- **Instruction:** Use **`FCPXMLProgressReporter`**. Never reintroduce a public type named `ProgressReporter` (including a deprecated typealias) — Foundation’s `ProgressReporter` (macOS 27 / iOS 27) makes unqualified lookup ambiguous in the CLI and any client that imports Foundation.
+- **Reason:** Xcode 27 CLI build failed: `'ProgressReporter' is ambiguous for type lookup` in `ExtractMedia.swift`.
+- **Provenance:** 2026-09-15 — Xcode 27 / Swift 6.4 / macOS 27 SDK.
 
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.

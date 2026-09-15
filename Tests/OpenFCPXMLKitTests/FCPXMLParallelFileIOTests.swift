@@ -300,7 +300,7 @@ struct FCPXMLParallelFileIOTests {
 
 // MARK: - Mock Progress Reporter
 
-private final class MockProgressReporter: ProgressReporter, @unchecked Sendable {
+private final class MockProgressReporter: FCPXMLProgressReporter, @unchecked Sendable {
     private let onAdvance: () -> Void
 
     init(onAdvance: @escaping () -> Void) {

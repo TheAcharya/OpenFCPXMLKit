@@ -22,7 +22,7 @@ public final class MediaExtractor: MediaExtraction, Sendable {
         _extract(from: document, baseURL: baseURL)
     }
 
-    public func copyReferencedMedia(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any ProgressReporter)? = nil) -> MediaCopyResult {
+    public func copyReferencedMedia(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any FCPXMLProgressReporter)? = nil) -> MediaCopyResult {
         _copy(from: document, to: destinationURL, baseURL: baseURL, progress: progress)
     }
 
@@ -32,7 +32,7 @@ public final class MediaExtractor: MediaExtraction, Sendable {
         _extract(from: document, baseURL: baseURL)
     }
 
-    public func copyReferencedMedia(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any ProgressReporter)? = nil) async -> MediaCopyResult {
+    public func copyReferencedMedia(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any FCPXMLProgressReporter)? = nil) async -> MediaCopyResult {
         _copy(from: document, to: destinationURL, baseURL: baseURL, progress: progress)
     }
 
@@ -121,7 +121,7 @@ public final class MediaExtractor: MediaExtraction, Sendable {
         return URL(string: srcString)
     }
 
-    private func _copy(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any ProgressReporter)?) -> MediaCopyResult {
+    private func _copy(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any FCPXMLProgressReporter)?) -> MediaCopyResult {
         let result = _extract(from: document, baseURL: baseURL)
         let fileRefs = result.fileReferences
         var seenSourceURLs: Set<URL> = []

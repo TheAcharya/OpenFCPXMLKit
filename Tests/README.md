@@ -289,7 +289,7 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 
 ### Media & extraction
 
-- **FCPXMLMediaExtractionTests** — extractMediaReferences, copyReferencedMedia (sync/async); extract-then-copy flow (CLI --media-copy). MediaExtractor, MediaExtractionResult, MediaCopyResult.
+- **FCPXMLMediaExtractionTests** — extractMediaReferences, copyReferencedMedia (sync/async; optional `FCPXMLProgressReporter`); extract-then-copy flow (CLI --media-copy). MediaExtractor, MediaExtractionResult, MediaCopyResult.
 - **FCPXMLMediaURLResolutionTests** — Leaf media URLs for non-flattened hosts (`fcpMediaURL`, `fcpMediaURL(kind:)`, `fcpMediaRepresentationURLs`) with `@testable`: multicam video/audio angles, sync-clip, standalone ref-clip, title-only compound empty; original/proxy split on the same leaf; Role Inventory Source File Name for MulticamSample (host audio-component uses the active audio angle; interiors omitted) / SyncClip / CompoundClipSample.
 - **FCPXMLPublicMediaLeafAPITests** — Same leaf-URL APIs with `import OpenFCPXMLKit` only (no `@testable`): empty clip access-level lock; MulticamSample / SyncClip / StandaloneRefClip / title-only compound; original/proxy pair consistency across the three public overloads. Sign `public-media-leaf-is-one-primary`.
 - **FCPXMLShotExtractionTests** — still-image Shot Extraction (**10** `@Test`; `extractShots` / `planShots`): reused stills → distinct Shot IDs / PNGs; CSV + Notion JSON (csv2notion-neo shape; **keys in CSV column order**; Shot ID array order); **Icon Image** / `icon`; folder formats; rejects primary-spine video, titles/generators, and audio; dry-run writes nothing. Optional end-to-end: **`ShotExtractionTest`**. See Manual [21 — Shot Extraction](../Documentation/Manual/21-Shot-Extraction.md).
@@ -306,9 +306,9 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 
 - **FCPXMLMIMETypeDetectionTests** — Sync/async detection (UTType, AVFoundation, extension fallback); video/audio/image formats. MIMETypeDetector.
 - **FCPXMLAssetValidationTests** — Existence; lane compatibility (negative = audio only); sync/async; TimelineClip (validateAsset, isAudioAsset, isVideoAsset, isImageAsset). AssetValidator, AssetValidationResult.
-- **FCPXMLSilenceDetectionTests** — Silence at start/end; threshold, minimumDuration; sync/async. SilenceDetector, SilenceDetectionResult.
-- **FCPXMLAssetDurationMeasurementTests** — Duration for audio/video/images; media type; sync/async; image (no duration). AssetDurationMeasurer, DurationMeasurementResult, MediaType.
-- **FCPXMLParallelFileIOTests** — Parallel read/write; success/failure counts; maxConcurrentOperations, useFileHandleOptimization. ParallelFileIOExecutor, ParallelFileIOResult.
+- **FCPXMLSilenceDetectionTests** — Leading/trailing silence (`trimStart` / `trimEnd` / `audioDuration` / `isEntirelySilent`); threshold (default −90 dB); sync/async (`detectSilence(at:threshold:progress:)`); optional `FCPXMLProgressReporter`. SilenceDetector, SilenceDetectionResult. No `minimumDuration` parameter.
+- **FCPXMLAssetDurationMeasurementTests** — Duration for audio/video/images; media type; sync/async (`measureDuration(at:progress:)`); image (no duration). AssetDurationMeasurer, DurationMeasurementResult, MediaType.
+- **FCPXMLParallelFileIOTests** — Parallel read/write (`readFiles(from:progress:)` / `writeFiles(dataAndURLs:progress:)`); per-file `ParallelFileIOResult.succeeded`; `taskPriority`, `useFileHandleOptimization`, `preallocateFileSpace`; `MockProgressReporter: FCPXMLProgressReporter`. ParallelFileIOExecutor. No `maxConcurrentOperations`.
 
 ### Analysis & detection
 

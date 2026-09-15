@@ -11,6 +11,7 @@
 - [Create and add events](#create-and-add-events)
 - [Work with clips](#work-with-clips)
 - [Resolve a clip's primary media URL](#resolve-a-clips-primary-media-url)
+- [Copy referenced media](#copy-referenced-media)
 - [Display clip duration](#display-clip-duration)
 - [Save FCPXML file](#save-fcpxml-file)
 - [Create an empty project from the CLI](#create-an-empty-project-from-the-cli)
@@ -105,6 +106,28 @@ if let url = clip.fcpMediaURL(in: resources) {
 let pair = clip.fcpMediaRepresentationURLs(in: resources)
 print("Original:", pair.original?.lastPathComponent ?? "none")
 print("Proxy:", pair.proxy?.lastPathComponent ?? "none")
+```
+
+---
+
+## Copy referenced media
+
+`copyReferencedMedia` copies **every** asset `media-rep` / locator file (not one primary leaf). Optional `progress:` is `FCPXMLProgressReporter` — typically a `ProgressBar`. See [11 — Extraction & Media](11-Extraction-Media.md#media-extraction-and-copy) and [18 — Errors & Utilities](18-Errors-Utilities.md#fcpxmlprogressreporter-and-progressbar).
+
+```swift
+let service = ModularUtilities.createService()
+let document = try service.parseFCPXML(from: url)
+let baseURL = url.deletingLastPathComponent()
+let destDir = URL(fileURLWithPath: "/path/to/Media")
+let extraction = service.extractMediaReferences(from: document, baseURL: baseURL)
+let bar = ProgressBar(total: extraction.fileReferences.count, desc: "Copying media")
+let copyResult = service.copyReferencedMedia(
+    from: document,
+    to: destDir,
+    baseURL: baseURL,
+    progress: bar
+)
+print("Copied \(copyResult.copied.count), skipped \(copyResult.skipped.count), failed \(copyResult.failed.count)")
 ```
 
 ---
@@ -476,6 +499,7 @@ For FCPXML format details see [fcp.cafe/developers/fcpxml](https://fcp.cafe/deve
 ## Next
 
 - [Manual Index](00-Index.md) — return to the table of contents.
+- [18 — Errors & Utilities](18-Errors-Utilities.md) — `FCPXMLProgressReporter` / `ProgressBar` for copy, silence, duration, and parallel I/O.
 - [21 — Shot Extraction](21-Shot-Extraction.md) — primary stills → PNG + CSV/Notion JSON (CSV column key order); `planShots` / `--dry-run`.
 
 [← Manual Index](00-Index.md)

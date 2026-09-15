@@ -58,7 +58,7 @@ public protocol SilenceDetection: Sendable {
     func detectSilence(
         at url: URL,
         threshold: Float,
-        progress: ProgressReporter?
+        progress: FCPXMLProgressReporter?
     ) async throws -> SilenceDetectionResult
 }
 

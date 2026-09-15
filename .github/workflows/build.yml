@@ -50,7 +50,7 @@ jobs:
   # ---------------------------------------------------------------------------
   macOS:
     name: macOS
-    runs-on: macos-26
+    runs-on: macos-latest
     timeout-minutes: 30
     defaults:
       run:
@@ -88,7 +88,7 @@ jobs:
   # ---------------------------------------------------------------------------
   macOS-swift6-strict-concurrency:
     name: macOS (strict concurrency)
-    runs-on: macos-26
+    runs-on: macos-latest
     timeout-minutes: 30
     defaults:
       run:

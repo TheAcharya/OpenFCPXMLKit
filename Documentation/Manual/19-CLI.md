@@ -28,6 +28,8 @@
 
 The package includes an experimental command-line tool **OpenFCPXMLKit-CLI**. It is a **single binary**: FCPXML DTDs (1.5–1.14) are embedded, so you can copy the executable and run it without a resource bundle.
 
+Long-running commands (`--media-copy`, `--validate`, `--extract-shots`, `--report`) draw a terminal **ProgressBar** unless **`--quiet`** is set. `--media-copy` passes that bar as **`FCPXMLProgressReporter`**. See [18 — Errors & Utilities](18-Errors-Utilities.md#fcpxmlprogressreporter-and-progressbar).
+
 - **Build:** `swift build` (or OpenFCPXMLKitCLI scheme in Xcode)
 - **Run:** `swift run OpenFCPXMLKit-CLI --help`
 
@@ -44,8 +46,8 @@ Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-c
 | **--check-version** | Load FCPXML at path and print document version. No output-dir required. |
 | **--convert-version &lt;VERSION&gt;** | Load, convert to target version (1.5–1.14) with element stripping and DTD validation, save to output-dir. Output format: **--extension-type** (default .fcpxmld for 1.10+; 1.5–1.9 always .fcpxml). |
 | **--extension-type &lt;fcpxml\|fcpxmld&gt;** | Output format for convert only (requires `--convert-version`): `fcpxmld` (bundle, default when omitted) or `fcpxml` (single file). |
-| **--validate** | Robust validation: semantic + DTD against declared version. Progress indicator unless `--quiet`. No output-dir required. |
-| **--media-copy** | Extract **every** asset `media-rep` / locator reference and copy files to output-dir (distinct from public `fcpMediaURL` one-leaf APIs). Progress bar unless `--quiet`. Paths to stdout; summary to stderr. |
+| **--validate** | Robust validation: semantic + DTD against declared version. `ProgressBar` unless `--quiet`. No output-dir required. |
+| **--media-copy** | Extract **every** asset `media-rep` / locator reference and copy files to output-dir (distinct from public `fcpMediaURL` one-leaf APIs). `ProgressBar` as `FCPXMLProgressReporter` unless `--quiet`. Paths to stdout; summary to stderr. |
 
 ### SHOT EXTRACTION
 
@@ -219,7 +221,7 @@ OpenFCPXMLKit-CLI --report --report-full \
 |--------|-------------|
 | **--log &lt;path&gt;** | Append log to file. When set, CLI commands write user-visible messages to the log. Also console unless `--quiet`. |
 | **--log-level &lt;level&gt;** | Minimum level: trace, debug, info, notice, warning, error, critical. Default: info. |
-| **--quiet** | No log output. |
+| **--quiet** | No log output. Also hides `ProgressBar` on `--media-copy`, `--validate`, `--extract-shots`, and `--report`. |
 
 ---
 
@@ -277,6 +279,7 @@ For source layout, extending the CLI, and regenerating embedded DTDs, see **[Ope
 ## Next
 
 - [20 — Reporting, Excel & PDF Export](20-Reporting.md) — the reporting API behind `--report`.
+- [18 — Errors & Utilities](18-Errors-Utilities.md#fcpxmlprogressreporter-and-progressbar) — `FCPXMLProgressReporter` / `ProgressBar` (`--quiet` hides the bar).
 - [21 — Shot Extraction](21-Shot-Extraction.md) — still-image Shot Extraction (`--extract-shots`).
 - [22 — Examples](22-Examples.md) — End-to-end workflows and code examples.
 
