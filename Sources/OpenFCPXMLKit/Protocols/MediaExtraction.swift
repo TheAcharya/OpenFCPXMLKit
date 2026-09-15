@@ -32,8 +32,8 @@ public protocol MediaExtraction: Sendable {
     ///   - baseURL: Optional base URL to resolve relative src.
     ///   - progress: Optional reporter called once per processed file (e.g. CLI progress bar).
     /// - Returns: Result with copied, skipped, and failed entries.
-    func copyReferencedMedia(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any ProgressReporter)?) -> MediaCopyResult
+    func copyReferencedMedia(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any FCPXMLProgressReporter)?) -> MediaCopyResult
 
     /// Copies referenced media (async).
-    func copyReferencedMedia(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any ProgressReporter)?) async -> MediaCopyResult
+    func copyReferencedMedia(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL?, progress: (any FCPXMLProgressReporter)?) async -> MediaCopyResult
 }

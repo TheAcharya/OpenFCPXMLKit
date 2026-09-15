@@ -69,7 +69,7 @@ public struct AssetDurationMeasurer: AssetDurationMeasurement, AssetDurationMeas
     /// - Throws: Error if measurement fails.
     public func measureDuration(
         at url: URL,
-        progress: ProgressReporter? = nil
+        progress: FCPXMLProgressReporter? = nil
     ) async throws -> DurationMeasurementResult {
         // Detect media type first
         var detectedType = detectMediaType(from: url)

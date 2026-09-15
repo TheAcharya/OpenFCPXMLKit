@@ -78,6 +78,7 @@ All major operations are defined as **protocols** with both **sync** and **async
 | SilenceDetection | SilenceDetector |
 | AssetDurationMeasurement | AssetDurationMeasurer |
 | ParallelFileIO | ParallelFileIOExecutor |
+| FCPXMLProgressReporter | ProgressBar |
 | ServiceLogger | NoOpServiceLogger, PrintServiceLogger, FileServiceLogger |
 
 Semantic and DTD validation use **concrete structs** (`FCPXMLValidator`, `FCPXMLDTDValidator`, `FCPXMLStructuralValidator`) that are injected; they are not behind protocols.
@@ -457,7 +458,7 @@ Source layout under **`Sources/OpenFCPXMLKit/`**:
 | **Errors** | FCPXMLError, FCPXMLParseError, TimelineError. |
 | **Extensions** | CMTime, XMLElement, XMLDocument (+Modular, +Codable, and non-modular). FCPXML extensions operate on OFKXMLElement/OFKXMLDocument protocol types. |
 | **Implementations** | Default implementations of all protocols above. |
-| **Protocols** | All operation protocols. |
+| **Protocols** | All operation protocols, including `FCPXMLProgressReporter` (named to avoid Foundation’s macOS 27 `ProgressReporter`). |
 | **Services** | FCPXMLService. |
 | **Utilities** | ModularUtilities, FCPXMLTimeUtilities, FCPXMLUID, FCPXMLCodableConverter, EmbeddedDTDProvider, FCPXMLDTDAllowlistGenerator, ProgressBar, ProgressBarStyle, SequencePlusAnySequence, XMLElementAncestorWalking, XMLElementSequenceAttributes. |
 | **Annotations** | Marker, ChapterMarker, Keyword, Rating, Metadata (creation-oriented). |

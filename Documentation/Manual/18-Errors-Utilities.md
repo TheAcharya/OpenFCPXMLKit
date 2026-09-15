@@ -57,7 +57,7 @@ do {
 
 ## Progress bar (CLI / terminal)
 
-**ProgressReporter** protocol: `advance(by:)`, `finish()`. **ProgressBar** (TQDM-style) conforms and draws a bar with percentage, rate, ETA. Use for CLI or any terminal workflow. Pass as `progress` to **copyReferencedMedia(from:to:baseURL:progress:)**:
+**FCPXMLProgressReporter** protocol: `advance(by:)`, `finish()`. Named to avoid colliding with Foundation’s `ProgressReporter` (macOS 27 / Xcode 27). **ProgressBar** (TQDM-style) conforms and draws a bar with percentage, rate, ETA. Use for CLI or any terminal workflow. Pass as `progress` to **copyReferencedMedia(from:to:baseURL:progress:)**:
 
 ```swift
 let total = fileRefs.count

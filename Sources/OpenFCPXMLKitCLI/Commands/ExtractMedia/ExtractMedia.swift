@@ -52,7 +52,7 @@ enum ExtractMedia {
         fputs("\(detectedMessage)\n", stderr)
         logger.log(level: .info, message: detectedMessage, metadata: nil)
 
-        let progress: (any ProgressReporter)? = (showProgress && totalDetected > 0)
+        let progress: (any FCPXMLProgressReporter)? = (showProgress && totalDetected > 0)
             ? ProgressBar(total: totalDetected, desc: "Copying media")
             : nil
         let result = service.copyReferencedMedia(from: document, to: outputDir, baseURL: baseURL, progress: progress)

@@ -85,7 +85,7 @@ for ref in extraction.references {
     if let u = ref.url { print(ref.resourceID, u, ref.isLocator) }
 }
 
-// Copy referenced files (optional ProgressReporter for progress bar)
+// Copy referenced files (optional FCPXMLProgressReporter for progress bar)
 let destDir = URL(fileURLWithPath: "/path/to/Media")
 let copyResult = service.copyReferencedMedia(
     from: document,

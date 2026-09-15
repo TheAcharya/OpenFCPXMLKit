@@ -50,7 +50,7 @@ public protocol ParallelFileIO: Sendable {
     /// - Throws: Error if any read operation fails (depending on implementation).
     func readFiles(
         from urls: [URL],
-        progress: ProgressReporter?
+        progress: FCPXMLProgressReporter?
     ) async throws -> [ParallelFileIOResult]
     
     /// Writes multiple data buffers to files in parallel.
@@ -62,6 +62,6 @@ public protocol ParallelFileIO: Sendable {
     /// - Throws: Error if any write operation fails (depending on implementation).
     func writeFiles(
         dataAndURLs: [(data: Data, url: URL)],
-        progress: ProgressReporter?
+        progress: FCPXMLProgressReporter?
     ) async throws -> [ParallelFileIOResult]
 }

@@ -27,7 +27,8 @@ import Glibc
 ///
 /// **Note:** The `@unchecked Sendable` conformance is provided for protocol compatibility but does not imply
 /// thread safety. Always use from a single thread.
-public final class ProgressBar: ProgressReporter, @unchecked Sendable {
+@available(macOS 26.0, *)
+public final class ProgressBar: FCPXMLProgressReporter, @unchecked Sendable {
 
     private var total: Int?
     private var n: Int = 0
@@ -79,7 +80,7 @@ public final class ProgressBar: ProgressReporter, @unchecked Sendable {
         lastPrintTime = Date()
     }
 
-    /// ProgressReporter conformance: advance by n steps.
+    /// FCPXMLProgressReporter conformance: advance by n steps.
     public func advance(by n: Int) {
         update(n)
     }
@@ -105,7 +106,7 @@ public final class ProgressBar: ProgressReporter, @unchecked Sendable {
         fflush(stdout)
     }
 
-    /// ProgressReporter conformance: finish and newline.
+    /// FCPXMLProgressReporter conformance: finish and newline.
     public func finish() {
         close()
     }

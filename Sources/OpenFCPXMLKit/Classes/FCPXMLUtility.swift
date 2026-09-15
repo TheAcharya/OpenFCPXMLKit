@@ -187,7 +187,7 @@ public final class FCPXMLUtility: Sendable {
 	}
 
 	/// Copies referenced media files (file URLs only) to the destination directory; deduplicates by source URL.
-	public func copyReferencedMedia(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL? = nil, progress: (any ProgressReporter)? = nil) -> MediaCopyResult {
+	public func copyReferencedMedia(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL? = nil, progress: (any FCPXMLProgressReporter)? = nil) -> MediaCopyResult {
 		mediaExtractor.copyReferencedMedia(from: document, to: destinationURL, baseURL: baseURL, progress: progress)
 	}
 
@@ -197,7 +197,7 @@ public final class FCPXMLUtility: Sendable {
 	}
 
 	/// Asynchronously copies referenced media files to the destination directory.
-	public func copyReferencedMedia(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL? = nil, progress: (any ProgressReporter)? = nil) async -> MediaCopyResult {
+	public func copyReferencedMedia(from document: any OFKXMLDocument, to destinationURL: URL, baseURL: URL? = nil, progress: (any FCPXMLProgressReporter)? = nil) async -> MediaCopyResult {
 		await mediaExtractor.copyReferencedMedia(from: document, to: destinationURL, baseURL: baseURL, progress: progress)
 	}
 	

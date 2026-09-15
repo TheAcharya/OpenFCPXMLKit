@@ -68,7 +68,7 @@ public protocol AssetDurationMeasurement: Sendable {
     /// - Throws: Error if measurement fails.
     func measureDuration(
         at url: URL,
-        progress: ProgressReporter?
+        progress: FCPXMLProgressReporter?
     ) async throws -> DurationMeasurementResult
 }
 

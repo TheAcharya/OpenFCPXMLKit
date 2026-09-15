@@ -381,6 +381,12 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Reason:** PR [#46](https://github.com/TheAcharya/OpenFCPXMLKit/pull/46) promoted existing internal helpers; clients can misread “primary leaf” as a full media inventory or a filesystem check.
 - **Provenance:** 2026-08-26 — PR #46 public leaf URL APIs.
 
+### Sign: fcpxml-progress-reporter-not-foundation
+- **Trigger:** Adding or renaming a progress-reporting protocol, or compiling with Xcode 27 / the macOS 27 SDK.
+- **Instruction:** Use **`FCPXMLProgressReporter`**. Never reintroduce a public type named `ProgressReporter` (including a deprecated typealias) — Foundation’s `ProgressReporter` (macOS 27 / iOS 27) makes unqualified lookup ambiguous in the CLI and any client that imports Foundation.
+- **Reason:** Xcode 27 CLI build failed: `'ProgressReporter' is ambiguous for type lookup` in `ExtractMedia.swift`.
+- **Provenance:** 2026-09-15 — Xcode 27 / Swift 6.4 / macOS 27 SDK.
+
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.
 - **Instruction:** Keep it under `Tests/Submitted FCPXML/` (gitignored). Promote only anonymised minimal public fixtures.

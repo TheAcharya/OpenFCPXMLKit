@@ -49,7 +49,7 @@ public struct ParallelFileIOExecutor: ParallelFileIO, Sendable {
     /// - Throws: Error if any read operation fails.
     public func readFiles(
         from urls: [URL],
-        progress: ProgressReporter? = nil
+        progress: FCPXMLProgressReporter? = nil
     ) async throws -> [ParallelFileIOResult] {
         return try await withThrowingTaskGroup(of: ParallelFileIOResult.self) { group in
             var results: [Int: ParallelFileIOResult] = [:]
@@ -93,7 +93,7 @@ public struct ParallelFileIOExecutor: ParallelFileIO, Sendable {
     /// - Throws: Error if any write operation fails.
     public func writeFiles(
         dataAndURLs: [(data: Data, url: URL)],
-        progress: ProgressReporter? = nil
+        progress: FCPXMLProgressReporter? = nil
     ) async throws -> [ParallelFileIOResult] {
         return try await withThrowingTaskGroup(of: ParallelFileIOResult.self) { group in
             var results: [Int: ParallelFileIOResult] = [:]
