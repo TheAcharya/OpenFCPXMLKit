@@ -16,6 +16,7 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 ### 🔧 Improvements
 
 - **Xcode 27 / Swift 6.4:** `ProgressReporter` is renamed to `FCPXMLProgressReporter` so it does not collide with Foundation’s `ProgressReporter` (macOS 27 / iOS 27). `ProgressBar` still conforms. This is a source-breaking rename; there is no `ProgressReporter` typealias because it would keep the ambiguity. Sign `fcpxml-progress-reporter-not-foundation`.
+- **Documentation sync:** Manual 00–01 / 04 / 11 / 13 / 17–19 / 22 (canonical `FCPXMLProgressReporter` in 18; silence `trimStart`/`trimEnd` and parallel I/O `readFiles(from:)` / `writeFiles(dataAndURLs:)` in 13); Tests/README media-processing APIs; Coverage related manuals; ARCHITECTURE mermaid + collision file name; AGENT / `.cursorrules` Utilities; GUARDRAILS naming.
 
 ### 🐛 Bug Fixes
 

@@ -49,6 +49,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 | **OpenFCPXMLKit only** | Use OpenFCPXMLKit naming in code, comments, symbols, CLI, and logs (`ServiceLogger`, `OFKXML*`, `createService()`, …). No legacy fork identifiers. |
 | **No marketing names in code** | Never use “PBF” or “Production’s Best Friend” in source, comments, symbol names, or CLI/log output. Describe reporting neutrally (“Excel report”, “PDF report”, “role inventory”, “workbook export”). Those marketing terms may appear **only** in prose docs (README, CHANGELOG, Manual, agent guides). |
 | **Tests are FCPXML-prefixed** | Every test suite type is `FCPXML…` except the module umbrella `OpenFCPXMLKitTests`. |
+| **No public `ProgressReporter`** | The progress protocol is **`FCPXMLProgressReporter`**. Never name a public type or typealias `ProgressReporter` — Foundation owns that name on macOS 27 / iOS 27. Sign `fcpxml-progress-reporter-not-foundation`. |
 
 ---
 
@@ -100,6 +101,7 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 | **No regex in walk hot paths** | Time strings (`N/Ds`, `Ns`), attribute reads, and story-element walks run millions of times on large documents. Parse them with direct scanning — never `NSRegularExpression` — and look resources up by `id` through `OFKXMLElement.firstChildElement(withID:)` rather than filtering children. |
 | **Scoped memoisation only** | Derived timing values (`conform-rate` scaling) may be cached **only** inside a read-only walk via `FinalCutPro.FCPXML.withTimingCache(_:)`. No global caches; writes never consult a cache (Sign `timing-cache-is-read-only-scoped`). |
 | **Primary leaf URLs are one leaf** | Public `fcpMediaURL` / `fcpMediaRepresentationURLs` unfold to **one** primary original/proxy pair. Do not document them as enumerating every compound file, proving filesystem existence, or Project usage. Title/generator-only content may be `nil`. Lock with `FCPXMLPublicMediaLeafAPITests` (`import OpenFCPXMLKit` without `@testable`). Sign `public-media-leaf-is-one-primary`. |
+| **Progress protocol name** | Use **`FCPXMLProgressReporter`** (`advance(by:)`, `finish()`). Never a public `ProgressReporter` type or typealias. `ProgressBar` conforms. Optional `progress:` on media copy, silence, duration, and parallel I/O. Sign `fcpxml-progress-reporter-not-foundation`. |
 
 ---
 

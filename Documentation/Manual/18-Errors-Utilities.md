@@ -7,7 +7,7 @@
 ## Table of Contents
 
 - [Error types](#error-types)
-- [Progress bar (CLI / terminal)](#progress-bar-cli--terminal)
+- [FCPXMLProgressReporter and ProgressBar](#fcpxmlprogressreporter-and-progressbar)
 - [FCPXML-style UIDs](#fcpxml-style-uids)
 
 ---
@@ -55,9 +55,20 @@ do {
 
 ---
 
-## Progress bar (CLI / terminal)
+## FCPXMLProgressReporter and ProgressBar
 
-**FCPXMLProgressReporter** protocol: `advance(by:)`, `finish()`. Named to avoid colliding with Foundation’s `ProgressReporter` (macOS 27 / Xcode 27). **ProgressBar** (TQDM-style) conforms and draws a bar with percentage, rate, ETA. Use for CLI or any terminal workflow. Pass as `progress` to **copyReferencedMedia(from:to:baseURL:progress:)**:
+**`FCPXMLProgressReporter`** is the public progress protocol: `advance(by:)`, `finish()`. The name is unique on purpose so it does **not** collide with Foundation’s `ProgressReporter` (macOS 27 / iOS 27, Xcode 27). The same source builds on **Xcode 26.6 / macOS 26** (no Foundation type of that name) and on Xcode 27. There is **no** `ProgressReporter` typealias — an alias would keep the ambiguity in any client that imports Foundation. Sign `fcpxml-progress-reporter-not-foundation`.
+
+**ProgressBar** (TQDM-style terminal bar: percentage, rate, ETA) conforms. It is **not thread-safe**; use it from a single thread (CLI / main). Concurrent `advance` calls can interleave output.
+
+Library APIs that take optional `progress: (any FCPXMLProgressReporter)?` (default `nil`):
+
+| API | Typical use |
+|-----|-------------|
+| `copyReferencedMedia(from:to:baseURL:progress:)` | [11 — Extraction & Media](11-Extraction-Media.md#media-extraction-and-copy) |
+| `detectSilence(at:threshold:progress:)` (async) | [13 — Media Processing](13-Media-Processing.md#silence-detection) |
+| `measureDuration(at:progress:)` (async) | [13 — Media Processing](13-Media-Processing.md#asset-duration-measurement) |
+| `readFiles(from:progress:)` / `writeFiles(dataAndURLs:progress:)` | [13 — Media Processing](13-Media-Processing.md#parallel-file-io) |
 
 ```swift
 let total = fileRefs.count
@@ -70,7 +81,7 @@ let result = service.copyReferencedMedia(
 )
 ```
 
-CLI uses it for `--media-copy` and `--validate`; progress is hidden when `--quiet` is set.
+CLI draws a **ProgressBar** for `--media-copy` (passed as `FCPXMLProgressReporter`), `--validate`, `--extract-shots`, and `--report`. Progress is hidden when **`--quiet`** is set. See [19 — CLI](19-CLI.md).
 
 ---
 
@@ -88,6 +99,6 @@ When exporting with **FCPXMLExporter**, pass `eventUid` and `projectUid` (or omi
 ## Next
 
 - [19 — CLI](19-CLI.md) — Experimental command-line interface.
+- [13 — Media Processing](13-Media-Processing.md) — Silence, duration, and parallel I/O `progress:` parameters.
 
 [← Manual Index](00-Index.md)
-

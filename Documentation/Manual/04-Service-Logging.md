@@ -91,7 +91,7 @@ let noOp = NoOpServiceLogger()
 let quietService = FCPXMLService(logger: noOp)
 ```
 
-The service logs parsing, version conversion, DTD validation, save, media extraction, and media copy. CLI supports `--log`, `--log-level`, `--quiet` (see [19 — CLI](19-CLI.md)).
+The service logs parsing, version conversion, DTD validation, save, media extraction, and media copy (`copyReferencedMedia` takes optional `FCPXMLProgressReporter` — see [11 — Extraction & Media](11-Extraction-Media.md) and [18 — Errors & Utilities](18-Errors-Utilities.md#fcpxmlprogressreporter-and-progressbar)). CLI supports `--log`, `--log-level`, `--quiet` (see [19 — CLI](19-CLI.md)).
 
 ---
 

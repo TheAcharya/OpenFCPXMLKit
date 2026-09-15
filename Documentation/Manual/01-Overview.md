@@ -56,6 +56,7 @@ All core behaviour is defined by **protocols** with both sync and async APIs. De
 | `SilenceDetection` | `SilenceDetector` | Detect silence at start/end of audio |
 | `AssetDurationMeasurement` | `AssetDurationMeasurer` | Measure duration of audio/video/images |
 | `ParallelFileIO` | `ParallelFileIOExecutor` | Concurrent read/write of files |
+| `FCPXMLProgressReporter` | `ProgressBar` | Optional progress for copy, silence, duration, parallel I/O (not Foundation’s `ProgressReporter`) |
 | `CutDetection` | `CutDetector` | Detect edit points on spine |
 | `FCPXMLVersionConverting` | `FCPXMLVersionConverter` | Convert document to target version (strip by DTD) |
 | `MediaExtraction` | `MediaExtractor` | Extract media refs, copy referenced files |

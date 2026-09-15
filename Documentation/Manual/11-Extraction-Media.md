@@ -85,7 +85,7 @@ for ref in extraction.references {
     if let u = ref.url { print(ref.resourceID, u, ref.isLocator) }
 }
 
-// Copy referenced files (optional FCPXMLProgressReporter for progress bar)
+// Copy referenced files (optional FCPXMLProgressReporter — see chapter 18)
 let destDir = URL(fileURLWithPath: "/path/to/Media")
 let copyResult = service.copyReferencedMedia(
     from: document,
@@ -98,13 +98,16 @@ for entry in copyResult.skipped { /* duplicate, missing file, not file URL */ }
 for entry in copyResult.failed { /* error */ }
 ```
 
+Pass a **`ProgressBar`** (or any `FCPXMLProgressReporter`) as `progress:` for a terminal bar. The protocol is named to avoid Foundation’s `ProgressReporter` (macOS 27). See [18 — Errors & Utilities](18-Errors-Utilities.md#fcpxmlprogressreporter-and-progressbar).
+
 ---
 
 ## Next
 
 - [12 — Timeline Projection](12-Timeline-Projection.md) — playable media windows between Extraction and Reporting.
 - [02 — Loading & Parsing](02-Loading-Parsing.md#leaf-media-urls-public-parsing-apis) — public primary leaf URLs (`fcpMediaURL` / `fcpMediaRepresentationURLs`).
-- [13 — Media Processing](13-Media-Processing.md) — MIME type, asset validation, silence, duration, parallel I/O.
+- [13 — Media Processing](13-Media-Processing.md) — MIME type, asset validation, silence, duration, parallel I/O (optional `FCPXMLProgressReporter`).
+- [18 — Errors & Utilities](18-Errors-Utilities.md#fcpxmlprogressreporter-and-progressbar) — `FCPXMLProgressReporter` / `ProgressBar`.
 - [20 — Reporting, Excel & PDF Export](20-Reporting.md) — build reports from Projection + Extraction and export to `.xlsx` or `.pdf`.
 - [21 — Shot Extraction](21-Shot-Extraction.md) — primary-timeline stills → PNG + CSV / Notion JSON.
 

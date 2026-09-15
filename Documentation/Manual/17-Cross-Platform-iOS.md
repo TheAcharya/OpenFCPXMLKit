@@ -77,7 +77,7 @@ let version = root?.stringValue(forAttributeNamed: "version")
 
 ## Next
 
-- [18 — Errors & Utilities](18-Errors-Utilities.md) — Error types, ProgressBar, FCPXMLUID.
+- [18 — Errors & Utilities](18-Errors-Utilities.md) — Error types, `FCPXMLProgressReporter` / ProgressBar, FCPXMLUID.
 - [15 — XML Extensions](15-XML-Extensions.md) — FCPXML extensions on OFKXMLElement and OFKXMLDocument.
 - [05 — Validation & Cut Detection](05-Validation-CutDetection.md) — Semantic, DTD, and structural validation.
 
