@@ -141,12 +141,10 @@ struct ReportCLIOptions: ParsableArguments {
     @Flag(
         name: .customLong("include-role-inventory-screenshots"),
         help: """
-        Add a Screenshot column after Row on Role Inventory sheets (Selected Roles Inventory and \
-        every per-role tab) and embed a Source In frame grab in Excel (with --report). Uses \
-        aspect-preserving XLKit embeds. Always prefers original-media; uses proxy-media \
-        only when the original is missing or cannot be decoded (for example MXF or camera \
-        RAW). Default omits the column. PDF export ignores this flag. Missing media \
-        leaves a blank cell. Not available via --exclude-column.
+        Add a Screenshot column after Row on Role Inventory sheets (with --report). Embeds a \
+        Source In frame in Excel and writes full-frame PNGs into a Screenshots folder beside \
+        the workbook. Default omits both. PDF export ignores this flag. Not available via \
+        --exclude-column.
         """
     )
     var includeRoleInventoryScreenshots: Bool = false

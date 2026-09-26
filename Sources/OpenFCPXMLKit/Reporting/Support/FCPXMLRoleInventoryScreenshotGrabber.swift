@@ -5,7 +5,7 @@
 //
 
 //
-//	Frame / still grabs for Role Inventory Excel Screenshot column (Source In).
+//	Frame / still grabs for Role Inventory screenshots (Excel thumbnail and full-size PNG).
 //
 
 import AVFoundation
@@ -15,7 +15,10 @@ import ImageIO
 import UniformTypeIdentifiers
 
 extension FinalCutPro.FCPXML {
-    /// Builds JPEG thumbnails for Role Inventory screenshots (Excel export only).
+    /// Builds Role Inventory screenshots.
+    ///
+    /// Excel cells use a JPEG thumbnail (``maxLongEdgePixels``). The sibling
+    /// `Screenshots` folder uses a full-frame PNG at the source picture size.
     enum RoleInventoryScreenshotGrabber {
         /// Maximum long-edge length in pixels. Source aspect ratio is preserved;
         /// frames are scaled down only when either edge exceeds this limit.
@@ -29,15 +32,9 @@ extension FinalCutPro.FCPXML {
             fileURLs: [URL],
             fileTimeSeconds: Double
         ) async -> Data? {
-            var seen: Set<String> = []
-            for url in fileURLs {
-                let key = url.standardizedFileURL.path
-                guard seen.insert(key).inserted else { continue }
-                if let data = await jpegData(fileURL: url, fileTimeSeconds: fileTimeSeconds) {
-                    return data
-                }
+            await firstSuccessful(fileURLs: fileURLs) { url in
+                await jpegData(fileURL: url, fileTimeSeconds: fileTimeSeconds)
             }
-            return nil
         }
         
         /// Returns JPEG bytes for the media file at ``fileTimeSeconds``, or `nil` when
@@ -46,6 +43,64 @@ extension FinalCutPro.FCPXML {
         static func jpegData(
             fileURL: URL,
             fileTimeSeconds: Double
+        ) async -> Data? {
+            await encoded(
+                fileURL: fileURL,
+                fileTimeSeconds: fileTimeSeconds,
+                encoding: .jpegThumbnail
+            )
+        }
+        
+        /// Full-frame PNG bytes for the first readable URL, or `nil`.
+        ///
+        /// Stills keep their pixel size. Video is the display frame after the
+        /// preferred track transform, with no long-edge cap. Try order matches
+        /// ``jpegData(fileURLs:fileTimeSeconds:)``.
+        static func pngData(
+            fileURLs: [URL],
+            fileTimeSeconds: Double
+        ) async -> Data? {
+            await firstSuccessful(fileURLs: fileURLs) { url in
+                await pngData(fileURL: url, fileTimeSeconds: fileTimeSeconds)
+            }
+        }
+        
+        /// Full-frame PNG for one media file, or `nil` when it is missing or unreadable.
+        static func pngData(
+            fileURL: URL,
+            fileTimeSeconds: Double
+        ) async -> Data? {
+            await encoded(
+                fileURL: fileURL,
+                fileTimeSeconds: fileTimeSeconds,
+                encoding: .pngFullFrame
+            )
+        }
+        
+        private enum GrabEncoding {
+            case jpegThumbnail
+            case pngFullFrame
+        }
+        
+        private static func firstSuccessful(
+            fileURLs: [URL],
+            encode: (URL) async -> Data?
+        ) async -> Data? {
+            var seen: Set<String> = []
+            for url in fileURLs {
+                let key = url.standardizedFileURL.path
+                guard seen.insert(key).inserted else { continue }
+                if let data = await encode(url) {
+                    return data
+                }
+            }
+            return nil
+        }
+        
+        private static func encoded(
+            fileURL: URL,
+            fileTimeSeconds: Double,
+            encoding: GrabEncoding
         ) async -> Data? {
             let resolved = fileURL.standardizedFileURL
             guard FileManager.default.fileExists(atPath: resolved.path) else {
@@ -59,10 +114,29 @@ extension FinalCutPro.FCPXML {
             try? handle.close()
             
             if isStillImageFile(resolved) {
-                return stillImageJPEG(from: resolved)
+                return stillImageData(from: resolved, encoding: encoding)
             }
             
-            return await videoFrameJPEG(from: resolved, fileTimeSeconds: max(0, fileTimeSeconds))
+            let maximumSize: CGSize? = switch encoding {
+            case .jpegThumbnail:
+                CGSize(width: maxLongEdgePixels * 2, height: maxLongEdgePixels * 2)
+            case .pngFullFrame:
+                nil
+            }
+            guard let image = await videoCGImage(
+                from: resolved,
+                fileTimeSeconds: max(0, fileTimeSeconds),
+                maximumSize: maximumSize
+            ) else {
+                return nil
+            }
+            
+            switch encoding {
+            case .jpegThumbnail:
+                return jpegData(from: scaledImage(image))
+            case .pngFullFrame:
+                return pngData(from: image)
+            }
         }
         
         private static func isStillImageFile(_ url: URL) -> Bool {
@@ -73,28 +147,38 @@ extension FinalCutPro.FCPXML {
             ].contains(ext)
         }
         
-        private static func stillImageJPEG(from url: URL) -> Data? {
+        private static func stillImageData(
+            from url: URL,
+            encoding: GrabEncoding
+        ) -> Data? {
             guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
                   CGImageSourceGetCount(source) > 0,
                   let image = CGImageSourceCreateImageAtIndex(source, 0, nil)
             else {
                 return nil
             }
-            return jpegData(from: scaledImage(image))
+            switch encoding {
+            case .jpegThumbnail:
+                return jpegData(from: scaledImage(image))
+            case .pngFullFrame:
+                return pngData(from: image)
+            }
         }
         
-        private static func videoFrameJPEG(
+        /// Decodes a video frame. `maximumSize` caps the JPEG thumbnail decode;
+        /// `nil` keeps the display size of the source picture.
+        private static func videoCGImage(
             from url: URL,
-            fileTimeSeconds: Double
-        ) async -> Data? {
+            fileTimeSeconds: Double,
+            maximumSize: CGSize?,
+            allowFirstFrameFallback: Bool = true
+        ) async -> CGImage? {
             let asset = AVURLAsset(url: url)
             let generator = AVAssetImageGenerator(asset: asset)
             generator.appliesPreferredTrackTransform = true
-            // Decode a bit above the final long-edge cap, then scale precisely.
-            generator.maximumSize = CGSize(
-                width: maxLongEdgePixels * 2,
-                height: maxLongEdgePixels * 2
-            )
+            if let maximumSize {
+                generator.maximumSize = maximumSize
+            }
             generator.requestedTimeToleranceBefore = .zero
             generator.requestedTimeToleranceAfter = .zero
             
@@ -105,19 +189,24 @@ extension FinalCutPro.FCPXML {
             )
             
             if let image = await cgImage(from: generator, at: time) {
-                return jpegData(from: scaledImage(image))
+                return image
             }
             
             // Retry with a looser tolerance near the requested time (GOP boundaries).
             generator.requestedTimeToleranceBefore = CMTime(seconds: 0.25, preferredTimescale: timescale)
             generator.requestedTimeToleranceAfter = CMTime(seconds: 0.25, preferredTimescale: timescale)
             if let image = await cgImage(from: generator, at: time) {
-                return jpegData(from: scaledImage(image))
+                return image
             }
             
             // Last resort: first frame.
-            if fileTimeSeconds > 0.001 {
-                return await videoFrameJPEG(from: url, fileTimeSeconds: 0)
+            if allowFirstFrameFallback, fileTimeSeconds > 0.001 {
+                return await videoCGImage(
+                    from: url,
+                    fileTimeSeconds: 0,
+                    maximumSize: maximumSize,
+                    allowFirstFrameFallback: false
+                )
             }
             return nil
         }
@@ -179,6 +268,21 @@ extension FinalCutPro.FCPXML {
                 kCGImageDestinationLossyCompressionQuality: jpegQuality
             ]
             CGImageDestinationAddImage(destination, image, options as CFDictionary)
+            guard CGImageDestinationFinalize(destination) else { return nil }
+            return data as Data
+        }
+        
+        private static func pngData(from image: CGImage) -> Data? {
+            let data = NSMutableData()
+            guard let destination = CGImageDestinationCreateWithData(
+                data,
+                UTType.png.identifier as CFString,
+                1,
+                nil
+            ) else {
+                return nil
+            }
+            CGImageDestinationAddImage(destination, image, nil)
             guard CGImageDestinationFinalize(destination) else { return nil }
             return data as Data
         }

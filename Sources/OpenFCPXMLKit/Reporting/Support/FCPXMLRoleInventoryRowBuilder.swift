@@ -160,6 +160,14 @@ extension FinalCutPro.FCPXML {
                 screenshotMediaFileURL: screenshot?.preferredURL,
                 screenshotFallbackMediaFileURL: screenshot?.fallbackURL,
                 screenshotFileTimeSeconds: screenshot?.fileTimeSeconds,
+                screenshotFileTimecodeStamp: screenshot.map { target in
+                    RoleInventoryScreenshotFileName.timecodeStamp(
+                        fileTimeSeconds: target.fileTimeSeconds,
+                        frameRate: clipContext.element._fcpTimecodeFrameRate(
+                            in: clipContext.resources
+                        ) ?? .fps24
+                    )
+                },
                 notes: ReportFormatting.clipNotesDisplay(for: clipContext.element),
                 reel: ReportFormatting.metadataString(from: metadata, key: .reel),
                 scene: ReportFormatting.metadataString(from: metadata, key: .scene),

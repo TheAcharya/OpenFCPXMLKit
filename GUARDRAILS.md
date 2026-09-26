@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1261** tests listed in `swift test list` — **1247** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1265** tests listed in `swift test list` — **1251** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
 
 ---
 
@@ -211,7 +211,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1261** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1265** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -324,9 +324,9 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 
 ### Sign: role-inventory-screenshots-excel-only
 - **Trigger:** Role Inventory Screenshot column / `--include-role-inventory-screenshots` / `includeScreenshotsInRoleInventory`.
-- **Instruction:** Default **off**. When on, insert **Screenshot** after **Row** on Selected Roles Inventory and every per-role sheet; embed Source In frames via XLKit (aspect-preserving) at Excel export only. Scale thumbnails from source resolution with a **480px max long edge**. PDF must omit the column and never embed. Grab asset-relative Source In (clip `start` − asset `start`); always prefer `original-media`; use `proxy-media` only when the original is missing or unreadable (MXF / camera RAW) (Sign `role-inventory-screenshots-prefer-original`). Blank cell when both are missing/unreadable. Source File Path stays original-first. Not a `ReportColumn` / `--exclude-column` target. Do not use legacy marketing names in code.
+- **Instruction:** Default **off**. When on, insert **Screenshot** after **Row** on Selected Roles Inventory and every per-role sheet; embed Source In frames via XLKit (aspect-preserving) at Excel export only. Scale thumbnails from source resolution with a **480px max long edge**. Also write one full-frame PNG per unique grab into a `Screenshots` folder beside the workbook: `SourceFileName-HH-MM-SS-FF.png` (media extension removed; hyphens; file-relative Source In). The same resolved media and file time share one file. A different file that would use that name gains `_1`, `_2`, matching media-copy. Re-export replaces a PNG with the same name. PDF must omit the column and never embed, and must not write the folder. Grab asset-relative Source In (clip `start` − asset `start`); always prefer `original-media`; use `proxy-media` only when the original is missing or unreadable (MXF / camera RAW) (Sign `role-inventory-screenshots-prefer-original`). When the grab falls back to proxy, the PNG is the proxy picture size. Blank cell and no PNG when both are missing/unreadable. Source File Path stays original-first. Not a `ReportColumn` / `--exclude-column` target. Do not use legacy marketing names in code.
 - **Reason:** Opt-in keeps default exports fast/small; Source In matches FCP source viewer; Excel-only matches XLKit image APIs.
-- **Provenance:** 2026-08-14 — Role Inventory screenshots feature (3.3.5).
+- **Provenance:** 2026-08-14 — Role Inventory screenshots feature (3.3.5). 2026-09-26 — sibling full-frame PNG folder beside the workbook.
 
 ### Sign: report-cover-four-row-branding
 - **Trigger:** Excel cover sheet / PDF cover branding / `ReportWorkbookCoverSheet` / `copyrightLabel`.

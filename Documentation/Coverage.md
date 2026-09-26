@@ -2,7 +2,7 @@
 
 Living inventory of how OpenFCPXMLKit covers Final Cut Pro FCPXML across layers. Prefer this file when asking “is element *X* typed / authored / projected / reported?” Prefer [GUARDRAILS.md](../GUARDRAILS.md) for must / must-not, and [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7 for where new work belongs.
 
-**Keep in sync** when adding Model types, Authoring encode/decode, Extraction presets, Projection walks, Reporting sheets, or Shot Extraction behaviour. Suite context: **1261** tests listed (`swift test list` — **1247** + **10** ExcelReportTest + **4** ShotExtractionTest); FCPXML **1.5–1.14**.
+**Keep in sync** when adding Model types, Authoring encode/decode, Extraction presets, Projection walks, Reporting sheets, or Shot Extraction behaviour. Suite context: **1265** tests listed (`swift test list` — **1251** + **10** ExcelReportTest + **4** ShotExtractionTest); FCPXML **1.5–1.14**.
 
 **Related Manual:** [02 — Loading & Parsing](Manual/02-Loading-Parsing.md) · [08 — Detached Authoring](Manual/08-Detached-Authoring.md) · [11 — Extraction](Manual/11-Extraction-Media.md) · [12 — Projection](Manual/12-Timeline-Projection.md) · [13 — Media Processing](Manual/13-Media-Processing.md) · [14 — Typed Models](Manual/14-Typed-Models.md) · [15 — XML Extensions](Manual/15-XML-Extensions.md) · [18 — Errors & Utilities](Manual/18-Errors-Utilities.md) · [20 — Reporting](Manual/20-Reporting.md) · [21 — Shot Extraction](Manual/21-Shot-Extraction.md)
 

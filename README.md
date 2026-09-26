@@ -9,7 +9,7 @@ A modern Swift 6 framework for working with Final Cut Pro's FCPXML with full con
 
 OpenFCPXMLKit provides a type-safe API for parsing, creating, and manipulating FCPXML with async/await, SwiftTimecode, and Excel/PDF reporting. Targets **macOS 26+** and **iOS 26+** (Foundation XML on macOS; AEXML on iOS).
 
-**Tests:** **1261** listed in `swift test list` — **1247** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
+**Tests:** **1265** listed in `swift test list` — **1251** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
 
 OpenFCPXMLKit is currently in an experimental stage. It covers most core FCPXML attributes and parameters and provides a solid foundation for parsing, creation, and manipulation, with room for future expansion and additional feature coverage.
 
@@ -115,7 +115,7 @@ This codebase is developed using AI agents.
 - Build once with `buildReport(options:)`, then export `.xlsx` (XLKit) and/or `.pdf` (CoreGraphics)
 - Sheets: Role Inventory, Markers, Keywords, Titles, Transitions, Non-Std Effects & Templates, Effects, Speed Change, Summary, Media Summary
   - Role inventory: **26** fixed columns (Duplicate Frames, Codecs, Ingest Date, Frame Size / Audio Config, …) + per-role **Total:** footers; secondary-storyline / connected clips keep their own roles; unfolded `mc-angle` interiors omitted
-  - Optional **Screenshot** column (Excel Source In embeds, 480px max long edge) and **Speed Change Settings** column
+  - Optional **Screenshot** column (Excel Source In embeds, 480px max long edge) plus full-frame PNGs in a `Screenshots` folder beside the workbook, and **Speed Change Settings** column
   - Empty enabled sheets keep headers + status rows (**No Markers Found**, **No Missing Media**, …) via `ReportEmptySectionStatus`
 - Cover branding: **Created by** → **Created on** → **Visit** (API `visitURL`) → optional copyright (`--label-copyright`)
 - Filters: roles (`--exclude-role` on every role-bearing sheet), columns (incl. **Row**), disabled clips, project name, timecode format, copyright label
@@ -338,12 +338,9 @@ REPORT:
                           Inventory sheets (with --report). Default omits the column. Independent of
                           --report-speed-change-effects. Not available via --exclude-column.
   --include-role-inventory-screenshots
-                          Add a Screenshot column after Row on Role Inventory sheets (Selected Roles Inventory and
-                          every per-role tab) and embed a Source In frame grab in Excel (with --report). Uses
-                          aspect-preserving XLKit embeds. Always prefers original-media; uses proxy-media only when
-                          the original is missing or cannot be decoded (for example MXF or camera RAW). Default omits
-                          the column. PDF export ignores this flag. Missing media leaves a blank cell. Not available
-                          via --exclude-column.
+                          Add a Screenshot column after Row on Role Inventory sheets (with --report). Embeds a Source
+                          In frame in Excel and writes full-frame PNGs into a Screenshots folder beside the workbook.
+                          Default omits both. PDF export ignores this flag. Not available via --exclude-column.
   --protect-sheets        Protect every sheet in the Excel workbook against casual edits (with --report). Applies to
                           the cover sheet and all content sheets. This is an edit lock, not file-open encryption —
                           Excel can still open the file, and anyone can turn protection off. PDF export is unaffected
@@ -387,7 +384,7 @@ Complete manual, usage guide, and examples are in the [Documentation](Documentat
 - **[CLI](Sources/OpenFCPXMLKitCLI/README.md)** — Flags, examples, building and extending
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — Layer stack, codebase map, Mermaid diagrams
 - **[GUARDRAILS.md](GUARDRAILS.md)** — Must / must-not constraints for contributors and agents
-- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1261** listed; all Swift Testing)
+- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1265** listed; all Swift Testing)
 - **[AGENT.md](AGENT.md)** — AI agent / contributor briefing
 
 ## FCPXML Version Support

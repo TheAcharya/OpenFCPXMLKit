@@ -40,6 +40,9 @@ extension FinalCutPro.FCPXML {
         public var screenshotFallbackMediaFileURL: URL?
         /// Seconds into the media file for the Source In frame (asset-relative).
         public var screenshotFileTimeSeconds: Double?
+        /// File-relative Source In as `HH-MM-SS-FF` for the sibling screenshot PNG.
+        /// Hyphens replace SMPTE separators. `nil` when the row has no screenshot.
+        public var screenshotFileTimecodeStamp: String?
         public var notes: String
         public var reel: String
         public var scene: String
@@ -84,6 +87,7 @@ extension FinalCutPro.FCPXML {
             screenshotMediaFileURL: URL? = nil,
             screenshotFallbackMediaFileURL: URL? = nil,
             screenshotFileTimeSeconds: Double? = nil,
+            screenshotFileTimecodeStamp: String? = nil,
             notes: String = "",
             reel: String = "",
             scene: String = "",
@@ -116,6 +120,7 @@ extension FinalCutPro.FCPXML {
             self.screenshotMediaFileURL = screenshotMediaFileURL
             self.screenshotFallbackMediaFileURL = screenshotFallbackMediaFileURL
             self.screenshotFileTimeSeconds = screenshotFileTimeSeconds
+            self.screenshotFileTimecodeStamp = screenshotFileTimecodeStamp
             self.notes = notes
             self.reel = reel
             self.scene = scene
@@ -194,8 +199,9 @@ extension FinalCutPro.FCPXML {
         /// inventory sheets include a **Speed Change Settings** column after **Effects**.
         public var showsSpeedChangeSettingsColumn: Bool
         /// When `true` (opt-in via ``ReportOptions/includeScreenshotsInRoleInventory``), Excel
-        /// inventory sheets include a **Screenshot** column after **Row** and embed Source In
-        /// frames. PDF export ignores this flag.
+        /// inventory sheets include a **Screenshot** column after **Row** and embed a 480px
+        /// Source In JPEG. The same export also writes full-frame PNGs into a `Screenshots`
+        /// folder beside the workbook. PDF export ignores this flag.
         public var showsScreenshotsColumn: Bool
         
         public init(

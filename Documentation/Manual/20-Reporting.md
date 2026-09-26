@@ -118,7 +118,7 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 | `includeChapterMarkersInMarkersReport` | `true` | Include `chapter-marker` rows on the Markers sheet (Type = Chapter). Set `false` to omit; Excel Type filter can also hide them. |
 | `includeMarkersOutsideClipBoundaries` | `false` | Include markers outside the host clip’s media range (hidden in FCP Tags/timeline) and show a **Hidden** column (✓/✗). Not part of `excludedColumns` / `--exclude-column`. |
 | `includeSpeedChangeSettingsInRoleInventory` | `false` | Add a **Speed Change Settings** column (retime percent, e.g. `50.0%`) after **Effects** on Role Inventory sheets. Not part of `excludedColumns` / `--exclude-column`. Independent of `includeSpeedChangeEffects`. |
-| `includeScreenshotsInRoleInventory` | `false` | Add a **Screenshot** column after **Row** on Role Inventory sheets (Selected Roles + every per-role tab) and embed a **Source In** frame grab in **Excel** only (XLKit aspect-preserving; **480px** max long edge). Always prefers `original-media`; uses `proxy-media` only when the original is missing or unreadable (MXF / camera RAW). PDF ignores this flag. Missing media → blank cell. Not part of `excludedColumns` / `--exclude-column`. |
+| `includeScreenshotsInRoleInventory` | `false` | Add a **Screenshot** column after **Row** on Role Inventory sheets (Selected Roles + every per-role tab) and embed a **Source In** frame grab in **Excel** only (XLKit aspect-preserving; **480px** max long edge). Also writes full-frame PNGs into a `Screenshots` folder beside the workbook (`SourceFileName-HH-MM-SS-FF.png`; `_1` when a different file shares that name). Always prefers `original-media`; uses `proxy-media` only when the original is missing or unreadable (MXF / camera RAW). PDF ignores this flag. Missing media → blank cell and no PNG. Not part of `excludedColumns` / `--exclude-column`. |
 
 ### Other configuration
 
@@ -300,7 +300,7 @@ Duration of **source** that this row’s **Source In** / **Source Out** interval
 
 | Column | Field |
 |--------|-------|
-| Screenshot *(opt-in, Excel only)* | Source In frame embed when `includeScreenshotsInRoleInventory` / `--include-role-inventory-screenshots` (480px max long edge); prefers `original-media`, then `proxy-media` if original is missing/unreadable; blank if both fail. PDF omits. |
+| Screenshot *(opt-in, Excel only)* | Source In frame embed when `includeScreenshotsInRoleInventory` / `--include-role-inventory-screenshots` (480px max long edge JPEG in the cell; full-frame PNG in a `Screenshots` folder beside the workbook); prefers `original-media`, then `proxy-media` if original is missing/unreadable; blank if both fail. PDF omits. |
 | Role ▸ Subrole | `roleSubrole` |
 | Clip Name | `clipName` |
 | Category | `category` |
@@ -343,7 +343,9 @@ When `includeScreenshotsInRoleInventory` is `true`, each video-capable `RoleClip
 | `screenshotFallbackMediaFileURL` | `proxy-media` to try when the original is missing or `RoleInventoryScreenshotGrabber` cannot decode it (MXF, camera RAW, and similar) |
 | `screenshotFileTimeSeconds` | Asset-relative Source In (clip `start` − asset `start`) |
 
-`RoleInventoryScreenshotMedia` picks that pair from Projection `MediaChannel` or public Parsing `fcpMediaRepresentationURLs` (same unfolded leaf as Source File Path; Sign `public-media-leaf-is-one-primary`). The grabber has **no codec allowlist**: stills use ImageIO (`png`, `jpg`/`jpeg`, `tif`/`tiff`, `gif`, `bmp`, `heic`/`heif`, `webp`, `psd`); video uses AVFoundation `AVAssetImageGenerator` (typically MOV/MP4 H.264, HEVC, ProRes, including FCP ProRes Proxy). Excel embedder (`FCPXMLReportWorkbookScreenshotEmbedder`) tries preferred then fallback. PDF omits the column. Signs `role-inventory-screenshots-excel-only`, `role-inventory-screenshots-prefer-original`.
+`RoleInventoryScreenshotMedia` picks that pair from Projection `MediaChannel` or public Parsing `fcpMediaRepresentationURLs` (same unfolded leaf as Source File Path; Sign `public-media-leaf-is-one-primary`). The grabber has **no codec allowlist**: stills use ImageIO (`png`, `jpg`/`jpeg`, `tif`/`tiff`, `gif`, `bmp`, `heic`/`heif`, `webp`, `psd`); video uses AVFoundation `AVAssetImageGenerator` (typically MOV/MP4 H.264, HEVC, ProRes, including FCP ProRes Proxy). Excel embedder (`FCPXMLReportWorkbookScreenshotEmbedder`) tries preferred then fallback and stores a **480px** JPEG in the cell.
+
+The same export writes a **`Screenshots`** folder beside the `.xlsx`. Each unique grab is one full-frame **PNG** at the source picture size (a still’s pixel size, or the video display frame). The name is `SourceFileName-HH-MM-SS-FF.png`: the source file name with its media extension removed, then the file-relative Source In (`clip start` − asset `start`) with hyphens. The same media file and time is written once, even when Selected Roles Inventory and a per-role sheet both list it. A different file that would produce the same name is saved as `…_1.png`, `…_2.png`. Running the export again replaces a PNG that has the same name. A proxy fallback uses the proxy’s picture size. PDF does not write this folder. Signs `role-inventory-screenshots-excel-only`, `role-inventory-screenshots-prefer-original`.
 
 #### Markers
 
@@ -800,7 +802,7 @@ The same reports are available through **OpenFCPXMLKit-CLI**:
 | `--exclude-disabled-clips` | Omit `enabled="0"` clips from all timeline sections |
 | `--include-markers-outside-clip-boundaries` | Include out-of-bounds markers + Markers **Hidden** column |
 | `--include-role-inventory-speed-change-settings` | Add Role Inventory **Speed Change Settings** column after Effects |
-| `--include-role-inventory-screenshots` | Add Role Inventory **Screenshot** column after Row + Excel Source In embeds (prefer original, proxy if original missing/unreadable; PDF ignores) |
+| `--include-role-inventory-screenshots` | Add Role Inventory **Screenshot** column after Row + Excel Source In embeds, and write full-frame PNGs into a `Screenshots` folder beside the workbook (prefer original, proxy if original missing/unreadable; PDF ignores) |
 | `--protect-sheets` | Excel worksheet edit lock on every sheet (not encryption; PDF unaffected) |
 | `--exclude-column <name>` | Omit a column from every applicable sheet (repeatable) |
 | `--timecode-format <format>` | Timeline cell format: `HH:MM:SS:FF` (default), `Frames`, `Feet+Frames`, `HH:MM:SS` |
