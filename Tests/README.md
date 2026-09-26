@@ -516,7 +516,7 @@ The **`ExcelReportTest`** target (separate from `OpenFCPXMLKitTests`) builds rea
 | Item | Detail |
 |------|--------|
 | **Location** | `Tests/ExcelReportTest/` |
-| **Test suite** | `@Suite("Excel report export")` / `ExcelReportExportTests` (**10** `@Test`s) — writes `Output/OFK-Default.xlsx`, `Output/OFK-Full.xlsx`, `Output/OFK-Default.pdf`, `Output/OFK-Full.pdf`, `Output/OFK-ExcludedColumns.pdf`, `Output/OFK-Copyright.xlsx` / `.pdf`, `Output/OFK-OutsideClipBoundaries.xlsx` / `.pdf`, `Output/OFK-SpeedChangeSettings.xlsx` / `.pdf`, `Output/OFK-Screenshots.xlsx`, `Output/OFK-ProtectedSheets.xlsx`, `Output/OFK-ExcludeRoleSubrole.xlsx` / `.pdf` |
+| **Test suite** | `@Suite("Excel report export")` / `ExcelReportExportTests` (**10** `@Test`s) — writes `Output/OFK-Default.xlsx`, `Output/OFK-Full.xlsx`, `Output/OFK-Default.pdf`, `Output/OFK-Full.pdf`, `Output/OFK-ExcludedColumns.pdf`, `Output/OFK-Copyright.xlsx` / `.pdf`, `Output/OFK-OutsideClipBoundaries.xlsx` / `.pdf`, `Output/OFK-SpeedChangeSettings.xlsx` / `.pdf`, `Output/OFK-Screenshots.xlsx` (and a sibling `Screenshots` folder of full-frame PNGs), `Output/OFK-ProtectedSheets.xlsx`, `Output/OFK-ExcludeRoleSubrole.xlsx` / `.pdf` |
 | **Fixture** | Preferred `Sample.fcpxmld` / `Sample.fcpxml` under this folder or under `Output/`; else `OFK_REPORTING_FCPXML_BUNDLE`; else auto-discovery |
 | **Run** | `swift test --filter ExcelReportExportTests` |
 

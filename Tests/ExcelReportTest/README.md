@@ -82,7 +82,7 @@ Running the export tests writes workbooks and a sample PDF to **`Output/`** (als
 | `Output/OFK-Copyright.xlsx` / `Output/OFK-Copyright.pdf` | role inventory + `copyrightLabel` | `--report --create-pdf --label-copyright "…"` | Cover/footer copyright line for manual review of `--label-copyright` |
 | `Output/OFK-OutsideClipBoundaries.xlsx` / `Output/OFK-OutsideClipBoundaries.pdf` | markers + `includeMarkersOutsideClipBoundaries` | `--report --report-markers --include-markers-outside-clip-boundaries --create-pdf` | Markers sheet with **Hidden** column (✓/✗) for out-of-bounds markers |
 | `Output/OFK-SpeedChangeSettings.xlsx` / `Output/OFK-SpeedChangeSettings.pdf` | role inventory + `includeSpeedChangeSettingsInRoleInventory` | `--report --include-role-inventory-speed-change-settings --create-pdf` | Role Inventory with **Speed Change Settings** after **Effects** |
-| `Output/OFK-Screenshots.xlsx` | role inventory + `includeScreenshotsInRoleInventory` | `--report --include-role-inventory-screenshots` | Role Inventory with **Screenshot** after **Row** (Excel Source In embeds, 480px max long edge; prefers original, proxy if original missing/unreadable; PDF ignores flag) |
+| `Output/OFK-Screenshots.xlsx` | role inventory + `includeScreenshotsInRoleInventory` | `--report --include-role-inventory-screenshots` | Role Inventory with **Screenshot** after **Row** (Excel Source In embeds, 480px max long edge) and full-frame PNGs in `Output/Screenshots` (`SourceFileName-HH-MM-SS-FF.png` at the clip’s format frame rate; `_1` when a different file shares that name). Prefers original, proxy if original missing/unreadable. PDF ignores the flag |
 | `Output/OFK-ProtectedSheets.xlsx` | role inventory + `protectSheets` | `--report --protect-sheets` | Every worksheet protected (edit lock; not encryption; Excel only) |
 | `Output/OFK-ExcludeRoleSubrole.xlsx` / `.pdf` | full report + `excludedColumns: Role ▸ Subrole` | `--report --report-full --exclude-column "Roles > Subrole" --create-pdf` | Regression: per-role sheets keep clip data when Role ▸ Subrole is excluded |
 
@@ -104,7 +104,7 @@ See [Output/README.md](Output/README.md) for details on that folder.
 
 `exportRoleInventoryWithSpeedChangeSettingsColumn` writes `OFK-SpeedChangeSettings.xlsx` / `OFK-SpeedChangeSettings.pdf` with `includeSpeedChangeSettingsInRoleInventory` (CLI `--include-role-inventory-speed-change-settings`) and asserts the **Speed Change Settings** column after **Effects**.
 
-`exportRoleInventoryWithScreenshotColumn` writes `OFK-Screenshots.xlsx` with `includeScreenshotsInRoleInventory` (CLI `--include-role-inventory-screenshots`) and asserts **Screenshot** after **Row** on Selected Roles and per-role sheets.
+`exportRoleInventoryWithScreenshotColumn` writes `OFK-Screenshots.xlsx` with `includeScreenshotsInRoleInventory` (CLI `--include-role-inventory-screenshots`) and asserts **Screenshot** after **Row** on Selected Roles and per-role sheets. The same export writes full-frame PNGs into `Output/Screenshots` beside that workbook.
 
 `exportProtectedSheetsWorkbook` writes `OFK-ProtectedSheets.xlsx` with `protectSheets` (CLI `--protect-sheets`) and asserts every worksheet has XLKit sheet protection.
 

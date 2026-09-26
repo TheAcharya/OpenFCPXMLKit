@@ -41,7 +41,9 @@ extension FinalCutPro.FCPXML {
         /// Seconds into the media file for the Source In frame (asset-relative).
         public var screenshotFileTimeSeconds: Double?
         /// File-relative Source In as `HH-MM-SS-FF` for the sibling screenshot PNG.
-        /// Hyphens replace SMPTE separators. `nil` when the row has no screenshot.
+        /// Uses the clip’s format frame rate (24 fps only when no format is found).
+        /// Hyphens replace SMPTE separators. Independent of ``ReportTimecodeFormat``.
+        /// `nil` when the row has no screenshot.
         public var screenshotFileTimecodeStamp: String?
         public var notes: String
         public var reel: String

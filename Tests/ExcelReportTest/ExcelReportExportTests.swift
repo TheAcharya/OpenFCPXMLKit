@@ -363,7 +363,8 @@ struct ExcelReportExportTests {
     }
     
     /// Writes `Output/OFK-Screenshots.xlsx` with `--include-role-inventory-screenshots`
-    /// parity (Screenshot column after Row on Role Inventory sheets; Excel embeds when media exists).
+    /// parity (Screenshot column after Row; Excel embeds when media exists; full-frame PNGs
+    /// in a sibling `Screenshots` folder).
     @Test("Export role inventory with Screenshot column")
     @MainActor
     func exportRoleInventoryWithScreenshotColumn() async throws {
