@@ -121,6 +121,7 @@ enum ExportReport {
 
             print(outputURL.path)
             logger.log(level: .info, message: "Report exported to \(outputURL.path)", metadata: nil)
+            logScreenshotFolder(beside: outputURL, options: reportOptions, logger: logger)
             print(pdfURL.path)
             logger.log(level: .info, message: "PDF report exported to \(pdfURL.path)", metadata: nil)
         } else {
@@ -129,6 +130,7 @@ enum ExportReport {
             progress?.update(1)
             print(outputURL.path)
             logger.log(level: .info, message: "Report exported to \(outputURL.path)", metadata: nil)
+            logScreenshotFolder(beside: outputURL, options: reportOptions, logger: logger)
         }
 
         progress?.close()
@@ -136,6 +138,22 @@ enum ExportReport {
         let summary = reportSummary(for: report)
         fputs("\(summary)\n", stderr)
         logger.log(level: .info, message: summary, metadata: nil)
+    }
+
+    private static func logScreenshotFolder(
+        beside workbookURL: URL,
+        options: FinalCutPro.FCPXML.ReportOptions,
+        logger: ServiceLogger
+    ) {
+        guard options.includeScreenshotsInRoleInventory else { return }
+        let folder = FinalCutPro.FCPXML.ReportExcelExport.screenshotDirectory(beside: workbookURL)
+        guard FileManager.default.fileExists(atPath: folder.path) else { return }
+        print(folder.path)
+        logger.log(
+            level: .info,
+            message: "Role inventory screenshots exported to \(folder.path)",
+            metadata: nil
+        )
     }
 
     private static func sanitizedFileStem(_ name: String) -> String {

@@ -7,6 +7,22 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.3.15](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.15) - 2026-09-26
+
+### ✨ New Features
+
+- **Role Inventory screenshot files:** `--include-role-inventory-screenshots` still embeds a 480px Source In JPEG in Excel. It also writes a full-frame PNG for each unique grab into a `Screenshots` folder beside the workbook. The name is `SourceFileName-HH-MM-SS-FF.png` (file-relative Source In, hyphens). The same media and time share one file. A different file that would use that name is saved as `_1`, `_2`. PDF still omits screenshots. Suite **1265** listed (`swift test list` — **1251** + **10** + **4**), including `FCPXMLRoleInventoryScreenshotFolderTests`.
+
+### 🔧 Improvements
+
+- None in this release.
+
+### 🐛 Bug Fixes
+
+- None in this release.
+
+---
+
 ## [3.3.14](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.14) - 2026-09-15
 
 ### ✨ New Features

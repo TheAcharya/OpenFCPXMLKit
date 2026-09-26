@@ -17,6 +17,35 @@ import UniformTypeIdentifiers
 
 @Suite("Role inventory screenshot grabber")
 struct FCPXMLRoleInventoryScreenshotGrabberTests {
+    @Test("Full-size PNG keeps source pixels while JPEG stays capped")
+    func fullSizePNGKeepsSourcePixelsWhileJPEGStaysCapped() async throws {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ofk-screenshot-full-\(UUID().uuidString).png")
+        defer { try? FileManager.default.removeItem(at: url) }
+        
+        try writeSolidPNG(to: url, width: 800, height: 200)
+        
+        let png = try #require(
+            await FinalCutPro.FCPXML.RoleInventoryScreenshotGrabber.pngData(
+                fileURL: url,
+                fileTimeSeconds: 0
+            )
+        )
+        let jpeg = try #require(
+            await FinalCutPro.FCPXML.RoleInventoryScreenshotGrabber.jpegData(
+                fileURL: url,
+                fileTimeSeconds: 0
+            )
+        )
+        
+        let pngSize = try #require(imagePixelSize(png))
+        let jpegSize = try #require(imagePixelSize(jpeg))
+        #expect(png.starts(with: [0x89, 0x50, 0x4E, 0x47]))
+        #expect(pngSize == (800, 200))
+        #expect(max(jpegSize.0, jpegSize.1) <= 480)
+        #expect(jpegSize.0 < 800)
+    }
+    
     @Test("Still image file yields JPEG thumbnail")
     func stillImageFileYieldsJPEGThumbnail() async throws {
         let url = FileManager.default.temporaryDirectory
@@ -103,5 +132,16 @@ struct FCPXMLRoleInventoryScreenshotGrabberTests {
         guard CGImageDestinationFinalize(destination) else {
             throw NSError(domain: "OFKScreenshotTest", code: 4)
         }
+    }
+    
+    private func imagePixelSize(_ data: Data) -> (Int, Int)? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+              let width = properties[kCGImagePropertyPixelWidth] as? Int,
+              let height = properties[kCGImagePropertyPixelHeight] as? Int
+        else {
+            return nil
+        }
+        return (width, height)
     }
 }

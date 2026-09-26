@@ -35,7 +35,8 @@ extension FinalCutPro.FCPXML {
         /// When ``Report/protectSheets`` is `true`, every worksheet is edit-locked
         /// (XLKit sheet protection without a password). This is not file encryption.
         /// When ``RoleInventoryReportSection/showsScreenshotsColumn`` is `true`, Source In
-        /// frame grabs are embedded into Role Inventory Screenshot cells before save.
+        /// frame grabs are embedded into Role Inventory Screenshot cells before save,
+        /// and full-frame PNGs are written into ``screenshotDirectory(beside:)``.
         @MainActor
         public static func export(_ report: Report, to url: URL) async throws {
             let workbook = makeWorkbook(from: report)
@@ -48,6 +49,20 @@ extension FinalCutPro.FCPXML {
                 )
             }
             try await workbook.save(to: url)
+            if let roleInventory = report.roleInventory,
+               roleInventory.showsScreenshotsColumn
+            {
+                _ = try await RoleInventoryScreenshotFolder.write(
+                    roleInventory: roleInventory,
+                    beside: url
+                )
+            }
+        }
+        
+        /// `Screenshots` folder written beside an Excel workbook when Role Inventory
+        /// screenshots are enabled.
+        public static func screenshotDirectory(beside workbookURL: URL) -> URL {
+            RoleInventoryScreenshotFolder.directory(beside: workbookURL)
         }
         
         /// Sanitizes a string for use as an Excel worksheet name.

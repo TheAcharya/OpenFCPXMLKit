@@ -58,19 +58,19 @@ Everything lives under **`FinalCutPro.FCPXML`**:
 
 - **buildReport(options:scope:onPhaseStarted:)** — convenience entry point on a parsed document.
 - **ReportBuilder** — assembles a **Report** from a document or a single **Project**.
-- **ReportOptions** — selects which sections to include, plus project filter, media base URL, role display preference, cover sheet, role exclusions, disabled-clip filtering, column exclusions, **timecodeFormat**, **mediaResolutionPolicy**, **mediaSummaryDistinguishProxyAndOriginal**, optional **copyrightLabel**, **includeMarkersOutsideClipBoundaries**, **includeSpeedChangeSettingsInRoleInventory**, **includeScreenshotsInRoleInventory** (Excel Screenshot column + embeds), and **protectSheets** (Excel edit lock).
+- **ReportOptions** — selects which sections to include, plus project filter, media base URL, role display preference, cover sheet, role exclusions, disabled-clip filtering, column exclusions, **timecodeFormat**, **mediaResolutionPolicy**, **mediaSummaryDistinguishProxyAndOriginal**, optional **copyrightLabel**, **includeMarkersOutsideClipBoundaries**, **includeSpeedChangeSettingsInRoleInventory**, **includeScreenshotsInRoleInventory** (Excel Screenshot column, 480px embeds, and a sibling `Screenshots` folder of full-frame PNGs), and **protectSheets** (Excel edit lock).
 - **ReportTimecodeFormat** — how timeline time values appear in workbook/PDF cells (`HH:MM:SS:FF`, Frames, Feet+Frames, `HH:MM:SS`).
 - **Report** — the assembled value type (one optional property per section, plus resolved column exclusions, `timecodeFormat`, `copyrightLabel`, and `protectSheets`).
 - **ReportBuildPhase** — content phases in product / workbook order; use `enabledPhases(for:)` for GUI progress bars.
 - **ReportColumn** — logical columns that can be omitted globally at export (Excel and PDF).
-- **ReportExcelExport** — turns a `Report` into an XLKit `Workbook` or writes it to disk (honours `protectSheets` and Role Inventory screenshots).
-- **ReportPDFExport** — turns a `Report` into PDF `Data` or writes a multi-page `.pdf` file (ignores `protectSheets` and screenshot embeds).
+- **ReportExcelExport** — turns a `Report` into an XLKit `Workbook` or writes it to disk (honours `protectSheets`, Role Inventory screenshot embeds, and the sibling `Screenshots` folder via `screenshotDirectory(beside:)`).
+- **ReportPDFExport** — turns a `Report` into PDF `Data` or writes a multi-page `.pdf` file (ignores `protectSheets` and Role Inventory screenshots, including the PNG folder).
 
 All **build** APIs are **async**. PDF export is **synchronous** once a `Report` exists.
 
 **Project-once Projection:** When Role Inventory, Markers, Keywords, Titles & Generators, Transitions, Effects, Speed Change Effects, Media Summary, or Summary is enabled, `ReportBuilder` projects the timeline **once** (progress phase `.projecting`) and shares `ReportProjectionContext` across those sections. Markers / Keywords / Titles / Transitions / Effects are Projection-first with Extraction fallback. See [12 — Timeline Projection](12-Timeline-Projection.md).
 
-**Configuration parity:** Build the report **once** with `ReportOptions`, then export to Excel, PDF, or both. Section flags, `excludedColumns`, `excludedRoles`, `excludeDisabledClips`, `timecodeFormat`, `copyrightLabel`, `includeMarkersOutsideClipBoundaries`, `includeSpeedChangeSettingsInRoleInventory`, `includeScreenshotsInRoleInventory`, and `projectName` all apply where noted. **`protectSheets` is Excel-only** (worksheet edit lock — not encryption). **`includeScreenshotsInRoleInventory` is Excel-only** (Screenshot column + embeds; PDF omits it). PDF adds presentation-only features (cover page, TOC with sheet colour chips + tint washes, per-sheet content tints, pagination, remaining-column width expansion after exclusions, truncation) on top of the same `Report` data.
+**Configuration parity:** Build the report **once** with `ReportOptions`, then export to Excel, PDF, or both. Section flags, `excludedColumns`, `excludedRoles`, `excludeDisabledClips`, `timecodeFormat`, `copyrightLabel`, `includeMarkersOutsideClipBoundaries`, `includeSpeedChangeSettingsInRoleInventory`, `includeScreenshotsInRoleInventory`, and `projectName` all apply where noted. **`protectSheets` is Excel-only** (worksheet edit lock — not encryption). **`includeScreenshotsInRoleInventory` is Excel-only** (Screenshot column, 480px embeds, and a `Screenshots` folder beside the workbook; PDF omits the column and does not write the folder). PDF adds presentation-only features (cover page, TOC with sheet colour chips + tint washes, per-sheet content tints, pagination, remaining-column width expansion after exclusions, truncation) on top of the same `Report` data.
 
 ---
 
@@ -118,7 +118,7 @@ try FinalCutPro.FCPXML.ReportPDFExport.export(report, to: pdfURL)
 | `includeChapterMarkersInMarkersReport` | `true` | Include `chapter-marker` rows on the Markers sheet (Type = Chapter). Set `false` to omit; Excel Type filter can also hide them. |
 | `includeMarkersOutsideClipBoundaries` | `false` | Include markers outside the host clip’s media range (hidden in FCP Tags/timeline) and show a **Hidden** column (✓/✗). Not part of `excludedColumns` / `--exclude-column`. |
 | `includeSpeedChangeSettingsInRoleInventory` | `false` | Add a **Speed Change Settings** column (retime percent, e.g. `50.0%`) after **Effects** on Role Inventory sheets. Not part of `excludedColumns` / `--exclude-column`. Independent of `includeSpeedChangeEffects`. |
-| `includeScreenshotsInRoleInventory` | `false` | Add a **Screenshot** column after **Row** on Role Inventory sheets (Selected Roles + every per-role tab) and embed a **Source In** frame grab in **Excel** only (XLKit aspect-preserving; **480px** max long edge). Always prefers `original-media`; uses `proxy-media` only when the original is missing or unreadable (MXF / camera RAW). PDF ignores this flag. Missing media → blank cell. Not part of `excludedColumns` / `--exclude-column`. |
+| `includeScreenshotsInRoleInventory` | `false` | Add a **Screenshot** column after **Row** on Role Inventory sheets (Selected Roles + every per-role tab) and embed a **Source In** frame grab in **Excel** only (XLKit aspect-preserving; **480px** max long edge). Also writes full-frame PNGs into a `Screenshots` folder beside the workbook (`SourceFileName-HH-MM-SS-FF.png`; `_1` when a different file shares that name). Always prefers `original-media`; uses `proxy-media` only when the original is missing or unreadable (MXF / camera RAW). PDF ignores this flag. Missing media → blank cell and no PNG. Not part of `excludedColumns` / `--exclude-column`. |
 
 ### Other configuration
 
@@ -296,11 +296,11 @@ Duration of **source** that this row’s **Source In** / **Source Out** interval
 
 **Per-role Total footer:** Each non-empty per-role sheet ends with a blank row, then a **Total:** label under **Timeline Out** and an optimistic sum of that sheet’s **Clip Duration** values under **Clip Duration**. Both cells use the same black-background / white-text style as column headers. **Selected Roles Inventory** has no Total footer. If Timeline Out or Clip Duration is excluded, the footer is omitted. The sum is presentation-thin (`RoleInventorySheetTotal` — parses already-formatted `clipDuration` strings); it is **not** overlap-aware (Summary’s `summaryOverlapAwareDurations` stays Summary-only). Excel and PDF draw the same footer in the table content area (not the PDF running page footer).
 
-**RoleClipReportRow** fixed columns (in export order, after **Row**; optional **Screenshot** after **Row** when `includeScreenshotsInRoleInventory` is `true` — Excel embeds only):
+**RoleClipReportRow** fixed columns (in export order, after **Row**; optional **Screenshot** after **Row** when `includeScreenshotsInRoleInventory` is `true` — Excel cell plus a sibling PNG folder):
 
 | Column | Field |
 |--------|-------|
-| Screenshot *(opt-in, Excel only)* | Source In frame embed when `includeScreenshotsInRoleInventory` / `--include-role-inventory-screenshots` (480px max long edge); prefers `original-media`, then `proxy-media` if original is missing/unreadable; blank if both fail. PDF omits. |
+| Screenshot *(opt-in, Excel only)* | Source In frame embed when `includeScreenshotsInRoleInventory` / `--include-role-inventory-screenshots` (480px max long edge JPEG in the cell; full-frame PNG in a `Screenshots` folder beside the workbook); prefers `original-media`, then `proxy-media` if original is missing/unreadable; blank if both fail. PDF omits. |
 | Role ▸ Subrole | `roleSubrole` |
 | Clip Name | `clipName` |
 | Category | `category` |
@@ -342,8 +342,11 @@ When `includeScreenshotsInRoleInventory` is `true`, each video-capable `RoleClip
 | `screenshotMediaFileURL` | Preferred grab file — on-disk `original-media` when it exists |
 | `screenshotFallbackMediaFileURL` | `proxy-media` to try when the original is missing or `RoleInventoryScreenshotGrabber` cannot decode it (MXF, camera RAW, and similar) |
 | `screenshotFileTimeSeconds` | Asset-relative Source In (clip `start` − asset `start`) |
+| `screenshotFileTimecodeStamp` | That time as `HH-MM-SS-FF` for the PNG name. Uses the clip’s format frame rate (`_fcpTimecodeFrameRate`). **24 fps** only when the clip and its ancestors have no `format`. Independent of `timecodeFormat` / `--timecode-format`. `nil` when the row has no screenshot |
 
-`RoleInventoryScreenshotMedia` picks that pair from Projection `MediaChannel` or public Parsing `fcpMediaRepresentationURLs` (same unfolded leaf as Source File Path; Sign `public-media-leaf-is-one-primary`). The grabber has **no codec allowlist**: stills use ImageIO (`png`, `jpg`/`jpeg`, `tif`/`tiff`, `gif`, `bmp`, `heic`/`heif`, `webp`, `psd`); video uses AVFoundation `AVAssetImageGenerator` (typically MOV/MP4 H.264, HEVC, ProRes, including FCP ProRes Proxy). Excel embedder (`FCPXMLReportWorkbookScreenshotEmbedder`) tries preferred then fallback. PDF omits the column. Signs `role-inventory-screenshots-excel-only`, `role-inventory-screenshots-prefer-original`.
+`RoleInventoryScreenshotMedia` picks that pair from Projection `MediaChannel` or public Parsing `fcpMediaRepresentationURLs` (same unfolded leaf as Source File Path; Sign `public-media-leaf-is-one-primary`). The grabber has **no codec allowlist**: stills use ImageIO (`png`, `jpg`/`jpeg`, `tif`/`tiff`, `gif`, `bmp`, `heic`/`heif`, `webp`, `psd`); video uses AVFoundation `AVAssetImageGenerator` (typically MOV/MP4 H.264, HEVC, ProRes, including FCP ProRes Proxy). Excel embedder (`FCPXMLReportWorkbookScreenshotEmbedder`) tries preferred then fallback and stores a **480px** JPEG in the cell.
+
+The same export writes a **`Screenshots`** folder beside the `.xlsx` (`ReportExcelExport.screenshotDirectory(beside:)`). Each unique grab is one full-frame **PNG** at the source picture size (a still’s pixel size, or the video display frame). The name is `SourceFileName-HH-MM-SS-FF.png`: the source file name with its media extension removed, then `screenshotFileTimecodeStamp`. That stamp is the file-relative Source In (`clip start` − asset `start`) at the **clip’s format frame rate**, with hyphens instead of SMPTE separators. Drop-frame media keeps the drop-frame frame number. The stamp does not follow `ReportTimecodeFormat`. **24 fps** is only the fallback when `_fcpTimecodeFrameRate` returns nil. The same media file and time is written once, even when Selected Roles Inventory and a per-role sheet both list it. A different file that would produce the same name is saved as `…_1.png`, `…_2.png`. Running the export again replaces a PNG that has the same name. A proxy fallback uses the proxy’s picture size. The folder is created only when at least one PNG is written. PDF does not write this folder. Signs `role-inventory-screenshots-excel-only`, `role-inventory-screenshots-prefer-original`.
 
 #### Markers
 
@@ -660,7 +663,12 @@ try await FinalCutPro.FCPXML.ReportExcelExport.export(report, to: outputURL)
 
 // Sanitize an arbitrary string into a valid sheet name (≤ 31 chars, no : ? [ ] / \)
 let name = FinalCutPro.FCPXML.ReportExcelExport.sanitizeSheetName("Video: Effects?")
+
+// When screenshots are on, full-frame PNGs land here (beside the workbook)
+let shots = FinalCutPro.FCPXML.ReportExcelExport.screenshotDirectory(beside: outputURL)
 ```
+
+When `includeScreenshotsInRoleInventory` is `true`, `export` embeds the 480px Source In JPEG and then writes full-frame PNGs into that `Screenshots` folder. `screenshotDirectory(beside:)` returns the folder URL whether or not a PNG was written. See [Role Inventory screenshots](#role-inventory-screenshots).
 
 ### Sheet order and formatting
 
@@ -773,6 +781,7 @@ Per-section presentation:
 | `copyrightLabel` | Cover line below branding / Created-on / Visit; centred running footer (Excel cover **A4**) |
 | `includeMarkersOutsideClipBoundaries` | Applied at build time (Markers rows + optional **Hidden** column) |
 | `includeSpeedChangeSettingsInRoleInventory` | Applied at build time (Role Inventory optional **Speed Change Settings** column) |
+| `includeScreenshotsInRoleInventory` | **Ignored** — no Screenshot column and no `Screenshots` folder |
 | `protectSheets` | **Ignored** — Excel-only worksheet edit lock; use Preview → Encrypt for PDF open passwords |
 
 Headers such as **Marker Name**, **Type**, or the opt-in **Hidden** column on the Markers sheet are **not** `ReportColumn` cases; `--exclude-column` cannot remove them in Excel or PDF.
@@ -800,7 +809,7 @@ The same reports are available through **OpenFCPXMLKit-CLI**:
 | `--exclude-disabled-clips` | Omit `enabled="0"` clips from all timeline sections |
 | `--include-markers-outside-clip-boundaries` | Include out-of-bounds markers + Markers **Hidden** column |
 | `--include-role-inventory-speed-change-settings` | Add Role Inventory **Speed Change Settings** column after Effects |
-| `--include-role-inventory-screenshots` | Add Role Inventory **Screenshot** column after Row + Excel Source In embeds (prefer original, proxy if original missing/unreadable; PDF ignores) |
+| `--include-role-inventory-screenshots` | Add Role Inventory **Screenshot** column after Row + Excel Source In embeds, and write full-frame PNGs into a `Screenshots` folder beside the workbook (`SourceFileName-HH-MM-SS-FF.png` at the clip’s format frame rate; prefer original, proxy if original missing/unreadable; PDF ignores) |
 | `--protect-sheets` | Excel worksheet edit lock on every sheet (not encryption; PDF unaffected) |
 | `--exclude-column <name>` | Omit a column from every applicable sheet (repeatable) |
 | `--timecode-format <format>` | Timeline cell format: `HH:MM:SS:FF` (default), `Frames`, `Feet+Frames`, `HH:MM:SS` |
