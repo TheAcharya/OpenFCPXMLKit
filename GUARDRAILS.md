@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1273** tests listed in `swift test list` — **1259** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **61** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1276** tests listed in `swift test list` — **1262** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **61** public sample `.fcpxml` files.
 
 ---
 
@@ -122,6 +122,7 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 | **Effect settings match FCP Inspector** | Convert in Extraction; Reporting formats only. Transform Position is `%` of **containing sequence height** → Inspector px (`xml × height / 100` on both axes — never clip/source format). Scale `1` = 100%; Rotation degrees; Opacity 0–1 → percent; Blend Mode XML tokens → Inspector labels. Filter `param` values are pass-through (do **not** convert Draw Mask / Motion Position). Lock with `FCPXMLInspectorDisplayUnitsTests`. Sign `effect-settings-match-fcp-display`. |
 | **Duplicate Frames matches Source In/Out** | Role Inventory **Duplicate Frames** is the union of overlapping **Source In** + **Source Duration** intervals for the same `resourceID`. Never use Projection `mediaIn` / `mediaOut` (a `timeMap` spans the whole source). Do not treat the same host clip’s video and audio rows as duplicates of each other. Lock with `FCPXMLRoleInventoryDuplicateFramesTests`. Sign `duplicate-frames-match-source-in-out`. |
 | **Title Text matches FCP on-screen** | Concatenate `text-style` runs inside one `<text>`; use ` | ` only between `<text>` children. Fix in Model (`Title+Typed`). Sign `title-text-same-line-runs-concatenate`. |
+| **Disconnected anchor is not Connected** | FCPXML 1.15 `flags` bit 0 (`OFKXMLElement.fcpIsDisconnectedFromAnchor`; `"1"` and `"3"`; not `"2"` or non-numeric) keeps the lane. Role Inventory Category is **Unconnected** (title, video, clip, generator, audio, synced audio). Primary-spine generators and primary `live-drawing` are **Primary generator**. A secondary-storyline generator stays **Connected generator**. Do not teach Projection, Shot Extraction, or role inheritance to read `flags`. Conversion below 1.15 removes the attribute. Sign `disconnected-anchor-is-not-connected`. |
 | **No help-submenu refactor by default** | Keep flat ArgumentParser flags + `@OptionGroup` unless a maintainer explicitly requests a subcommand redesign. |
 
 ---
@@ -144,7 +145,7 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 | Rule | Detail |
 |------|--------|
 | **AGENT ↔ .cursorrules** | When you update one, update the other. Same overview, architecture, test structure, and conventions. |
-| **Feature docs** | User-visible behaviour → Manual (esp. [12 Timeline Projection](Documentation/Manual/12-Timeline-Projection.md) / [19 CLI](Documentation/Manual/19-CLI.md) / [20 Reporting](Documentation/Manual/20-Reporting.md) / [21 Shot Extraction](Documentation/Manual/21-Shot-Extraction.md) / [22 Examples](Documentation/Manual/22-Examples.md)) and CLI README as needed. Structural boundaries → ARCHITECTURE.md. Hard constraints → this file. |
+| **Feature docs** | User-visible behaviour → Manual (esp. [02 Loading & Parsing](Documentation/Manual/02-Loading-Parsing.md) / [12 Timeline Projection](Documentation/Manual/12-Timeline-Projection.md) / [19 CLI](Documentation/Manual/19-CLI.md) / [20 Reporting](Documentation/Manual/20-Reporting.md) / [21 Shot Extraction](Documentation/Manual/21-Shot-Extraction.md) / [22 Examples](Documentation/Manual/22-Examples.md)) and CLI README as needed. Structural boundaries → ARCHITECTURE.md. Hard constraints → this file. |
 | **CHANGELOG** | Keep a Changelog format. Version heading links to the GitHub release tag. Sections: **✨ New Features**, **🔧 Improvements**, **🐛 Bug Fixes** (empty → “None in this release.”). |
 | **File headers** | New Swift files use the project header (see ARCHITECTURE.md §5.2): OpenFCPXMLKit URL line, MIT, tabbed purpose block — no `Created by` / extra copyright lines. |
 
@@ -211,7 +212,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1273** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1276** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -312,9 +313,9 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 
 ### Sign: shot-extraction-primary-stills-only
 - **Trigger:** Shot Extraction `extract` / `plan` / CLI `--extract-shots` / `--dry-run`.
-- **Instruction:** Reject primary-spine (lane absent or `0`) **video**, **titles / generators / Motion templates** (`<title>`), and **audio** clips. Connected lanes stay ignored. `plan` and `extract` share one validation path; dry-run throws the same ``ShotExtractionError`` messages (no writes).
-- **Reason:** Shot Extraction is a stills-only primary timeline tool; GUI preflight needs identical validity rules.
-- **Provenance:** 2026-07-28 — dry-run + expanded rejection (3.3.1).
+- **Instruction:** Reject primary-spine (lane absent or `0`) **video**, **titles / generators / Motion templates** (`<title>`), and **audio** clips. Anchored lanes (`lane ≠ 0`) stay ignored, including a clip disconnected from the primary storyline (FCPXML 1.15 `flags` bit 0). Do not call `fcpIsDisconnectedFromAnchor` here; the lane already keeps the clip off the primary spine. `plan` and `extract` share one validation path; dry-run throws the same ``ShotExtractionError`` messages (no writes).
+- **Reason:** Shot Extraction is a stills-only primary timeline tool; GUI preflight needs identical validity rules. Disconnect does not move a clip onto the primary spine.
+- **Provenance:** 2026-07-28 — dry-run + expanded rejection (3.3.1). 2026-11-19 — `flags` bit 0 confirmed off the primary spine.
 
 ### Sign: row-colour-survives-column-exclusion
 - **Trigger:** Excel/PDF export with `--exclude-column` / `excludedColumns` for Role ▸ Subrole, Category, Kind, or other colour-source headers; or editing `FCPXMLReportWorkbookExporter` / `FCPXMLReportPDFExporter` / `FCPXMLReportRowColorPolicy`.
@@ -388,6 +389,12 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Instruction:** Use **`FCPXMLProgressReporter`**. Never reintroduce a public type named `ProgressReporter` (including a deprecated typealias) — Foundation’s `ProgressReporter` (macOS 27 / iOS 27) makes unqualified lookup ambiguous in the CLI and any client that imports Foundation.
 - **Reason:** Xcode 27 CLI build failed: `'ProgressReporter' is ambiguous for type lookup` in `ExtractMedia.swift`.
 - **Provenance:** 2026-09-15 — Xcode 27 / Swift 6.4 / macOS 27 SDK.
+
+### Sign: disconnected-anchor-is-not-connected
+- **Trigger:** Role Inventory Category for a clip, title, generator, audio, or synced-audio row that has a lane, or any reader of FCPXML 1.15 `flags`.
+- **Instruction:** `OFKXMLElement.fcpIsDisconnectedFromAnchor` is the Parsing predicate. It is true only when `flags` parses as an integer and bit 0 is set (`"1"`, `"3"`). `"2"`, a missing flag, and non-numeric values (for example `solo`) are not a disconnect. Keep the lane. Workbook labels (`ReportClipCategory.workbookExportLabel`) are **Unconnected title / video / clip / generator / audio / synced audio**, not Connected. A primary-spine generator and primary `live-drawing` are **Primary generator**. A generator on a secondary storyline stays **Connected generator**. An audio-only multicam host is **Unconnected clip** when the bit is set, otherwise **Connected clip**. A lane-zero child reached through a disconnected `mc-clip` uses that host’s flag. Colour, screenshots, and frame size follow `isVideoCategory` / `isAudioCategory` / `isTitleCategory`. Do not read `flags` in Projection, Shot Extraction, or role inheritance (`lane != 0` still isolates). Conversion below 1.15 removes `flags`, and the same clip then reads as Connected. Lock with `FCPXMLVersion115Tests` and `FCPXMLRoleInventoryClipCollectorTests` on `GeneralDemo13.fcpxml`.
+- **Reason:** Final Cut Pro 13 writes `flags="1"` and still writes `lane`. Lane-only classification labeled disconnected clips Connected (`GeneralDemo13.fcpxml`).
+- **Provenance:** 2026-11-19 — Role Inventory disconnect categories.
 
 ### Sign: conform-source-rates-are-not-timeline-rates
 - **Trigger:** Adding a frame rate, documenting rates, parsing `conform-rate` `srcFrameRate`, or converting a document below 1.13 or 1.15.

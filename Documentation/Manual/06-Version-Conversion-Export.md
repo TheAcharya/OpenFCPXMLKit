@@ -41,6 +41,8 @@ let omit = FinalCutPro.FCPXML.VersionFeatureGate.elementNamesToOmit(at: .v1_09)
 
 **Readers** (parse → Extraction → Projection → `buildReport`) may still describe every fact present in the **as-loaded** document. Building a report from a 1.14 file is allowed to surface 1.13+ fields; building a report from a document already converted to 1.5 must not claim those fields were retained.
 
+The same rule applies to FCPXML 1.15 anchorable `flags`. A reader of the as-loaded document may treat bit 0 (`OFKXMLElement.fcpIsDisconnectedFromAnchor`) as a clip disconnected from the primary storyline, and Role Inventory then labels that row **Unconnected**. `convertToVersion` below 1.15 deletes `flags`. After that conversion the lane remains and the clip reads as an ordinary anchored clip (**Connected**). Do not write `flags` into a document whose target version is older than 1.15. See [02 — Loading & Parsing](02-Loading-Parsing.md#disconnected-anchors-fcpxml-115).
+
 ---
 
 ## Save as .fcpxml or .fcpxmld

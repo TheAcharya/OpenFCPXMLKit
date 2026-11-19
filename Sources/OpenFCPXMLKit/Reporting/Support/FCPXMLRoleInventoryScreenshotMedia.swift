@@ -49,7 +49,10 @@ extension FinalCutPro.FCPXML {
             guard category.isVideoCategory
                 || category == .primaryClip
                 || category == .connectedClip
+                || category == .unconnectedClip
+                || category == .primaryGenerator
                 || category == .connectedGenerator
+                || category == .unconnectedGenerator
             else {
                 return nil
             }

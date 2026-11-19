@@ -15,23 +15,32 @@ extension FinalCutPro.FCPXML {
     enum ReportClipCategory: String, Sendable, Equatable, CaseIterable {
         case primaryTitle = "Primary Title"
         case connectedTitle = "Connected Title"
+        case unconnectedTitle = "Unconnected Title"
         case primaryVideo = "Primary Video"
         case connectedVideo = "Connected Video"
+        case unconnectedVideo = "Unconnected Video"
         case primaryAudio = "Primary Audio"
         case connectedAudio = "Connected Audio"
+        case unconnectedAudio = "Unconnected Audio"
         case primarySyncedAudio = "Primary Synced Audio"
         case connectedSyncedAudio = "Connected Synced Audio"
+        case unconnectedSyncedAudio = "Unconnected Synced Audio"
         case primaryGap = "Primary Gap"
         case primaryClip = "Primary Clip"
         case connectedClip = "Connected Clip"
+        case unconnectedClip = "Unconnected Clip"
+        case primaryGenerator = "Primary Generator"
         case connectedGenerator = "Connected Generator"
+        case unconnectedGenerator = "Unconnected Generator"
         case secondaryTitle = "Secondary Title"
         case secondaryAudio = "Secondary Audio"
         case caption = "Caption"
         
         var isVideoCategory: Bool {
             switch self {
-            case .primaryVideo, .connectedVideo, .primaryClip, .connectedClip, .connectedGenerator:
+            case .primaryVideo, .connectedVideo, .unconnectedVideo,
+                 .primaryClip, .connectedClip, .unconnectedClip,
+                 .primaryGenerator, .connectedGenerator, .unconnectedGenerator:
                 return true
             default:
                 return false
@@ -44,7 +53,8 @@ extension FinalCutPro.FCPXML {
         
         var isAudioCategory: Bool {
             switch self {
-            case .primaryAudio, .connectedAudio, .primarySyncedAudio, .connectedSyncedAudio,
+            case .primaryAudio, .connectedAudio, .unconnectedAudio,
+                 .primarySyncedAudio, .connectedSyncedAudio, .unconnectedSyncedAudio,
                  .secondaryAudio:
                 return true
             default:
@@ -54,7 +64,7 @@ extension FinalCutPro.FCPXML {
         
         var isTitleCategory: Bool {
             switch self {
-            case .primaryTitle, .connectedTitle, .secondaryTitle:
+            case .primaryTitle, .connectedTitle, .unconnectedTitle, .secondaryTitle:
                 return true
             default:
                 return false
@@ -68,26 +78,40 @@ extension FinalCutPro.FCPXML {
                 return "Primary title"
             case .connectedTitle:
                 return "Connected title"
+            case .unconnectedTitle:
+                return "Unconnected title"
             case .primaryVideo:
                 return "Primary video"
             case .connectedVideo:
                 return "Connected video"
+            case .unconnectedVideo:
+                return "Unconnected video"
             case .primaryAudio:
                 return "Primary audio"
             case .connectedAudio:
                 return "Connected audio"
+            case .unconnectedAudio:
+                return "Unconnected audio"
             case .primarySyncedAudio:
                 return "Primary synced audio"
             case .connectedSyncedAudio:
                 return "Connected synced audio"
+            case .unconnectedSyncedAudio:
+                return "Unconnected synced audio"
             case .primaryGap:
                 return "Primary gap"
             case .primaryClip:
                 return "Primary clip"
             case .connectedClip:
                 return "Connected clip"
+            case .unconnectedClip:
+                return "Unconnected clip"
+            case .primaryGenerator:
+                return "Primary generator"
             case .connectedGenerator:
                 return "Connected generator"
+            case .unconnectedGenerator:
+                return "Unconnected generator"
             case .secondaryTitle:
                 return "Secondary title"
             case .secondaryAudio:
@@ -108,6 +132,7 @@ extension FinalCutPro.FCPXML {
         enum Placement {
             case primary
             case connected
+            case unconnected
             case secondary
         }
         
@@ -117,10 +142,32 @@ extension FinalCutPro.FCPXML {
             }
             
             if isConnectedToMainTimeline(extracted) {
+                if isDisconnectedFromAnchor(extracted) {
+                    return .unconnected
+                }
                 return .connected
             }
             
             return .primary
+        }
+
+        /// Lane-bearing anchor whose FCPXML 1.15 `flags` bit 0 is set.
+        ///
+        /// Final Cut Pro keeps the lane and writes `flags="1"` when the user disconnects the
+        /// clip from the primary storyline. A lane-zero element reached through a disconnected
+        /// `mc-clip` host uses that host's flag.
+        private static func isDisconnectedFromAnchor(_ extracted: ExtractedElement) -> Bool {
+            if (extracted.element.fcpLane ?? 0) != 0 {
+                return extracted.element.fcpIsDisconnectedFromAnchor
+            }
+
+            for ancestor in extracted.breadcrumbs where ancestor.fcpElementType == .mcClip {
+                if (ancestor.fcpLane ?? 0) != 0 {
+                    return ancestor.fcpIsDisconnectedFromAnchor
+                }
+            }
+
+            return false
         }
         
         private static func isConnectedToMainTimeline(_ extracted: ExtractedElement) -> Bool {
@@ -156,6 +203,8 @@ extension FinalCutPro.FCPXML {
                 return .primaryTitle
             case .connected:
                 return .connectedTitle
+            case .unconnected:
+                return .unconnectedTitle
             case .secondary:
                 return .secondaryTitle
             }
@@ -174,7 +223,7 @@ extension FinalCutPro.FCPXML {
                     }
                     return .primaryClip
                 case .liveDrawing:
-                    return .connectedGenerator
+                    return .primaryGenerator
                 default:
                     return .primaryVideo
                 }
@@ -189,6 +238,18 @@ extension FinalCutPro.FCPXML {
                     return .connectedGenerator
                 default:
                     return .connectedVideo
+                }
+            case .unconnected:
+                switch elementType {
+                case .mcClip:
+                    if extracted.element.fcpIsAudioOnlyMulticamInventoryHost() {
+                        return .unconnectedVideo
+                    }
+                    return .unconnectedClip
+                case .liveDrawing:
+                    return .unconnectedGenerator
+                default:
+                    return .unconnectedVideo
                 }
             case .secondary:
                 switch elementType {
@@ -213,6 +274,8 @@ extension FinalCutPro.FCPXML {
                     return .primaryClip
                 case .connected:
                     return .connectedClip
+                case .unconnected:
+                    return .unconnectedClip
                 case .secondary:
                     return .secondaryAudio
                 }
@@ -296,10 +359,23 @@ extension FinalCutPro.FCPXML {
         
         static func leafVideoCategory(for extracted: ExtractedElement) -> Self {
             if isGeneratorVideo(extracted) {
-                return .connectedGenerator
+                return generatorCategory(for: extracted)
             }
             
             return videoCategory(for: extracted, elementType: .video)
+        }
+
+        static func generatorCategory(for extracted: ExtractedElement) -> Self {
+            switch placement(for: extracted) {
+            case .primary:
+                return .primaryGenerator
+            case .connected:
+                return .connectedGenerator
+            case .unconnected:
+                return .unconnectedGenerator
+            case .secondary:
+                return .connectedGenerator
+            }
         }
         
         static func embeddedAudioCategory(for extracted: ExtractedElement) -> Self {
@@ -308,6 +384,8 @@ extension FinalCutPro.FCPXML {
                 return .primaryAudio
             case .connected:
                 return .connectedAudio
+            case .unconnected:
+                return .unconnectedAudio
             case .secondary:
                 return .secondaryAudio
             }
@@ -321,6 +399,8 @@ extension FinalCutPro.FCPXML {
             case .connected, .secondary:
                 // Workbook exports use Connected Audio for sync-source rows off the primary spine.
                 return .connectedAudio
+            case .unconnected:
+                return .unconnectedSyncedAudio
             }
         }
         

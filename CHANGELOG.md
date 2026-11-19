@@ -7,6 +7,22 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.4.1](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.4.1) - 2026-11-19
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- **Disconnect documentation:** Manual chapters 02, 06, 12, 14, 15, 20, and 21, Coverage, and the agent guides describe `OFKXMLElement.fcpIsDisconnectedFromAnchor`, the Role Inventory category table, and that Projection and Shot Extraction do not read `flags`.
+
+### 🐛 Bug Fixes
+
+- **Disconnected clips in Role Inventory:** `OFKXMLElement.fcpIsDisconnectedFromAnchor` reads FCPXML 1.15 `flags` bit 0 (`"1"` and `"3"`; `"2"` and non-numeric values are not a disconnect). The lane stays. Excel and PDF Category is **Unconnected** (title, video, clip, generator, audio, synced audio) instead of Connected. A generator or `live-drawing` on the primary spine is **Primary generator**. A generator on a secondary storyline stays **Connected generator**. Projection and Shot Extraction are unchanged. Locked with `GeneralDemo13.fcpxml` (`FCPXMLVersion115Tests`, `FCPXMLRoleInventoryClipCollectorTests`). Suite **1276** listed (`swift test list` — **1262** + **10** + **4**).
+
+---
+
 ## [3.4.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.4.0) - 2026-11-19
 
 ### ✨ New Features

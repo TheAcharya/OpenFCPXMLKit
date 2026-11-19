@@ -17,9 +17,10 @@ extension FinalCutPro.FCPXML {
             element: any OFKXMLElement
         ) -> Bool {
             switch category {
-            case .primaryAudio, .connectedAudio, .secondaryAudio:
+            case .primaryAudio, .connectedAudio, .unconnectedAudio, .secondaryAudio:
                 break
-            case .connectedClip where element.fcpElementType == .mcClip:
+            case .connectedClip, .unconnectedClip:
+                guard element.fcpElementType == .mcClip else { return false }
                 if element.fcpIsAudioOnlyMulticamInventoryHost() {
                     return element.fcpDuration != nil
                 }

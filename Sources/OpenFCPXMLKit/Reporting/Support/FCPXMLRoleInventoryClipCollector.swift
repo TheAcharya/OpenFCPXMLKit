@@ -232,10 +232,13 @@ extension FinalCutPro.FCPXML {
                     element: element,
                     roleDisplayPreference: roleDisplayPreference
                 )
+                let category: ReportClipCategory = ReportClipCategory.placement(for: extracted) == .unconnected
+                    ? .unconnectedClip
+                    : .connectedClip
                 appendRow(
                     to: &rows,
                     from: extracted,
-                    category: .connectedClip,
+                    category: category,
                     durationSeconds: durationSeconds,
                     roleDisplayPreference: roleDisplayPreference,
                     explicitRoleSubroleField: roleField.isEmpty ? "Video, Dialogue" : roleField,

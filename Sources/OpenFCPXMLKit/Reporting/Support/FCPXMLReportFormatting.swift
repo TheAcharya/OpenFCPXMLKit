@@ -653,7 +653,10 @@ extension FinalCutPro.FCPXML {
             return category.isVideoCategory
                 || category == .primaryClip
                 || category == .connectedClip
+                || category == .unconnectedClip
+                || category == .primaryGenerator
                 || category == .connectedGenerator
+                || category == .unconnectedGenerator
         }
         
         /// Source File Name / Path for Role Inventory.

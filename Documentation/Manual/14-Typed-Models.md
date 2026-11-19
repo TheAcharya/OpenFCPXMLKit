@@ -72,7 +72,15 @@ clip.noiseReductionAdjustment = FinalCutPro.FCPXML.NoiseReductionAdjustment(amou
 
 ## Anchored flags (FCPXML 1.15+)
 
-`flags` is an optional string on the anchorable story elements (`audition`, `spine`, `mc-clip`, `clip`, `ref-clip`, `sync-clip`, `asset-clip`, `audio`, `video`, `live-drawing`, `caption`, `title`) and on `gap`. The protocol accessor is `FCPXMLElementAnchorableAttributes.flags`. The value is stored as written. Conversion to a version older than 1.15 removes the attribute.
+`flags` is an optional string on the anchorable story elements (`audition`, `spine`, `mc-clip`, `clip`, `ref-clip`, `sync-clip`, `asset-clip`, `audio`, `video`, `live-drawing`, `caption`, `title`) and on `gap`. The protocol accessor is `FCPXMLElementAnchorableAttributes.flags`. The value is stored as written and omitted when `nil`. Final Cut Pro 13 writes `flags="1"` (bit 0) when the user disconnects a clip from the primary storyline; the `lane` stays. `flags="3"` is the same bit. `flags="2"` and non-numeric values are not a disconnect.
+
+```swift
+if element.fcpIsDisconnectedFromAnchor {
+    _ = element.fcpLane // unchanged
+}
+```
+
+`OFKXMLElement.fcpIsDisconnectedFromAnchor` is the Parsing predicate (see [02 — Loading & Parsing](02-Loading-Parsing.md#disconnected-anchors-fcpxml-115)). Role Inventory then labels the row **Unconnected** (see [20 — Reporting](20-Reporting.md#connected-unconnected-and-primary)). Authoring does not encode `flags`. Conversion to a version older than 1.15 removes the attribute.
 
 ---
 
