@@ -79,11 +79,11 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 
 | Rule | Detail |
 |------|--------|
-| **1.5 floor** | Remain backward compatible with FCPXML **1.5**. Optional attributes/elements from later versions (e.g. 1.11, 1.13) must be omitted or ignored when reading/writing/converting to 1.5. Mark newer features in comments with the minimum version (`FCPXML 1.13+`). |
-| **Supported range** | DTDs and parsing cover **1.5–1.15**. Do not claim support for versions outside that without DTD + tests. |
-| **Conversion strips** | Version conversion must set the root version **and** strip elements not in the target DTD. Validate after convert when the CLI/API path requires it. |
+| **1.5 floor** | Remain backward compatible with FCPXML **1.5**. Optional attributes/elements from later versions (e.g. 1.11, 1.13, 1.15) must be omitted or ignored when reading/writing/converting to 1.5. Mark newer features in comments with the minimum version (`FCPXML 1.15+`). |
+| **Supported range** | Parsing (`FinalCutPro.FCPXML.Version`) accepts **1.0–1.15**. DTDs, the structural allowlist, and conversion cover **1.5–1.15**. `FCPXMLVersion.default` and `Version.latest` are **1.15**. Do not document 1.14 as the current default. |
+| **Conversion strips** | Version conversion must set the root version **and** strip elements, attributes, and enum tokens not in the target DTD. Below 1.15 that includes `adjust-natural-motion-blur`, `mask-semantic`, `flags`, pan-rect `interp`, keyframe `hold` / `bezier` / `passthrough`, and `frameSampling` `vsa-motion-blur`. Below 1.13 it includes `srcFrameRate` `90` / `100` / `119.88` / `120`. Validate after convert when the CLI/API path requires it. See ARCHITECTURE.md §2.8. |
 | **Bundle format** | `.fcpxmld` only for versions that support it (`FCPXMLVersion.supportsBundleFormat` → 1.10+). 1.5–1.9 always `.fcpxml`. |
-| **Frame rates** | Only Final Cut Pro rates used in tests and public APIs: 23.976, 24, 25, 29.97, 30, 50, 59.94, 60. |
+| **Frame rates** | Timeline, project, and sequence rates stay the eight Final Cut Pro rates: 23.976, 24, 25, 29.97, 30, 50, 59.94, 60. Do not add 90 / 100 / 119.88 / 120 as timeline rates. Those four, plus `47.95` and `48`, belong on `conform-rate` `srcFrameRate` only (`ConformRate.SourceFrameRate`; the four high tokens are **1.13+**). Sign `conform-source-rates-are-not-timeline-rates`. |
 
 ---
 
@@ -389,6 +389,12 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Reason:** Xcode 27 CLI build failed: `'ProgressReporter' is ambiguous for type lookup` in `ExtractMedia.swift`.
 - **Provenance:** 2026-09-15 — Xcode 27 / Swift 6.4 / macOS 27 SDK.
 
+### Sign: conform-source-rates-are-not-timeline-rates
+- **Trigger:** Adding a frame rate, documenting rates, parsing `conform-rate` `srcFrameRate`, or converting a document below 1.13 or 1.15.
+- **Instruction:** Keep timeline, project, sequence, and `TimelineFormat` rates to 23.976, 24, 25, 29.97, 30, 50, 59.94, and 60. `ConformRate.SourceFrameRate` is a separate list: those rates (written `23.98` and `59.94`) plus `47.95`, `48`, and FCPXML 1.13+ `90`, `100`, `119.88`, `120` (SwiftTimecode `.fps90`, `.fps100`, `.fps119_88`, `.fps120`). Do not treat the 1.13 tokens as new timeline rates. Conversion older than 1.13 removes only those four tokens. Conversion older than 1.15 strips `adjust-natural-motion-blur`, `mask-semantic`, anchored `flags`, pan-rect `interp`, keyframe `hold` / `bezier` / `passthrough`, and `frameSampling` `vsa-motion-blur`. `FCPXMLVersion.default` and `FinalCutPro.FCPXML.Version.latest` stay **1.15**. Authoring does not encode the 1.15 flags, semantic masks, or natural motion blur.
+- **Reason:** High conform source rates are media rates being conformed into an eight-rate timeline. Treating them as timeline rates, or leaving 1.15 tokens in an older document, writes FCPXML the target DTD rejects.
+- **Provenance:** 2026-11-19 — FCPXML 1.15 schema and 1.13 high `srcFrameRate` tokens.
+
 ### Sign: never-commit-submitted-fcpxml
 - **Trigger:** Debugging with a user-supplied `.fcpxml` / `.fcpxmld`.
 - **Instruction:** Keep it under `Tests/Submitted FCPXML/` (gitignored). Promote only anonymised minimal public fixtures.
@@ -402,7 +408,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - [ ] Change sits in the correct layer (ARCHITECTURE §2.7 / Guardrails §2).
 - [ ] Public behaviour has tests (Swift Testing); optional fixtures use `Test.cancel`. Public Parsing APIs keep a public-import lock.
 - [ ] No PBF / legacy naming in code or CLI output.
-- [ ] FCPXML 1.5 compatibility preserved; newer features version-marked.
+- [ ] FCPXML 1.5 compatibility preserved; newer features version-marked. 1.15 tokens stripped below 1.15; high conform `srcFrameRate` tokens stripped below 1.13. Timeline rates stay the eight Final Cut Pro rates.
 - [ ] Concurrency: no Task over non-Sendable XML/timecode types.
 - [ ] Docs: AGENT.md ↔ .cursorrules if agent briefing changed; GUARDRAILS / ARCHITECTURE / Manual / CLI / CHANGELOG as needed.
 - [ ] Private FCPXML / secrets not staged.
