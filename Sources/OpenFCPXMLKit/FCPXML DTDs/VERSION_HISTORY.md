@@ -18,7 +18,7 @@ This document is a **version-by-version comparison** of the Final Cut Pro XML (F
 6. [Removed or replaced entities / content models](#6-removed-or-replaced-entities--content-models)
 7. [Intrinsic video/audio params evolution](#7-intrinsic-videoaudio-params-evolution)
 8. [Smart collection rules](#8-smart-collection-rules)
-9. [Version conversion notes (OpenFCPXMLKit)](#9-version-conversion-notes-OpenFCPXMLKit-CLI)
+9. [Version conversion notes (OpenFCPXMLKit)](#9-version-conversion-notes-openfcpxmlkit)
 10. [Summary matrix](#10-summary-matrix)
 
 ---
