@@ -79,7 +79,7 @@ Inject a logger into `FCPXMLService` or `FCPXMLUtility` to observe parse, conver
 
 ## Extensions and high-level model
 
-- **OFKXMLDocument** and **OFKXMLElement** (protocol types) have FCPXML-specific `fcpx*` properties and methods. On macOS the concrete types wrap Foundation XML; on iOS they wrap AEXML. Use modular overloads (e.g. `addResource(_:using: documentManager)`) when injecting dependencies. Public Parsing helpers on `OFKXMLElement` include `fcpMediaURL` / `fcpMediaRepresentationURLs` (one primary leaf original/proxy pair — see [02 — Loading & Parsing](02-Loading-Parsing.md#leaf-media-urls-public-parsing-apis)).
+- **OFKXMLDocument** and **OFKXMLElement** (protocol types) have FCPXML-specific `fcpx*` properties and methods. On macOS the concrete types wrap Foundation XML; on iOS they wrap AEXML. Use modular overloads (e.g. `addResource(_:using: documentManager)`) when injecting dependencies. Public Parsing helpers on `OFKXMLElement` include `fcpMediaURL` / `fcpMediaRepresentationURLs` (one primary leaf original/proxy pair — see [02 — Loading & Parsing](02-Loading-Parsing.md#leaf-media-urls-public-parsing-apis)) and `fcpIsDisconnectedFromAnchor` (FCPXML 1.15 `flags` bit 0; the lane stays — see [02 — Disconnected anchors](02-Loading-Parsing.md#disconnected-anchors-fcpxml-115)).
 - **FinalCutPro.FCPXML** wraps a document for high-level access: `root`, `version`, `allEvents()`, `allProjects()`, `allTimelines()`, `allReportTimelineSources()` (projects plus standalone compound-clip timelines for reporting).
 
 ---

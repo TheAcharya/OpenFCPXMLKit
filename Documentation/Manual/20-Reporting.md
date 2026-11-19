@@ -18,6 +18,7 @@
   - [Projection migration checklist (Markers / Keywords / Titles / Transitions)](#projection-migration-checklist-markers--keywords--titles--transitions)
   - [Sections and columns](#sections-and-columns)
     - [Role inventory](#role-inventory)
+      - [Connected, unconnected, and primary](#connected-unconnected-and-primary)
       - [Duplicate Frames](#duplicate-frames)
     - [Role Inventory screenshots](#role-inventory-screenshots)
     - [Markers](#markers)
@@ -279,10 +280,27 @@ Each inventory sheet uses a **Row** index column, then fixed columns, then sorte
 
 **Under-spine connected titles / video / generators:** Final Cut Pro commonly places audio under the primary storyline (`lane < 0`), but titles, generators, and other video may also connect there. Role Inventory includes:
 
-- Connected **titles** (category Connected / Secondary title) using `Title.role` via `ReportFormatting.titleRoleSubrole` — not a hard-coded **Titles** label when a custom video role is set.
-- Connected leaf **`<video>` / generators** on negative lanes (Connected generator / Connected video). A primary-spine generator is **Primary generator**. FCPXML 1.15 `flags="1"` (bit 0) is a clip disconnected from the primary storyline: the lane stays, and the Category is **Unconnected** (Unconnected title / video / clip / generator / audio), not Connected. Negative-lane leaf **`<audio>`** remains folded into host channel/sync sources and is skipped as a separate leaf row.
+- Anchored **titles** (Connected title, Unconnected title, or Secondary title) using `Title.role` via `ReportFormatting.titleRoleSubrole` — not a hard-coded **Titles** label when a custom video role is set.
+- Anchored leaf **`<video>` / generators** on negative lanes. A primary-spine generator is **Primary generator**. A clip with FCPXML 1.15 `flags` bit 0 is **Unconnected** — see [Connected, unconnected, and primary](#connected-unconnected-and-primary). Negative-lane leaf **`<audio>`** remains folded into host channel/sync sources and is skipped as a separate leaf row.
 
 Markers on title hosts attribute the title’s video **main** role (same casing policy as Role Inventory main roles). Parsing, Extraction, and Projection already discover these elements; Reporting must not collapse or drop them. See GUARDRAILS Sign `title-roles-honor-attribute`.
+
+##### Connected, unconnected, and primary
+
+The **Category** cell is `ReportClipCategory.workbookExportLabel` (sentence case). Placement is decided before the element kind:
+
+| Placement | When | Category examples |
+|-----------|------|-------------------|
+| Primary | Lane absent or `0`, and not inside a secondary storyline | Primary title, Primary video, Primary clip, Primary generator, Primary audio, Primary synced audio, Primary gap |
+| Connected | `lane != 0`, `flags` bit 0 clear | Connected title, Connected video, Connected clip, Connected generator, Connected audio, Connected synced audio |
+| Unconnected | `lane != 0` and `fcpIsDisconnectedFromAnchor` (`flags` parses as an integer with bit 0 set) | Unconnected title, Unconnected video, Unconnected clip, Unconnected generator, Unconnected audio, Unconnected synced audio |
+| Secondary | Nested `<spine>` (secondary storyline) | Secondary title, Secondary audio |
+
+A generator on the primary spine is **Primary generator**. A generator on a secondary storyline stays **Connected generator**. `live-drawing` on the primary spine uses **Primary generator**. An audio-only multicam host is **Unconnected clip** when its placement is unconnected, and **Connected clip** otherwise.
+
+`flags="2"` and non-numeric values stay Connected. A lane-zero child reached through a disconnected `mc-clip` uses that host’s flag. Colour, screenshots, and frame size follow the new cases through `isVideoCategory` / `isAudioCategory` / `isTitleCategory`. Sort order groups Unconnected with Connected.
+
+Projection does not read `flags`. Shot Extraction does not either: the lane stays non-zero, so a disconnected clip is ignored with other anchored clips. See [02 — Loading & Parsing](02-Loading-Parsing.md#disconnected-anchors-fcpxml-115) and [21 — Shot Extraction](21-Shot-Extraction.md#requirements). Sign `disconnected-anchor-is-not-connected`. Locked with `GeneralDemo13.fcpxml` (`FCPXMLRoleInventoryClipCollectorTests`, `FCPXMLVersion115Tests`).
 
 **Timeline Out / Source Out:** Report Out columns use the **last visible/included frame** (Final Cut Pro / Resolve Mark Out style). Internally Projection and FCPXML still use half-open spans (`In + Duration` = exclusive end); Reporting subtracts one frame for display. **Clip Duration** / **Source Duration** / **Duration** are unchanged. Do not expect `Out − In = Duration` in SMPTE arithmetic — use Duration as the length. Zero-length spans keep Out equal to In.
 

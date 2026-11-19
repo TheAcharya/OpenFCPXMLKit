@@ -15,11 +15,11 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ### 🔧 Improvements
 
-- None in this release.
+- **Disconnect documentation:** Manual chapters 02, 06, 12, 14, 15, 20, and 21, Coverage, and the agent guides describe `OFKXMLElement.fcpIsDisconnectedFromAnchor`, the Role Inventory category table, and that Projection and Shot Extraction do not read `flags`.
 
 ### 🐛 Bug Fixes
 
-- **Disconnected clips in Role Inventory:** FCPXML 1.15 `flags="1"` (bit 0) marks a clip disconnected from the primary storyline. The lane stays. Those Excel and PDF rows are **Unconnected** (title, video, clip, generator, audio) instead of Connected. A generator on the primary spine is **Primary generator**. Locked with `GeneralDemo13.fcpxml`. Suite **1276** listed (`swift test list` — **1262** + **10** + **4**).
+- **Disconnected clips in Role Inventory:** `OFKXMLElement.fcpIsDisconnectedFromAnchor` reads FCPXML 1.15 `flags` bit 0 (`"1"` and `"3"`; `"2"` and non-numeric values are not a disconnect). The lane stays. Excel and PDF Category is **Unconnected** (title, video, clip, generator, audio, synced audio) instead of Connected. A generator or `live-drawing` on the primary spine is **Primary generator**. A generator on a secondary storyline stays **Connected generator**. Projection and Shot Extraction are unchanged. Locked with `GeneralDemo13.fcpxml` (`FCPXMLVersion115Tests`, `FCPXMLRoleInventoryClipCollectorTests`). Suite **1276** listed (`swift test list` — **1262** + **10** + **4**).
 
 ---
 

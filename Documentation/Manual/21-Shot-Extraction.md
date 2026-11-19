@@ -24,7 +24,8 @@ Still-image **Shot Extraction** builds a shot dataset from the **primary timelin
   - **Video** media → `ShotExtractionError.containsVideoMedia`
   - **Titles**, **generators**, or **Motion templates** (`<title>`) → `containsTitlesOrGenerators`
   - **Audio** clips (`<audio>` or audio-only media) → `containsPrimaryAudio`
-- Connected audio and secondary storylines (`lane ≠ 0`) are ignored.
+- Anchored audio and secondary storylines (`lane ≠ 0`) are ignored.
+- A clip disconnected from the primary storyline (FCPXML 1.15 `flags` bit 0) keeps that lane. Shot Extraction ignores it with the other anchored clips. It is not a shot, and it does not fail the primary-spine video, title, or audio checks. `fcpIsDisconnectedFromAnchor` is not consulted. See [02 — Loading & Parsing](02-Loading-Parsing.md#disconnected-anchors-fcpxml-115).
 - Reused stills are copied once per shot (distinct Shot IDs / PNG filenames).
 - All images are written as **PNG** (pixel dimensions preserved).
 
@@ -118,7 +119,7 @@ See also [19 — CLI](19-CLI.md) and [OpenFCPXMLKitCLI/README.md](../../Sources/
 
 - Shots come from ``TimelineProjector`` primary-spine video windows (clips between cuts).
 - Titles / generators are detected via a primary-spine story walk; audio via that walk plus primary-lane Projection audio windows.
-- Independent of `Reporting/` (Excel/PDF); consumes Projection only. Does **not** call public `fcpMediaURL` / `fcpMediaRepresentationURLs` — still paths come from Projection `MediaChannel`.
+- Independent of `Reporting/` (Excel/PDF); consumes Projection only. Does **not** call public `fcpMediaURL` / `fcpMediaRepresentationURLs` — still paths come from Projection `MediaChannel`. Does **not** read anchor `flags`. Role Inventory’s **Unconnected** label does not change which windows are shots.
 - Dependency: [swift-textfile](https://github.com/orchetect/swift-textfile) (`TextFile`) for CSV encoding.
 - Optional local integration: `Tests/ShotExtractionTest/` (`swift test --filter ShotExtractionExportTests`) — mirrors `ExcelReportTest`; cancels without a stills fixture.
 

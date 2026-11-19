@@ -68,6 +68,8 @@ try document.validateFCPXMLAgainst(version: .v1_15)
 | `fcpxType` | FCPXMLElementType |
 | `fcpxName`, `fcpxDuration`, `fcpxOffset`, `fcpxStart` | Clip/timing |
 | `fcpxRef`, `fcpxID`, `fcpxLane`, `fcpxRole`, `fcpxFormatRef` | Refs and metadata |
+| `fcpLane` | Parsing `lane` as `Int?` (`nil` when absent) |
+| `fcpIsDisconnectedFromAnchor` | **Public.** FCPXML 1.15+ `flags` bit 0. `true` when the value parses as an integer and bit 0 is set (`"1"`, `"3"`). The `lane` is not cleared. Non-numeric values return `false`. See [02 — Disconnected anchors](02-Loading-Parsing.md#disconnected-anchors-fcpxml-115) |
 | `fcpxEvent(name:)` | Event by name |
 | `fcpxProject(...)` | Project access |
 | `eventClips`, `eventClips(forResourceID:)` | Clips in event |

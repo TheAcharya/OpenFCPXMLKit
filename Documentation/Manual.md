@@ -20,7 +20,7 @@ The manual is organized into **chapters** for easier navigation and full API cov
 From the index you can reach all chapters:
 
 - **01** — Overview (architecture, entry points, protocols)
-- **02** — Loading & Parsing (file loader, versions, element types, public leaf media URLs, inherited roles, large-document walks)
+- **02** — Loading & Parsing (file loader, versions, element types, public leaf media URLs, disconnected anchors, inherited roles, large-document walks)
 - **03** — Timecode & Timing (SwiftTimecode, FCPXMLTimecode, CMTime, scoped timing cache, timeline rates vs conform `srcFrameRate`)
 - **04** — Service & Logging (FCPXMLService, ModularUtilities)
 - **05** — Validation & Cut Detection
@@ -30,16 +30,16 @@ From the index you can reach all chapters:
 - **09** — Timeline Manipulation (ripple insert, auto lane, clip queries)
 - **10** — Timeline Metadata (markers, keywords, ratings, timestamps)
 - **11** — Extraction & Media (scope, presets, inherited roles, leaf media URLs via public Parsing APIs, media copy)
-- **12** — Timeline Projection (`TimelineProjector`, `MediaUsageWindow`, annotation knobs, container-bounded contained media, report project-once; inventory vs unfolded `mc-angle`)
+- **12** — Timeline Projection (`TimelineProjector`, `MediaUsageWindow`, annotation knobs, container-bounded contained media, report project-once; inventory vs unfolded `mc-angle`; `flags` is not a projection input)
 - **13** — Media Processing (MIME, asset validation, silence `trimStart`/`trimEnd`, duration, parallel I/O, optional `FCPXMLProgressReporter`)
 - **14** — Typed Models (adjustments incl. Corners/Panner, 1.15 Natural Motion Blur, pan-rect `interp`, anchored `flags`; Transform `inspectorPixels` via sequence height; filters incl. `mask-semantic`; captions; keyframes incl. `hold` / `bezier` / `passthrough`; collections)
-- **15** — XML Extensions (OFKXMLDocument, OFKXMLElement, public `fcpMediaURL` / `fcpMediaRepresentationURLs`)
+- **15** — XML Extensions (OFKXMLDocument, OFKXMLElement, public `fcpMediaURL` / `fcpMediaRepresentationURLs`, `fcpIsDisconnectedFromAnchor`)
 - **16** — High-Level Model (FinalCutPro.FCPXML, library exports vs timeline exports)
 - **17** — Cross-Platform & iOS (OFKXML abstraction, Foundation vs AEXML)
 - **18** — Errors & Utilities (error types, `FCPXMLProgressReporter` / ProgressBar, FCPXMLUID)
 - **19** — CLI (OpenFCPXMLKit-CLI)
-- **20** — Reporting, Excel & PDF Export (`--exclude-role` on every role-bearing sheet, Inspector-unit Effects / inventory settings — Position px from sequence height; filter params pass-through, Title Text same-line concat, Non-Std Effects & Templates, Duplicate Frames = Source In/Out overlap / Total footers, empty-sheet status rows, optional Screenshot — original-first / proxy fallback, 480px Excel JPEG, full-frame PNGs in a sibling `Screenshots` folder — + Speed Change Settings, four-row cover branding, column exclusion with semantic row colours, Projection-first sections, secondary-storyline / connected clips keep own roles, unfolded `mc-angle` interiors omitted, Speed Change one row per usage / retimed Source Duration, ReportTimecodeFormat, ReportBuildPhase, XLKit workbook, CoreGraphics PDF)
-- **21** — Shot Extraction (primary stills → PNG + CSV / [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) Notion JSON with CSV column key order; `planShots` / `--dry-run`; reject video / titles / audio)
+- **20** — Reporting, Excel & PDF Export (`--exclude-role` on every role-bearing sheet, Role Inventory **Unconnected** / **Primary generator** (`flags` bit 0), Inspector-unit Effects / inventory settings — Position px from sequence height; filter params pass-through, Title Text same-line concat, Non-Std Effects & Templates, Duplicate Frames = Source In/Out overlap / Total footers, empty-sheet status rows, optional Screenshot — original-first / proxy fallback, 480px Excel JPEG, full-frame PNGs in a sibling `Screenshots` folder — + Speed Change Settings, four-row cover branding, column exclusion with semantic row colours, Projection-first sections, secondary-storyline / connected clips keep own roles, unfolded `mc-angle` interiors omitted, Speed Change one row per usage / retimed Source Duration, ReportTimecodeFormat, ReportBuildPhase, XLKit workbook, CoreGraphics PDF)
+- **21** — Shot Extraction (primary stills → PNG + CSV / [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo) Notion JSON with CSV column key order; `planShots` / `--dry-run`; reject video / titles / audio; disconnected `flags` bit 0 stays off the primary spine)
 - **22** — Examples (workflows and code)
 
 ---

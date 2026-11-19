@@ -10,6 +10,7 @@
 - [Parsing](#parsing)
 - [Leaf media URLs (public Parsing APIs)](#leaf-media-urls-public-parsing-apis)
 - [FCPXML version and element types](#fcpxml-version-and-element-types)
+- [Disconnected anchors (FCPXML 1.15+)](#disconnected-anchors-fcpxml-115)
 - [Inherited roles](#inherited-roles)
 - [Large documents](#large-documents)
 - [Basic modular operations](#basic-modular-operations)
@@ -131,12 +132,28 @@ Public test samples live under `Tests/FCPXML Samples/FCPXML/` (**61** files, inc
 
 ---
 
+## Disconnected anchors (FCPXML 1.15+)
+
+Final Cut Pro 13 keeps a clip’s `lane` and writes `flags="1"` when the user disconnects that clip from the primary storyline. Bit 0 of the integer is the disconnect. `flags="3"` is also disconnected (`3 & 1`). `flags="2"` is not. A non-numeric value (for example `solo`) is not. Missing `flags` is not.
+
+```swift
+if element.fcpIsDisconnectedFromAnchor {
+    _ = element.fcpLane // still the anchored lane; nil or 0 is not this case
+}
+```
+
+`OFKXMLElement.fcpIsDisconnectedFromAnchor` is the public Parsing predicate. Typed models expose the raw string as `FCPXMLElementAnchorableAttributes.flags` (see [14 — Typed Models](14-Typed-Models.md#anchored-flags-fcpxml-115)). The attribute is on `audition`, `spine`, `mc-clip`, `clip`, `ref-clip`, `sync-clip`, `asset-clip`, `audio`, `video`, `live-drawing`, `caption`, `title`, and `gap`.
+
+A lane-zero child reached through a disconnected `mc-clip` uses that host’s flag when Role Inventory classifies the row. Projection and Shot Extraction do not read `flags`: the lane stays, so the clip remains off the primary spine. Conversion below 1.15 removes the attribute, and the same clip then reads as an ordinary anchored clip. See [06 — Version Conversion & Export](06-Version-Conversion-Export.md#write-honesty-vs-report-reads), [20 — Reporting](20-Reporting.md#connected-unconnected-and-primary), and [21 — Shot Extraction](21-Shot-Extraction.md#requirements). Sign `disconnected-anchor-is-not-connected`. Locked with `GeneralDemo13.fcpxml`.
+
+---
+
 ## Inherited roles
 
 Role facts live in Parsing (`FinalCutPro.FCPXML.AncestorRoles`, `_fcpInheritedRoles`). Extraction and Role Inventory consume those facts; they must not re-walk ancestors in Reporting.
 
 - A nested secondary-storyline `<spine>` (`lane` and/or `offset`) stops the ancestor walk (`_fcpRoleInheritanceContributingElements`). Children inside that spine do **not** inherit the parent storyline clip’s video or audio roles.
-- Connected (`lane != 0`) story clips similarly isolate from their parent clip host.
+- Anchored story clips (`lane != 0`) similarly isolate from their parent clip host. FCPXML 1.15 `flags` bit 0 does not change this walk: a disconnected clip keeps its lane, so it still isolates. **Unconnected** is a Role Inventory category, not a different inheritance path.
 - Unassigned children use Final Cut Pro defaults (**Video**), not the host’s assigned role.
 - Markers and keywords still inherit from the clip they attach to.
 
