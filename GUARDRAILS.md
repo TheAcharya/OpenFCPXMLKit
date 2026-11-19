@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1273** tests listed in `swift test list` — **1259** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **61** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1276** tests listed in `swift test list` — **1262** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **61** public sample `.fcpxml` files.
 
 ---
 
@@ -211,7 +211,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1273** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1276** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter
@@ -388,6 +388,12 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 - **Instruction:** Use **`FCPXMLProgressReporter`**. Never reintroduce a public type named `ProgressReporter` (including a deprecated typealias) — Foundation’s `ProgressReporter` (macOS 27 / iOS 27) makes unqualified lookup ambiguous in the CLI and any client that imports Foundation.
 - **Reason:** Xcode 27 CLI build failed: `'ProgressReporter' is ambiguous for type lookup` in `ExtractMedia.swift`.
 - **Provenance:** 2026-09-15 — Xcode 27 / Swift 6.4 / macOS 27 SDK.
+
+### Sign: disconnected-anchor-is-not-connected
+- **Trigger:** Role Inventory Category for a clip, title, generator, or audio row that has a lane, especially FCPXML 1.15 `flags`.
+- **Instruction:** Bit 0 of `flags` (`flags="1"`, `fcpIsDisconnectedFromAnchor`) means Final Cut Pro disconnected the anchor from the primary storyline. Keep the lane. Category is **Unconnected** (Unconnected title / video / clip / generator / audio), not Connected. A missing flag, a non-numeric flag, or a bitfield with bit 0 clear stays Connected when `lane != 0`. A primary-spine item (no lane), including a generator, stays **Primary** (**Primary generator** for generators).
+- **Reason:** Final Cut Pro 13 writes `flags="1"` and still writes `lane`. Lane-only classification labeled disconnected clips Connected (`GeneralDemo13.fcpxml`).
+- **Provenance:** 2026-11-19 — Role Inventory disconnect categories.
 
 ### Sign: conform-source-rates-are-not-timeline-rates
 - **Trigger:** Adding a frame rate, documenting rates, parsing `conform-rate` `srcFrameRate`, or converting a document below 1.13 or 1.15.

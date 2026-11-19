@@ -7,6 +7,22 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.4.1](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.4.1) - 2026-11-19
+
+### ✨ New Features
+
+- None in this release.
+
+### 🔧 Improvements
+
+- None in this release.
+
+### 🐛 Bug Fixes
+
+- **Disconnected clips in Role Inventory:** FCPXML 1.15 `flags="1"` (bit 0) marks a clip disconnected from the primary storyline. The lane stays. Those Excel and PDF rows are **Unconnected** (title, video, clip, generator, audio) instead of Connected. A generator on the primary spine is **Primary generator**. Locked with `GeneralDemo13.fcpxml`. Suite **1276** listed (`swift test list` — **1262** + **10** + **4**).
+
+---
+
 ## [3.4.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.4.0) - 2026-11-19
 
 ### ✨ New Features

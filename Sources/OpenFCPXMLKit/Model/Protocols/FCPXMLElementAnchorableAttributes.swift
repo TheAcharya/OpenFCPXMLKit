@@ -41,6 +41,9 @@ public protocol FCPXMLElementAnchorableAttributes: FCPXMLElement {
     var offset: Fraction? { get nonmutating set }
 
     /// Application-defined flags. FCPXML 1.15+. Omitted when `nil`.
+    ///
+    /// Final Cut Pro writes `"1"` (bit 0) when the user disconnects this anchor from the
+    /// primary storyline. The lane is kept. See ``OFKXMLElement/fcpIsDisconnectedFromAnchor``.
     var flags: String? { get nonmutating set }
 }
 

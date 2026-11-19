@@ -72,7 +72,7 @@ clip.noiseReductionAdjustment = FinalCutPro.FCPXML.NoiseReductionAdjustment(amou
 
 ## Anchored flags (FCPXML 1.15+)
 
-`flags` is an optional string on the anchorable story elements (`audition`, `spine`, `mc-clip`, `clip`, `ref-clip`, `sync-clip`, `asset-clip`, `audio`, `video`, `live-drawing`, `caption`, `title`) and on `gap`. The protocol accessor is `FCPXMLElementAnchorableAttributes.flags`. The value is stored as written. Conversion to a version older than 1.15 removes the attribute.
+`flags` is an optional string on the anchorable story elements (`audition`, `spine`, `mc-clip`, `clip`, `ref-clip`, `sync-clip`, `asset-clip`, `audio`, `video`, `live-drawing`, `caption`, `title`) and on `gap`. The protocol accessor is `FCPXMLElementAnchorableAttributes.flags`. The value is stored as written. Final Cut Pro 13 writes `flags="1"` (bit 0) when the user disconnects a clip from the primary storyline; the `lane` stays. `OFKXMLElement.fcpIsDisconnectedFromAnchor` reads that bit. Role Inventory then labels the row **Unconnected** rather than Connected. Conversion to a version older than 1.15 removes the attribute.
 
 ---
 

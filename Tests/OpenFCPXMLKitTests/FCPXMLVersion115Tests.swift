@@ -198,6 +198,24 @@ struct FCPXMLVersion115Tests {
         #expect(findElement(named: "timeMap", in: converted)?.attribute(forName: "frameSampling") == nil)
     }
 
+    @Test("Anchor flags bit 0 marks a disconnected clip")
+    func anchorFlagsBit0MarksDisconnectedClip() {
+        let clip = factory.makeElement(name: "title")
+        #expect(clip.fcpIsDisconnectedFromAnchor == false)
+
+        clip.addAttribute(name: "flags", value: "1")
+        #expect(clip.fcpIsDisconnectedFromAnchor)
+
+        clip.addAttribute(name: "flags", value: "2")
+        #expect(clip.fcpIsDisconnectedFromAnchor == false)
+
+        clip.addAttribute(name: "flags", value: "3")
+        #expect(clip.fcpIsDisconnectedFromAnchor)
+
+        clip.addAttribute(name: "flags", value: "solo")
+        #expect(clip.fcpIsDisconnectedFromAnchor == false)
+    }
+
     private func findElement(named name: String, in document: any OFKXMLDocument) -> (any OFKXMLElement)? {
         guard let root = document.rootElement() else { return nil }
         return findElement(named: name, in: root)

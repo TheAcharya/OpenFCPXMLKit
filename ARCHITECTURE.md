@@ -55,7 +55,7 @@ OpenFCPXMLKit is a **Swift 6** framework for Final Cut Pro FCPXML: parsing, crea
 - **Repository:** https://github.com/TheAcharya/OpenFCPXMLKit
 - **Dependencies:** SwiftTimecode 3.1.4+, SwiftExtensions 3.0.0+, SwiftSemanticVersion 1.0.0+, swift-log 1.14.0+, AEXML 4.7.0+, XLKit 1.1.8+, TextFile ([swift-textfile](https://github.com/orchetect/swift-textfile) 0.5.2+, Shot Extraction CSV), swift-argument-parser 1.8.2+ (CLI only), Foundation, CoreMedia, ImageIO.
 - **FCPXML:** DTDs and conversion **1.5–1.15**; parsing **1.0–1.15**. `FCPXMLVersion.default` and `FinalCutPro.FCPXML.Version.latest` are **1.15**. Timeline frame rates: 23.976, 24, 25, 29.97, 30, 50, 59.94, 60. Conform `srcFrameRate` also includes `47.95`, `48`, and 1.13+ `90` / `100` / `119.88` / `120` (Sign `conform-source-rates-are-not-timeline-rates`). See §2.8.
-- **Tests:** **1273** tests listed in `swift test list` — **1259** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **61** sample `.fcpxml` files under `Tests/FCPXML Samples/FCPXML/`; private local inbox under `Tests/Submitted FCPXML/` (gitignored — never commit private FCPXML).
+- **Tests:** **1276** tests listed in `swift test list` — **1262** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **61** sample `.fcpxml` files under `Tests/FCPXML Samples/FCPXML/`; private local inbox under `Tests/Submitted FCPXML/` (gitignored — never commit private FCPXML).
 
 ---
 
@@ -238,7 +238,7 @@ Lives under **`Reporting/PDF/`** and serialises the **same** `Report` to a multi
 |------|----------------|
 | `adjust-natural-motion-blur` | `NaturalMotionBlurAdjustment` on a primitive `<video>` (`Video.naturalMotionBlurAdjustment`). `amount` is an optional 0–100 string. Effects name **Natural Motion Blur**. Not valid on `<clip>` / `<asset-clip>` / `<sync-clip>`. |
 | `mask-semantic` | `VideoFilterMask.maskSemantics` / `MaskSemantic` (name, enabled, blend mode default `add`, optional `type`, child `param`). |
-| Anchored `flags` | `FCPXMLElementAnchorableAttributes.flags` on audition, spine, mc-clip, clip, ref-clip, sync-clip, asset-clip, audio, video, live-drawing, caption, title, and gap. Stored as written. |
+| Anchored `flags` | `FCPXMLElementAnchorableAttributes.flags` on audition, spine, mc-clip, clip, ref-clip, sync-clip, asset-clip, audio, video, live-drawing, caption, title, and gap. Stored as written. Bit 0 (`flags="1"`, `fcpIsDisconnectedFromAnchor`) means Final Cut Pro disconnected the clip from the primary storyline; the lane stays. Role Inventory Category is **Unconnected**, not Connected. A primary-spine generator is **Primary generator**. |
 | pan-rect `interp` | `CropAdjustment.PanRectInterpolation`: `linear`, `ease`, `easeIn`, `easeOut`. Default `ease` is omitted on write. |
 | Keyframe `interp` | `KeyframeInterpolation`: `linear` (default, omitted on write), `ease`, `easeIn`, `easeOut`, plus 1.15+ `hold`, `bezier`, `passthrough`. |
 | `frameSampling` `vsa-motion-blur` | `FrameSampling.vsaMotionBlur`. Speed Change name **VSA Motion Blur Retime** (`SpeedChangeFormatting.retimeEffectName`). Other names: Optical Flow Retime, Frame Blending Retime, Nearest Neighbor Retime, Retime (`floor` / omitted). |
@@ -270,7 +270,7 @@ flowchart TB
     SRC --> CLI["OpenFCPXMLKitCLI → OpenFCPXMLKit-CLI"]
     SRC --> GEN["GenerateEmbeddedDTDs"]
 
-    TST --> OKT["OpenFCPXMLKitTests — 1259 Swift Testing"]
+    TST --> OKT["OpenFCPXMLKitTests — 1262 Swift Testing"]
     TST --> ERT["ExcelReportTest — 10 optional Swift Testing"]
     TST --> SET["ShotExtractionTest — 4 optional Swift Testing"]
     TST --> SMP["FCPXML Samples/ — 61 .fcpxml files"]
@@ -601,7 +601,7 @@ Binary name: **`OpenFCPXMLKit-CLI`**. Mutually exclusive modes: `--check-version
 
 ## 8. Tests
 
-- **Count:** **1273** listed in `swift test list` — **1259** in `OpenFCPXMLKitTests` + **10** in optional `ExcelReportTest` + **4** in optional `ShotExtractionTest` (all Swift Testing `@Test`; **no XCTest** in `Tests/`). Optional targets **cancel** via `Test.cancel` without a local `.fcpxml`/`.fcpxmld` fixture.
+- **Count:** **1276** listed in `swift test list` — **1262** in `OpenFCPXMLKitTests` + **10** in optional `ExcelReportTest` + **4** in optional `ShotExtractionTest` (all Swift Testing `@Test`; **no XCTest** in `Tests/`). Optional targets **cancel** via `Test.cancel` without a local `.fcpxml`/`.fcpxmld` fixture.
 - **Framework:** Swift Testing exclusively (`@Suite` / `@Test` / `#expect` / `#require`). See GUARDRAILS Sign: `swift-testing-only`.
 - **Location:** `Tests/OpenFCPXMLKitTests/`; public samples in `Tests/FCPXML Samples/FCPXML/` (**61** files, including `HiddenMarkers.fcpxml`, `GeneralDemo.fcpxml` at 1.14, and `GeneralDemo13.fcpxml` at 1.15); optional integration under `Tests/ExcelReportTest/` and `Tests/ShotExtractionTest/`; private investigation inbox under `Tests/Submitted FCPXML/` (gitignored `Inbox/` / `Notes/` — never commit private FCPXML to GitHub; see `Tests/Submitted FCPXML/README.md`).
 - **Harness:** `FCPXMLTestResources.swift` (paths); `FCPXMLTestSampleLoading.swift` + `FCPXMLTestSampleError.swift` (`tryLoad*`); `FCPXMLTestingSampleSupport.swift` (`require*` — bundled samples **fail** if missing; optional fixtures use `Test.cancel`); `FCPXMLReportingReportFixture.swift` / `FCPXMLReportingReportTestSupport.swift` for optional reporting fixtures; `FCPXMLSubmittedFCPXMLSmokeTests` for optional Inbox parse smoke; `FCPXMLShotExtractionTests` (**10** `@Test`) for still-image Shot Extraction (reject video/titles/audio; dry-run); `ExcelReportFixture` for the ExcelReportTest target; `ShotExtractionFixture` for the ShotExtractionTest target.

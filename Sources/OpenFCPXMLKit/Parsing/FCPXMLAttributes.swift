@@ -170,10 +170,22 @@ extension OFKXMLElement {
 }
 
 extension OFKXMLElement {
-    /// FCPXML: Get or set the value of the `role` attribute.
+    /// FCPXML: Get or set the value of the `lane` attribute.
     public var fcpLane: Int? {
         get { getInt(forAttribute: "lane") }
         set { set(int: newValue, forAttribute: "lane") }
+    }
+
+    /// FCPXML 1.15+. Final Cut Pro sets bit 0 of anchorable `flags` (`flags="1"`) when the user
+    /// disconnects a clip from the primary storyline. The clip keeps its `lane`.
+    ///
+    /// Non-numeric values (and any bitfield whose bit 0 is clear) are not a disconnect.
+    public var fcpIsDisconnectedFromAnchor: Bool {
+        guard let raw = stringValue(forAttributeNamed: "flags")?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+              let bits = Int(raw)
+        else { return false }
+        return bits & 1 != 0
     }
 }
 

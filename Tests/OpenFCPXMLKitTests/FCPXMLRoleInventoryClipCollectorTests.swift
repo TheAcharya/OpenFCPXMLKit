@@ -1578,6 +1578,71 @@ struct FCPXMLRoleInventoryClipCollectorTests {
         )
     }
 
+    @Test("FCPXML 1.15 disconnected anchors are unconnected in role inventory")
+    func disconnectedAnchorsAreUnconnectedInRoleInventory() async throws {
+        let fcpxml = try requireFCPXMLSample(named: "GeneralDemo13")
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
+        let entries = await Collector.collectEntries(from: timeline, scope: .init())
+
+        func labels(named name: String) -> [String] {
+            entries
+                .filter { $0.extracted.displayClipName() == name }
+                .map(\.category.workbookExportLabel)
+        }
+
+        #expect(labels(named: "iMovie") == ["Unconnected generator"])
+        #expect(labels(named: "Industrial") == ["Unconnected generator"])
+        #expect(labels(named: "Pastel") == ["Connected generator"])
+        #expect(labels(named: "Bell") == ["Connected generator"])
+        #expect(labels(named: "Grey Scale") == ["Primary generator"])
+        #expect(labels(named: "Essential Countdown") == ["Primary generator"])
+        #expect(Set(labels(named: "Custom")) == ["Primary generator"])
+        #expect(labels(named: "Wildlife Animals") == ["Primary video"])
+    }
+
+    @Test("Disconnected title and asset-clip are unconnected")
+    func disconnectedTitleAndAssetClipAreUnconnected() async throws {
+        let fcpxml = try parseInlineFCPXML("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE fcpxml>
+        <fcpxml version="1.15">
+            <resources>
+                <format id="r1" name="FFVideoFormat1080p24" frameDuration="100/2400s" width="1920" height="1080"/>
+                <effect id="r2" name="Custom" uid=".../Generators.localized/Solids.localized/Custom.localized/Custom.motn"/>
+                <effect id="r3" name="Loose Title" uid=".../Titles.localized/Loose Title.moti"/>
+                <effect id="r5" name="Anchored Title" uid=".../Titles.localized/Anchored Title.moti"/>
+                <asset id="r4" name="A-Roll" uid="A1" start="0s" duration="10s" hasVideo="1" format="r1" videoSources="1"/>
+            </resources>
+            <library>
+                <event name="E" uid="E1">
+                    <project name="P" uid="P1">
+                        <sequence format="r1" duration="10s" tcStart="0s" tcFormat="NDF">
+                            <spine>
+                                <video ref="r2" offset="0s" name="Bed" start="0s" duration="10s">
+                                    <title ref="r3" lane="1" offset="0s" flags="1" name="Loose Title" start="0s" duration="2s"/>
+                                    <title ref="r5" lane="2" offset="2s" name="Anchored Title" start="0s" duration="2s"/>
+                                    <asset-clip ref="r4" lane="1" offset="4s" flags="1" name="Loose Clip" duration="2s" format="r1"/>
+                                </video>
+                            </spine>
+                        </sequence>
+                    </project>
+                </event>
+            </library>
+        </fcpxml>
+        """)
+        let timeline = try #require(fcpxml.allProjects().first?.sequence.element)
+        let entries = await Collector.collectEntries(from: timeline, scope: .init())
+
+        func category(named name: String) -> FinalCutPro.FCPXML.ReportClipCategory? {
+            entries.first { $0.extracted.displayClipName() == name }?.category
+        }
+
+        #expect(category(named: "Loose Title") == .unconnectedTitle)
+        #expect(category(named: "Anchored Title") == .connectedTitle)
+        #expect(category(named: "Loose Clip") == .unconnectedVideo)
+        #expect(category(named: "Bed") == .primaryGenerator)
+    }
+
     private var secondaryStorylineHostRoleFixture: String {
         """
         <?xml version="1.0" encoding="UTF-8"?>

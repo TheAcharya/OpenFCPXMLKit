@@ -280,7 +280,7 @@ Each inventory sheet uses a **Row** index column, then fixed columns, then sorte
 **Under-spine connected titles / video / generators:** Final Cut Pro commonly places audio under the primary storyline (`lane < 0`), but titles, generators, and other video may also connect there. Role Inventory includes:
 
 - Connected **titles** (category Connected / Secondary title) using `Title.role` via `ReportFormatting.titleRoleSubrole` — not a hard-coded **Titles** label when a custom video role is set.
-- Connected leaf **`<video>` / generators** on negative lanes (Connected generator / Connected video). Negative-lane leaf **`<audio>`** remains folded into host channel/sync sources and is skipped as a separate leaf row.
+- Connected leaf **`<video>` / generators** on negative lanes (Connected generator / Connected video). A primary-spine generator is **Primary generator**. FCPXML 1.15 `flags="1"` (bit 0) is a clip disconnected from the primary storyline: the lane stays, and the Category is **Unconnected** (Unconnected title / video / clip / generator / audio), not Connected. Negative-lane leaf **`<audio>`** remains folded into host channel/sync sources and is skipped as a separate leaf row.
 
 Markers on title hosts attribute the title’s video **main** role (same casing policy as Role Inventory main roles). Parsing, Extraction, and Projection already discover these elements; Reporting must not collapse or drop them. See GUARDRAILS Sign `title-roles-honor-attribute`.
 

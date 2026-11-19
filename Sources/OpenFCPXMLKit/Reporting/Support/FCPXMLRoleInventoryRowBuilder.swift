@@ -409,11 +409,12 @@ private func timelineCategorySortRank(
     switch category {
     case .primaryTitle:
         return 0
-    case .connectedTitle:
+    case .connectedTitle, .unconnectedTitle:
         return 1
-    case .primaryVideo, .primaryClip:
+    case .primaryVideo, .primaryClip, .primaryGenerator:
         return 2
-    case .connectedVideo, .connectedClip, .connectedGenerator:
+    case .connectedVideo, .connectedClip, .connectedGenerator,
+         .unconnectedVideo, .unconnectedClip, .unconnectedGenerator:
         return 3
     case .primaryGap:
         return 4
@@ -423,7 +424,8 @@ private func timelineCategorySortRank(
         return 6
     case .primaryAudio, .primarySyncedAudio:
         return 7
-    case .connectedAudio, .connectedSyncedAudio, .secondaryAudio:
+    case .connectedAudio, .connectedSyncedAudio, .unconnectedAudio, .unconnectedSyncedAudio,
+         .secondaryAudio:
         return 8
     }
 }
