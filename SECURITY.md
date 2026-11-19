@@ -4,7 +4,7 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 3.3.15   | :white_check_mark: |
+| 3.4.0   | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
