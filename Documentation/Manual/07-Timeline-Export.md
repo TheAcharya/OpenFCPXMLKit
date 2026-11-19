@@ -40,7 +40,7 @@ let timeline = Timeline(name: "My Timeline", format: format, clips: [clip])
 **TimelineFormat** supports any width, height, and frame rate. Use the initializer for custom dimensions and frame duration, or presets for standard resolutions:
 
 - **Custom format:** `TimelineFormat(width:height:frameDuration:colorSpace:interlaced:)` — any positive width/height; frame rate is set via `frameDuration` (e.g. 25 fps = `CMTime(value: 1, timescale: 25)`).
-- **Presets:** `hd1080p`, `hd720p`, `uhd4K`, `dci4K`, `hd1080i`, `hd720i` — each takes `frameDuration` (and optional `colorSpace`), so you choose the frame rate (23.976, 24, 25, 29.97, 30, 50, 59.94, 60 fps, etc.).
+- **Presets:** `hd1080p`, `hd720p`, `uhd4K`, `dci4K`, `hd1080i`, `hd720i` — each takes `frameDuration` (and optional `colorSpace`), so you choose one of the eight timeline frame rates (23.976, 24, 25, 29.97, 30, 50, 59.94, 60). Conform `srcFrameRate` tokens are documented in [03 — Timecode & Timing](03-Timecode-Timing.md#timeline-rates-and-conform-source-rates).
 - **Computed properties:** `aspectRatio`, `isHD`, `isUHD`, `interlaced`, `is1080p`, `is720p`, etc.
 
 You can create valid projects (timelines) with **zero clips** (empty spine); export supports both empty and non-empty timelines.

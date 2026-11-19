@@ -188,6 +188,25 @@ extension FinalCutPro.FCPXML.Clip {
                                 parameters: parameters
                             )
                         })
+
+                    let maskSemantics = Array(maskElement.childElements
+                        .filter { $0.name == "mask-semantic" }
+                        .compactMap { semanticElement -> FinalCutPro.FCPXML.MaskSemantic? in
+                            let name = semanticElement.stringValue(forAttributeNamed: "name")
+                            let enabledString = semanticElement.stringValue(forAttributeNamed: "enabled") ?? "1"
+                            let blendModeString = semanticElement.stringValue(forAttributeNamed: "blendMode") ?? "add"
+                            let blendMode = FinalCutPro.FCPXML.MaskBlendMode(rawValue: blendModeString) ?? .add
+                            let parameters = Array(semanticElement.childElements
+                                .filter { $0.name == "param" }
+                                .compactMap { FinalCutPro.FCPXML.FilterParameter(paramElement: $0) })
+                            return FinalCutPro.FCPXML.MaskSemantic(
+                                name: name,
+                                blendMode: blendMode,
+                                isEnabled: enabledString == "1",
+                                type: semanticElement.stringValue(forAttributeNamed: "type"),
+                                parameters: parameters
+                            )
+                        })
                     
                     // Parse filter-video elements (primary and secondary)
                     let videoFilters = Array(maskElement.childElements
@@ -244,6 +263,7 @@ extension FinalCutPro.FCPXML.Clip {
                         secondaryVideoFilter: videoFilters.count > 1 ? videoFilters[1] : nil,
                         maskShapes: maskShapes,
                         maskIsolations: maskIsolations,
+                        maskSemantics: maskSemantics,
                         isEnabled: isEnabled,
                         isInverted: isInverted
                     )
@@ -334,6 +354,38 @@ extension FinalCutPro.FCPXML.Clip {
                     }
                     
                     maskElement.addChild(isolationElement)
+                }
+
+                for semantic in mask.maskSemantics {
+                    let semanticElement = OFKXMLDefaultFactory().makeElement(name: "mask-semantic")
+                    if let name = semantic.name {
+                        semanticElement.addAttribute(name: "name", value: name)
+                    }
+                    if !semantic.isEnabled {
+                        semanticElement.addAttribute(name: "enabled", value: "0")
+                    }
+                    semanticElement.addAttribute(name: "blendMode", value: semantic.blendMode.rawValue)
+                    if let type = semantic.type {
+                        semanticElement.addAttribute(name: "type", value: type)
+                    }
+                    for param in semantic.parameters {
+                        let paramElement = OFKXMLDefaultFactory().makeElement(name: "param")
+                        paramElement.addAttribute(name: "name", value: param.name)
+                        if let key = param.key {
+                            paramElement.addAttribute(name: "key", value: key)
+                        }
+                        if let value = param.value {
+                            paramElement.addAttribute(name: "value", value: value)
+                        }
+                        if let auxValue = param.auxValue {
+                            paramElement.addAttribute(name: "auxValue", value: auxValue)
+                        }
+                        if !param.isEnabled {
+                            paramElement.addAttribute(name: "enabled", value: "0")
+                        }
+                        semanticElement.addChild(paramElement)
+                    }
+                    maskElement.addChild(semanticElement)
                 }
                 
                 // Add filter-video elements

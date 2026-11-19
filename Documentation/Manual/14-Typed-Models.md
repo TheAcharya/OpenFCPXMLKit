@@ -7,6 +7,7 @@
 ## Table of Contents
 
 - [Adjustment models](#adjustment-models)
+- [Anchored flags (FCPXML 1.15+)](#anchored-flags-fcpxml-115)
 - [Effect and filter models](#effect-and-filter-models)
 - [Caption and title models](#caption-and-title-models)
 - [Keyframe animation](#keyframe-animation)
@@ -28,7 +29,7 @@ Typed models with **Clip** accessors (see **FCPXMLClip+Adjustments**):
 
 | Model | Notes |
 |-------|--------|
-| **CropAdjustment** | Crop, trim, pan modes |
+| **CropAdjustment** | Crop, trim, pan modes. Pan-rect `interp` is FCPXML 1.15+ (`linear`, `ease`, `easeIn`, `easeOut`; default `ease`, omitted on write). |
 | **CornersAdjustment** | Four-corner pin (`adjust-corners`) |
 | **TransformAdjustment** | Position, scale, rotation, anchor. `componentSamples` reads attributes and nested `param` keyframes (identity 0 / 0° / 100% omitted — compare XML units). FCPXML Position is `%` of the **containing sequence height**; `inspectorPixels(fromXMLPosition:sequenceHeight:)` converts to Inspector pixels (`xml × height / 100` on both axes — never the clip/source format). Used by Effects extraction and Role Inventory **Effects**. |
 | **BlendAdjustment** | Blend amount (0.0–1.0) and mode. Reports format amount as Opacity percent × 100; XML mode tokens become Inspector labels (`colorDodge` → Color Dodge). |
@@ -46,7 +47,8 @@ Typed models with **Clip** accessors (see **FCPXMLClip+Adjustments**):
 | **CinematicAdjustment** (1.10+) | Cinematic |
 | **ColorConformAdjustment** (1.11+) | Color conform |
 | **Stereo3DAdjustment** (1.13+) | Stereo 3D |
-| **VoiceIsolationAdjustment** (1.14) | Voice isolation |
+| **VoiceIsolationAdjustment** (1.11+) | Voice isolation. `VersionFeatureGate` introduces `adjust-voiceIsolation` in 1.11. |
+| **NaturalMotionBlurAdjustment** (1.15+) | `adjust-natural-motion-blur` on a primitive `<video>` only (`Video.naturalMotionBlurAdjustment`). `amount` is the 0–100 string when present; omitted means Final Cut Pro’s default. Effects extraction names it **Natural Motion Blur**. |
 | **ConformAdjustment** | Conform type (`fit` / `fill` / `none`). Reports show Fit / Fill / None. |
 | **RollingShutterAdjustment** | Rolling shutter amount |
 
@@ -68,10 +70,16 @@ clip.noiseReductionAdjustment = FinalCutPro.FCPXML.NoiseReductionAdjustment(amou
 
 ---
 
+## Anchored flags (FCPXML 1.15+)
+
+`flags` is an optional string on the anchorable story elements (`audition`, `spine`, `mc-clip`, `clip`, `ref-clip`, `sync-clip`, `asset-clip`, `audio`, `video`, `live-drawing`, `caption`, `title`) and on `gap`. The protocol accessor is `FCPXMLElementAnchorableAttributes.flags`. The value is stored as written. Conversion to a version older than 1.15 removes the attribute.
+
+---
+
 ## Effect and filter models
 
 - **VideoFilter**, **AudioFilter** — Filters with **FilterParameter** list
-- **VideoFilterMask** — Mask shape and isolation
+- **VideoFilterMask** — Mask shape, isolation, and **maskSemantics** (`MaskSemantic`, FCPXML 1.15+: `name`, `isEnabled`, `blendMode` default `add`, optional `type`, child `param`s)
 - **FilterParameter** — name, value, **FadeIn**, **FadeOut**, **KeyframeAnimation**; **auxValue** (1.11+)
 
 ```swift
@@ -113,7 +121,7 @@ caption.typedTextStyleDefinitions = [styleDef]
 ## Keyframe animation
 
 - **KeyframeAnimation** — keyframes array
-- **Keyframe** — time, value, interpolation, curve; **auxValue** (1.11+)
+- **Keyframe** — time, value, interpolation, curve; **auxValue** (1.11+). `KeyframeInterpolation` is `linear` (default, omitted on write), `ease`, `easeIn`, `easeOut`, and, in FCPXML 1.15+, `hold`, `bezier`, and `passthrough`. Conversion below 1.15 drops the 1.15 tokens so the attribute returns to `linear`.
 - **FadeIn**, **FadeOut** — type (linear, easeIn, easeOut, easeInOut), duration
 - **FadeType**, **KeyframeInterpolation**, **KeyframeCurve**
 

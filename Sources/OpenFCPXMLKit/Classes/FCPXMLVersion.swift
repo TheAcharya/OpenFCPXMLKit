@@ -17,21 +17,21 @@ import Foundation
 ///
 /// ## Version coverage
 ///
-/// OpenFCPXMLKit includes DTDs for versions 1.5 through 1.14. Use `FCPXMLVersion.default`
+/// OpenFCPXMLKit includes DTDs for versions 1.5 through 1.15. Use `FCPXMLVersion.default`
 /// for the latest when creating new documents.
 ///
 /// ## Relationship with FinalCutPro.FCPXML.Version
 ///
-/// This enum is used for DTD validation and document creation (versions 1.5-1.14 with
+/// This enum is used for DTD validation and document creation (versions 1.5-1.15 with
 /// bundled DTDs). The `FinalCutPro.FCPXML.Version` struct in the FinalCutPro layer
-/// represents document versions (1.0-1.14) and is used for FCPXML parsing. They serve
+/// represents document versions (1.0-1.15) and is used for FCPXML parsing. They serve
 /// complementary roles in the codebase.
 ///
 /// ## Usage
 ///
 /// ```swift
 /// let doc = OFKXMLDocument(resources: [], events: [], fcpxmlVersion: .default)
-/// try doc.validateFCPXMLAgainst(version: .v1_14)
+/// try doc.validateFCPXMLAgainst(version: .v1_15)
 /// ```
 @available(macOS 26.0, *)
 public enum FCPXMLVersion: String, CaseIterable, Sendable {
@@ -46,23 +46,24 @@ public enum FCPXMLVersion: String, CaseIterable, Sendable {
     case v1_12 = "1.12"
     case v1_13 = "1.13"
     case v1_14 = "1.14"
+    case v1_15 = "1.15"
 
     /// Default (latest) version for new documents.
-    public static let `default`: FCPXMLVersion = .v1_14
+    public static let `default`: FCPXMLVersion = .v1_15
 
-    /// Version string for FCPXML document attribute (e.g. `"1.14"`).
+    /// Version string for FCPXML document attribute (e.g. `"1.15"`).
     public var stringValue: String {
         rawValue
     }
 
-    /// DTD resource name without extension, for OpenFCPXMLKit DTDs (e.g. `Final_Cut_Pro_XML_DTD_version_1.14`).
+    /// DTD resource name without extension, for OpenFCPXMLKit DTDs (e.g. `Final_Cut_Pro_XML_DTD_version_1.15`).
     public var dtdResourceName: String {
         "Final_Cut_Pro_XML_DTD_version_\(rawValue)"
     }
 
     /// Creates an FCPXML version from a version string.
     ///
-    /// - Parameter string: Version string (e.g. `"1.14"` or `"1_14"`).
+    /// - Parameter string: Version string (e.g. `"1.15"` or `"1_15"`).
     /// - Returns: Matching version or `nil`.
     public init?(string: String) {
         let normalized = string.replacingOccurrences(of: "_", with: ".")
@@ -88,10 +89,10 @@ public enum FCPXMLVersion: String, CaseIterable, Sendable {
 
     /// Converts this DTD version to the corresponding `FinalCutPro.FCPXML.Version` parsing type.
     ///
-    /// This bridges the DTD validation layer (`FCPXMLVersion`, versions 1.5-1.14) to the
-    /// parsing layer (`FinalCutPro.FCPXML.Version`, versions 1.0-1.14).
+    /// This bridges the DTD validation layer (`FCPXMLVersion`, versions 1.5-1.15) to the
+    /// parsing layer (`FinalCutPro.FCPXML.Version`, versions 1.0-1.15).
     public var fcpxmlVersion: FinalCutPro.FCPXML.Version {
-        FinalCutPro.FCPXML.Version(rawValue: self.rawValue) ?? .ver1_14
+        FinalCutPro.FCPXML.Version(rawValue: self.rawValue) ?? .ver1_15
     }
 
     /// Creates an FCPXMLVersion from a `FinalCutPro.FCPXML.Version`.

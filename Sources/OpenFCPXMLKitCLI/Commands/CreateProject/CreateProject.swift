@@ -20,7 +20,7 @@ enum CreateProject {
     ///   - height: Frame height in pixels.
     ///   - rate: Frame rate (e.g. 24, 25, 29.97, 30, 23.976, 50, 59.94, 60).
     ///   - outputDir: Directory in which to write the project file (e.g. "Project.fcpxml").
-    ///   - version: FCPXML document version (e.g. 1.5–1.14). Default: .default (1.14).
+    ///   - version: FCPXML document version (e.g. 1.5–1.15). Default: .default (1.15).
     ///   - projectName: Optional project name; if nil, derived as "width x height @ rate p" (e.g. "640x480@25p").
     ///   - logger: Logger for messages.
     static func run(

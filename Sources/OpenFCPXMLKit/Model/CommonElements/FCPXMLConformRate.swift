@@ -124,6 +124,14 @@ extension FinalCutPro.FCPXML.ConformRate {
         case fps50 = "50"
         case fps60 = "60"
         case fps59_94 = "59.94"
+        /// FCPXML 1.13+.
+        case fps90 = "90"
+        /// FCPXML 1.13+.
+        case fps100 = "100"
+        /// FCPXML 1.13+.
+        case fps119_88 = "119.88"
+        /// FCPXML 1.13+.
+        case fps120 = "120"
     }
 }
 
@@ -148,6 +156,10 @@ extension FinalCutPro.FCPXML.ConformRate.SourceFrameRate {
         case .fps50: return .fps50
         case .fps60: return .fps60
         case .fps59_94: return .fps59_94
+        case .fps90: return .fps90
+        case .fps100: return .fps100
+        case .fps119_88: return .fps119_88
+        case .fps120: return .fps120
         }
     }
 }

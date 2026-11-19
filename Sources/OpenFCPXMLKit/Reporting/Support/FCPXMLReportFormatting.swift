@@ -867,7 +867,7 @@ extension FinalCutPro.FCPXML {
                 }
                 // FCP default when `audioRole` is omitted from the host.
                 return "Dialogue"
-            case .filterVideo, .transform, .compositing, .spatialConform:
+            case .filterVideo, .transform, .compositing, .spatialConform, .naturalMotionBlur:
                 if effect.host.element.fcpElementType == .title {
                     return titleRoleSubrole(
                         for: effect.host,
@@ -900,7 +900,7 @@ extension FinalCutPro.FCPXML {
                     return mainRoleDisplay(from: preferred.collapsingSubRole())
                 }
                 return firstMainRoleDisplay(in: roles, ofType: .audio) ?? "Dialogue"
-            case .filterVideo, .transform, .compositing, .spatialConform:
+            case .filterVideo, .transform, .compositing, .spatialConform, .naturalMotionBlur:
                 if hostElementType == ElementType.title.rawValue {
                     return titleRoleSubrole(
                         from: roles,

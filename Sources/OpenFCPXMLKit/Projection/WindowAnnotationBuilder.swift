@@ -468,7 +468,11 @@ extension FinalCutPro.FCPXML {
             case .noiseReduction: return "Noise Reduction"
             case .humReduction: return "Hum Reduction"
             case .equalization: return "EQ"
-            case .filterVideo, .filterAudio, .other: return elementName
+            case .filterVideo, .filterAudio, .other:
+                if elementName == "adjust-natural-motion-blur" {
+                    return "Natural Motion Blur"
+                }
+                return elementName
             }
         }
     }

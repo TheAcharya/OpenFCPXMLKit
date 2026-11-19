@@ -4,7 +4,7 @@ Hard constraints for contributors and AI agents. Prefer this file when deciding 
 
 **See also:** [ARCHITECTURE.md](ARCHITECTURE.md), [.cursorrules](.cursorrules), [AGENT.md](AGENT.md), [Tests/README.md](Tests/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**Current suite (keep in sync):** **1265** tests listed in `swift test list` — **1251** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** public sample `.fcpxml` files.
+**Current suite (keep in sync):** **1273** tests listed in `swift test list` — **1259** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **61** public sample `.fcpxml` files.
 
 ---
 
@@ -80,7 +80,7 @@ See ARCHITECTURE.md §2.7 for the full “where to put a change” table.
 | Rule | Detail |
 |------|--------|
 | **1.5 floor** | Remain backward compatible with FCPXML **1.5**. Optional attributes/elements from later versions (e.g. 1.11, 1.13) must be omitted or ignored when reading/writing/converting to 1.5. Mark newer features in comments with the minimum version (`FCPXML 1.13+`). |
-| **Supported range** | DTDs and parsing cover **1.5–1.14**. Do not claim support for versions outside that without DTD + tests. |
+| **Supported range** | DTDs and parsing cover **1.5–1.15**. Do not claim support for versions outside that without DTD + tests. |
 | **Conversion strips** | Version conversion must set the root version **and** strip elements not in the target DTD. Validate after convert when the CLI/API path requires it. |
 | **Bundle format** | `.fcpxmld` only for versions that support it (`FCPXMLVersion.supportsBundleFormat` → 1.10+). 1.5–1.9 always `.fcpxml`. |
 | **Frame rates** | Only Final Cut Pro rates used in tests and public APIs: 23.976, 24, 25, 29.97, 30, 50, 59.94, 60. |
@@ -211,7 +211,7 @@ Append new signs when a failure repeats or a design decision must not drift. Kee
 ### Sign: swift-testing-only
 - **Trigger:** Adding or changing any test under `Tests/`.
 - **Instruction:** Use Swift Testing only (`@Suite` / `@Test` / `#expect` / `#require`). Never reintroduce XCTest or mix frameworks in one file. Harness: `tryLoad*` in `FCPXMLTestSampleLoading` (core) and `require*` in `FCPXMLTestingSampleSupport` (`Test.cancel` for optional fixtures; hard fail for missing bundled samples). Performance: `ContinuousClock` sanity budgets, not XCTest `measure`. Update suite counts in Tests/README + agent docs when the suite grows.
-- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1265** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
+- **Reason:** Migration (former Phases 0–7) is complete; the suite is **1273** listed tests, all Swift Testing. Hybrid XCTest + Testing caused skip/cancel confusion and dual harness drift.
 - **Provenance:** 2026-07-18 — phased migration completed; supersedes prior hybrid-only and cutover-phase Signs.
 
 ### Sign: effects-role-type-filter

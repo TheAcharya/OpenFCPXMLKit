@@ -20,6 +20,8 @@ extension FinalCutPro.FCPXML {
         case opticalFlowClassic = "optical-flow-classic"
         case opticalFlow = "optical-flow"
         case opticalFlowFRC = "optical-flow-frc"
+        /// FCPXML 1.15+.
+        case vsaMotionBlur = "vsa-motion-blur"
     }
 }
 

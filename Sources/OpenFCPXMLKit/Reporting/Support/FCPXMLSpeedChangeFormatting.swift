@@ -121,6 +121,8 @@ extension FinalCutPro.FCPXML {
                 return "Frame Blending Retime"
             case .nearestNeighbor:
                 return "Nearest Neighbor Retime"
+            case .vsaMotionBlur:
+                return "VSA Motion Blur Retime"
             case .floor:
                 return "Retime"
             }

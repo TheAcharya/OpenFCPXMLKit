@@ -98,7 +98,7 @@ extension FinalCutPro.FCPXML.Video {
     
     // can contain DTD param*
     // contains DTD %timing-params
-    // contains DTD %intrinsic-params-video
+    // contains DTD %intrinsic-params-primitive-video (FCPXML 1.15+; includes adjust-natural-motion-blur)
     // can contain DTD %anchor_item*
     // can contain markers
     // can contain DTD %video_filter_item*
@@ -150,6 +150,49 @@ extension FinalCutPro.FCPXML.Video {
 extension FinalCutPro.FCPXML.Video: FCPXMLElementNoteChild { }
 
 extension FinalCutPro.FCPXML.Video: FCPXMLElementTimingParams { }
+
+extension FinalCutPro.FCPXML.Video {
+    /// Natural Motion Blur. FCPXML 1.15+. Valid only on a primitive `<video>` element.
+    public var naturalMotionBlurAdjustment: FinalCutPro.FCPXML.NaturalMotionBlurAdjustment? {
+        get {
+            guard let adjustElement = element.firstChildElement(named: "adjust-natural-motion-blur") else {
+                return nil
+            }
+            let enabledString = adjustElement.stringValue(forAttributeNamed: "enabled") ?? "1"
+            let parameters = Array(
+                adjustElement.childElements
+                    .filter { $0.name == "param" }
+                    .compactMap { FinalCutPro.FCPXML.FilterParameter(paramElement: $0) }
+            )
+            return FinalCutPro.FCPXML.NaturalMotionBlurAdjustment(
+                isEnabled: enabledString == "1",
+                amount: adjustElement.stringValue(forAttributeNamed: "amount"),
+                parameters: parameters
+            )
+        }
+        nonmutating set {
+            element.removeChildren { $0.name == "adjust-natural-motion-blur" }
+            guard let adjustment = newValue else { return }
+            let adjustElement = OFKXMLDefaultFactory().makeElement(name: "adjust-natural-motion-blur")
+            if !adjustment.isEnabled {
+                adjustElement.addAttribute(name: "enabled", value: "0")
+            }
+            if let amount = adjustment.amount {
+                adjustElement.addAttribute(name: "amount", value: amount)
+            }
+            for param in adjustment.parameters {
+                let paramElement = OFKXMLDefaultFactory().makeElement(name: "param")
+                paramElement.addAttribute(name: "name", value: param.name)
+                if let key = param.key { paramElement.addAttribute(name: "key", value: key) }
+                if let value = param.value { paramElement.addAttribute(name: "value", value: value) }
+                if let aux = param.auxValue { paramElement.addAttribute(name: "auxValue", value: aux) }
+                if !param.isEnabled { paramElement.addAttribute(name: "enabled", value: "0") }
+                adjustElement.addChild(paramElement)
+            }
+            element.addChild(adjustElement)
+        }
+    }
+}
 
 // MARK: - Meta Conformances
 

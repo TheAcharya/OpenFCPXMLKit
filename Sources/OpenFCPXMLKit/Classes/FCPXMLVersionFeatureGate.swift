@@ -58,6 +58,14 @@ extension FinalCutPro.FCPXML {
             .init(name: "adjust-stereo-3D", availability: .from(.v1_13)),
             .init(name: "hidden-clip-marker", availability: .from(.v1_13)),
             .init(name: "match-analysis-type", availability: .from(.v1_14)),
+            .init(name: "adjust-natural-motion-blur", availability: .from(.v1_15)),
+            .init(name: "mask-semantic", availability: .from(.v1_15)),
+        ]
+
+        /// Elements whose `ao_attrs` (or gap's own attribute list) gained `flags` in FCPXML 1.15.
+        private static let flagsAttributeElements: [String] = [
+            "audition", "spine", "mc-clip", "clip", "ref-clip", "sync-clip", "asset-clip",
+            "audio", "video", "live-drawing", "caption", "title", "gap",
         ]
 
         /// Attributes introduced after FCPXML 1.5.
@@ -66,7 +74,10 @@ extension FinalCutPro.FCPXML {
             .init(element: "keyframe", attribute: "auxValue", availability: .from(.v1_11)),
             .init(element: "format", attribute: "heroEye", availability: .from(.v1_13)),
             .init(element: "asset", attribute: "heroEyeOverride", availability: .from(.v1_13)),
-        ]
+            .init(element: "pan-rect", attribute: "interp", availability: .from(.v1_15)),
+        ] + flagsAttributeElements.map {
+            AttributeFeature(element: $0, attribute: "flags", availability: .from(.v1_15))
+        }
 
         /// Availability for a known element name, or ``VersionAvailability/always`` if unlisted.
         public static func availability(forElement name: String) -> VersionAvailability {

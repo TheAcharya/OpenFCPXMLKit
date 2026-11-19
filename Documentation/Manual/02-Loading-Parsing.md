@@ -112,13 +112,13 @@ let audioLeaf = clip.fcpMediaURL(in: resources, preferAudioAngle: true)
 
 ## FCPXML version and element types
 
-- **FCPXMLVersion** — Document version 1.5–1.14. `FCPXMLVersion.supportsBundleFormat` is `true` for 1.10+ (`.fcpxmld`); 1.5–1.9 support only single-file `.fcpxml`.
+- **FCPXMLVersion** — Document version 1.5–1.15. `FCPXMLVersion.supportsBundleFormat` is `true` for 1.10+ (`.fcpxmld`); 1.5–1.9 support only single-file `.fcpxml`.
 - **FCPXMLElementType** — Every DTD element has a corresponding case (e.g. `asset`, `sequence`, `clip`, `liveDrawing`, `hiddenClipMarker`). Use for typed filtering.
 
 ```swift
-let version = FCPXMLVersion.default  // e.g. .v1_14
+let version = FCPXMLVersion.default  // .v1_15
 let doc = service.createFCPXMLDocument(version: version.stringValue)
-try document.validateFCPXMLAgainst(version: .v1_14)
+try document.validateFCPXMLAgainst(version: .v1_15)
 if version.supportsBundleFormat { /* can save as .fcpxmld */ }
 
 // Filter elements by type
@@ -127,7 +127,7 @@ let filtered = service.filterElements(elements, ofTypes: types)
 let elementType = someElement.fcpxType  // OFKXMLElement extension
 ```
 
-Public test samples live under `Tests/FCPXML Samples/FCPXML/` (e.g. `GeneralDemo.fcpxml`). For private user exports used only locally while fixing parsing or reporting edge cases, see [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) — contents are gitignored and must never be committed to GitHub.
+Public test samples live under `Tests/FCPXML Samples/FCPXML/` (**61** files, including `GeneralDemo.fcpxml` at 1.14 and `GeneralDemo13.fcpxml` at 1.15). Media paths in those fixtures are anonymized. For private user exports used only locally while fixing parsing or reporting edge cases, see [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) — contents are gitignored and must never be committed to GitHub.
 
 ---
 

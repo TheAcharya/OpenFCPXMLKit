@@ -211,7 +211,7 @@ Log messages include parsing, version conversion, validation, save, and media ex
 | `Options/` | Option groups for help sections. `GeneralOptions` supplies **GENERAL** flags and `--extension-type`; `TimelineOptions` supplies **TIMELINE** options for `--create-project`; `ShotExtractionCLIOptions` supplies **SHOT EXTRACTION**; `ReportCLIOptions` supplies **REPORT** options; `LogOptions` supplies **LOG** options (`--log`, `--log-level`, `--quiet`). |
 | `Commands/` | Feature modules. Each feature has its own subfolder and a `run(...)` entry point called from the root command (e.g. **CheckVersion** for `--check-version`). |
 | `Commands/CheckVersion/` | Implements `--check-version`: loads FCPXML and prints the document version. |
-| `Commands/ConvertVersion/` | Implements `--convert-version`: loads FCPXML, converts to target version (1.5–1.14), saves to output-dir as .fcpxmld (default) or .fcpxml per `--extension-type`; 1.5–1.9 always .fcpxml. |
+| `Commands/ConvertVersion/` | Implements `--convert-version`: loads FCPXML, converts to target version (1.5–1.15), saves to output-dir as .fcpxmld (default) or .fcpxml per `--extension-type`; 1.5–1.9 always .fcpxml. |
 | `Commands/Validate/` | Implements `--validate`: loads FCPXML/FCPXMLD and runs robust validation (semantic + DTD). |
 | `Commands/ExtractMedia/` | Implements `--media-copy`: loads FCPXML/FCPXMLD and copies **every** referenced `media-rep` / locator file to output-dir (distinct from public `fcpMediaURL` one-leaf APIs). |
 | `Commands/ExtractShots/` | Implements `--extract-shots` / `--dry-run`: primary stills → PNG + CSV/Notion JSON; rejects primary video, titles/generators, and audio. |
@@ -249,7 +249,7 @@ All Swift in `Sources/OpenFCPXMLKitCLI/` is a single module; no extra imports ar
 - **Swift PM:** From the package root, `swift build --target OpenFCPXMLKitCLI`; run with `swift run OpenFCPXMLKit-CLI --help` or use the built binary in `.build/debug/` or `.build/release/`.
 - **Xcode:** Open the package, choose the **OpenFCPXMLKitCLI** or **OpenFCPXMLKit-Package** scheme, then Run or use the Product executable.
 
-**Distributing the CLI:** The CLI is a **single binary**: the FCPXML DTDs (1.5–1.14) are hardcoded into the executable. Copy only **`OpenFCPXMLKit-CLI`** to any directory on the Mac or external storage; no resource bundle is required. The binary is produced in `.build/<arch>-apple-macosx/debug/` (or `release/`).
+**Distributing the CLI:** The CLI is a **single binary**: the FCPXML DTDs (1.5–1.15) are hardcoded into the executable. Copy only **`OpenFCPXMLKit-CLI`** to any directory on the Mac or external storage; no resource bundle is required. The binary is produced in `.build/<arch>-apple-macosx/debug/` (or `release/`).
 
 **Scripts:** Invoke the CLI directly (e.g. `"$TOOL_PATH" "$FCPXML_PATH" --validate`). Use a path to the binary with no trailing slash.
 

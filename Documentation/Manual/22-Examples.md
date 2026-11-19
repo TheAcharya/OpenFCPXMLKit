@@ -201,7 +201,7 @@ let xmlString = try exporter.export(
 // xmlString is valid FCPXML with empty spine, format width="500" height="500", frameDuration for 25 fps
 ```
 
-Use **TimelineFormat** presets (e.g. `hd1080p(frameDuration:colorSpace:)`) with any `frameDuration` for standard resolutions at different frame rates (23.976, 24, 25, 29.97, 30, 50, 59.94, 60 fps).
+Use **TimelineFormat** presets (e.g. `hd1080p(frameDuration:colorSpace:)`) with any `frameDuration` for standard resolutions at the eight timeline rates (23.976, 24, 25, 29.97, 30, 50, 59.94, 60 fps). Conform source rates, including the FCPXML 1.13+ tokens `90`, `100`, `119.88`, and `120`, are separate — see [03 — Timecode & Timing](03-Timecode-Timing.md#timeline-rates-and-conform-source-rates).
 
 ---
 

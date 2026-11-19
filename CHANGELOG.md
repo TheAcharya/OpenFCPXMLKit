@@ -7,6 +7,22 @@ OpenFCPXMLKit uses **New Features**, **Improvements**, and **Bug Fixes** for eac
 
 ---
 
+## [3.4.0](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.4.0) - 2026-11-19
+
+### ✨ New Features
+
+- **FCPXML 1.15:** DTD `Final_Cut_Pro_XML_DTD_version_1.15.dtd` is the latest schema. `FCPXMLVersion.default` and `FinalCutPro.FCPXML.Version.latest` are 1.15. New elements `adjust-natural-motion-blur` (primitive `<video>`) and `mask-semantic`. New attributes: anchorable / gap `flags`, pan-rect `interp`. Keyframe `interp` adds `hold`, `bezier`, and `passthrough`. `frameSampling` adds `vsa-motion-blur` (Speed Change effect name **VSA Motion Blur Retime**). Conversion to an older version strips the new elements and attributes and drops the new enumeration tokens. Suite **1273** listed (`swift test list` — **1259** + **10** + **4**), including `FCPXMLVersion115Tests`.
+
+### 🔧 Improvements
+
+- **Conform source rates:** `conform-rate` `srcFrameRate` accepts the FCPXML 1.13+ tokens `90`, `100`, `119.88`, and `120`. Conversion to a version older than 1.13 removes those tokens. Timeline frame rates are unchanged.
+
+### 🐛 Bug Fixes
+
+- None in this release.
+
+---
+
 ## [3.3.15](https://github.com/TheAcharya/OpenFCPXMLKit/releases/tag/3.3.15) - 2026-09-26
 
 ### ✨ New Features

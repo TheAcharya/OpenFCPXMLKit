@@ -2,7 +2,7 @@
 
 Living inventory of how OpenFCPXMLKit covers Final Cut Pro FCPXML across layers. Prefer this file when asking “is element *X* typed / authored / projected / reported?” Prefer [GUARDRAILS.md](../GUARDRAILS.md) for must / must-not, and [ARCHITECTURE.md](../ARCHITECTURE.md) §2.7 for where new work belongs.
 
-**Keep in sync** when adding Model types, Authoring encode/decode, Extraction presets, Projection walks, Reporting sheets, or Shot Extraction behaviour. Suite context: **1265** tests listed (`swift test list` — **1251** + **10** ExcelReportTest + **4** ShotExtractionTest); FCPXML **1.5–1.14**.
+**Keep in sync** when adding Model types, Authoring encode/decode, Extraction presets, Projection walks, Reporting sheets, or Shot Extraction behaviour. Suite context: **1273** tests listed (`swift test list` — **1259** + **10** ExcelReportTest + **4** ShotExtractionTest); FCPXML **1.5–1.15**.
 
 **Related Manual:** [02 — Loading & Parsing](Manual/02-Loading-Parsing.md) · [08 — Detached Authoring](Manual/08-Detached-Authoring.md) · [11 — Extraction](Manual/11-Extraction-Media.md) · [12 — Projection](Manual/12-Timeline-Projection.md) · [13 — Media Processing](Manual/13-Media-Processing.md) · [14 — Typed Models](Manual/14-Typed-Models.md) · [15 — XML Extensions](Manual/15-XML-Extensions.md) · [18 — Errors & Utilities](Manual/18-Errors-Utilities.md) · [20 — Reporting](Manual/20-Reporting.md) · [21 — Shot Extraction](Manual/21-Shot-Extraction.md)
 
@@ -99,13 +99,13 @@ XML / DTD  →  Parsing  →  Model  →  Extraction  →  Projection  →  Repo
 | `media`+`<multicam>` | `multicamResource` (`media@multicam`) | `Media.Multicam` | **yes** `Multicam` | — | **yes** | — | Inferred kind |
 | `media`+`<sequence>` | `compoundResource` (`media@sequence`) | `Media` + sequence | **yes** `MediaSequence` | — | **yes** | — | Inferred kind |
 | `effect` | `effectResource` | `Effect` | **yes** `Effect` | partial | partial | Effects names | Titles / transitions / filters `ref` |
-| `locator` | `locator` | `Locator` | — | — | — | — | FCPXML 1.14+ |
+| `locator` | `locator` | `Locator` | — | — | — | — | FCPXML 1.10+ |
 | `media-rep` | `mediaRep` | `MediaRep` | **yes** `MediaRep` | — | URLs | Media Summary | Public `fcpMediaURL` / `fcpMediaRepresentationURLs` unfold to **one** primary original/proxy pair (Sign `public-media-leaf-is-one-primary`) |
 | `metadata` / `md` | `metadata` / `md` | `Metadata` / `Metadatum` | — | — | — | Inventory dynamic keys | |
 | `bookmark` | `bookmark` | protocol child | — | — | — | — | |
 | `object-tracker` | `objectTracker` | `ObjectTracker` | — | — | — | — | Gate **1.10+** |
 | `tracking-shape` | `trackingShape` | `TrackingShape` | — | — | — | — | |
-| `import-options` / `option` | `importOptions` / `option` | `ImportOption` (value) | — | — | — | — | 1.14+ |
+| `import-options` / `option` | `importOptions` / `option` | `ImportOption` (value) | — | — | — | — | Present since 1.5 |
 | `multicam` | `multicam` | `Media.Multicam` | **yes** | — | **yes** | — | Inside `media` |
 | `mc-angle` | `mcAngle` | `Media.Multicam.Angle` | **yes** `MCAngle` | — | **yes** | — | |
 
@@ -184,16 +184,17 @@ All live models live under `Model/Adjustments/` and integrate via `Clip+Adjustme
 | `adjust-cinematic` | `CinematicAdjustment` | **yes** (on `AssetClip`) | **yes** | **yes** | **1.10+** |
 | `adjust-colorConform` | `ColorConformAdjustment` | — | **yes** | **yes** | **1.11+** |
 | `adjust-stereo-3D` | `Stereo3DAdjustment` | — | **yes** | **yes** | **1.13+** |
+| `adjust-natural-motion-blur` | `NaturalMotionBlurAdjustment` (primitive `<video>` only) | — | **yes** | display name on `.other` | **1.15+** |
 | `adjust-loudness` | `LoudnessAdjustment` | — | **yes** | **yes** | — |
 | `adjust-noiseReduction` | `NoiseReductionAdjustment` | — | **yes** | **yes** | — |
 | `adjust-humReduction` | `HumReductionAdjustment` | — | **yes** | **yes** | — |
 | `adjust-EQ` | `EqualizationAdjustment` | — | **yes** | **yes** | — |
 | `adjust-matchEQ` | `MatchEqualizationAdjustment` | — | **yes** | **yes** | — |
-| `adjust-voiceIsolation` | `VoiceIsolationAdjustment` | — | **yes** | **yes** | **1.11+** (gate; also 1.14 docs elsewhere) |
+| `adjust-voiceIsolation` | `VoiceIsolationAdjustment` | — | **yes** | **yes** | **1.11+** |
 | `adjust-volume` | `VolumeAdjustment` | **yes** | **yes** | **yes** | — |
 | `adjust-panner` | `PannerAdjustment` | — | **yes** | **yes** | — |
 
-**Count:** 20 typed adjustments (+ nested crop rects / `Point` helper).  
+**Count:** 21 typed adjustments (+ nested crop rects / `Point` helper). Pan-rect `interp` is FCPXML 1.15+ (default `ease`).  
 **Authoring:** only `adjust-volume` + `adjust-cinematic`.
 
 ---
@@ -207,6 +208,7 @@ All live models live under `Model/Adjustments/` and integrate via `Clip+Adjustme
 | `filter-video-mask` | `VideoFilterMask` | — | **yes** Effects | **yes** annot | Effects (inner `filter-video`) |
 | `mask-shape` | `MaskShape` | — | — | — | — |
 | `mask-isolation` | `MaskIsolation` | — | — | — | — |
+| `mask-semantic` | `MaskSemantic` (FCPXML 1.15+) | — | — | — | — |
 | `param` | `FilterParameter` | — | **yes** Effects | **yes** annot | Effects Settings |
 | `data` | keyed data on filters | — | — | — | — |
 | `mute` | `Mute` | — | — | — | — |
@@ -221,7 +223,7 @@ All live models live under `Model/Adjustments/` and integrate via `Clip+Adjustme
 | Element | Model | Auth | Notes |
 |---------|-------|------|-------|
 | `keyframeAnimation` | `KeyframeAnimation` | — | Under params / volume |
-| `keyframe` | `Keyframe` | — | `auxValue` gated **1.11+** |
+| `keyframe` | `Keyframe` | — | `auxValue` gated **1.11+**; `interp` tokens `hold` / `bezier` / `passthrough` are **1.15+** |
 | `fadeIn` / `fadeOut` | `FadeIn` / `FadeOut` | — | |
 | `param` + nested animation | `FilterParameter` | — | `auxValue` gated **1.11+** |
 
@@ -276,7 +278,7 @@ Authoring does **not** encode keyframes or fades. Projection **retiming** (`time
 
 | Element | Model | Auth | Proj | Rep |
 |---------|-------|------|------|-----|
-| `conform-rate` | `ConformRate` | — | **yes** scale | Speed / Summary |
+| `conform-rate` | `ConformRate` (`srcFrameRate` adds `90` / `100` / `119.88` / `120` in **1.13+**) | — | **yes** scale | Speed / Summary |
 | `timeMap` / `timept` | `TimeMap` / `TimePoint` | — | **yes** segments | Speed Change sheet |
 | `audio-channel-source` | `AudioChannelSource` | — | partial (expand) | Inventory channels; clip-level `audioRole`/`videoRole` also inventorizes when channel sources absent (nested connected hosts) |
 | `audio-role-source` | `AudioRoleSource` | — | — | roles |
@@ -304,6 +306,8 @@ From `FinalCutPro.FCPXML.VersionFeatureGate` (Authoring omit-on-write + converte
 | `adjust-stereo-3D` | 1.13 |
 | `hidden-clip-marker` | 1.13 |
 | `match-analysis-type` | 1.14 |
+| `adjust-natural-motion-blur` | 1.15 |
+| `mask-semantic` | 1.15 |
 
 ### Attributes
 
@@ -313,6 +317,8 @@ From `FinalCutPro.FCPXML.VersionFeatureGate` (Authoring omit-on-write + converte
 | `keyframe` | `auxValue` | 1.11 |
 | `format` | `heroEye` | 1.13 |
 | `asset` | `heroEyeOverride` | 1.13 |
+| `pan-rect` | `interp` | 1.15 |
+| anchorable story elements and `gap` | `flags` | 1.15 |
 
 **Floor:** Entire codebase remains compatible with FCPXML **1.5** (omit or ignore newer optional features when targeting 1.5).
 

@@ -53,8 +53,8 @@ OpenFCPXMLKit is a **Swift 6** framework for Final Cut Pro FCPXML: parsing, crea
 - **Targets:** macOS 26+, iOS 26+, Xcode 26+, Swift 6.3+
 - **Repository:** https://github.com/TheAcharya/OpenFCPXMLKit
 - **Dependencies:** SwiftTimecode 3.1.4+, SwiftExtensions 3.0.0+, SwiftSemanticVersion 1.0.0+, swift-log 1.14.0+, AEXML 4.7.0+, XLKit 1.1.8+, TextFile ([swift-textfile](https://github.com/orchetect/swift-textfile) 0.5.2+, Shot Extraction CSV), swift-argument-parser 1.8.2+ (CLI only), Foundation, CoreMedia, ImageIO.
-- **FCPXML:** Versions 1.5–1.14 (DTDs included); Final Cut Pro frame rates (23.976, 24, 25, 29.97, 30, 50, 59.94, 60).
-- **Tests:** **1265** tests listed in `swift test list` — **1251** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **60** sample `.fcpxml` files under `Tests/FCPXML Samples/FCPXML/`; private local inbox under `Tests/Submitted FCPXML/` (gitignored — never commit private FCPXML).
+- **FCPXML:** Versions 1.5–1.15 (DTDs included); Final Cut Pro frame rates (23.976, 24, 25, 29.97, 30, 50, 59.94, 60).
+- **Tests:** **1273** tests listed in `swift test list` — **1259** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest); **61** sample `.fcpxml` files under `Tests/FCPXML Samples/FCPXML/`; private local inbox under `Tests/Submitted FCPXML/` (gitignored — never commit private FCPXML).
 
 ---
 
@@ -251,7 +251,7 @@ flowchart TB
     SRC --> CLI["OpenFCPXMLKitCLI → OpenFCPXMLKit-CLI"]
     SRC --> GEN["GenerateEmbeddedDTDs"]
 
-    TST --> OKT["OpenFCPXMLKitTests — 1251 Swift Testing"]
+    TST --> OKT["OpenFCPXMLKitTests — 1259 Swift Testing"]
     TST --> ERT["ExcelReportTest — 10 optional Swift Testing"]
     TST --> SET["ShotExtractionTest — 4 optional Swift Testing"]
     TST --> SMP["FCPXML Samples/ — 60 .fcpxml files"]
@@ -310,7 +310,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    DTD["FCPXML DTDs 1.5–1.14"]
+    DTD["FCPXML DTDs 1.5–1.15"]
     XML["XML/ — OFKXML protocols · Foundation · AEXML"]
     PRS["Parsing/ — attributes, clips, roles (storyline isolation), time · TimeStringParsing · TimingCache"]
     MDL["Model/ — typed elements, adjustments, filters, roles · MarkerClipBoundary"]
@@ -486,7 +486,7 @@ Source layout under **`Sources/OpenFCPXMLKit/`**:
 | **ShotExtraction** | Still-image Shot Extraction (independent of Reporting): `ShotExtractor` / `extractShots(options:)` / `planShots(options:)` (`ShotExtractionPlan` dry-run). Projects the primary spine; rejects primary **video**, **titles / generators / Motion templates**, and **audio**; connected lanes ignored. Writes PNG copies + CSV or [csv2notion-neo](https://github.com/TheAcharya/csv2notion-neo)-compatible Notion JSON (`TextFile` for CSV); optional `--icon` / **Icon Image**; CLI `--dry-run` / optional result JSON. See Manual [21 — Shot Extraction](Documentation/Manual/21-Shot-Extraction.md). Signs: `shot-extraction-primary-stills-only`. |
 | **Reporting** | Excel and PDF report export. Top-level: `Report`, `ReportOptions` (including `includeNonStandardEffectsTemplates`, `includeChapterMarkersInMarkersReport` default **`true`**, `copyrightLabel`, `includeMarkersOutsideClipBoundaries`, `includeSpeedChangeSettingsInRoleInventory`, `includeScreenshotsInRoleInventory`, `protectSheets`), `ReportWorkbookCoverSheet` (`visitURL`), `ReportBuilder`, `ReportTimecodeFormat` (`.smpteFrames` / `.frames` / `.feetAndFrames` / `.smpteNoFrames`), `ReportBuildProgress` (`ReportBuildPhase.enabledPhases(for:)` — inventory-first product order with **Non-Std Effects & Templates** before Effects; shared by builder, CLI, and GUI progress). **Builders/** — per-sheet builders including `NonStandardEffectsTemplatesReportBuilder`, Markers (optional **Hidden** column; chapter markers on by default), `MediaSummaryReportBuilder`, and `SummaryReportBuilder`. **Sections/** and **Rows/** — typed section/row models with `columnHeaders(timecodeFormat:)`; inventory fixed block is **26** columns (Duplicate Frames, Frame Size / Audio Config, Codecs, Ingest Date, …); optional **Screenshot** / **Speed Change Settings**; empty enabled sections keep headers + `ReportEmptySectionStatus` (or Media Summary **No Missing Media**). **Support/** — `ReportProjectionContext` / `TimelineOccupancyIndex`, `ReportEmptySectionStatus`, `RoleInventoryClipCollector` (nested connected own-assignment + occluded retention via Parsing helper; Sign `connected-role-inventory-survives-nesting`; secondary-storyline / connected clips keep own roles; unfolded `mc-angle` interiors omitted via `ReportClipCategory.isUnfoldedMulticamInterior`; Sign `secondary-storyline-clips-keep-own-roles`; under-spine titles/`Title.role` + leaf `<video>` inventory; Sign `title-roles-honor-attribute`), `RoleInventoryScreenshotGrabber` / `RoleInventoryScreenshotMedia` / `RoleInventoryScreenshotFileName` (480px JPEG in the cell; full-frame PNG via `RoleInventoryScreenshotFolder`; stamp from the clip’s format frame rate, 24 fps only when no format; prefer `original-media`, proxy if original missing/unreadable; Signs `role-inventory-screenshots-excel-only`, `role-inventory-screenshots-prefer-original`), `ReportFormatting.titleRoleSubrole` / `effectRoleSubrole` / `retimeRoleSubrole` / `inventoryEffectsDisplay` / `effectSettingsDisplay` (Inspector units; Sign `effect-settings-match-fcp-display`) / `outTimecodeString` (last-visible Out; Sign `report-out-is-last-visible-frame`), `ReportRoleExclusion` / `sheetTabName` truncated-tab match (Sign `excluded-roles-apply-to-all-sheets`), `SpeedChangeFormatting` (**Optical Flow Retime** from `timeMap frameSampling`; one row per usage; Signs `speed-change-row-per-timeline-usage`, `speed-percent-is-media-over-timeline`, `retime-roles-default-like-effects`), `RoleInventorySourceSpan` (retimed Source Duration; Sign `retimed-source-duration-follows-speed`), `RoleInventoryDuplicateFrames` (Source In/Out overlap by `resourceID`, never `timeMap` media bounds; Sign `duplicate-frames-match-source-in-out`), `RoleInventorySheetTotal`, collectors/layout/exclusion/formatting/row-colour helpers (`ensuringRowColumn` / `allowsInjectedRowColumn` — **Row** on all tabular Excel/PDF sheets). **Excel/** — `ReportExcelExport`, `FCPXMLReportWorkbookExporter` (Summary title in **B1**; per-role **Total:** footer; four-row cover; optional Screenshot embeds via `FCPXMLReportWorkbookScreenshotEmbedder`; optional worksheet protection when `protectSheets`), `ReportWorkbookColumnAutoFit`. **PDF/** — `ReportPDFExport` and layout helpers (same Total footer; ignores `protectSheets` and screenshots). Timeline pick via `allReportTimelineSources()` (see §2.7). Consumes Extraction and Projection; owns presentation only. Signs: `empty-enabled-report-sheets-keep-status`, `role-inventory-screenshots-excel-only`, `role-inventory-screenshots-prefer-original`, `report-cover-four-row-branding`, `excluded-roles-apply-to-all-sheets`, `effect-settings-match-fcp-display`, `title-text-same-line-runs-concatenate`, `report-out-is-last-visible-frame`, `speed-change-row-per-timeline-usage`, `speed-percent-is-media-over-timeline`, `retimed-source-duration-follows-speed`, `duplicate-frames-match-source-in-out`, `retime-roles-default-like-effects`, `secondary-storyline-clips-keep-own-roles`. |
 | **XML** | Platform-agnostic XML layer: Protocols (OFKXMLNode, OFKXMLElement, OFKXMLDocument, OFKXMLDTDProtocol, OFKXMLFactory), Foundation/ (Foundation backends), AEXML/ (AEXML backends), OFKXMLDefaultFactory. |
-| **FCPXML DTDs** | Version 1.5–1.14 DTDs. |
+| **FCPXML DTDs** | Version 1.5–1.15 DTDs. |
 
 **CLI:** `Sources/OpenFCPXMLKitCLI/` — commands (`CheckVersion`, `ConvertVersion`, `Validate`, `ExtractMedia`, `ExtractShots`, `CreateProject`, `ExportReport`), option groups (`GeneralOptions`, `TimelineOptions`, `ExtractionOptions`, `ShotExtractionCLIOptions`, `ReportCLIOptions`, `LogOptions`), embedded DTDs (`Generated/EmbeddedDTDs.swift`).
 
@@ -556,7 +556,7 @@ Source layout under **`Sources/OpenFCPXMLKit/`**:
 ## 6. Design decisions
 
 - **FCPXMLParser** delegates URL loading to **FCPXMLFileLoader** (one code path for .fcpxml and .fcpxmld).
-- **FCPXMLVersion** (1.5–1.14, DTD) and **FinalCutPro.FCPXML.Version** (1.0–1.14, parsing) are bridged via `.fcpxmlVersion`, `.dtdVersion`, and `init(from:)`.
+- **FCPXMLVersion** (1.5–1.15, DTD) and **FinalCutPro.FCPXML.Version** (1.0–1.15, parsing) are bridged via `.fcpxmlVersion`, `.dtdVersion`, and `init(from:)`.
 - **Version conversion** sets root version and **strips elements** not in the target DTD (e.g. adjust-colorConform, adjust-stereo-3D). Per-version DTD validation via `FCPXMLService.validateDocumentAgainstDTD(_:version:)` and `validateDocumentAgainstDeclaredVersion(_:)`.
 - **Timeline** is a value type; manipulation methods (e.g. ripple insert, auto lane) return new instances or results; timestamps (`createdAt`, `modifiedAt`) are updated on mutating operations.
 - **SwiftTimecode:** Use `Timecode(.realTime(seconds:), at: frameRate)` and frame rate cases `.fps23_976`, `.fps24`, `.fps25`, etc. (not the old `._24`, `._25`).
@@ -582,7 +582,7 @@ Binary name: **`OpenFCPXMLKit-CLI`**. Mutually exclusive modes: `--check-version
 
 ## 8. Tests
 
-- **Count:** **1265** listed in `swift test list` — **1251** in `OpenFCPXMLKitTests` + **10** in optional `ExcelReportTest` + **4** in optional `ShotExtractionTest` (all Swift Testing `@Test`; **no XCTest** in `Tests/`). Optional targets **cancel** via `Test.cancel` without a local `.fcpxml`/`.fcpxmld` fixture.
+- **Count:** **1273** listed in `swift test list` — **1259** in `OpenFCPXMLKitTests` + **10** in optional `ExcelReportTest` + **4** in optional `ShotExtractionTest` (all Swift Testing `@Test`; **no XCTest** in `Tests/`). Optional targets **cancel** via `Test.cancel` without a local `.fcpxml`/`.fcpxmld` fixture.
 - **Framework:** Swift Testing exclusively (`@Suite` / `@Test` / `#expect` / `#require`). See GUARDRAILS Sign: `swift-testing-only`.
 - **Location:** `Tests/OpenFCPXMLKitTests/`; public samples in `Tests/FCPXML Samples/FCPXML/` (60 files, including `HiddenMarkers.fcpxml`); optional integration under `Tests/ExcelReportTest/` and `Tests/ShotExtractionTest/`; private investigation inbox under `Tests/Submitted FCPXML/` (gitignored `Inbox/` / `Notes/` — never commit private FCPXML to GitHub; see `Tests/Submitted FCPXML/README.md`).
 - **Harness:** `FCPXMLTestResources.swift` (paths); `FCPXMLTestSampleLoading.swift` + `FCPXMLTestSampleError.swift` (`tryLoad*`); `FCPXMLTestingSampleSupport.swift` (`require*` — bundled samples **fail** if missing; optional fixtures use `Test.cancel`); `FCPXMLReportingReportFixture.swift` / `FCPXMLReportingReportTestSupport.swift` for optional reporting fixtures; `FCPXMLSubmittedFCPXMLSmokeTests` for optional Inbox parse smoke; `FCPXMLShotExtractionTests` (**10** `@Test`) for still-image Shot Extraction (reject video/titles/audio; dry-run); `ExcelReportFixture` for the ExcelReportTest target; `ShotExtractionFixture` for the ShotExtractionTest target.

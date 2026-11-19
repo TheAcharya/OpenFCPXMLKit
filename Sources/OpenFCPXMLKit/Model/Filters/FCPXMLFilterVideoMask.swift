@@ -105,9 +105,41 @@ extension FinalCutPro.FCPXML {
         }
     }
     
+    /// A semantic mask used in video filter masks. FCPXML 1.15+.
+    public struct MaskSemantic: Sendable, Equatable, Hashable, Codable {
+        public var name: String?
+        public var isEnabled: Bool
+        public var blendMode: MaskBlendMode
+        /// Application-defined semantic type. Omitted when `nil`.
+        public var type: String?
+        public var parameters: [FilterParameter]
+
+        private enum CodingKeys: String, CodingKey {
+            case name
+            case isEnabled = "enabled"
+            case blendMode
+            case type
+            case parameters = "param"
+        }
+
+        public init(
+            name: String? = nil,
+            blendMode: MaskBlendMode = .add,
+            isEnabled: Bool = true,
+            type: String? = nil,
+            parameters: [FilterParameter] = []
+        ) {
+            self.name = name
+            self.blendMode = blendMode
+            self.isEnabled = isEnabled
+            self.type = type
+            self.parameters = parameters
+        }
+    }
+
     /// A video filter mask that applies a masked video effect.
     ///
-    /// Video filter masks contain mask shapes, mask isolations, and video filters.
+    /// Video filter masks contain mask shapes, mask isolations, semantic masks, and video filters.
     ///
     /// - SeeAlso: [FCPXML Video Filter Mask Documentation](
     ///   https://developer.apple.com/documentation/professional_video_applications/fcpxml_reference/filter-video-mask
@@ -118,6 +150,9 @@ extension FinalCutPro.FCPXML {
         
         /// The mask isolations of the video filter mask.
         public var maskIsolations: [MaskIsolation]
+
+        /// Semantic masks. FCPXML 1.15+.
+        public var maskSemantics: [MaskSemantic]
         
         /// The video filters of the video filter mask (primary and optional secondary).
         public var videoFilters: [VideoFilter]
@@ -131,6 +166,7 @@ extension FinalCutPro.FCPXML {
         private enum CodingKeys: String, CodingKey {
             case maskShapes = "mask-shape"
             case maskIsolations = "mask-isolation"
+            case maskSemantics = "mask-semantic"
             case videoFilters = "filter-video"
             case isEnabled = "enabled"
             case isInverted = "inverted"
@@ -142,6 +178,7 @@ extension FinalCutPro.FCPXML {
         ///   - secondaryVideoFilter: The secondary video filter (optional).
         ///   - maskShapes: Mask shapes (default: `[]`).
         ///   - maskIsolations: Mask isolations (default: `[]`).
+        ///   - maskSemantics: Semantic masks (default: `[]`). FCPXML 1.15+.
         ///   - isEnabled: Whether the mask is enabled (default: `true`).
         ///   - isInverted: Whether the mask is inverted (default: `false`).
         public init(
@@ -149,14 +186,38 @@ extension FinalCutPro.FCPXML {
             secondaryVideoFilter: VideoFilter? = nil,
             maskShapes: [MaskShape] = [],
             maskIsolations: [MaskIsolation] = [],
+            maskSemantics: [MaskSemantic] = [],
             isEnabled: Bool = true,
             isInverted: Bool = false
         ) {
             self.videoFilters = [primaryVideoFilter, secondaryVideoFilter].compactMap { $0 }
             self.maskShapes = maskShapes
             self.maskIsolations = maskIsolations
+            self.maskSemantics = maskSemantics
             self.isEnabled = isEnabled
             self.isInverted = isInverted
+        }
+
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            maskShapes = try container.decodeIfPresent([MaskShape].self, forKey: .maskShapes) ?? []
+            maskIsolations = try container.decodeIfPresent([MaskIsolation].self, forKey: .maskIsolations) ?? []
+            maskSemantics = try container.decodeIfPresent([MaskSemantic].self, forKey: .maskSemantics) ?? []
+            videoFilters = try container.decode([VideoFilter].self, forKey: .videoFilters)
+            isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? true
+            isInverted = try container.decodeIfPresent(Bool.self, forKey: .isInverted) ?? false
+        }
+
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(maskShapes, forKey: .maskShapes)
+            try container.encode(maskIsolations, forKey: .maskIsolations)
+            if !maskSemantics.isEmpty {
+                try container.encode(maskSemantics, forKey: .maskSemantics)
+            }
+            try container.encode(videoFilters, forKey: .videoFilters)
+            try container.encode(isEnabled, forKey: .isEnabled)
+            try container.encode(isInverted, forKey: .isInverted)
         }
     }
 }

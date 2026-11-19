@@ -7,6 +7,7 @@
 ## Table of Contents
 
 - [FinalCutPro.FCPXML](#finalcutprofcpxml)
+- [Library exports and timeline exports](#library-exports-and-timeline-exports)
 
 ---
 
@@ -44,6 +45,16 @@ Bridging with **FCPXMLVersion** (DTD/validation): use `.fcpxmlVersion` and `.dtd
 For building Excel or PDF reports from either a project or a standalone compound clip, see [20 — Reporting, Excel & PDF Export](20-Reporting.md).
 
 **Roles:** `FinalCutPro.FCPXML.AncestorRoles` describes interpolated inherited roles for an element. Nested secondary-storyline `<spine>` children and connected (`lane != 0`) clips isolate from the parent clip host — see [02 — Loading & Parsing](02-Loading-Parsing.md#inherited-roles).
+
+---
+
+## Library exports and timeline exports
+
+A library export and a project export are the same `<fcpxml>` document. `root.library` is the library. `allEvents()` and `allProjects()` walk every event and project, including when several events sit under that library. `Event.storyElements` is the browser clips on an event (clips that are not inside a project sequence). `Event.smartCollections` and `Library.smartCollections` are the collections Final Cut wrote at those levels.
+
+The loader accepts `.fcpxml` and `.fcpxmld` (`Info.fcpxml`). It does not open a live Final Cut library (`.fcpbundle`).
+
+Reporting, Projection, and Shot Extraction follow timelines: each project sequence, and a compound clip exported with no `<project>` (`allReportTimelineSources()`). Browser clips that never appear on a timeline stay available on the event and are not inventoried by those features.
 
 ---
 

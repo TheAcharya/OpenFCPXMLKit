@@ -157,7 +157,7 @@ public final class FCPXMLService: Sendable {
         return parser.validate(document)
     }
 
-    /// Validates the document against the DTD for the given FCPXML version (1.5-1.14).
+    /// Validates the document against the DTD for the given FCPXML version (1.5-1.15).
     ///
     /// Use this to ensure a document conforms to a specific version's schema before
     /// import or after conversion. Each FCPXML version has a distinct DTD in the package.
@@ -179,7 +179,7 @@ public final class FCPXMLService: Sendable {
     /// Validates the document against the DTD for its declared root version.
     ///
     /// Reads the document's `fcpxml` root `version` attribute and validates against
-    /// the matching DTD (1.5-1.14). Use to check that a document conforms to the schema
+    /// the matching DTD (1.5-1.15). Use to check that a document conforms to the schema
     /// it claims. If the version is missing or not supported, returns an error result.
     /// - Parameter document: The FCPXML document to validate.
     /// - Returns: `.success` if the document conforms to its declared version's DTD; otherwise a result with errors (e.g. unknown version or DTD validation failure).
@@ -410,7 +410,7 @@ public final class FCPXMLService: Sendable {
         return await parser.validate(document)
     }
 
-    /// Asynchronously validates the document against the DTD for the given FCPXML version (1.5-1.14).
+    /// Asynchronously validates the document against the DTD for the given FCPXML version (1.5-1.15).
     ///
     /// **Note:** This method calls the synchronous validator directly. Since validation is CPU-bound
     /// and works with non-Sendable document types, wrapping in `Task` would not provide

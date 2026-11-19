@@ -47,6 +47,8 @@ extension FinalCutPro.FCPXML {
             case transform
             case compositing
             case spatialConform
+            /// Natural Motion Blur on a primitive `<video>` element. FCPXML 1.15+.
+            case naturalMotionBlur
         }
         
         /// An inspector-visible name/value pair (filter parameters, blend mode, …).

@@ -25,10 +25,14 @@ struct FCPXMLVersionFeatureGateTests {
         #expect(!omitted.contains("asset-clip"))
     }
 
-    @Test("Element omit set for 1.14 is empty for gated features")
-    func elementOmitSetFor1_14Empty() {
-        let omitted = FinalCutPro.FCPXML.VersionFeatureGate.elementNamesToOmit(at: .v1_14)
+    @Test("Element omit set for 1.15 is empty and 1.14 omits 1.15 elements")
+    func elementOmitSetFor1_15Empty() {
+        let omitted = FinalCutPro.FCPXML.VersionFeatureGate.elementNamesToOmit(at: .v1_15)
         #expect(omitted.isEmpty)
+        let at114 = FinalCutPro.FCPXML.VersionFeatureGate.elementNamesToOmit(at: .v1_14)
+        #expect(at114.contains("adjust-natural-motion-blur"))
+        #expect(at114.contains("mask-semantic"))
+        #expect(!at114.contains("match-analysis-type"))
     }
 
     @Test("Attribute omit set for heroEye before 1.13")

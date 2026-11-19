@@ -98,6 +98,10 @@ extension FinalCutPro.FCPXML.Version {
     /// FCPXML 1.14 introduced in Final Cut Pro 12.0.
     /// Format is a `fcpxmld` bundle.
     public static let ver1_14: Self = Self(1, 14)
+
+    /// FCPXML 1.15.
+    /// Format is a `fcpxmld` bundle.
+    public static let ver1_15: Self = Self(1, 15)
 }
 
 extension FinalCutPro.FCPXML.Version: CaseIterable {
@@ -116,7 +120,8 @@ extension FinalCutPro.FCPXML.Version: CaseIterable {
         .ver1_11,
         .ver1_12,
         .ver1_13,
-        .ver1_14
+        .ver1_14,
+        .ver1_15
     ]
     
     /// Returns the latest FCPXML format version supported.
@@ -143,7 +148,7 @@ extension FinalCutPro.FCPXML.Version {
     /// Creates a `FinalCutPro.FCPXML.Version` from an `FCPXMLVersion`.
     ///
     /// - Parameter dtdVersion: An `FCPXMLVersion` value.
-    /// - Note: All `FCPXMLVersion` cases (1.5-1.14) have corresponding `Version` raw values.
+    /// - Note: All `FCPXMLVersion` cases (1.5-1.15) have corresponding `Version` raw values.
     ///   If a future mismatch occurs, this defaults to `.latest`.
     public init(from dtdVersion: FCPXMLVersion) {
         guard let version = Self(rawValue: dtdVersion.rawValue) else {

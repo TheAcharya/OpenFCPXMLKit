@@ -19,7 +19,7 @@
 
 OpenFCPXMLKit provides a comprehensive API for parsing, creating, and manipulating FCPXML files with advanced timecode operations, async/await patterns, and robust error handling. The framework is **protocol-oriented**: you inject parsers, timecode converters, document managers, and error handlers to configure a service that fits your app. All major operations are available both **synchronously** and **asynchronously**.
 
-**Target:** macOS 26+, iOS 26+, Xcode 26+, Swift 6.3 with full concurrency support. The library uses a platform-agnostic XML layer (`OFKXMLDocument`, `OFKXMLElement`, `OFKXMLFactory`): Foundation backend on macOS, AEXML backend on iOS.
+**Target:** macOS 26+, iOS 26+, Xcode 26+, Swift 6.3 with full concurrency support. The library uses a platform-agnostic XML layer (`OFKXMLDocument`, `OFKXMLElement`, `OFKXMLFactory`): Foundation backend on macOS, AEXML backend on iOS. Parsing covers FCPXML 1.0–1.15. DTD validation and version conversion cover 1.5–1.15. `FCPXMLVersion.default` and `FinalCutPro.FCPXML.Version.latest` are 1.15.
 
 ---
 

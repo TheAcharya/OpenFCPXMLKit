@@ -21,7 +21,7 @@ struct GeneralOptions: ParsableArguments {
     @Flag(name: .long, help: "Check and print FCPXML document version.")
     var checkVersion: Bool = false
 
-    @Option(name: .long, help: ArgumentHelp("Convert FCPXML to the given version (e.g. 1.10, 1.14) and write to output-dir.", valueName: "version"))
+    @Option(name: .long, help: ArgumentHelp("Convert FCPXML to the given version (e.g. 1.10, 1.15) and write to output-dir.", valueName: "version"))
     var convertVersion: String?
 
     @Option(name: .long, help: "Output format for --convert-version: fcpxmld (bundle) or fcpxml (single file). Default: fcpxmld when converting. For target versions 1.5–1.9, .fcpxml is used regardless.")

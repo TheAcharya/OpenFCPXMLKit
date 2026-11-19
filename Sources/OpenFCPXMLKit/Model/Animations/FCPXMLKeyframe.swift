@@ -18,6 +18,12 @@ extension FinalCutPro.FCPXML {
         case ease
         case easeIn
         case easeOut
+        /// FCPXML 1.15+.
+        case hold
+        /// FCPXML 1.15+.
+        case bezier
+        /// FCPXML 1.15+.
+        case passthrough
     }
     
     /// Specifies the possible curves that can be used in an individual keyframe of a keyframe animation.

@@ -21,10 +21,10 @@ From the index you can reach all chapters:
 
 - **01** — Overview (architecture, entry points, protocols)
 - **02** — Loading & Parsing (file loader, versions, element types, public leaf media URLs, inherited roles, large-document walks)
-- **03** — Timecode & Timing (SwiftTimecode, FCPXMLTimecode, CMTime, scoped timing cache)
+- **03** — Timecode & Timing (SwiftTimecode, FCPXMLTimecode, CMTime, scoped timing cache, timeline rates vs conform `srcFrameRate`)
 - **04** — Service & Logging (FCPXMLService, ModularUtilities)
 - **05** — Validation & Cut Detection
-- **06** — Version Conversion & Export (`VersionFeatureGate`)
+- **06** — Version Conversion & Export (`VersionFeatureGate`; 1.15 and 1.13 high `srcFrameRate` tokens stripped below their introduction)
 - **07** — Timeline & Export
 - **08** — Detached Authoring (`FinalCutPro.FCPXML.Authoring`)
 - **09** — Timeline Manipulation (ripple insert, auto lane, clip queries)
@@ -32,9 +32,9 @@ From the index you can reach all chapters:
 - **11** — Extraction & Media (scope, presets, inherited roles, leaf media URLs via public Parsing APIs, media copy)
 - **12** — Timeline Projection (`TimelineProjector`, `MediaUsageWindow`, annotation knobs, container-bounded contained media, report project-once; inventory vs unfolded `mc-angle`)
 - **13** — Media Processing (MIME, asset validation, silence `trimStart`/`trimEnd`, duration, parallel I/O, optional `FCPXMLProgressReporter`)
-- **14** — Typed Models (adjustments incl. Corners/Panner; Transform `inspectorPixels` via sequence height, filters, captions, keyframes, collections)
+- **14** — Typed Models (adjustments incl. Corners/Panner, 1.15 Natural Motion Blur, pan-rect `interp`, anchored `flags`; Transform `inspectorPixels` via sequence height; filters incl. `mask-semantic`; captions; keyframes incl. `hold` / `bezier` / `passthrough`; collections)
 - **15** — XML Extensions (OFKXMLDocument, OFKXMLElement, public `fcpMediaURL` / `fcpMediaRepresentationURLs`)
-- **16** — High-Level Model (FinalCutPro.FCPXML)
+- **16** — High-Level Model (FinalCutPro.FCPXML, library exports vs timeline exports)
 - **17** — Cross-Platform & iOS (OFKXML abstraction, Foundation vs AEXML)
 - **18** — Errors & Utilities (error types, `FCPXMLProgressReporter` / ProgressBar, FCPXMLUID)
 - **19** — CLI (OpenFCPXMLKit-CLI)
@@ -49,5 +49,5 @@ From the index you can reach all chapters:
 - **Documentation index:** [README.md](README.md)
 - **CLI reference:** [../Sources/OpenFCPXMLKitCLI/README.md](../Sources/OpenFCPXMLKitCLI/README.md)
 - **Project README:** [../README.md](../README.md)
-- **Tests:** [../Tests/README.md](../Tests/README.md) — **1265** listed tests (all Swift Testing)
+- **Tests:** [../Tests/README.md](../Tests/README.md) — **1273** listed tests (all Swift Testing)
 
