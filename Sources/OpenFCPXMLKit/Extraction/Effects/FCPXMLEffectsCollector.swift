@@ -120,6 +120,10 @@ extension FinalCutPro.FCPXML {
             if let transform = element.firstChildElement(named: "adjust-transform") {
                 appendTransformEffects(transform, host: host, into: &effects)
             }
+
+            if let blur = element.firstChildElement(named: "adjust-natural-motion-blur") {
+                appendNaturalMotionBlurEffect(blur, host: host, into: &effects)
+            }
         }
         
         private static func collectVolumeEffects(
@@ -351,6 +355,36 @@ extension FinalCutPro.FCPXML {
             }
         }
         
+        private static func appendNaturalMotionBlurEffect(
+            _ blur: any OFKXMLElement,
+            host: ExtractedElement,
+            into effects: inout [ExtractedEffect]
+        ) {
+            let settings: ExtractedEffect.Settings
+            if let amount = blur.stringValue(forAttributeNamed: "amount")?
+                .trimmingCharacters(in: .whitespacesAndNewlines),
+               !amount.isEmpty
+            {
+                settings = .namedValues([
+                    ExtractedEffect.NamedValue(name: "Amount", value: amount)
+                ])
+            } else {
+                settings = .empty
+            }
+            effects.append(
+                ExtractedEffect(
+                    host: host,
+                    timelineContext: nil,
+                    effectElement: blur,
+                    kind: .naturalMotionBlur,
+                    name: "Natural Motion Blur",
+                    settings: settings,
+                    sortOrder: 0,
+                    isAppleSupplied: true
+                )
+            )
+        }
+
         private static func appendConformEffect(
             _ conform: any OFKXMLElement,
             host: ExtractedElement,
@@ -579,6 +613,7 @@ extension FinalCutPro.FCPXML {
                 || effectElement.name == "adjust-transform"
                 || effectElement.name == "adjust-blend"
                 || effectElement.name == "adjust-conform"
+                || effectElement.name == "adjust-natural-motion-blur"
             {
                 if effectElement.stringValue(forAttributeNamed: "enabled") != nil {
                     return effectElement.fcpGetEnabled(default: true)

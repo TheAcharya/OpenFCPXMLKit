@@ -69,7 +69,7 @@ struct OpenFCPXMLKitCLI: ParsableCommand {
                 throw ValidationError("output-dir is required when using --create-project (pass the output directory as the positional argument).")
             }
             if let v = timeline.projectVersion, FCPXMLVersion(string: v) == nil {
-                throw ValidationError("Invalid --project-version for --create-project: '\(v)'. Use a version between 1.5 and 1.14 (e.g. 1.10, 1.14).")
+                throw ValidationError("Invalid --project-version for --create-project: '\(v)'. Use a version between 1.5 and 1.15 (e.g. 1.10, 1.15).")
             }
             let modeCount = [general.checkVersion, general.convertVersion != nil, general.validate, extraction.mediaCopy, shotExtraction.extractShots, reportOptions.report].filter { $0 }.count
             if modeCount > 0 {

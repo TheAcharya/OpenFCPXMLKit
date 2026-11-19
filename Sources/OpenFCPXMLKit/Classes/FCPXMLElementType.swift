@@ -10,7 +10,7 @@
 
 import Foundation
 
-/// Defines the element types that can exist in FCPXML documents (FCPXML 1.5–1.14).
+/// Defines the element types that can exist in FCPXML documents (FCPXML 1.5–1.15).
 /// Every element defined in the FCPXML DTDs is represented here for typed filtering and identification.
 @available(macOS 26.0, *)
 public enum FCPXMLElementType: String, CaseIterable, Sendable {
@@ -108,6 +108,8 @@ public enum FCPXMLElementType: String, CaseIterable, Sendable {
 	case adjustColorConform = "adjust-colorConform"
 	/// The `<adjust-stereo-3D>` element.
 	case adjustStereo3D = "adjust-stereo-3D"
+	/// The `<adjust-natural-motion-blur>` element (FCPXML 1.15+; primitive `video` only).
+	case adjustNaturalMotionBlur = "adjust-natural-motion-blur"
 	/// The `<adjust-loudness>` element.
 	case adjustLoudness = "adjust-loudness"
 	/// The `<adjust-noiseReduction>` element.
@@ -194,6 +196,8 @@ public enum FCPXMLElementType: String, CaseIterable, Sendable {
 	case maskShape = "mask-shape"
 	/// The `<mask-isolation>` element.
 	case maskIsolation = "mask-isolation"
+	/// The `<mask-semantic>` element (FCPXML 1.15+).
+	case maskSemantic = "mask-semantic"
 	/// The `<filter-audio>` element.
 	case filterAudio = "filter-audio"
 

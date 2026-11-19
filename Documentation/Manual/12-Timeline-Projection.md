@@ -132,7 +132,7 @@ try await projector.project(from: source, fcpxml: fcpxml, options: options) { wi
 ## What Projection walks
 
 - Spine `asset-clip` usages with identity or `timeMap` retiming (multi-segment, reverse)
-- `conform-rate` scale via shared `fcpConformRateScalingFactor`
+- `conform-rate` scale via shared `fcpConformRateScalingFactor`. `srcFrameRate` includes the FCPXML 1.13+ tokens `90`, `100`, `119.88`, and `120` (`ConformRate.SourceFrameRate`). `adjust-natural-motion-blur` is annotated under the existing adjust- prefix; its display name is **Natural Motion Blur**.
 - Nested spines / anchored children and J/L cuts (`audioStart` / `audioDuration`)
 - Container spans: descending into a `clip` / `sync-clip` / `gap` composes an identity segment over the container's own span for children that carry **no** `lane`, so contained media is clipped to what the container shows. Children with a `lane` are connected clips and keep their own extent. Final Cut Pro routinely writes the full source length on the `<audio>` inside a trimmed `<clip>`, so a contained child's own `duration` is not trustworthy — see Sign `containers-bound-their-content-not-their-anchors`.
 - `mc-clip` angles (active or all; split video/audio), `ref-clip` media sequences, auditions

@@ -9,7 +9,7 @@ A modern Swift 6 framework for working with Final Cut Pro's FCPXML with full con
 
 OpenFCPXMLKit provides a type-safe API for parsing, creating, and manipulating FCPXML with async/await, SwiftTimecode, and Excel/PDF reporting. Targets **macOS 26+** and **iOS 26+** (Foundation XML on macOS; AEXML on iOS).
 
-**Tests:** **1265** listed in `swift test list` — **1251** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing) — across **60** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
+**Tests:** **1273** listed in `swift test list` — **1259** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest` (all Swift Testing) — across **61** sample `.fcpxml` files. Private local investigation inbox: [`Tests/Submitted FCPXML/`](Tests/Submitted%20FCPXML/README.md) (gitignored; never commit private FCPXML).
 
 OpenFCPXMLKit is currently in an experimental stage. It covers most core FCPXML attributes and parameters and provides a solid foundation for parsing, creation, and manipulation, with room for future expansion and additional feature coverage.
 
@@ -65,20 +65,22 @@ This codebase is developed using AI agents.
 
 ### Documents & validation
 - Read / create / modify `.fcpxml` and `.fcpxmld` bundles (`FCPXMLFileLoader`, sync & async)
-- FCPXML **1.5–1.14** DTDs; semantic + DTD validation (full DTD on macOS; structural on iOS)
-- Version convert with automatic element stripping for the target DTD
+- FCPXML **1.5–1.15** DTDs; semantic + DTD validation (full DTD on macOS; structural on iOS)
+- Version convert with automatic stripping of elements, attributes, and enum tokens absent from the target DTD (1.15 tokens below 1.15; `srcFrameRate` `90` / `100` / `119.88` / `120` below 1.13)
 - Cut detection (edit points, transitions, gaps); typed element filtering (`FCPXMLElementType`)
 
 ### Timecode & timing
 - SwiftTimecode: `CMTime`, `Timecode`, FCPXML time strings
 - `FCPXMLTimecode` (arithmetic, frame alignment, conversion)
-- Frame rates: 23.976, 24, 25, 29.97, 30, 50, 59.94, 60 fps
+- Timeline frame rates: 23.976, 24, 25, 29.97, 30, 50, 59.94, 60 fps
+- Conform `srcFrameRate` also includes `47.95`, `48`, and (FCPXML 1.13+) `90`, `100`, `119.88`, `120`
 
 ### Typed models
 - Resources, events, clips, projects, transitions, multicam
-- Adjustments (crop, corners, transform, volume, panner, EQ, 360, stereo 3D, …)
-- Filters, captions/titles (`TextStyle`), smart collections, keyword folders
-- Keyframe animation, Live Drawing (1.11+), HiddenClipMarker / heroEye / mediaReps (1.13+)
+- Adjustments (crop, corners, transform, volume, panner, EQ, 360, stereo 3D, natural motion blur on `<video>` in 1.15+, …)
+- Filters (`mask-semantic` in 1.15+), captions/titles (`TextStyle`), smart collections, keyword folders
+- Keyframe animation (`hold` / `bezier` / `passthrough` in 1.15+), anchored `flags`, pan-rect `interp` (1.15+)
+- Live Drawing (1.11+), HiddenClipMarker / heroEye / mediaReps (1.13+)
 
 ### Timeline
 - Build and export `Timeline` / `TimelineFormat` (presets, empty projects)
@@ -119,7 +121,7 @@ This codebase is developed using AI agents.
   - Empty enabled sheets keep headers + status rows (**No Markers Found**, **No Missing Media**, …) via `ReportEmptySectionStatus`
 - Cover branding: **Created by** → **Created on** → **Visit** (API `visitURL`) → optional copyright (`--label-copyright`)
 - Filters: roles (`--exclude-role` on every role-bearing sheet), columns (incl. **Row**), disabled clips, project name, timecode format, copyright label
-- Effects: FCP-matching Settings (Opacity percent, Transform Position/Scale); Speed Change **Optical Flow Retime**; Titles **Title Text** concatenates same-line style runs
+- Effects: FCP-matching Settings (Opacity percent, Transform Position/Scale); Speed Change names include **VSA Motion Blur Retime**, **Optical Flow Retime**, **Frame Blending Retime**, **Nearest Neighbor Retime**, and **Retime**; Titles **Title Text** concatenates same-line style runs
 - Markers: default omits out-of-bounds starts; `--include-markers-outside-clip-boundaries` adds them + **Hidden** column
 - Excel: `--protect-sheets` / `protectSheets` applies worksheet edit locks (not encryption; PDF unaffected)
 - CLI: `--report`, `--report-full`, `--report-non-standard-effects`, `--include-role-inventory-screenshots`, `--create-pdf`, `--media-resolution`, `--timecode-format`, `--protect-sheets`, …
@@ -256,7 +258,7 @@ ARGUMENTS:
 GENERAL:
   --check-version         Check and print FCPXML document version.
   --convert-version <version>
-                          Convert FCPXML to the given version (e.g. 1.10, 1.14) and write to output-dir.
+                          Convert FCPXML to the given version (e.g. 1.10, 1.15) and write to output-dir.
   --extension-type <extension-type>
                           Output format for --convert-version: fcpxmld (bundle) or fcpxml (single file). Default:
                           fcpxmld when converting. For target versions 1.5–1.9, .fcpxml is used regardless. (values:
@@ -270,7 +272,7 @@ TIMELINE:
   --height <height>       Project height in pixels (used with --create-project).
   --rate <rate>           Frame rate (e.g. 24, 25, 29.97) (used with --create-project).
   --project-version <project-version>
-                          FCPXML version for the new project (e.g. 1.10, 1.14). Default: 1.14. (used with
+                          FCPXML version for the new project (e.g. 1.10, 1.15). Default: 1.15. (used with
                           --create-project).
 
 EXTRACTION:
@@ -384,14 +386,14 @@ Complete manual, usage guide, and examples are in the [Documentation](Documentat
 - **[CLI](Sources/OpenFCPXMLKitCLI/README.md)** — Flags, examples, building and extending
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — Layer stack, codebase map, Mermaid diagrams
 - **[GUARDRAILS.md](GUARDRAILS.md)** — Must / must-not constraints for contributors and agents
-- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1265** listed; all Swift Testing)
+- **[Tests/README.md](Tests/README.md)** — Test suite layout (**1273** listed; all Swift Testing)
 - **[AGENT.md](AGENT.md)** — AI agent / contributor briefing
 
 ## FCPXML Version Support
 
-OpenFCPXMLKit supports FCPXML versions 1.5 through 1.14. All DTDs for these versions are included. You can validate a document against any version's schema (e.g. `document.validateFCPXMLAgainst(version: "1.14")`).
+OpenFCPXMLKit supports FCPXML versions 1.5 through 1.15. `FCPXMLVersion.default` is **1.15**. Parsing accepts 1.0–1.15. All DTDs for 1.5–1.15 are included. You can validate a document against any version's schema (e.g. `document.validateFCPXMLAgainst(version: "1.15")`).
 - Parsing: Any well-formed FCPXML document parses successfully; the full XML tree is available via the protocol-based XML layer (`OFKXMLDocument`/`OFKXMLElement` — Foundation-backed on macOS, AEXML-backed on iOS).
-- Typed element types: Every element from the FCPXML DTDs (1.5–1.14) is represented in `FCPXMLElementType`, so you can identify and filter by any element (e.g. `locator`, `import-options`, `live-drawing`, `filter-video`, all `adjust-*`, smart-collection match rules, etc.). Structural types like multicam vs compound `media` are inferred from the first child.
+- Typed element types: Every element from the FCPXML DTDs (1.5–1.15) is represented in `FCPXMLElementType`, so you can identify and filter by any element (e.g. `locator`, `import-options`, `live-drawing`, `filter-video`, all `adjust-*`, smart-collection match rules, etc.). Structural types like multicam vs compound `media` are inferred from the first child.
 - Typed attributes and helpers: The framework also provides typed properties and helpers for a subset of elements (e.g. `fcpxDuration`, `fcpxOffset`, event/project/clip APIs). Other elements are fully accessible via `element.name`, `element.attribute(forName:)`, and the shared `getElementAttribute` / `setElementAttribute` helpers.
 
 ## Modularity & Safety
@@ -403,7 +405,7 @@ OpenFCPXMLKit supports FCPXML versions 1.5 through 1.14. All DTDs for these vers
 ## Architecture Overview
 
 - Protocols define parsing, timecode conversion, document operations, error handling, MIME type detection, asset validation, silence detection, asset duration measurement, and parallel file I/O; each has a default implementation you can swap. FCPXMLService (and FCPXMLUtility) composes these and exposes sync and async APIs. ModularUtilities provides createService, processFCPXML, validateDocument, convertTimecodes, and similar helpers.
-- FCPXMLFileLoader handles .fcpxml and .fcpxmld (including bundle Info.fcpxml). FCPXMLValidator and FCPXMLDTDValidator handle structural and schema validation (full DTD on macOS; FCPXMLStructuralValidator on iOS when DTD is unavailable); DTDs for 1.5–1.14 are bundled.
+- FCPXMLFileLoader handles .fcpxml and .fcpxmld (including bundle Info.fcpxml). FCPXMLValidator and FCPXMLDTDValidator handle structural and schema validation (full DTD on macOS; FCPXMLStructuralValidator on iOS when DTD is unavailable); DTDs for 1.5–1.15 are bundled.
 - A cross-platform XML layer (`Sources/OpenFCPXMLKit/XML/`) provides protocol types (OFKXMLNode, OFKXMLElement, OFKXMLDocument, OFKXMLFactory) with Foundation and AEXML backends. Extensions on CMTime and the XML protocol types offer convenience APIs; use modular overloads with an explicit dependency to inject your own. Error types are explicit (FCPXMLError, FCPXMLLoadError, export and validation errors); you can inject a custom error handler.
 - The engine is layered bottom-up — `XML → Parsing → Model → Extraction → Projection → Reporting` — so the CLI, extraction presets, timeline tools, and reports share one foundation. **Authoring** is a parallel detached create path (not in the Reporting stack). **Projection** emits playable `MediaUsageWindow`s; **Reporting** (Excel via XLKit, PDF via CoreGraphics) maps Projection + Extraction facts into sheets and owns presentation only. See [ARCHITECTURE.md](ARCHITECTURE.md) for the full codebase map and layer boundaries, and [GUARDRAILS.md](GUARDRAILS.md) for hard must / must-not constraints on those layers.
 

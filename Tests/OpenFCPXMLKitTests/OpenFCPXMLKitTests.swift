@@ -39,7 +39,7 @@ import SwiftTimecode
 // 22. XMLElement Extension
 // 23. Parser Filter Multicam/Compound
 //
-// Coverage: Extensive FCPXML coverage — all versions (1.5–1.14), all supported frame rates, parsing/validation, FCPXML time strings,
+// Coverage: Extensive FCPXML coverage — all versions (1.5–1.15), all supported frame rates, parsing/validation, FCPXML time strings,
 // element-type filtering (core + extended + multicam/compound), document/event/resource/clip extensions, error types, async/await,
 // performance, and edge cases. Not every single extension property has a dedicated test; main API surface is well covered.
 
@@ -702,11 +702,11 @@ struct OpenFCPXMLKitTests {
     }
     
     // MARK: - Document Management Tests
-    /// Document creation for FCPXML versions 1.5–1.14; complex structure (resources + sequence).
+    /// Document creation for FCPXML versions 1.5–1.15; complex structure (resources + sequence).
 
     @Test
     func testDocumentManagerWithAllFCPXMLVersions() {
-        let versions = ["1.5", "1.6", "1.7", "1.8", "1.9", "1.10", "1.11", "1.12", "1.13", "1.14"]
+        let versions = ["1.5", "1.6", "1.7", "1.8", "1.9", "1.10", "1.11", "1.12", "1.13", "1.14", "1.15"]
         
         for version in versions {
             let document = documentManager.createFCPXMLDocument(version: version)
@@ -1705,10 +1705,11 @@ struct OpenFCPXMLKitTests {
 
     @Test
     func testFCPXMLVersionAllCasesAndDefault() {
-        #expect(FCPXMLVersion.default == .v1_14)
+        #expect(FCPXMLVersion.default == .v1_15)
         #expect(FCPXMLVersion.v1_10.stringValue == "1.10")
-        #expect(FCPXMLVersion.v1_14.dtdResourceName == "Final_Cut_Pro_XML_DTD_version_1.14")
-        #expect(FCPXMLVersion(string: "1.14") != nil)
+        #expect(FCPXMLVersion.v1_15.dtdResourceName == "Final_Cut_Pro_XML_DTD_version_1.15")
+        #expect(FCPXMLVersion(string: "1.15") != nil)
+        #expect(FCPXMLVersion(string: "1.15") == .v1_15)
         #expect(FCPXMLVersion(string: "1.14") == .v1_14)
         #expect(FCPXMLVersion.v1_14.isAtLeast(.v1_10))
         let condition1 = FCPXMLVersion.v1_5.isAtLeast(.v1_14)

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?><fcpxml version="1.15">
+    <resources>
+        <format id="r1" name="FFVideoFormat1080p2398" frameDuration="1001/24000s" width="1920" height="1080" colorSpace="1-1-1 (Rec. 709)"/>
+        <effect id="r2" name="Custom" uid=".../Generators.localized/Solids.localized/Custom.localized/Custom.motn"/>
+        <effect id="r3" name="Grey Scale" uid=".../Generators.localized/Solids.localized/Grey Scale.localized/Grey Scale.motn"/>
+        <effect id="r4" name="Pastel" uid=".../Generators.localized/Solids.localized/Pastel.localized/Pastel.motn"/>
+        <effect id="r5" name="Essential Countdown" uid=".../Generators.localized/Essential.localized/Essential Countdown.localized/Essential Countdown.motn"/>
+        <effect id="r6" name="Bell" uid=".../Generators.localized/Objects.localized/Bell.localized/Bell.motn"/>
+        <format id="r7" name="FFVideoFormat1080p2997" frameDuration="1001/30000s" width="1920" height="1080" colorSpace="1-1-1 (Rec. 709)"/>
+        <asset id="r8" name="Wildlife Animals" uid="8D2463D1DFEBBDAD9FBFBB35C1383004" start="0s" duration="723190/1000s" hasVideo="1" format="r7" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="44100">
+            <media-rep kind="original-media" sig="8D2463D1DFEBBDAD9FBFBB35C1383004" src="file:///Users/user/Movies/GeneralDemo13/Media/Wildlife%20Animals.mp4">
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD (1-1-1)"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>'avc1'</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2026-11-19 08:34:11 +0800"/>
+            </metadata>
+        </asset>
+        <effect id="r9" name="iMovie" uid=".../Generators.localized/Solids.localized/iMovie.localized/iMovie.motn"/>
+        <effect id="r10" name="Industrial" uid=".../Generators.localized/Textures.localized/Industrial.localized/Industrial.motn"/>
+    </resources>
+    <library location="file:///Users/user/Movies/GeneralDemo13/Untitled.fcpbundle/">
+        <event name="19-11-26" uid="6D6D1541-C95D-4F26-835C-7B49391C2AB9">
+            <project uid="26945C07-000D-451E-B126-6AEB5F7411A5" modDate="2026-11-19 08:37:23 +0800" name="Untitled Project (Converted-1.15)">
+                <sequence format="r1" duration="61050990/120000s" tcStart="0s" audioLayout="stereo" audioRate="48k">
+                    <spine>
+                        <video ref="r2" offset="0s" name="Custom" start="86486400/24000s" duration="9819810/120000s">
+                            <video ref="r9" lane="1" offset="87229142/24000s" flags="1" name="iMovie" start="86486400/24000s" duration="4059055/120000s"/>
+                        </video>
+                        <video ref="r3" offset="9819810/120000s" name="Grey Scale" start="86486400/24000s" duration="7212205/120000s">
+                            <video ref="r4" lane="1" offset="86900814/24000s" name="Pastel" start="86486400/24000s" duration="3868865/120000s"/>
+                        </video>
+                        <gap name="Gap" offset="17032015/120000s" start="86400314/24000s" duration="2288286/24000s">
+                            <video ref="r10" lane="1" offset="434969535/120000s" flags="1" name="Industrial" start="86486400/24000s" duration="5220215/120000s"/>
+                        </gap>
+                        <video ref="r5" offset="28473445/120000s" name="Essential Countdown" start="86486400/24000s" duration="5078073/24000s"/>
+                        <video ref="r2" offset="53863810/120000s" name="Custom" start="86486400/24000s" duration="6426420/120000s">
+                            <video ref="r6" lane="1" offset="86666580/24000s" name="Bell" start="86486400/24000s" duration="778778/24000s">
+                                <adjust-transform>
+                                    <param name="position">
+                                        <keyframeAnimation>
+                                            <keyframe time="2596393800/720000s" value="0 0" interp="bezier"/>
+                                            <keyframe time="433538105/120000s" value="0 2.22222" interp="bezier"/>
+                                            <keyframe time="434999565/120000s" value="16.6978 -4.06205" interp="bezier"/>
+                                        </keyframeAnimation>
+                                        <param name="Speed" key="104">
+                                            <keyframeAnimation>
+                                                <keyframe time="2596393800/720000s" value="15" interp="ease"/>
+                                                <keyframe time="433538105/120000s" value="15" interp="ease"/>
+                                                <keyframe time="434999565/120000s" value="15" interp="ease"/>
+                                            </keyframeAnimation>
+                                        </param>
+                                    </param>
+                                    <param name="rotation">
+                                        <keyframeAnimation>
+                                            <keyframe time="2596393800/720000s" value="0" interp="ease" curve="linear"/>
+                                        </keyframeAnimation>
+                                    </param>
+                                    <param name="scale">
+                                        <keyframeAnimation>
+                                            <keyframe time="2596393800/720000s" value="1 1" interp="ease"/>
+                                            <keyframe time="433538105/120000s" value="1.27 1.27" interp="ease"/>
+                                            <keyframe time="434999565/120000s" value="1.5 1.5" interp="ease"/>
+                                        </keyframeAnimation>
+                                    </param>
+                                </adjust-transform>
+                            </video>
+                        </video>
+                        <clip offset="60290230/120000s" name="Wildlife Animals" duration="152152/24000s" format="r7" tcFormat="NDF">
+                            <conform-rate scaleEnabled="0" srcFrameRate="29.97" frameSampling="vsa-motion-blur"/>
+                            <video ref="r8" offset="0s" duration="21695674/30000s">
+                                <adjust-natural-motion-blur amount="84"/>
+                                <audio ref="r8" lane="-1" offset="0s" duration="520696800/720000s" role="dialogue.dialogue-1" srcCh="1, 2"/>
+                            </video>
+                        </clip>
+                    </spine>
+                </sequence>
+            </project>
+        </event>
+        <smart-collection name="Projects" match="all">
+            <match-clip rule="is" type="project"/>
+        </smart-collection>
+        <smart-collection name="All Video" match="any">
+            <match-media rule="is" type="videoOnly"/>
+            <match-media rule="is" type="videoWithAudio"/>
+        </smart-collection>
+        <smart-collection name="Audio Only" match="all">
+            <match-media rule="is" type="audioOnly"/>
+        </smart-collection>
+        <smart-collection name="Stills" match="all">
+            <match-media rule="is" type="stills"/>
+        </smart-collection>
+        <smart-collection name="Favorites" match="all">
+            <match-ratings value="favorites"/>
+        </smart-collection>
+        <smart-collection name="Missing Analysis" match="all">
+            <match-analysis-type rule="isMissing" value="any"/>
+        </smart-collection>
+    </library>
+</fcpxml>

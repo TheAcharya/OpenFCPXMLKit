@@ -7,6 +7,7 @@
 ## Table of Contents
 
 - [Time conversions with SwiftTimecode](#time-conversions-with-swifttimecode)
+- [Timeline rates and conform source rates](#timeline-rates-and-conform-source-rates)
 - [FCPXMLTimecode: custom timecode type](#fcpxmltimecode-custom-timecode-type)
 - [CMTime Codable extension](#cmtime-codable-extension)
 - [Async time operations](#async-time-operations)
@@ -41,6 +42,14 @@ let fcpxmlTime = cmTime.fcpxmlTime(using: timecodeConverter)
 ```
 
 **Note:** Use SwiftTimecode's `Timecode(.realTime(seconds:), at:)` and frame rate cases `.fps23_976`, `.fps24`, `.fps25`, `.fps29_97`, `.fps30`, `.fps50`, `.fps59_94`, `.fps60` (not the legacy `._24`, `._25`, etc.).
+
+---
+
+## Timeline rates and conform source rates
+
+Project and sequence frame rates stay the eight Final Cut Pro rates: 23.976, 24, 25, 29.97, 30, 50, 59.94, and 60.
+
+`conform-rate` `srcFrameRate` is a separate token list on `ConformRate.SourceFrameRate`. Besides the sequence rates (written as `23.98` and `59.94`), it includes `47.95` and `48`, and, since FCPXML 1.13, `90`, `100`, `119.88`, and `120`. Those four map to SwiftTimecode `.fps90`, `.fps100`, `.fps119_88`, and `.fps120`. They are media rates being conformed into a timeline, not additional timeline rates. Conversion to a version older than 1.13 removes the four 1.13 tokens.
 
 ---
 

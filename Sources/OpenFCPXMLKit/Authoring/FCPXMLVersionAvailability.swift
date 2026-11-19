@@ -24,7 +24,7 @@ extension FinalCutPro.FCPXML {
         /// Last version that may include the fact (`nil` = through the latest supported DTD).
         public var lastSupported: FCPXMLVersion?
 
-        /// Available in every supported DTD version (1.5–1.14).
+        /// Available in every supported DTD version (1.5–1.15).
         public static let always = VersionAvailability(introduced: nil, lastSupported: nil)
 
         /// Available starting at `version` (inclusive) through the latest DTD.

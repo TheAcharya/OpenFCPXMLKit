@@ -354,6 +354,7 @@ extension FinalCutPro.FCPXML {
                 case .frameBlending: return 2
                 case .opticalFlowClassic, .opticalFlowFRC: return 3
                 case .opticalFlow: return 4
+                case .vsaMotionBlur: return 5
                 }
             }
             return rank(incoming) >= rank(existing) ? incoming : existing

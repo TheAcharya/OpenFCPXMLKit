@@ -49,7 +49,7 @@ let version = root?.stringValue(forAttributeNamed: "version")
 `XMLDTD` and full DTD validation are **macOS-only**. On iOS:
 
 - **FCPXMLDTDValidator** does not run the full DTD validator. It uses **FCPXMLStructuralValidator** instead and returns a result that may include a **structuralValidationOnly** warning to indicate that only structural checks were performed.
-- **FCPXMLStructuralValidator** (cross-platform) checks: root element name `fcpxml`, required `version` attribute, required `resources` child, at least one content element (library/event/project), and an element-name allowlist for FCPXML 1.5–1.14. It does not replace full DTD validation but catches many malformed documents. Keep the structural allowlist in sync with DTD-derived element coverage when new FCPXML versions add elements.
+- **FCPXMLStructuralValidator** (cross-platform) checks: root element name `fcpxml`, required `version` attribute, required `resources` child, at least one content element (library/event/project), and an element-name allowlist for FCPXML 1.5–1.15. It does not replace full DTD validation but catches many malformed documents. Keep the structural allowlist in sync with DTD-derived element coverage when new FCPXML versions add elements.
 
 ---
 
@@ -62,7 +62,7 @@ let version = root?.stringValue(forAttributeNamed: "version")
 
 ## Testing
 
-- The suite uses **Swift Testing** exclusively (`@Suite` / `@Test` / `#expect` / `#require`). **1265** tests are listed in `swift test list` (**1251** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest`). See [Tests/README.md](../../Tests/README.md).
+- The suite uses **Swift Testing** exclusively (`@Suite` / `@Test` / `#expect` / `#require`). **1273** tests are listed in `swift test list` (**1259** in `OpenFCPXMLKitTests` + **10** optional `ExcelReportTest` + **4** optional `ShotExtractionTest`). See [Tests/README.md](../../Tests/README.md).
 - Tests run on **macOS** and exercise the Foundation XML backend. Optional fixtures cancel via `Test.cancel` when unset (ExcelReportTest Sample, `OFK_REPORTING_FCPXML_BUNDLE`, ShotExtractionTest Sample, `OFK_SHOT_EXTRACTION_FCPXML`, Submitted inbox).
 - Public fixtures: `Tests/FCPXML Samples/FCPXML/` (committed). Private investigation: [Submitted FCPXML](../../Tests/Submitted%20FCPXML/README.md) (`Inbox/` gitignored — never commit private FCPXML to GitHub).
 - **iOS** is supported for building the library (e.g. iOS Simulator); running the same tests on iOS is not required for CI because they depend on Foundation XML. AEXML parity and structural validation are covered by tests that run on macOS.

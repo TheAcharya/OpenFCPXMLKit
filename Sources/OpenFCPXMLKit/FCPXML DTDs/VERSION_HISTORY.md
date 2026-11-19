@@ -1,8 +1,8 @@
-# FCPXML DTD Version History (1.5 – 1.14)
+# FCPXML DTD Version History (1.5 – 1.15)
 
-This document is a **version-by-version comparison** of the Final Cut Pro XML (FCPXML) DTDs from 1.5 through 1.14. It is intended for contributors and implementors who need to understand schema evolution, version conversion, and compatibility.
+This document is a **version-by-version comparison** of the Final Cut Pro XML (FCPXML) DTDs from 1.5 through 1.15. It is intended for contributors and implementors who need to understand schema evolution, version conversion, and compatibility.
 
-**Source:** DTD files in this directory: `Final_Cut_Pro_XML_DTD_version_1.5.dtd` … `Final_Cut_Pro_XML_DTD_version_1.14.dtd`.
+**Source:** DTD files in this directory: `Final_Cut_Pro_XML_DTD_version_1.5.dtd` … `Final_Cut_Pro_XML_DTD_version_1.15.dtd`.
 
 **Copyright:** DTDs are © 2011–2026 Apple Inc. This version history is documentation only and is not part of the official FCPXML specification.
 
@@ -18,7 +18,7 @@ This document is a **version-by-version comparison** of the Final Cut Pro XML (F
 6. [Removed or replaced entities / content models](#6-removed-or-replaced-entities--content-models)
 7. [Intrinsic video/audio params evolution](#7-intrinsic-videoaudio-params-evolution)
 8. [Smart collection rules](#8-smart-collection-rules)
-9. [Version conversion notes (OpenFCPXMLKit)](#9-version-conversion-notes-OpenFCPXMLKit-CLI)
+9. [Version conversion notes (OpenFCPXMLKit)](#9-version-conversion-notes-openfcpxmlkit)
 10. [Summary matrix](#10-summary-matrix)
 
 ---
@@ -28,14 +28,14 @@ This document is a **version-by-version comparison** of the Final Cut Pro XML (F
 | Version | Root `fcpxml` content model |
 |---------|-----------------------------|
 | **1.5** | `(import-options?, resources?, library)` — library required; no top-level events without library. |
-| **1.6–1.14** | `(import-options?, resources?, (library \| event* \| (%event_item;)*))` — allows library, or events/event items (clips, projects, etc.) at top level. |
+| **1.6–1.15** | `(import-options?, resources?, (library \| event* \| (%event_item;)*))` — allows library, or events/event items (clips, projects, etc.) at top level. |
 
 **Event content (`event` children):**
 
 | Version | Event may contain |
 |---------|-------------------|
 | **1.5** | `clip \| audition \| mc-clip \| ref-clip \| %collection_item; \| project` |
-| **1.6–1.14** | `clip \| audition \| mc-clip \| ref-clip \| sync-clip \| asset-clip \| %collection_item; \| project` |
+| **1.6–1.15** | `clip \| audition \| mc-clip \| ref-clip \| sync-clip \| asset-clip \| %collection_item; \| project` |
 
 So **1.6+** add **sync-clip** and **asset-clip** as direct event children.
 
@@ -47,7 +47,7 @@ So **1.6+** add **sync-clip** and **asset-clip** as direct event children.
 |---------|----------------------------|-------------------|
 | 1.5 | `(asset \| effect \| format \| media)*` | — |
 | 1.6–1.9 | `(asset \| effect \| format \| media)*` | — |
-| **1.10–1.14** | `(asset \| effect \| format \| media \| locator)*` | **locator** |
+| **1.10–1.15** | `(asset \| effect \| format \| media \| locator)*` | **locator** |
 
 **Locator** (1.10+): `<!ELEMENT locator (bookmark?)>` with `id` (ID #REQUIRED), `url` (CDATA #REQUIRED). Used for URL-based references (e.g. linked media).
 
@@ -58,7 +58,7 @@ So **1.6+** add **sync-clip** and **asset-clip** as direct event children.
 | Version | `asset` content model | Asset source model |
 |---------|------------------------|--------------------|
 | **1.5–1.8** | `(bookmark?, metadata?)` | Single `src` attribute on `asset` (file URL). |
-| **1.9–1.14** | `(media-rep+, metadata?)` | **media-rep** elements (one or more); each has `src`, optional `kind` (original-media \| proxy-media), `sig`, `suggestedFilename`. Asset no longer has `src`; `videoSources` added 1.9+. |
+| **1.9–1.15** | `(media-rep+, metadata?)` | **media-rep** elements (one or more); each has `src`, optional `kind` (original-media \| proxy-media), `sig`, `suggestedFilename`. Asset no longer has `src`; `videoSources` added 1.9+. |
 
 **Attribute changes on `asset`:**
 
@@ -72,8 +72,9 @@ So **1.6+** add **sync-clip** and **asset-clip** as direct event children.
 | 1.10 | — | **locator**; resources include locator; asset **auxVideoFlags**; format projection "fisheye" \| "back-to-back fisheye" (in 1.7+ already); **object-tracker**, **adjust-cinematic**; smart-collection **match-representation**, **match-markers** |
 | 1.11 | — | keyframe **auxValue**; param **auxValue** |
 | 1.12 | — | **adjust-colorConform** in intrinsic-params-video; smart-collection same as 1.11 |
-| 1.13 | — | format **heroEye**; asset **heroEyeOverride**; **adjust-stereo-3D** in intrinsic-params-video |
+| 1.13 | — | format **heroEye**; asset **heroEyeOverride**; **adjust-stereo-3D** in intrinsic-params-video; conform-rate **srcFrameRate** tokens **90**, **100**, **119.88**, **120** |
 | 1.14 | — | smart-collection **match-analysis-type** |
+| 1.15 | — | anchorable **flags** (`ao_attrs` and `gap`); pan-rect **interp**; keyframe interp tokens **hold**, **bezier**, **passthrough**; conform-rate / timeMap frameSampling **vsa-motion-blur** |
 
 ---
 
@@ -92,6 +93,7 @@ Elements introduced in each version (first appearance in DTD).
 | **1.12** | (adjust-colorConform already present as element in 1.12; **adjust-colorConform** in content model) |
 | **1.13** | **adjust-stereo-3D** (element + in intrinsic-params-video). |
 | **1.14** | (match-analysis-type in smart-collection; **intrinsic-params-live-drawing** entity) |
+| **1.15** | **adjust-natural-motion-blur** (primitive `video` only); **mask-semantic**. |
 
 **Removed / replaced elements (when downgrading from 1.6+ to 1.5):**
 
@@ -126,9 +128,16 @@ Selected attribute additions by version.
 | 1.10 | locator | **id**, **url** |
 | 1.11 | keyframe | **auxValue** |
 | 1.11 | param | **auxValue** |
+| 1.13 | conform-rate | **srcFrameRate** tokens **90**, **100**, **119.88**, **120** (the attribute itself is older) |
 | 1.13 | format | **heroEye** (left \| right) |
 | 1.13 | asset | **heroEyeOverride** |
 | 1.14 | (same as 1.13 for these; adjust-colorConform, adjust-stereo-3D present) | — |
+| 1.15 | audition, spine, and story elements that use `clip_attrs` / `clip_attrs_with_optional_duration`; gap | **flags** |
+| 1.15 | pan-rect | **interp** (`linear` \| `ease` \| `easeIn` \| `easeOut`, default `ease`) |
+| 1.15 | keyframe | interp tokens **hold**, **bezier**, **passthrough** (the `interp` attribute itself is older) |
+| 1.15 | conform-rate, timeMap | frameSampling token **vsa-motion-blur** |
+| 1.15 | adjust-natural-motion-blur | **enabled**, **amount** (0–100, implied) |
+| 1.15 | mask-semantic | **name**, **enabled**, **blendMode** (default `add`), **type** |
 
 ---
 
@@ -136,7 +145,7 @@ Selected attribute additions by version.
 
 | Change | Versions |
 |--------|----------|
-| **%timelist%** entity | Declared in 1.5–1.9; **not** declared in 1.10–1.14. |
+| **%timelist%** entity | Declared in 1.5–1.9; **not** declared in 1.10–1.15. |
 | **%event_item%** | 1.5: event content inlined (no event_item). 1.6+: `event_item` includes sync-clip, asset-clip. |
 | **%audio_comp_items%** | 1.5 only: `(audio-source*, audio-aux-source*)`. Removed in 1.6; replaced by audio-channel-source*, audio-role-source* in clip/ref-clip/etc. |
 | **%clip_item%** | 1.5: no sync-clip, asset-clip. 1.6+: includes sync-clip, asset-clip. |
@@ -162,13 +171,14 @@ Selected attribute additions by version.
 | 1.10 | + **object-tracker?**, **adjust-cinematic?** |
 | 1.11, 1.12 | + **adjust-colorConform?** |
 | 1.13, 1.14 | + **adjust-stereo-3D?** |
+| 1.15 | same as 1.14. `<video>` uses **%intrinsic-params-primitive-video%** = that list plus **adjust-natural-motion-blur?** |
 
 **%intrinsic-params-audio%** (1.5 vs 1.6+):
 
 | Version | Contents |
 |---------|----------|
 | 1.5 | adjust-loudness?, adjust-noiseReduction?, adjust-humReduction?, (adjust-EQ \| adjust-matchEQ)?, adjust-volume?, adjust-panner? |
-| 1.6–1.14 | adjust-volume?, adjust-panner? (audio enhancements moved to %adjust-audio-enhancements% used inside audio-channel-source / audio-role-source) |
+| 1.6–1.15 | adjust-volume?, adjust-panner? (audio enhancements moved to %adjust-audio-enhancements% used inside audio-channel-source / audio-role-source) |
 
 **%adjust-audio-enhancements%** (1.6+):  
 `(adjust-loudness?, adjust-noiseReduction?, adjust-humReduction?, (adjust-EQ | adjust-matchEQ)?)` — used in audio-channel-source and audio-role-source.
@@ -187,6 +197,7 @@ Selected attribute additions by version.
 | 1.12 | (same as 1.11) |
 | 1.13 | (same as 1.12) |
 | 1.14 | + **match-analysis-type** |
+| 1.15 | (same as 1.14) |
 
 **match-usage** (1.9+): `rule (used | unused) "used"`, `enabled (0 | 1) "1"`.
 
@@ -202,6 +213,9 @@ When **converting to an older FCPXML version**, the OpenFCPXMLKit version conver
   - **caption**, **object-tracker**, **adjust-cinematic**, **adjust-360-transform**, **adjust-reorient**, **adjust-orientation**: stripped when target is 1.5 or 1.6 where not defined.
   - **sync-clip**, **asset-clip**, **sync-source**, **locator**, **media-rep**: stripped or rewritten when target does not support them (e.g. 1.5).
   - **match-usage**, **match-representation**, **match-markers**, **match-analysis-type**: stripped when target smart-collection content model does not include them.
+  - **adjust-natural-motion-blur**, **mask-semantic**, anchorable / gap **flags**, and pan-rect **interp**: present in 1.15; stripped when the target is older than 1.15.
+  - conform-rate **srcFrameRate** tokens **90**, **100**, **119.88**, and **120**: present in 1.13+; removed when the target is older than 1.13.
+  - **keyframe** `interp` values `hold`, `bezier`, and `passthrough`, and **frameSampling** `vsa-motion-blur`, are removed when the target is older than 1.15 so the attribute falls back to the older DTD default (`linear` / `floor`).
 
 Validation is **per-version**: use `FCPXMLService.validateDocumentAgainstDTD(_:version:)` or `validateDocumentAgainstDeclaredVersion(_:)` with the appropriate DTD.
 
@@ -209,26 +223,32 @@ Validation is **per-version**: use `FCPXMLService.validateDocumentAgainstDTD(_:v
 
 ## 10. Summary matrix
 
-| Feature | 1.5 | 1.6 | 1.7 | 1.8 | 1.9 | 1.10 | 1.11 | 1.12 | 1.13 | 1.14 |
-|--------|-----|-----|-----|-----|-----|------|------|------|------|------|
-| Root: library \| event* \| event_item | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| sync-clip, asset-clip | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| audio-channel-source, audio-role-source | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| audio-source, audio-aux-source | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| library colorProcessing | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| format colorSpace, projection, stereoscopic | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| adjust-360-transform, reorient, orientation | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| caption | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| media-rep (asset) | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| locator resource | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| object-tracker, adjust-cinematic | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| match-usage | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| match-representation, match-markers | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| adjust-colorConform | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
-| adjust-stereo-3D | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
-| format heroEye, asset heroEyeOverride | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
-| match-analysis-type | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| %timelist% entity | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Feature | 1.5 | 1.6 | 1.7 | 1.8 | 1.9 | 1.10 | 1.11 | 1.12 | 1.13 | 1.14 | 1.15 |
+|--------|-----|-----|-----|-----|-----|------|------|------|------|------|------|
+| Root: library \| event* \| event_item | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| sync-clip, asset-clip | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| audio-channel-source, audio-role-source | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| audio-source, audio-aux-source | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| library colorProcessing | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| format colorSpace, projection, stereoscopic | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| adjust-360-transform, reorient, orientation | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| caption | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| media-rep (asset) | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| locator resource | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| object-tracker, adjust-cinematic | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| match-usage | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| match-representation, match-markers | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| adjust-colorConform | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| adjust-stereo-3D | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| format heroEye, asset heroEyeOverride | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| match-analysis-type | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| %timelist% entity | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| adjust-natural-motion-blur | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| mask-semantic | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| anchorable / gap flags | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| pan-rect interp | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| keyframe interp hold / bezier / passthrough | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| frameSampling vsa-motion-blur | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 
 ---
 

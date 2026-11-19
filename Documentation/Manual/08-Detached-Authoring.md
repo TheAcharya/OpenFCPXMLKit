@@ -27,7 +27,7 @@
 
 Authoring does **not** replace Model or Timeline export. Do **not** use Authoring inside **Reporting** — reports consume Extraction → Projection only (see [20 — Reporting](20-Reporting.md) and [ARCHITECTURE.md](../../ARCHITECTURE.md) §2.7).
 
-Coverage is intentional and **incremental**: story spine compounds and common resources are supported; markers, most filters, metadata, and generic `<clip>` are not yet modeled in Authoring.
+Coverage is intentional and **incremental**: story spine compounds and common resources are supported; markers, most filters, metadata, and generic `<clip>` are not yet modeled in Authoring. FCPXML 1.15 `flags`, `mask-semantic`, and `adjust-natural-motion-blur` stay on the live Model. Authoring does not encode them. `VersionFeatureGate` and DTD stripping still omit them when the target version is older than 1.15.
 
 ---
 

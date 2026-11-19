@@ -484,6 +484,21 @@ struct FCPXMLTimelineProjectionTests {
         #expect(endMatch)
     }
 
+    @Test("FCPXML 1.13 high conform source rates map bidirectionally")
+    func highConformSourceFrameRatesMapBidirectionally() {
+        let pairs: [(String, FinalCutPro.FCPXML.ConformRate.SourceFrameRate, TimecodeFrameRate)] = [
+            ("90", .fps90, .fps90),
+            ("100", .fps100, .fps100),
+            ("119.88", .fps119_88, .fps119_88),
+            ("120", .fps120, .fps120),
+        ]
+        for (rawValue, source, timecode) in pairs {
+            #expect(FinalCutPro.FCPXML.ConformRate.SourceFrameRate(rawValue: rawValue) == source)
+            #expect(source.timecodeFrameRate == timecode)
+            #expect(FinalCutPro.FCPXML.ConformRate.SourceFrameRate(timecodeFrameRate: timecode) == source)
+        }
+    }
+
     @Test("ConformRate applyingConform annotates scale from shared table")
     func conformRate_ApplyingConform_AnnotatesScaleFromSharedTable() throws {
         let conform = FinalCutPro.FCPXML.ConformRate(

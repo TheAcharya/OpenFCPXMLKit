@@ -74,7 +74,7 @@ enum ConvertVersionError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .unsupportedVersion(let v):
-            return "Unsupported FCPXML version: '\(v)'. Use a version between 1.5 and 1.14 (e.g. 1.10, 1.14)."
+            return "Unsupported FCPXML version: '\(v)'. Use a version between 1.5 and 1.15 (e.g. 1.10, 1.15)."
         case .dtdValidationFailed(let version, let message):
             return "DTD validation failed for FCPXML version \(version). The converted document does not conform to the schema.\n\(message)"
         }

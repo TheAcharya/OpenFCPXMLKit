@@ -37,6 +37,7 @@ extension FinalCutPro.FCPXML.Clip {
         static let frequency = "frequency"
         static let frontBackMix = "front_back_mix"
         static let interaxial = "interaxial"
+        static let interp = "interp"
         static let key = "key"
         static let latitude = "latitude"
         static let left = "left"
@@ -145,7 +146,16 @@ extension FinalCutPro.FCPXML.Clip {
                           let bottom = Double(panElement.stringValue(forAttributeNamed: AttributeName.bottom) ?? "0") else {
                         return nil
                     }
-                    return FinalCutPro.FCPXML.CropAdjustment.PanRect(left: left, top: top, right: right, bottom: bottom)
+                    let interpolation = FinalCutPro.FCPXML.CropAdjustment.PanRectInterpolation(
+                        rawValue: panElement.stringValue(forAttributeNamed: AttributeName.interp) ?? "ease"
+                    ) ?? .ease
+                    return FinalCutPro.FCPXML.CropAdjustment.PanRect(
+                        left: left,
+                        top: top,
+                        right: right,
+                        bottom: bottom,
+                        interpolation: interpolation
+                    )
                 }
             }
             
@@ -194,6 +204,9 @@ extension FinalCutPro.FCPXML.Clip {
                     panRectElement.addAttribute(name: AttributeName.top, value: String(panRect.top))
                     panRectElement.addAttribute(name: AttributeName.right, value: String(panRect.right))
                     panRectElement.addAttribute(name: AttributeName.bottom, value: String(panRect.bottom))
+                    if panRect.interpolation != .ease {
+                        panRectElement.addAttribute(name: AttributeName.interp, value: panRect.interpolation.rawValue)
+                    }
                     adjustElement.addChild(panRectElement)
                 }
             }

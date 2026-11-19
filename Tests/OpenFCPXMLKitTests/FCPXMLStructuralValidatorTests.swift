@@ -167,7 +167,7 @@ struct FCPXMLStructuralValidatorTests {
     @Test("Known version passes")
     func knownVersionPasses() {
         // All known versions should pass structural validation
-        for version in ["1.6", "1.10", "1.13", "1.14"] {
+        for version in ["1.6", "1.10", "1.13", "1.14", "1.15"] {
             let root = factory.makeElement(name: "fcpxml")
             root.addAttribute(name: "version", value: version)
             root.addChild(factory.makeElement(name: "resources"))

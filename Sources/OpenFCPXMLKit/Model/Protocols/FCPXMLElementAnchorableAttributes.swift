@@ -23,8 +23,11 @@ import SwiftTimecode
 /// <!ENTITY % ao_attrs "
 ///     lane CDATA #IMPLIED
 ///     offset %time; #IMPLIED
+///     flags CDATA #IMPLIED
 /// ">
 /// ```
+///
+/// `flags` is FCPXML 1.15+.
 public protocol FCPXMLElementAnchorableAttributes: FCPXMLElement {
     /// Lane.
     /// Specifies where the object is contained/anchored relative to its parent.
@@ -36,6 +39,9 @@ public protocol FCPXMLElementAnchorableAttributes: FCPXMLElement {
     
     /// Offset within parent timeline. (Default: 0)
     var offset: Fraction? { get nonmutating set }
+
+    /// Application-defined flags. FCPXML 1.15+. Omitted when `nil`.
+    var flags: String? { get nonmutating set }
 }
 
 extension FCPXMLElementAnchorableAttributes {
@@ -47,6 +53,25 @@ extension FCPXMLElementAnchorableAttributes {
     public var offset: Fraction? {
         get { element.fcpOffset }
         nonmutating set { element.fcpOffset = newValue }
+    }
+
+    public var flags: String? {
+        get {
+            guard let value = element.stringValue(forAttributeNamed: "flags")?
+                .trimmingCharacters(in: .whitespacesAndNewlines),
+                  !value.isEmpty
+            else { return nil }
+            return value
+        }
+        nonmutating set {
+            if let newValue = newValue?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !newValue.isEmpty
+            {
+                element.addAttribute(name: "flags", value: newValue)
+            } else {
+                element.removeAttribute(forName: "flags")
+            }
+        }
     }
 }
 

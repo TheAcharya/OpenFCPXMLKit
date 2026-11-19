@@ -86,7 +86,52 @@ public final class FCPXMLVersionConverter: FCPXMLVersionConverting, Sendable {
             stripUnsupportedAttributes(in: root, targetVersion: targetVersion)
         }
 
+        if targetVersion.isOlder(than: .v1_15) {
+            normalizeEnumerationsIntroducedIn1_15(in: root)
+        }
+        if targetVersion.isOlder(than: .v1_13) {
+            normalizeConformSourceFrameRatesIntroducedIn1_13(in: root)
+        }
+
         return copy
+    }
+
+    /// DTD allowlists name `srcFrameRate`, not its tokens. FCPXML 1.13 added
+    /// `90`, `100`, `119.88`, and `120`. Drop those tokens below 1.13 so the
+    /// attribute falls back to omitted (`#IMPLIED`).
+    private func normalizeConformSourceFrameRatesIntroducedIn1_13(in element: any OFKXMLElement) {
+        if element.name == "conform-rate",
+           let rate = element.attribute(forName: "srcFrameRate"),
+           Self.conformSourceFrameRatesIntroducedIn1_13.contains(rate)
+        {
+            element.removeAttribute(forName: "srcFrameRate")
+        }
+        for child in element.childElements {
+            normalizeConformSourceFrameRatesIntroducedIn1_13(in: child)
+        }
+    }
+
+    /// DTD allowlists name attributes, not enumeration tokens. FCPXML 1.15 widened
+    /// `keyframe` `interp` and `frameSampling`. Drop tokens the older DTD cannot accept
+    /// so the attribute falls back to its DTD default (`linear` / `floor`).
+    private func normalizeEnumerationsIntroducedIn1_15(in element: any OFKXMLElement) {
+        switch element.name {
+        case "keyframe":
+            if let interp = element.attribute(forName: "interp"),
+               !Self.keyframeInterpolationsBefore1_15.contains(interp)
+            {
+                element.removeAttribute(forName: "interp")
+            }
+        case "conform-rate", "timeMap":
+            if element.attribute(forName: "frameSampling") == "vsa-motion-blur" {
+                element.removeAttribute(forName: "frameSampling")
+            }
+        default:
+            break
+        }
+        for child in element.childElements {
+            normalizeEnumerationsIntroducedIn1_15(in: child)
+        }
     }
 
     /// When converting to 1.5–1.8, the DTD has asset with src on the element; in 1.9+ src is on media-rep. Promotes the first media-rep's src onto each asset that lacks src so that after we strip media-rep the asset still has required src.
@@ -151,6 +196,14 @@ public final class FCPXMLVersionConverter: FCPXMLVersionConverting, Sendable {
             stripElements(in: child, names: names)
         }
     }
+
+    private static let keyframeInterpolationsBefore1_15: Set<String> = [
+        "linear", "ease", "easeIn", "easeOut",
+    ]
+
+    private static let conformSourceFrameRatesIntroducedIn1_13: Set<String> = [
+        "90", "100", "119.88", "120",
+    ]
 
     /// Recursively removes attributes not supported by the target version (fallback when DTD not available).
     private func stripUnsupportedAttributes(in element: any OFKXMLElement, targetVersion: FCPXMLVersion) {

@@ -14,7 +14,7 @@
 
 ## Version conversion
 
-**FCPXMLVersionConverter** converts a document to a target FCPXML version (e.g. 1.14 → 1.10). It sets the root `version` attribute and **automatically removes elements and attributes not in the target version's DTD** (e.g. `adjust-colorConform`, `adjust-stereo-3D`, `hidden-clip-marker` for &lt; 1.13). Output validates and imports in Final Cut Pro.
+**FCPXMLVersionConverter** converts a document to a target FCPXML version (e.g. 1.15 → 1.10). It sets the root `version` attribute and **automatically removes elements and attributes not in the target version's DTD** (e.g. `adjust-colorConform`, `adjust-stereo-3D`, `hidden-clip-marker` for &lt; 1.13; `adjust-natural-motion-blur`, `mask-semantic`, anchorable `flags`, and pan-rect `interp` for &lt; 1.15). Keyframe `interp` tokens `hold` / `bezier` / `passthrough` and `frameSampling` `vsa-motion-blur` are dropped below 1.15 so those attributes return to their older defaults. `conform-rate` `srcFrameRate` tokens `90`, `100`, `119.88`, and `120` (added in 1.13) are removed below 1.13. Output validates and imports in Final Cut Pro.
 
 ```swift
 let service = ModularUtilities.createService()

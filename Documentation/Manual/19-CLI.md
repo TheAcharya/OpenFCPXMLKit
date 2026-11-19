@@ -26,7 +26,7 @@
 
 ## Overview
 
-The package includes an experimental command-line tool **OpenFCPXMLKit-CLI**. It is a **single binary**: FCPXML DTDs (1.5–1.14) are embedded, so you can copy the executable and run it without a resource bundle.
+The package includes an experimental command-line tool **OpenFCPXMLKit-CLI**. It is a **single binary**: FCPXML DTDs (1.5–1.15) are embedded, so you can copy the executable and run it without a resource bundle.
 
 Long-running commands (`--media-copy`, `--validate`, `--extract-shots`, `--report`) draw a terminal **ProgressBar** unless **`--quiet`** is set. `--media-copy` passes that bar as **`FCPXMLProgressReporter`**. See [18 — Errors & Utilities](18-Errors-Utilities.md#fcpxmlprogressreporter-and-progressbar).
 
@@ -44,7 +44,7 @@ Use **one** of: `--check-version`, `--convert-version`, `--validate`, `--media-c
 | Option | Description |
 |--------|-------------|
 | **--check-version** | Load FCPXML at path and print document version. No output-dir required. |
-| **--convert-version &lt;VERSION&gt;** | Load, convert to target version (1.5–1.14) with element stripping and DTD validation, save to output-dir. Output format: **--extension-type** (default .fcpxmld for 1.10+; 1.5–1.9 always .fcpxml). |
+| **--convert-version &lt;VERSION&gt;** | Load, convert to target version (1.5–1.15) with element stripping and DTD validation, save to output-dir. Output format: **--extension-type** (default .fcpxmld for 1.10+; 1.5–1.9 always .fcpxml). |
 | **--extension-type &lt;fcpxml\|fcpxmld&gt;** | Output format for convert only (requires `--convert-version`): `fcpxmld` (bundle, default when omitted) or `fcpxml` (single file). |
 | **--validate** | Robust validation: semantic + DTD against declared version. `ProgressBar` unless `--quiet`. No output-dir required. |
 | **--media-copy** | Extract **every** asset `media-rep` / locator reference and copy files to output-dir (distinct from public `fcpMediaURL` one-leaf APIs). `ProgressBar` as `FCPXMLProgressReporter` unless `--quiet`. Paths to stdout; summary to stderr. |
@@ -213,7 +213,7 @@ OpenFCPXMLKit-CLI --report --report-full \
 | **--width &lt;n&gt;** | Project width in pixels (used with `--create-project`). |
 | **--height &lt;n&gt;** | Project height in pixels (used with `--create-project`). |
 | **--rate &lt;fps&gt;** | Frame rate, e.g. 24, 25, 29.97 (used with `--create-project`). |
-| **--project-version &lt;ver&gt;** | FCPXML version for the new project (e.g. 1.10, 1.14). Default: 1.14 (used with `--create-project`). |
+| **--project-version &lt;ver&gt;** | FCPXML version for the new project (e.g. 1.10, 1.15). Default: 1.15 (`FCPXMLVersion.default`; used with `--create-project`). |
 
 ### LOG
 

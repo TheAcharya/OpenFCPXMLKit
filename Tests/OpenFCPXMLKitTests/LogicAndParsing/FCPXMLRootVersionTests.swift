@@ -90,9 +90,10 @@ struct FCPXMLRootVersionTests {
     func version_StaticMembers() {
         #expect(Version.ver1_11.rawValue == "1.11")
         #expect(Version.ver1_14.rawValue == "1.14")
-        #expect(Version.latest == .ver1_14)
+        #expect(Version.ver1_15.rawValue == "1.15")
+        #expect(Version.latest == .ver1_15)
         #expect(Version.allCases.contains(.ver1_10))
-        #expect(Version.allCases.contains(.ver1_14))
+        #expect(Version.allCases.contains(.ver1_15))
     }
 }
 

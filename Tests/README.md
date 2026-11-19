@@ -2,7 +2,7 @@
 
 This directory contains the test suite for OpenFCPXMLKit, a Swift 6 framework for Final Cut Pro FCPXML processing with SwiftTimecode integration. The suite runs on **macOS** (Foundation XML backend). The library also supports **iOS 26+** (AEXML backend); CI builds for iOS Simulator; the same tests are not run on iOS because they rely on Foundation XML.
 
-- **Test count:** **1265** tests listed in `swift test list` — **1251** in `OpenFCPXMLKitTests` + **10** in `ExcelReportTest` + **4** in `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest remaining; optional targets cancel without a local fixture)
+- **Test count:** **1273** tests listed in `swift test list` — **1259** in `OpenFCPXMLKitTests` + **10** in `ExcelReportTest` + **4** in `ShotExtractionTest` (all Swift Testing `@Test`; no XCTest remaining; optional targets cancel without a local fixture)
 - **Scope:** Parsing (including **public** `fcpMediaURL` / `fcpMediaRepresentationURLs` leaf URLs), timecode, document operations, file loading, timeline export, validation (semantic, DTD, structural), timeline manipulation, media processing, typed models (adjustments, filters, captions/titles, keyframe animation), CMTime Codable, collections, Live Drawing (1.11+), HiddenClipMarker (1.13+), Format/Asset 1.13+ (heroEye, heroEyeOverride, mediaReps), SmartCollection match rules, 360 video (projection, stereoscopic), auditions, conform-rate, still images, multicam, secondary storylines (host-role isolation; unfolded `mc-angle` interiors omitted from Role Inventory), audio keyframes, keyword collections/folders, empty timeline creation at different sizes and frame rates, project-creation export at different sizes and frame rates (with DTD validation), FCPXMLExporter clip-level metadata export (markers, chapter-markers, keywords, ratings, metadata as asset-clip children; DTD and xmllint-compatible XML declaration), cross-platform XML (AEXML serialization parity, DTD validator behaviour, structural validator), Timeline Projection (`TimelineProjector` / `MediaUsageWindow` / `ReportProjectionContext`, project-once for report sections, containers bounding contained media, walk hygiene and hang budgets on annotation-dense clips), Excel and PDF reporting (universal **Row** column on all tabular sheets via `ensuringRowColumn` / `allowsInjectedRowColumn`, role inventory columns, Duplicate Frames = Source In/Out overlap, Inspector-unit Effects / inventory settings, Summary sheet with project title in **B1**, Media Summary sheets, configurable `ReportTimecodeFormat` / DF·NDF notation, format-aware headers, Frames/Feet+Frames sort order, inventory-first `ReportBuildPhase` progress, global column exclusion, disabled-clip filtering, Markers out-of-bounds filter / optional **Hidden** column (`includeMarkersOutsideClipBoundaries`), Excel `protectSheets` worksheet protection, workbook export and cell formatting, PDF cover with black “About This PDF Export” header + `info.circle`, TOC with accent colour chips + content-tint washes keyed to sheet `colorIndex`, remaining columns expanded to fill A4 landscape width after exclusions, section pagination, shared `FCPXMLReportRowColorPolicy`, standalone compound-clip timelines via `allReportTimelineSources()` / `FCPXMLCompoundClipReportTests`), and all supported FCPXML versions and frame rates  
 - **Layout:** Shared utilities for sample paths; file tests per sample; logic/parsing tests for model types and structure; validation and cross-platform XML tests; optional Excel/PDF report integration tests under `ExcelReportTest/`; optional Shot Extraction integration under `ShotExtractionTest/`; private investigation inbox under `Submitted FCPXML/` (gitignored contents)
 
@@ -78,7 +78,7 @@ Tests/
 │   ├── Inbox/
 │   └── Notes/
 ├── FCPXML Samples/
-│   └── FCPXML/                   # 60 public .fcpxml fixtures (incl. GeneralDemo)
+│   └── FCPXML/                   # 61 public .fcpxml fixtures (incl. GeneralDemo, GeneralDemo13)
 └── OpenFCPXMLKitTests/
     ├── OpenFCPXMLKitTests.swift
     ├── FCPXMLTestResources.swift
@@ -231,8 +231,8 @@ swift test --filter OpenFCPXMLKitTests             # By pattern
 To verify the documented test counts:
 
 ```bash
-swift test list 2>/dev/null | grep -E '^(OpenFCPXMLKitTests|ExcelReportTest|ShotExtractionTest)\.' | wc -l   # 1265
-swift test list 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 1251
+swift test list 2>/dev/null | grep -E '^(OpenFCPXMLKitTests|ExcelReportTest|ShotExtractionTest)\.' | wc -l   # 1273
+swift test list 2>/dev/null | grep -c 'OpenFCPXMLKitTests\.'   # 1259
 swift test list 2>/dev/null | grep -c 'ExcelReportTest\.'       # 10
 swift test list 2>/dev/null | grep -c 'ShotExtractionTest\.'    # 4
 ```
@@ -268,7 +268,7 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 | **FCPXML time strings** | Valid value/timescale formats; invalid strings → CMTime.zero |
 | **Time conforming** | `conform(time:toFrameDuration:)` for all eight FCP frame durations |
 | **Error handling** | ErrorHandler for FCPXMLError; parser with invalid XML |
-| **Document management** | Document creation 1.5–1.14; add resources/sequences; validate structure |
+| **Document management** | Document creation 1.5–1.15; add resources/sequences; validate structure |
 | **Element filtering** | Core, extended, and all `FCPXMLElementType` coverage |
 | **Modular extensions** | CMTime (timecode, fcpxmlTime, conformed); OFKXMLElement (setAttribute, getAttribute, createChild); OFKXMLDocument (addResource, addSequence, isValid) |
 | **Performance (params)** | Timecode conversion all frame rates; document creation loop; element filtering large dataset |
@@ -286,7 +286,7 @@ Tests are discovered automatically by Swift PM. Run `swift test` (Swift Testing 
 
 - **FCPXMLAEXMLSerializationParityTests** — AEXML round-trip (parse → serialize → re-parse, structure comparison); backend parity (Foundation vs AEXML on same FCPXML); all-samples smoke (AEXML parses every sample); root/version parity; DTD validation (AEXML throws dtdValidationUnavailable). Documents known serialization differences (attribute order, whitespace, empty elements, DOCTYPE stripping, comments).
 - **FCPXMLDTDValidatorTests** — Validates document against a given FCPXML version's DTD; on macOS full DTD validation; on iOS (or when DTD unavailable) uses FCPXMLStructuralValidator and may return structuralValidationOnly warning.
-- **FCPXMLStructuralValidatorTests** — Cross-platform structural validation: root name `fcpxml`, required `version`, required `resources`, at least one content element (library/event/project), element-name allowlist (1.5–1.14); unknownElementName error; structuralValidationOnly warning.
+- **FCPXMLStructuralValidatorTests** — Cross-platform structural validation: root name `fcpxml`, required `version`, required `resources`, at least one content element (library/event/project), element-name allowlist (1.5–1.15); unknownElementName error; structuralValidationOnly warning.
 
 ### Media & extraction
 
@@ -391,6 +391,7 @@ See [20 — Reporting, Excel & PDF Export](../Documentation/Manual/20-Reporting.
 - **HiddenClipMarker (1.13+)** — **FCPXMLAPIAndEdgeCaseTests**: testHiddenClipMarkerModelAndAnnotationElements (model from element, create new, fcpxAnnotations). FCPXMLVersionConversionTests: hidden-clip-marker stripped when converting to &lt; 1.13.
 - **FCPXMLSmartCollectionTests** — SmartCollection; MatchUsage, MatchRepresentation, MatchMarkers, MatchAnalysisType; round-trip; version stripping.
 - **FCPXMLVersionConversionTests** — Version conversion; save .fcpxml/.fcpxmld; DTD-based stripping (heroEye, hidden-clip-marker, etc.).
+- **FCPXMLVersion115Tests** — FCPXML 1.15 tokens, natural motion blur, semantic masks, anchorable flags, pan-rect interpolation, and conversion stripping to 1.14.
 - **FCPXMLImportOptionsTests** — import-options element (get/set); setShouldCopyAssetsOnImport, setShouldSuppressWarningsOnImport, setLibraryLocationForImport; removeChildren(where:) behaviour with import-options.
 
 ---
@@ -495,13 +496,13 @@ Eight frame rates supported by Final Cut Pro: **23.976** (`.fps23_976`), **24** 
 
 ## 10. FCPXML versions
 
-Document manager tests create documents for **FCPXML 1.5 through 1.14** and assert valid structure and resource/sequence handling. Parsing and validation use samples valid for their declared version; invalid XML is covered in testParserWithInvalidXML. DTDs live under **Sources/OpenFCPXMLKit/FCPXML DTDs/**; the suite does not exhaustively test every version-specific DTD attribute.
+Document manager tests create documents for **FCPXML 1.5 through 1.15** and assert valid structure and resource/sequence handling. Parsing and validation use samples valid for their declared version; invalid XML is covered in testParserWithInvalidXML. DTDs live under **Sources/OpenFCPXMLKit/FCPXML DTDs/**; the suite does not exhaustively test every version-specific DTD attribute.
 
 ---
 
 ## 11. Sample files
 
-- **Count:** **60** public `.fcpxml` fixtures (including `HiddenMarkers.fcpxml` for out-of-bounds marker semantics).
+- **Count:** **61** public `.fcpxml` fixtures (including `HiddenMarkers.fcpxml` for out-of-bounds marker semantics).
 - **Location:** `Tests/FCPXML Samples/FCPXML/` (sibling of OpenFCPXMLKitTests).
 - **Path resolution:** At runtime via **packageRoot(relativeToFile: #file)** so tests work from Xcode and `swift test` without bundle resources.
 - **FCPXMLTestResources.swift** — `packageRoot`, `fcpxmlSamplesDirectory()`, `urlForFCPXMLSample(named:)`.
@@ -624,7 +625,7 @@ Add tests for new behaviour or edge cases; place them in the right file and MARK
 - **Final Cut Pro XML (FCPXML)** — [fcp.cafe](https://fcp.cafe) for format reference
 - **SwiftTimecode** (GitHub) — timecode and frame rate types
 
-**Keep counts in sync:** `swift test list` → **1265** total (**1251** OpenFCPXMLKitTests + **10** ExcelReportTest + **4** ShotExtractionTest; all Swift Testing); **60** public samples.
+**Keep counts in sync:** `swift test list` → **1273** total (**1259** OpenFCPXMLKitTests + **10** ExcelReportTest + **4** ShotExtractionTest; all Swift Testing); **61** public samples.
 
 ---
 

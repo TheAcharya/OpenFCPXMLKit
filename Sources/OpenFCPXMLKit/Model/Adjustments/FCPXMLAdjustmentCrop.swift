@@ -80,6 +80,14 @@ extension FinalCutPro.FCPXML {
             }
         }
         
+        /// Interpolation for a pan rect. FCPXML 1.15+. Default is `ease`.
+        public enum PanRectInterpolation: String, Sendable, Equatable, Hashable, Codable {
+            case linear
+            case ease
+            case easeIn
+            case easeOut
+        }
+
         /// Defines the pan values of a crop adjustment.
         public struct PanRect: Sendable, Equatable, Hashable, Codable {
             /// The left value of the pan rect.
@@ -93,6 +101,9 @@ extension FinalCutPro.FCPXML {
             
             /// The bottom value of the pan rect.
             public var bottom: Double
+
+            /// Pan interpolation. FCPXML 1.15+. Default `ease` matches the DTD and is omitted on write.
+            public var interpolation: PanRectInterpolation
             
             /// Initializes a new pan rect.
             /// - Parameters:
@@ -100,11 +111,44 @@ extension FinalCutPro.FCPXML {
             ///   - top: The top value of the pan rect.
             ///   - right: The right value of the pan rect.
             ///   - bottom: The bottom value of the pan rect.
-            public init(left: Double, top: Double, right: Double, bottom: Double) {
+            ///   - interpolation: Pan interpolation (default: `.ease`). FCPXML 1.15+.
+            public init(
+                left: Double,
+                top: Double,
+                right: Double,
+                bottom: Double,
+                interpolation: PanRectInterpolation = .ease
+            ) {
                 self.left = left
                 self.top = top
                 self.right = right
                 self.bottom = bottom
+                self.interpolation = interpolation
+            }
+
+            private enum CodingKeys: String, CodingKey {
+                case left, top, right, bottom
+                case interpolation = "interp"
+            }
+
+            public init(from decoder: Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                left = try container.decode(Double.self, forKey: .left)
+                top = try container.decode(Double.self, forKey: .top)
+                right = try container.decode(Double.self, forKey: .right)
+                bottom = try container.decode(Double.self, forKey: .bottom)
+                interpolation = try container.decodeIfPresent(PanRectInterpolation.self, forKey: .interpolation) ?? .ease
+            }
+
+            public func encode(to encoder: Encoder) throws {
+                var container = encoder.container(keyedBy: CodingKeys.self)
+                try container.encode(left, forKey: .left)
+                try container.encode(top, forKey: .top)
+                try container.encode(right, forKey: .right)
+                try container.encode(bottom, forKey: .bottom)
+                if interpolation != .ease {
+                    try container.encode(interpolation, forKey: .interpolation)
+                }
             }
         }
         

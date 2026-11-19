@@ -54,7 +54,7 @@ document.add(events: [newEvent])
 if let resource = document.resource(matchingID: "r1") { /* use */ }
 document.remove(resourceAtIndex: 0)
 // validateFCPXMLAgainst is available on macOS (Foundation backend)
-try document.validateFCPXMLAgainst(version: .v1_14)
+try document.validateFCPXMLAgainst(version: .v1_15)
 ```
 
 ---

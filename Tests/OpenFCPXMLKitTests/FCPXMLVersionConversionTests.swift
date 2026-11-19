@@ -69,6 +69,24 @@ struct FCPXMLVersionConversionTests {
         #expect(found == nil, "adjust-colorConform must be stripped when converting to 1.10 for FCP DTD validation")
     }
 
+    /// `srcFrameRate` tokens added in 1.13 are not in the 1.12 DTD.
+    @Test("Convert to version 1.12 drops high conform source rates and 1.13 keeps them")
+    func convertToVersion_1_12_DropsHighConformSourceFrameRates() throws {
+        let doc = service.createFCPXMLDocument(version: "1.15")
+        let root = try #require(doc.rootElement())
+        let conform = factory.makeElement(name: "conform-rate")
+        conform.addAttribute(name: "srcFrameRate", value: "119.88")
+        root.addChild(conform)
+
+        let stripped = try service.convertToVersion(doc, targetVersion: .v1_12)
+        let strippedConform = try #require(findElement(named: "conform-rate", in: stripped))
+        #expect(strippedConform.attribute(forName: "srcFrameRate") == nil)
+
+        let kept = try service.convertToVersion(doc, targetVersion: .v1_13)
+        let keptConform = try #require(findElement(named: "conform-rate", in: kept))
+        #expect(keptConform.attribute(forName: "srcFrameRate") == "119.88")
+    }
+
     /// When converting to 1.12, adjust-stereo-3D (1.13+) is stripped.
     @Test("Convert to version 1.12 strips adjust-stereo-3D")
     func convertToVersion_1_12_StripsAdjustStereo3D() throws {

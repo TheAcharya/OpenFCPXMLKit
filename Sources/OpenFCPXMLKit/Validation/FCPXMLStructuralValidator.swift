@@ -158,15 +158,15 @@ public struct FCPXMLStructuralValidator: Sendable {
 
     // MARK: - Known Versions
 
-    /// Known FCPXML version strings (1.5 through 1.14).
+    /// Known FCPXML version strings (1.5 through 1.15).
     static let knownVersions: Set<String> = [
         "1.5", "1.6", "1.7", "1.8", "1.9",
-        "1.10", "1.11", "1.12", "1.13", "1.14",
+        "1.10", "1.11", "1.12", "1.13", "1.14", "1.15",
     ]
 
     // MARK: - FCPXML Element Name Allowlist
 
-    /// The set of all known FCPXML element names (versions 1.5 through 1.14).
+    /// The set of all known FCPXML element names (versions 1.5 through 1.15).
     static let allowedElementNames: Set<String> = [
         // Document structure
         "fcpxml", "resources", "library", "event", "project",
@@ -233,7 +233,10 @@ public struct FCPXMLStructuralValidator: Sendable {
         "media-rep",
 
         // Masking
-        "mask-shape", "mask-shape-source",
+        "mask-shape", "mask-shape-source", "mask-semantic",
+
+        // Primitive video adjustments (FCPXML 1.15+)
+        "adjust-natural-motion-blur",
 
         // Roles
         "role",
